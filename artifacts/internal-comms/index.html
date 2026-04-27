@@ -2194,7 +2194,12 @@ function generateSection(secKey) {
   if (!data) return;
 
   // shuffle لإظهار ترتيب مختلف في كل ضغطة
-  const shuffled = [...data].sort(() => Math.random() - 0.5);
+  const current = wk2Selected[secKey];
+  const currentKey = current ? JSON.stringify(current) : '';
+  let shuffled = [...data].sort(() => Math.random() - 0.5);
+  if (currentKey && shuffled.length > 1 && JSON.stringify(shuffled[0]) === currentKey) {
+    shuffled = [...shuffled.slice(1), shuffled[0]];
+  }
   renderOptions(secKey, shuffled);
 
   if (genBtn) genBtn.classList.remove('active');
@@ -2257,7 +2262,7 @@ function renderOptionCard(secKey, opt, i) {
         <div class="wk2-opt-body">${opt.body}</div>
         <div class="wk2-btn-row">
           <button onclick="event.stopPropagation(); window.location.href='${mapsUrl}'" class="wk2-btn wk2-btn-map">🗺️ عرض على الخريطة</button>
-          <button onclick="event.stopPropagation(); generateSection('place')" class="wk2-btn wk2-btn-primary">🔄 توليد أماكن جديدة</button>
+          <button onclick="event.stopPropagation(); regenerateSection('place')" class="wk2-btn wk2-btn-primary">🔄 توليد أماكن جديدة</button>
         </div>
       </div>
     </div>`;
@@ -2466,6 +2471,15 @@ function selectOption(secKey, idx, optData) {
   document.getElementById(`badge-${secKey}`).classList.remove('hidden');
   document.getElementById(`sec-${secKey}`).classList.add('completed');
   updateProgress();
+}
+
+function regenerateSection(secKey) {
+  wk2Selected[secKey] = null;
+  const badge = document.getElementById(`badge-${secKey}`);
+  const sec = document.getElementById(`sec-${secKey}`);
+  if (badge) badge.classList.add('hidden');
+  if (sec) sec.classList.remove('completed');
+  generateSection(secKey);
 }
 
 function updateProgress() {
