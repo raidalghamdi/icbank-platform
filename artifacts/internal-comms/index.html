@@ -1783,6 +1783,94 @@ function fetchNews() {
   updateStats(all.length);
 }
 
+function getWeekKey() {
+  const d = new Date();
+  const day = (d.getDay() + 6) % 7;
+  d.setDate(d.getDate() - day + 3);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function pickWeeklyItems(items, count, key) {
+  const seed = Array.from(key).reduce((a, c) => a + c.charCodeAt(0), 0);
+  const pool = [...items];
+  const picked = [];
+  while (pool.length && picked.length < count) {
+    const idx = seed % pool.length;
+    picked.push(pool.splice(idx, 1)[0]);
+  }
+  return picked;
+}
+
+function weeklyPlaceOptions() {
+  return pickWeeklyItems([
+    { title:'الدرعية', body:'زيارة تراثية مناسبة للعائلة خلال نهاية الأسبوع', maps_query:'الدرعية الرياض' },
+    { title:'بوليفارد رياض سيتي', body:'وجهة ترفيهية ومطاعم ومشي للعائلة', maps_query:'بوليفارد رياض سيتي' },
+    { title:'واجهة الرياض', body:'جلسات ومقاهٍ ومساحات مناسبة للزيارة المسائية', maps_query:'واجهة الرياض' },
+    { title:'حديقة الملك عبدالله', body:'خيار عائلي هادئ للنزهة والتمشية', maps_query:'حديقة الملك عبدالله الرياض' },
+    { title:'متحف الدرعية', body:'زيارة ثقافية خفيفة وممتعة', maps_query:'متحف الدرعية' },
+  ], 3, getWeekKey());
+}
+
+function weeklyDealsOptions() {
+  return [
+    { title:'عروض المطاعم العائلية', deals:[
+      { place:'Shake Shack', discount:'20%', detail:'خصم نهاية الأسبوع عبر التطبيق', emoji:'🍔', url:'https://instagram.com/shakeshacksa' },
+      { place:'Starbucks', discount:'1+1', detail:'عروض مشروبات مختارة', emoji:'☕', url:'https://instagram.com/starbucksarabia' },
+      { place:'The Cheesecake Factory', discount:'15%', detail:'خصم على الطلبات العائلية', emoji:'🍰', url:'https://instagram.com/thecheesecakefactoryarabia' },
+    ]},
+    { title:'عروض العائلة والترفيه', deals:[
+      { place:'VOX Cinemas', discount:'2 بسعر 1', detail:'على بعض العروض المختارة', emoji:'🎬', url:'https://sa.voxcinemas.com' },
+      { place:'Muvi Cinemas', discount:'25%', detail:'خصم لحاملي الولاء', emoji:'🎥', url:'https://muvi.com' },
+      { place:'Fitness Time', discount:'شهر مجاني', detail:'عند الاشتراك السنوي', emoji:'💪', url:'https://instagram.com/fitnesstimeksa' },
+    ]},
+  ];
+}
+
+function weeklyPodcastOptions() {
+  return pickWeeklyItems([
+    { title:'بودكاست سقراط', channel:'إذاعة ثمانية', youtube_query:'بودكاست سقراط' , episode:'حلقة عن بناء العادات والإنتاجية', tagline:'مفيد ومُلهم', field:'تطوير ذاتي', color:'#1A56DB' },
+    { title:'بودكاست فنجان', channel:'عبدالرحمن أبومالح', youtube_query:'بودكاست فنجان' , episode:'حلقة عن قيادة الفرق والتأثير', tagline:'تجربة عملية', field:'قيادة', color:'#7C3AED' },
+    { title:'بودكاست تنفس', channel:'إذاعة ثمانية', youtube_query:'بودكاست تنفس ثمانية' , episode:'حلقة عن التوازن بين العمل والحياة', tagline:'مناسب للعائلة', field:'رفاهية', color:'#059669' },
+  ], 1, getWeekKey());
+}
+
+function weeklyAiOptions() {
+  return [
+    { title:'ChatGPT', emoji:'🤖', tagline:'مساعد ذكي للكتابة والشرح', field:'مساعد عام', color:'#2563EB', url:'https://openai.com/chatgpt', uses:['كتابة المحتوى','تلخيص النصوص','الشرح السريع'] },
+    { title:'Gemini', emoji:'✨', tagline:'أداة بحث وتوليد متقدمة', field:'بحث وذكاء', color:'#7C3AED', url:'https://gemini.google.com', uses:['البحث الذكي','تحليل المعلومات','مساعد للمهام'] },
+    { title:'Perplexity', emoji:'🔎', tagline:'بحث موثوق مع مصادر', field:'بحث', color:'#0F766E', url:'https://www.perplexity.ai', uses:['إجابات موثقة','استكشاف سريع','مصادر مباشرة'] },
+  ];
+}
+
+function weeklyMatchesOptions() {
+  return [
+    { title:'مباريات نهاية الأسبوع', matches:[
+      { home:'الهلال', away:'النصر', time:'21:00', day:'الخميس', competition:'دوري روشن', importance:'⭐' },
+      { home:'الاتحاد', away:'الأهلي', time:'21:00', day:'الجمعة', competition:'دوري روشن', importance:'⭐' },
+      { home:'الشباب', away:'التعاون', time:'18:00', day:'السبت', competition:'دوري روشن', importance:'⚽' },
+    ]},
+  ];
+}
+
+function weeklyMoviesOptions() {
+  return [
+    { title:'أفلام العائلة هذا الأسبوع', movies:[
+      { title:'Inside Out 2', genre:'Animation / Family', rating:'PG', note:'مناسب للعائلة بالكامل', cinema:'Muvi', duration:'1h 36m' },
+      { title:'Despicable Me 4', genre:'Animation / Comedy', rating:'PG', note:'خيار ممتع للأطفال', cinema:'Vox', duration:'1h 34m' },
+      { title:'Kung Fu Panda 4', genre:'Animation / Adventure', rating:'PG', note:'مناسب لجميع أفراد العائلة', cinema:'Muvi', duration:'1h 34m' },
+    ]},
+  ];
+}
+
+const STATIC_DATA = {
+  place: weeklyPlaceOptions(),
+  deals: weeklyDealsOptions(),
+  podcast: weeklyPodcastOptions(),
+  ai: weeklyAiOptions(),
+  matches: weeklyMatchesOptions(),
+  movies: weeklyMoviesOptions(),
+};
+
 function getFallbackNews() {
   return [
     { title:'IC Index 2024: Employee Trust in Leadership Communication Reaches 10-Year Low', description:'A new global study finds that only 38% of workers believe their leaders communicate honestly, marking the lowest trust level in a decade.', source:{name:'IC Index'}, publishedAt: new Date(Date.now()-2*86400000).toISOString(), url:'#', tag:'أبحاث' },
@@ -2192,10 +2280,8 @@ function generateSection(secKey) {
 
   const data = STATIC_DATA[secKey];
   if (!data) return;
-
-  // shuffle لإظهار ترتيب مختلف في كل ضغطة
-  const shuffled = [...data].sort(() => Math.random() - 0.5);
-  renderOptions(secKey, shuffled);
+  const section = data[0];
+  renderOptions(secKey, [section]);
 
   if (genBtn) genBtn.classList.remove('active');
 }
