@@ -1,0 +1,20 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "tosbEAYaWiEStUr4B93FQ"
+uri = "file://artifacts/internal-comms/static/images/place-mall.jpg"
+type = "image"
+title = "shopping mall exterior at night"
+
+[[outputs]]
+id = "zr2SYZibTkITaQ8PZ1tF9"
+uri = "file://artifacts/internal-comms/static/images/place-city.jpg"
+type = "image"
+title = "city skyline with modern buildings"
+
+[[outputs]]
+id = "Cd3oV-9JT-eMyj3pjpJkf"
+uri = "file://artifacts/internal-comms/static/images/place-park.jpg"
+type = "image"
+title = "green park with walking paths"
