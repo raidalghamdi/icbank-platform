@@ -2239,9 +2239,9 @@ function renderOptionCard(secKey, opt, i) {
   if (secKey === 'place') {
     const mapsUrl = `https://www.google.com/maps/search/${encodeURIComponent(opt.maps_query||opt.title)}`;
     const placeImages = [
-      'static/images/place-city.jpg',
-      'static/images/place-park.jpg',
-      'static/images/place-mall.jpg',
+      '/static/images/place-city.jpg',
+      '/static/images/place-park.jpg',
+      '/static/images/place-mall.jpg',
     ];
     const placeImage = placeImages[i % placeImages.length];
     return `<div class="wk2-option-card wk2-place-card" id="opt-${secKey}-${i}" onclick="${sel}">
