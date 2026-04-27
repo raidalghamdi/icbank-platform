@@ -2257,6 +2257,7 @@ function renderOptionCard(secKey, opt, i) {
         <div class="wk2-opt-body">${opt.body}</div>
         <div class="wk2-btn-row">
           <button onclick="event.stopPropagation(); window.location.href='${mapsUrl}'" class="wk2-btn wk2-btn-map">🗺️ عرض على الخريطة</button>
+          <button onclick="event.stopPropagation(); generateSection('place')" class="wk2-btn wk2-btn-primary">🔄 توليد أماكن جديدة</button>
         </div>
       </div>
     </div>`;
