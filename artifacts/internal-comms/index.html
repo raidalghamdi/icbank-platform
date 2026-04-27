@@ -2234,30 +2234,55 @@ function initWeekend() {
   wk2Selected = { place:null, deals:null, podcast:null, ai:null, matches:null, movies:null };
   renderSavedWeekends();
   updateProgress();
-  // عرض كل الخيارات الأخرى فوراً
-  WK2_SECTIONS.filter(s => s !== 'place').forEach(sec => generateSection(sec));
-  // قسم الأماكن: جلب من الذكاء الاصطناعي
-  loadAIPlaces();
+  // عرض loading لجميع الأقسام ثم جلبها من الذكاء الاصطناعي
+  WK2_SECTIONS.forEach(sec => showSectionLoading(sec));
+  loadAllWeekendSections();
 }
 
-async function loadAIPlaces() {
-  const optsEl = document.getElementById('opts-place');
+function showSectionLoading(secKey) {
+  const optsEl = document.getElementById(`opts-${secKey}`);
   if (!optsEl) return;
-  optsEl.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:32px;color:#6B7280;font-size:14px;">
-    <div style="font-size:28px;margin-bottom:10px;">✨</div>
-    جاري تحضير أماكن مميزة لك هذا الأسبوع...
+  optsEl.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:28px;color:#6B7280;font-size:13px;">
+    <div style="font-size:24px;margin-bottom:8px;animation:spin 1.5s linear infinite;display:inline-block">✨</div>
+    <div>جاري التحضير بالذكاء الاصطناعي...</div>
   </div>`;
+}
+
+async function loadAllWeekendSections() {
   try {
-    const res = await fetch('/api/places');
+    const res = await fetch('/wk2-data');
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
-    if (!data.places || !data.places.length) throw new Error('no places');
-    // اختر 6 عشوائية
-    const shuffled = [...data.places].sort(() => Math.random() - 0.5).slice(0, 6);
-    renderOptions('place', shuffled);
+
+    // أماكن
+    if (data.places?.length) {
+      const shuffled = [...data.places].sort(() => Math.random() - 0.5).slice(0, 6);
+      renderOptions('place', shuffled);
+    } else generateSection('place');
+
+    // عروض
+    if (data.deals?.length) renderOptions('deals', data.deals);
+    else generateSection('deals');
+
+    // بودكاست
+    if (data.podcasts?.length) renderOptions('podcast', data.podcasts);
+    else generateSection('podcast');
+
+    // أدوات AI
+    if (data.aiTools?.length) renderOptions('ai', data.aiTools);
+    else generateSection('ai');
+
+    // مباريات
+    if (data.matches?.length) renderOptions('matches', data.matches);
+    else generateSection('matches');
+
+    // أفلام
+    if (data.movies?.length) renderOptions('movies', data.movies);
+    else generateSection('movies');
+
   } catch (err) {
-    console.warn('[Places] AI fetch failed, using static data:', err.message);
-    generateSection('place');
+    console.warn('[Weekend] AI fetch failed, using static data:', err.message);
+    WK2_SECTIONS.forEach(sec => generateSection(sec));
   }
 }
 
@@ -2303,7 +2328,7 @@ function renderOptionCard(secKey, opt, i) {
 
   // ── 🎯 عروض وخصومات — بطاقات احترافية ──
   if (secKey === 'deals') {
-    const dealsHTML = (opt.deals||[]).map(d => {
+    const dealsHTML = (opt.items||opt.deals||[]).map(d => {
       const verifyUrl = (d.url && d.url.startsWith('http'))
         ? d.url
         : `https://www.google.com/search?q=${encodeURIComponent((d.place||'') + ' الرياض عروض')}`;
