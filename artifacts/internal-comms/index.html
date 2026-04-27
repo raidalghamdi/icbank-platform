@@ -635,6 +635,8 @@ nav a .nav-emoji { font-size: 14px; }
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
   position: relative; gap: 8px;
+  background-size: cover !important;
+  background-position: center !important;
 }
 .wk2-place-img-icon { font-size: 42px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3)); }
 .wk2-place-img-title {
@@ -2242,19 +2244,16 @@ function renderOptionCard(secKey, opt, i) {
 
   // ── 📍 وين نروح — بطاقة مع خلفية تدرجية جميلة ──
   if (secKey === 'place') {
-    const gradients = [
-      'linear-gradient(135deg, #1A56DB 0%, #3B82F6 50%, #06B6D4 100%)',
-      'linear-gradient(135deg, #15803D 0%, #22C55E 50%, #86EFAC 100%)',
-      'linear-gradient(135deg, #7C3AED 0%, #A78BFA 50%, #EC4899 100%)',
+    const placeImages = [
+      '/static/images/place-city.jpg',
+      '/static/images/place-park.jpg',
+      '/static/images/place-mall.jpg',
     ];
-    const icons = ['🏙️','🌿','🎡'];
-    const bg = gradients[i % gradients.length];
-    const icon = icons[i % icons.length];
+    const placeBg = placeImages[i % placeImages.length];
     const mapsUrl = `https://www.google.com/maps/search/${encodeURIComponent(opt.maps_query||opt.title)}`;
     return `<div class="wk2-option-card wk2-place-card" id="opt-${secKey}-${i}" onclick="${sel}">
       <div class="wk2-opt-num-abs">خيار ${i+1}</div>
-      <div class="wk2-place-img" style="background:${bg}">
-        <div class="wk2-place-img-icon">${icon}</div>
+      <div class="wk2-place-img" style="background-image:url('${placeBg}')">
         <div class="wk2-place-img-title">${opt.title}</div>
       </div>
       <div class="wk2-place-body">
