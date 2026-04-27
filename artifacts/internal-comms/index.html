@@ -2361,33 +2361,6 @@ function renderOptionCard(secKey, opt, i) {
     </div>`;
   }
 
-    return `<div class="wk2-pod-card" id="opt-${secKey}-${i}" onclick="${sel}" style="border-color:${color}30">
-      <div class="wk2-opt-num-abs">خيار ${i+1}</div>
-      <div onclick="event.stopPropagation();window.location.href='${ytSearch}'" style="cursor:pointer">
-        ${autoThumb}
-      </div>
-      <div class="wk2-pod-body">
-        <div class="wk2-pod-field" style="background:${color}15;color:${color}">${opt.field||''}</div>
-        <div class="wk2-pod-name" style="color:${color}">${opt.title}</div>
-        <div class="wk2-pod-channel">📺 ${opt.channel}</div>
-        <div class="wk2-pod-divider"></div>
-        <div class="wk2-pod-ep-label">الحلقة المقترحة</div>
-        <div class="wk2-pod-ep-title">${opt.episode}</div>
-        <div class="wk2-pod-tagline" style="border-right:3px solid ${color};padding-right:10px">${opt.tagline}</div>
-        <div class="wk2-pod-btns">
-          <button onclick="event.stopPropagation();window.location.href='${ytSearch}'"
-            style="flex:1;height:34px;background:${color};color:white;border:none;border-radius:7px;font-family:Cairo,sans-serif;font-size:12px;font-weight:700;cursor:pointer">
-            🔍 ابحث عن الحلقة
-          </button>
-          <button onclick="event.stopPropagation();window.location.href='${ytChannel}'"
-            style="flex:1;height:34px;background:white;color:${color};border:1.5px solid ${color}40;border-radius:7px;font-family:Cairo,sans-serif;font-size:12px;font-weight:700;cursor:pointer">
-            📺 القناة
-          </button>
-        </div>
-      </div>
-    </div>`;
-  }
-
   // ── 🤖 أدوات AI — بطاقة شعار + ميزات ──
   if (secKey === 'ai') {
     const usesHTML = (opt.uses||[]).map(u => `<div class="wk2-ai-use">✓ ${u}</div>`).join('');
