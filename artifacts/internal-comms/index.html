@@ -2234,8 +2234,31 @@ function initWeekend() {
   wk2Selected = { place:null, deals:null, podcast:null, ai:null, matches:null, movies:null };
   renderSavedWeekends();
   updateProgress();
-  // عرض كل الخيارات تلقائياً عند فتح الصفحة
-  WK2_SECTIONS.forEach(sec => generateSection(sec));
+  // عرض كل الخيارات الأخرى فوراً
+  WK2_SECTIONS.filter(s => s !== 'place').forEach(sec => generateSection(sec));
+  // قسم الأماكن: جلب من الذكاء الاصطناعي
+  loadAIPlaces();
+}
+
+async function loadAIPlaces() {
+  const optsEl = document.getElementById('opts-place');
+  if (!optsEl) return;
+  optsEl.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:32px;color:#6B7280;font-size:14px;">
+    <div style="font-size:28px;margin-bottom:10px;">✨</div>
+    جاري تحضير أماكن مميزة لك هذا الأسبوع...
+  </div>`;
+  try {
+    const res = await fetch('/api/places');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (!data.places || !data.places.length) throw new Error('no places');
+    // اختر 6 عشوائية
+    const shuffled = [...data.places].sort(() => Math.random() - 0.5).slice(0, 6);
+    renderOptions('place', shuffled);
+  } catch (err) {
+    console.warn('[Places] AI fetch failed, using static data:', err.message);
+    generateSection('place');
+  }
 }
 
 function getWeekendDates() {
