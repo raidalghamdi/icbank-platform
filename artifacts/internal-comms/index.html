@@ -2244,21 +2244,23 @@ function renderOptionCard(secKey, opt, i) {
 
   // ── 📍 وين نروح — بطاقة مع خلفية تدرجية جميلة ──
   if (secKey === 'place') {
-    const placeImages = [
-      '/static/images/place-city.jpg',
-      '/static/images/place-park.jpg',
-      '/static/images/place-mall.jpg',
-    ];
-    const placeBg = placeImages[i % placeImages.length];
     const mapsUrl = `https://www.google.com/maps/search/${encodeURIComponent(opt.maps_query||opt.title)}`;
-    return `<div class="wk2-option-card wk2-place-card" id="opt-${secKey}-${i}" onclick="${sel}">
+    return `<div class="wk2-option-card wk2-place-card wk2-place-text-card" id="opt-${secKey}-${i}" onclick="${sel}">
       <div class="wk2-opt-num-abs">خيار ${i+1}</div>
-      <div class="wk2-place-img" style="background-image:url('${placeBg}')">
-        <div class="wk2-place-img-title">${opt.title}</div>
+      <div class="wk2-place-header">
+        <div class="wk2-place-pin">📍</div>
+        <div class="wk2-place-header-text">
+          <div class="wk2-place-name">${opt.title}</div>
+          <div class="wk2-place-sub">مكان مقترح لقضاء نهاية الأسبوع</div>
+        </div>
       </div>
       <div class="wk2-place-body">
         <div class="wk2-opt-title">📍 ${opt.title}</div>
         <div class="wk2-opt-body">${opt.body}</div>
+        <div class="wk2-place-meta">
+          <span class="badge b-blue">٦ خيارات</span>
+          <span class="badge b-green">جاهز للزيارة</span>
+        </div>
         <div class="wk2-btn-row">
           <button onclick="event.stopPropagation(); window.location.href='${mapsUrl}'" class="wk2-btn wk2-btn-map">🗺️ عرض على الخريطة</button>
           <button onclick="event.stopPropagation(); regenerateSection('place')" class="wk2-btn wk2-btn-primary">🔄 توليد أماكن جديدة</button>
