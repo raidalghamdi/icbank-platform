@@ -511,16 +511,11 @@ nav a .nav-emoji { font-size: 14px; }
 }
 .wk2-option-card {
   border: 2px solid var(--border); border-radius: 12px;
-  padding: 18px; cursor: pointer; transition: all 0.2s;
+  padding: 18px; cursor: default; transition: all 0.2s;
   position: relative; background: var(--bg);
 }
-.wk2-option-card:hover { border-color: var(--primary); background: var(--primary-light); transform: translateY(-2px); box-shadow: var(--shadow-md); }
-.wk2-option-card.selected { border-color: #15803D; background: #F0FDF4; }
 .wk2-option-card.selected::after {
-  content: '✓'; position: absolute; top: 10px; left: 10px;
-  width: 22px; height: 22px; background: #15803D; color: white;
-  border-radius: 50%; display: flex; align-items: center; justify-content: center;
-  font-size: 12px; font-weight: 900;
+  content: ''; display: none;
 }
 .wk2-opt-num {
   font-size: 10px; font-weight: 800; color: var(--text-muted);
@@ -1270,24 +1265,8 @@ nav a .nav-emoji { font-size: 14px; }
     <div class="wk2-hero-right">
       <div class="wk2-hero-title">🌟 نهاية أسبوع سعيدة</div>
       <div class="wk2-hero-sub" id="wk2-date-label">جارٍ تحديد تاريخ نهاية الأسبوع...</div>
-      <div class="wk2-hero-desc">اضغط "توليد" في أي قسم لتحصل على 3 خيارات — اختر المناسب وأضفه للنشرة</div>
+      <div class="wk2-hero-desc">محتوى نهاية الأسبوع — للاطلاع والاستمتاع</div>
     </div>
-    <div class="wk2-hero-actions">
-      <button class="wk2-gen-all-btn" onclick="generateAllSections()" style="display:none">
-        <span id="wk2-all-icon">✨</span> عرض كل الخيارات
-      </button>
-      <button class="wk2-preview-btn" onclick="previewNewsletter()" id="wk2-preview-btn" style="display:none">
-        👁️ معاينة النشرة
-      </button>
-    </div>
-  </div>
-
-  <!-- Progress bar -->
-  <div class="wk2-progress-wrap">
-    <div class="wk2-progress-bar">
-      <div class="wk2-progress-fill" id="wk2-progress"></div>
-    </div>
-    <div class="wk2-progress-label" id="wk2-progress-label">0 / 6 أقسام مكتملة</div>
   </div>
 
   <!-- SECTIONS -->
@@ -1303,9 +1282,6 @@ nav a .nav-emoji { font-size: 14px; }
             <div class="wk2-sec-sub">مكان مميز في الرياض للعائلة هذا الوينكد</div>
           </div>
         </div>
-        <div class="wk2-sec-actions">
-          <span class="wk2-selected-badge hidden" id="badge-place">✅ تم الاختيار</span>
-        </div>
       </div>
       <div class="wk2-options-grid" id="opts-place"></div>
     </div>
@@ -1319,12 +1295,6 @@ nav a .nav-emoji { font-size: 14px; }
             <div class="wk2-sec-title">عروض وخصومات</div>
             <div class="wk2-sec-sub">أفضل العروض المتاحة هذا الأسبوع</div>
           </div>
-        </div>
-        <div class="wk2-sec-actions">
-          <span class="wk2-selected-badge hidden" id="badge-deals">✅ تم الاختيار</span>
-          <button class="wk2-gen-sec-btn" style="display:none" onclick="generateSection('deals')">
-            <span class="wk2-spin-icon">✨</span> عرض الخيارات
-          </button>
         </div>
       </div>
       <div class="wk2-options-grid" id="opts-deals"></div>
@@ -1340,12 +1310,6 @@ nav a .nav-emoji { font-size: 14px; }
             <div class="wk2-sec-sub">بودكاست عربي تثقيفي أو تحفيزي على يوتيوب</div>
           </div>
         </div>
-        <div class="wk2-sec-actions">
-          <span class="wk2-selected-badge hidden" id="badge-podcast">✅ تم الاختيار</span>
-          <button class="wk2-gen-sec-btn" style="display:none" onclick="generateSection('podcast')">
-            <span class="wk2-spin-icon">✨</span> عرض الخيارات
-          </button>
-        </div>
       </div>
       <div class="wk2-options-grid" id="opts-podcast"></div>
     </div>
@@ -1359,12 +1323,6 @@ nav a .nav-emoji { font-size: 14px; }
             <div class="wk2-sec-title">أداة الذكاء الاصطناعي</div>
             <div class="wk2-sec-sub">أداة AI جديدة ومفيدة للحياة اليومية والعمل</div>
           </div>
-        </div>
-        <div class="wk2-sec-actions">
-          <span class="wk2-selected-badge hidden" id="badge-ai">✅ تم الاختيار</span>
-          <button class="wk2-gen-sec-btn" style="display:none" onclick="generateSection('ai')">
-            <span class="wk2-spin-icon">✨</span> عرض الخيارات
-          </button>
         </div>
       </div>
       <div class="wk2-options-grid" id="opts-ai"></div>
@@ -1380,12 +1338,6 @@ nav a .nav-emoji { font-size: 14px; }
             <div class="wk2-sec-sub">أبرز مباريات الخميس والجمعة والسبت</div>
           </div>
         </div>
-        <div class="wk2-sec-actions">
-          <span class="wk2-selected-badge hidden" id="badge-matches">✅ تم الاختيار</span>
-          <button class="wk2-gen-sec-btn" style="display:none" onclick="generateSection('matches')">
-            <span class="wk2-spin-icon">✨</span> عرض الخيارات
-          </button>
-        </div>
       </div>
       <div class="wk2-options-grid" id="opts-matches"></div>
     </div>
@@ -1400,54 +1352,18 @@ nav a .nav-emoji { font-size: 14px; }
             <div class="wk2-sec-sub">أفلام للعائلة كاملة في Muvi و VOX هذا الوينكد</div>
           </div>
         </div>
-        <div class="wk2-sec-actions">
-          <span class="wk2-selected-badge hidden" id="badge-movies">✅ تم الاختيار</span>
-          <button class="wk2-gen-sec-btn" style="display:none" onclick="generateSection('movies')">
-            <span class="wk2-spin-icon">✨</span> عرض الخيارات
-          </button>
-        </div>
       </div>
       <div class="wk2-options-grid" id="opts-movies"></div>
     </div>
 
   </div><!-- end sections -->
 
-  <!-- PREVIEW MODAL -->
-  <div class="wk2-modal-overlay hidden" id="wk2-modal" onclick="if(event.target===this)closePreview()">
-    <div class="wk2-modal">
-      <div class="wk2-modal-header">
-        <div class="wk2-modal-title">🌟 معاينة نهاية أسبوع سعيدة</div>
-        <button class="wk2-modal-close" onclick="closePreview()">✕</button>
-      </div>
-      <div class="wk2-modal-body" id="wk2-modal-body"></div>
-      <div class="wk2-modal-footer">
-        <button class="wk-save-btn" onclick="saveWeekend()">💾 حفظ النشرة</button>
-        <button class="wk2-regen-btn" onclick="closePreview()">← تعديل</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Saved Issues -->
-  <div id="wk-saved-section" class="hidden" style="margin-top:32px">
-    <div class="section-hd" style="margin-bottom:14px">
-      <div class="section-title" style="font-size:14px">📚 النشرات المحفوظة</div>
-    </div>
-    <div id="wk-saved-list" class="wk-saved-list"></div>
-  </div>
 
 </div>
 </div>
 
 
 <script>
-// ══ إغلاق فوري لأي مودال عند تحميل الصفحة ══
-document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('.wk2-modal-overlay').forEach(m => {
-    m.classList.add('hidden');
-    m.style.display = 'none';
-    setTimeout(() => m.style.display = '', 200);
-  });
-});
 
 // ════════════════════════════════════════
 // DATA
@@ -2258,14 +2174,6 @@ function generateSection(secKey) {
 function initWeekend() {
   const dates = getWeekendDates();
   document.getElementById('wk2-date-label').textContent = `نهاية الأسبوع ${dates.label}`;
-  const modal = document.getElementById('wk2-modal');
-  modal.classList.add('hidden');
-  modal.style.display = 'none';
-  setTimeout(() => { modal.style.display = ''; }, 100);
-  wk2Selected = { place:null, deals:null, podcast:null, ai:null, matches:null, movies:null };
-  renderSavedWeekends();
-  updateProgress();
-  // عرض loading لجميع الأقسام ثم جلبها من الذكاء الاصطناعي
   WK2_SECTIONS.forEach(sec => showSectionLoading(sec));
   loadAllWeekendSections();
 }
@@ -2336,22 +2244,18 @@ function renderOptions(secKey, options) {
 }
 
 function renderOptionCard(secKey, opt, i) {
-  const sel = `selectOption('${secKey}',${i},${JSON.stringify(opt).replace(/"/g,'&quot;')})`;
-
   // ── 📍 وين نروح — بطاقات نصية واضحة ──
   if (secKey === 'place') {
     const mapsUrl = `https://www.google.com/maps/search/${encodeURIComponent(opt.maps_query||opt.title)}`;
-    return `<div class="wk2-option-card wk2-place-card wk2-place-text-card" id="opt-${secKey}-${i}" onclick="${sel}">
+    return `<div class="wk2-option-card wk2-place-card wk2-place-text-card" id="opt-${secKey}-${i}">
       <div class="wk2-place-body">
         <div class="wk2-opt-title">📍 ${opt.title}</div>
         <div class="wk2-opt-body">${opt.body}</div>
         <div class="wk2-place-meta">
-          <span class="badge b-blue">٦ خيارات</span>
           <span class="badge b-green">جاهز للزيارة</span>
         </div>
         <div class="wk2-btn-row">
-          <button onclick="event.stopPropagation(); window.location.href='${mapsUrl}'" class="wk2-btn wk2-btn-map">🗺️ عرض على الخريطة</button>
-          <button onclick="event.stopPropagation(); regenerateSection('place')" class="wk2-btn wk2-btn-primary">🔄 توليد أماكن جديدة</button>
+          <button onclick="window.location.href='${mapsUrl}'" class="wk2-btn wk2-btn-map">🗺️ عرض على الخريطة</button>
         </div>
       </div>
     </div>`;
@@ -2398,7 +2302,7 @@ function renderOptionCard(secKey, opt, i) {
       </div>`;
     }).join('');
 
-    return `<div class="wk2-option-card wk2-deals-card" id="opt-${secKey}-${i}" onclick="${sel}">
+    return `<div class="wk2-option-card wk2-deals-card" id="opt-${secKey}-${i}">
       <div class="wk2-deals-banner" style="background:${headerGrad}">
         <div class="wk2-deals-banner-title">🎯 ${opt.title||''}</div>
         <div class="wk2-deals-banner-city">📍 الرياض</div>
@@ -2447,9 +2351,8 @@ function renderOptionCard(secKey, opt, i) {
         <polygon points="155,58 155,72 170,65" fill="${color}"/>
       </svg>`;
 
-    return `<div class="wk2-pod-card" id="opt-${secKey}-${i}" onclick="${sel}" style="border-color:${color}30">
-      <div class="wk2-opt-num-abs">خيار ${i+1}</div>
-      <div class="wk2-pod-img" onclick="event.stopPropagation();window.location.href='${ytSearch}'" style="background:${color}10">
+    return `<div class="wk2-pod-card" id="opt-${secKey}-${i}" style="border-color:${color}30">
+      <div class="wk2-pod-img" onclick="window.location.href='${ytSearch}'" style="background:${color}10;cursor:pointer">
         ${svgCover}
       </div>
       <div class="wk2-pod-body">
@@ -2478,8 +2381,7 @@ function renderOptionCard(secKey, opt, i) {
   if (secKey === 'ai') {
     const usesHTML = (opt.uses||[]).map(u => `<div class="wk2-ai-use">✓ ${u}</div>`).join('');
     const color = opt.color || '#1A56DB';
-    return `<div class="wk2-option-card wk2-ai-card" id="opt-${secKey}-${i}" onclick="${sel}">
-      <div class="wk2-opt-num">خيار ${i+1}</div>
+    return `<div class="wk2-option-card wk2-ai-card" id="opt-${secKey}-${i}">
       <div class="wk2-ai-header" style="background:${color}15;border-color:${color}30">
         <div class="wk2-ai-logo" style="background:${color}">${opt.emoji||'🤖'}</div>
         <div>
@@ -2516,8 +2418,7 @@ function renderOptionCard(secKey, opt, i) {
           <span class="wk2-match-comp-sm">${m.competition}</span>
         </div>
       </div>`).join('');
-    return `<div class="wk2-option-card wk2-matches-card" id="opt-${secKey}-${i}" onclick="${sel}">
-      <div class="wk2-opt-num">خيار ${i+1}</div>
+    return `<div class="wk2-option-card wk2-matches-card" id="opt-${secKey}-${i}">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
         <div class="wk2-opt-title">⚽ ${opt.title}</div>
         <a href="https://www.spl.com.sa/ar"  onclick="event.stopPropagation()" style="font-size:10px;color:var(--primary);font-weight:700;text-decoration:none">📋 الموقع الرسمي</a>
@@ -2555,143 +2456,19 @@ function renderOptionCard(secKey, opt, i) {
         </div>
       </div>`;
     }).join('');
-    return `<div class="wk2-option-card wk2-movies-card" id="opt-${secKey}-${i}" onclick="${sel}">
-      <div class="wk2-opt-num">خيار ${i+1}</div>
+    return `<div class="wk2-option-card wk2-movies-card" id="opt-${secKey}-${i}">
       <div class="wk2-opt-title">🎬 ${opt.title}</div>
       <div class="wk2-movies-row">${moviesHTML}</div>
     </div>`;
   }
 
   // fallback
-  return `<div class="wk2-option-card" id="opt-${secKey}-${i}" onclick="${sel}">
-    <div class="wk2-opt-num">خيار ${i+1}</div>
+  return `<div class="wk2-option-card" id="opt-${secKey}-${i}">
     <div class="wk2-opt-title">${opt.title||''}</div>
     <div class="wk2-opt-body">${opt.body||''}</div>
   </div>`;
 }
 
-function selectOption(secKey, idx, optData) {
-  document.querySelectorAll(`#opts-${secKey} .wk2-option-card, #opts-${secKey} .wk2-pod-card`).forEach(c => c.classList.remove('selected'));
-  const card = document.getElementById(`opt-${secKey}-${idx}`);
-  if (card) card.classList.add('selected');
-  wk2Selected[secKey] = optData;
-  document.getElementById(`badge-${secKey}`).classList.remove('hidden');
-  document.getElementById(`sec-${secKey}`).classList.add('completed');
-  updateProgress();
-}
-
-function regenerateSection(secKey) {
-  wk2Selected[secKey] = null;
-  const badge = document.getElementById(`badge-${secKey}`);
-  const sec = document.getElementById(`sec-${secKey}`);
-  if (badge) badge.classList.add('hidden');
-  if (sec) sec.classList.remove('completed');
-  generateSection(secKey);
-}
-
-function updateProgress() {
-  const done = WK2_SECTIONS.filter(s => wk2Selected[s] !== null).length;
-  const pct = (done / WK2_SECTIONS.length) * 100;
-  document.getElementById('wk2-progress').style.width = pct + '%';
-  document.getElementById('wk2-progress-label').textContent = `${done} / ${WK2_SECTIONS.length} أقسام مكتملة`;
-  const previewBtn = document.getElementById('wk2-preview-btn');
-  if (done >= 3) previewBtn.style.display = 'flex';
-}
-
-function previewNewsletter() {
-  const dates = getWeekendDates();
-  const s = wk2Selected;
-  let html = `
-    <div class="prev-header">
-      <div class="prev-header-title">🌟 نهاية أسبوع سعيدة</div>
-      <div class="prev-header-date">${dates.label}</div>
-    </div>`;
-
-  if (s.place)   html += prevSection('📍 وين نروح؟',          s.place.title,   s.place.body);
-  if (s.deals)   html += prevSection('🎯 عروض وخصومات',       s.deals.title,   s.deals.body);
-  if (s.podcast) html += prevSection('🎙️ بودكاست الأسبوع',   s.podcast.title, s.podcast.body);
-  if (s.ai)      html += prevSection('🤖 أداة AI الأسبوع',    s.ai.title,      s.ai.body);
-  if (s.matches && s.matches.matches) {
-    const matchList = s.matches.matches.map(m=>`${m.home} vs ${m.away} — ${m.day} ${m.time} (${m.competition})`).join('\n');
-    html += prevSection('⚽ مباريات الوينكد', s.matches.title, matchList);
-  }
-  if (s.movies && s.movies.movies) {
-    const movieList = s.movies.movies.map(mv=>`${mv.title} | ${mv.genre} | ${mv.cinema} ${mv.rating}`).join('\n');
-    html += prevSection('🎬 أفلام العائلة', s.movies.title, movieList);
-  }
-
-  document.getElementById('wk2-modal-body').innerHTML = html;
-  document.getElementById('wk2-modal').classList.remove('hidden');
-}
-
-function prevSection(label, title, body) {
-  return `<div class="prev-section">
-    <div class="prev-sec-label">${label}</div>
-    <div class="prev-sec-title">${escHtml(title||'')}</div>
-    <div class="prev-sec-body" style="white-space:pre-line">${escHtml(body||'')}</div>
-  </div>`;
-}
-
-function closePreview() {
-  document.getElementById('wk2-modal').classList.add('hidden');
-}
-
-// إغلاق المودال بـ ESC
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') closePreview();
-});
-
-function saveWeekend() {
-  const dates = getWeekendDates();
-  const saved = { id: Date.now(), date: dates.label, sections: { ...wk2Selected } };
-  SAVED_WEEKENDS.unshift(saved);
-  if (SAVED_WEEKENDS.length > 20) SAVED_WEEKENDS = SAVED_WEEKENDS.slice(0,20);
-  localStorage.setItem('weekend_issues', JSON.stringify(SAVED_WEEKENDS));
-  closePreview();
-  renderSavedWeekends();
-  // Reset
-  wk2Selected = { place:null, deals:null, podcast:null, ai:null, matches:null, movies:null };
-  WK2_SECTIONS.forEach(s => {
-    document.getElementById(`badge-${s}`).classList.add('hidden');
-    document.getElementById(`sec-${s}`).classList.remove('completed');
-    document.getElementById(`opts-${s}`).innerHTML = '';
-  });
-  updateProgress();
-  document.getElementById('wk2-preview-btn').style.display = 'none';
-  document.getElementById('wk-saved-section').classList.remove('hidden');
-}
-
-function renderSavedWeekends() {
-  const section = document.getElementById('wk-saved-section');
-  const list    = document.getElementById('wk-saved-list');
-  if (!SAVED_WEEKENDS.length) { section.classList.add('hidden'); return; }
-  section.classList.remove('hidden');
-  list.innerHTML = SAVED_WEEKENDS.map((w,i) => `
-    <div class="wk-saved-item">
-      <div>
-        <div class="wk-saved-title">🌟 نهاية أسبوع سعيدة — ${w.date}</div>
-        <div class="wk-saved-date">${Object.values(w.sections||{}).filter(Boolean).length} أقسام محفوظة</div>
-      </div>
-      <div style="display:flex;gap:8px">
-        <button onclick="viewSaved(${i})" style="padding:5px 12px;background:var(--primary-light);color:var(--primary);border:none;border-radius:6px;font-family:'Cairo',sans-serif;font-size:11px;font-weight:700;cursor:pointer">معاينة</button>
-        <button onclick="deleteSaved(${i})" style="padding:5px 12px;background:#FFF1F2;color:#BE123C;border:none;border-radius:6px;font-family:'Cairo',sans-serif;font-size:11px;font-weight:700;cursor:pointer">حذف</button>
-      </div>
-    </div>`).join('');
-}
-
-function viewSaved(i) {
-  const w = SAVED_WEEKENDS[i];
-  if (!w) return;
-  // لا تفتح المودال تلقائياً — فقط اعرض المحتوى في المودال عند الطلب
-  wk2Selected = { ...(w.sections || {}) };
-  previewNewsletter();
-}
-
-function deleteSaved(i) {
-  SAVED_WEEKENDS.splice(i, 1);
-  localStorage.setItem('weekend_issues', JSON.stringify(SAVED_WEEKENDS));
-  renderSavedWeekends();
-}
 
 // ════════════════════════════════════════
 // FILTERS & SEARCH
