@@ -2129,42 +2129,6 @@ const TEAM_COLORS = {
 function getTeamColor(n) { for(const [t,c] of Object.entries(TEAM_COLORS)) if((n||'').includes(t)) return c; return '#6B7280'; }
 function getImportance(h,a) { const b=['الهلال','النصر','الاتحاد','الأهلي']; return (b.some(t=>(h||'').includes(t))&&b.some(t=>(a||'').includes(t)))?'🔥 قمة كبرى':(b.some(t=>(h||'').includes(t))||b.some(t=>(a||'').includes(t)))?'⚡ مباراة مهمة':'⚽ دوري روشن'; }
 
-const STATIC_DATA = {
-
-  place: [
-    { title:'حديقة الملك عبدالله الترفيهية', body:'من أجمل الحدائق العائلية في الرياض — تضم ملاعب للأطفال وممرات للمشي وأجواء خضراء رائعة تناسب جميع أفراد الأسرة في الربيع.', maps_query:'King Abdullah Park Riyadh' },
-    { title:'بوليفار ذا لاين — NEOM Boulevard', body:'وجهة ترفيهية متكاملة في قلب الرياض تضم أفضل المطاعم والمقاهي والمتاجر العالمية مع تصميم عصري يجعل التجول فيها تجربة ممتعة.', maps_query:'Boulevard Riyadh City' },
-    { title:'موسم الرياض — مدينة الترفيه', body:'احتفالات وفعاليات عائلية متجددة أسبوعياً مع عروض مسرحية وألعاب وأجواء احتفالية مميزة تناسب الكبار والصغار.', maps_query:'Riyadh Season Entertainment City' },
-  ],
-
-  deals: [
-    { title:'عروض المطاعم والمقاهي', deals:[
-      { place:'Shake Shack', discount:'20%', detail:'خصم عند الطلب عبر التطبيق طوال نهاية الأسبوع', emoji:'🍔', url:'https://instagram.com/shakeshacksa' },
-      { place:'Starbucks', discount:'1+1', detail:'اشتر مشروبًا واحصل على آخر مجاناً أيام الخميس والجمعة', emoji:'☕', url:'https://instagram.com/starbucksarabia' },
-      { place:'The Cheesecake Factory', discount:'15%', detail:'خصم على الطلبات التي تتجاوز 100 ريال', emoji:'🍰', url:'https://instagram.com/thecheesecakefactoryarabia' },
-    ]},
-    { title:'عروض التسوق والترفيه', deals:[
-      { place:'H&M', discount:'30%', detail:'تخفيضات نهاية الموسم على جميع الملابس', emoji:'🛍️', url:'https://www.hm.com/sa' },
-      { place:'VOX Cinemas', discount:'2 بسعر 1', detail:'تذكرتان بسعر واحدة على جميع العروض', emoji:'🎬', url:'https://sa.voxcinemas.com' },
-      { place:'Muvi Cinemas', discount:'25%', detail:'خصم لحاملي بطاقة الولاء على جميع التذاكر', emoji:'🎥', url:'https://muvi.com' },
-    ]},
-    { title:'عروض العناية والصحة', deals:[
-      { place:'Fitness Time', discount:'شهر مجاني', detail:'عند الاشتراك السنوي خلال هذا الأسبوع فقط', emoji:'💪', url:'https://instagram.com/fitnesstimeksa' },
-      { place:'Bath & Body Works', discount:'40%', detail:'على جميع منتجات العناية بالجسم والعطور', emoji:'🧴', url:'https://instagram.com/bathandbodyworkssa' },
-      { place:'Centrepoint', discount:'50%', detail:'تخفيضات على تشكيلة الأطفال والرجال والنساء', emoji:'👕', url:'https://instagram.com/centrepointsa' },
-    ]},
-  ],
-
-  podcast: [
-    { title:'بودكاست سقراط', field:'رؤية 2030 والتحول الوطني',
-      episode:'لماذا أراد بيل قيتس الاستحواذ على شركته — طارق القصبي',
-      body:'المرجع الأول لفهم التوجهات الاستراتيجية للدولة — يستضيف قيادات الجهات الحكومية والخاصة ليشرحوا بلغة الأرقام والمنجزات ما تم تحقيقه في رؤية 2030.',
-      channel:'إذاعة ثمانية', youtube_query:'بودكاست سقراط طارق القصبي',
-      tagline:'الأرقام والمنجزات بلسان صناع القرار',
-      video_id:'zxzZm4Z1Mzk', color:'#1A56DB' },
-
-    { title:'بودكاست فنجان', field:'الثقافة العامة والوعي المؤسسي',
-      episode:'خبراء الإدارة والاجتماع والاقتصاد',
       body:'في حلقاته يستضيف خبراء في الإدارة والاجتماع والاقتصاد — يمنحك نظرة شمولية تساعد في تشكيل الثقافة المؤسسية من منظور إنساني وعملي.',
       channel:'عبدالرحمن أبومالح', youtube_query:'بودكاست فنجان عبدالرحمن أبومالح',
       tagline:'نظرة شمولية تصنع قادة أفضل',
