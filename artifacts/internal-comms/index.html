@@ -2247,8 +2247,6 @@ function renderOptionCard(secKey, opt, i) {
     const mapsUrl = `https://www.google.com/maps/search/${encodeURIComponent(opt.maps_query||opt.title)}`;
     return `<div class="wk2-option-card wk2-place-card wk2-place-text-card" id="opt-${secKey}-${i}" onclick="${sel}">
       <div class="wk2-opt-num-abs">خيار ${i+1} من 6</div>
-      <div class="wk2-place-header-text">
-      </div>
       <div class="wk2-place-body">
         <div class="wk2-opt-title">📍 ${opt.title}</div>
         <div class="wk2-opt-body">${opt.body}</div>
