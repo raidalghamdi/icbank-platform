@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "بنك التواصل الداخلي"
+version = "1.0.0"
+id = "artifacts/internal-comms"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 21454
+
+[services.development]
+run = "pnpm --filter @workspace/internal-comms run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/internal-comms", "run", "build" ]
+publicDir = "artifacts/internal-comms/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "21454"
+BASE_PATH = "/"
