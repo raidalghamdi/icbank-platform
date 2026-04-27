@@ -88,18 +88,83 @@ async function generateAITools(dateStr) {
 }]`);
 }
 
-async function generateMatches(dateStr) {
-  return aiCall(`أنت محلل رياضي متخصص في كرة القدم السعودية. اليوم ${dateStr}.
-اقترح جدول مباريات دوري روشن للمحترفين لنهاية هذا الأسبوع (الخميس والجمعة والسبت).
-استخدم أسماء الأندية السعودية الحقيقية: الهلال، النصر، الاتحاد، الأهلي، الشباب، الفتح، الاتفاق، ضمك، الخليج، التعاون، الفيصلي، القادسية، الحزم، الأخدود، الرائد، النجمة.
-أجب فقط بـ JSON:
-[{
-  "title": "عنوان المجموعة مثل: أبرز مباريات الأسبوع",
-  "matches": [
-    {"home": "الفريق المضيف","away": "الفريق الضيف","time": "4:30 م","day": "الخميس","competition": "دوري روشن","home_color": "#1A56DB","away_color": "#EF4444","importance": "🔥 قمة كبرى أو ⚡ مباراة مهمة أو ⚽ دوري روشن"}
-  ]
-}]
-أضف مجموعتين: الأولى أبرز المباريات (3-4 مباريات)، الثانية الجدول الكامل (6-8 مباريات).`);
+const SPL_TEAM_AR = {
+  HIL: 'الهلال',   NSR: 'النصر',    ITH: 'الاتحاد',  AHL: 'الأهلي',
+  SHA: 'الشباب',   FAT: 'الفتح',    ITF: 'الاتفاق',  QAD: 'القادسية',
+  KHA: 'الخليج',   TAA: 'التعاون',  FEI: 'الفيحاء',  DAM: 'ضمك',
+  HAZ: 'الحزم',    AKH: 'الأخدود',  RIY: 'الرياض',   NAJ: 'النجمة',
+  NEO: 'نيوم',     KHL: 'الخلود',
+};
+const SPL_TEAM_COLOR = {
+  HIL: '#1E3A8A', NSR: '#CA8A04', ITH: '#1C1C1C', AHL: '#15803D',
+  SHA: '#1F2937', FAT: '#DC2626', ITF: '#1D4ED8', QAD: '#7C3AED',
+  KHA: '#0E7490', TAA: '#0D9488', FEI: '#166534', DAM: '#9F1239',
+  HAZ: '#6D28D9', AKH: '#B91C1C', RIY: '#2563EB', NAJ: '#B45309',
+  NEO: '#0F766E', KHL: '#047857',
+};
+const AR_DAYS = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+
+async function fetchSPLMatches() {
+  const url = 'https://api.saudi-pro-league.pulselive.com/football/fixtures?competitions=215&compSeasons=859&pageSize=40&sort=asc&statuses=U';
+  const res = await fetch(url, {
+    headers: { 'Origin': 'https://www.spl.com.sa', 'Referer': 'https://www.spl.com.sa/' },
+  });
+  if (!res.ok) throw new Error(`SPL API ${res.status}`);
+  const data = await res.json();
+  const fixtures = data.content || [];
+  if (!fixtures.length) throw new Error('No fixtures returned');
+
+  // sort: confirmed kickoff first, then provisional
+  fixtures.sort((a, b) => {
+    const tsA = a.kickoff?.completeness >= 3 ? a.kickoff.millis : (a.provisionalKickoff?.millis || 0);
+    const tsB = b.kickoff?.completeness >= 3 ? b.kickoff.millis : (b.provisionalKickoff?.millis || 0);
+    return tsA - tsB;
+  });
+
+  const mapped = fixtures.slice(0, 10).map(f => {
+    const homeAbbr = f.teams[0]?.team?.club?.abbr || '';
+    const awayAbbr = f.teams[1]?.team?.club?.abbr || '';
+    const homeAr = SPL_TEAM_AR[homeAbbr] || f.teams[0]?.team?.shortName || homeAbbr;
+    const awayAr = SPL_TEAM_AR[awayAbbr] || f.teams[1]?.team?.shortName || awayAbbr;
+
+    const confirmed = f.kickoff?.completeness >= 3;
+    const millis = confirmed ? f.kickoff.millis : (f.provisionalKickoff?.millis || 0);
+    let timeStr = 'يُحدد لاحقاً';
+    let dayStr = '';
+    if (millis) {
+      // convert UTC millis → Saudi time (UTC+3)
+      const saudiMs = millis + 3 * 3600 * 1000;
+      const d = new Date(saudiMs);
+      const h = d.getUTCHours(), m = d.getUTCMinutes();
+      if (confirmed || h !== 0 || m !== 0) {
+        const ampm = h >= 12 ? 'م' : 'ص';
+        const h12 = h % 12 || 12;
+        timeStr = `${h12}:${String(m).padStart(2,'0')} ${ampm}`;
+      }
+      dayStr = AR_DAYS[d.getUTCDay()];
+    }
+
+    const bigTeams = new Set(['HIL','NSR','ITH','AHL']);
+    const isBig = bigTeams.has(homeAbbr) && bigTeams.has(awayAbbr);
+    const isFeatured = !isBig && (bigTeams.has(homeAbbr) || bigTeams.has(awayAbbr));
+    const importance = isBig ? '🔥 قمة كبرى' : isFeatured ? '⚡ مباراة مهمة' : '⚽ دوري روشن';
+
+    return {
+      home: homeAr, away: awayAr, time: timeStr, day: dayStr,
+      competition: 'دوري روشن',
+      home_color: SPL_TEAM_COLOR[homeAbbr] || '#1A56DB',
+      away_color: SPL_TEAM_COLOR[awayAbbr] || '#EF4444',
+      importance,
+    };
+  });
+
+  const highlights = mapped.filter(m => m.importance !== '⚽ دوري روشن').slice(0, 4);
+  const groups = [];
+  if (highlights.length > 0) {
+    groups.push({ title: '🔥 أبرز مباريات الأسبوع', matches: highlights });
+  }
+  groups.push({ title: '📅 الجدول الكامل', matches: mapped });
+  return groups;
 }
 
 async function generateMovies(dateStr) {
@@ -129,7 +194,7 @@ async function generateWeekendData(dateStr, cacheKey) {
     { key: 'deals',    fn: () => generateDeals(dateStr) },
     { key: 'podcasts', fn: () => generatePodcasts(dateStr) },
     { key: 'aiTools',  fn: () => generateAITools(dateStr) },
-    { key: 'matches',  fn: () => generateMatches(dateStr) },
+    { key: 'matches',  fn: () => fetchSPLMatches() },
     { key: 'movies',   fn: () => generateMovies(dateStr) },
   ];
 
