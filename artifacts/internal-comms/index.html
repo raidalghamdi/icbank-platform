@@ -506,12 +506,12 @@ nav a .nav-emoji { font-size: 14px; }
 
 /* Options Grid */
 .wk2-options-grid {
-  display: grid; grid-template-columns: repeat(3, 1fr);
-  gap: 12px; padding: 0 22px 20px;
+  display: grid; grid-template-columns: repeat(2, 1fr);
+  gap: 18px; padding: 0 22px 26px;
 }
 .wk2-option-card {
   border: 2px solid var(--border); border-radius: 12px;
-  padding: 16px; cursor: pointer; transition: all 0.2s;
+  padding: 18px; cursor: pointer; transition: all 0.2s;
   position: relative; background: var(--bg);
 }
 .wk2-option-card:hover { border-color: var(--primary); background: var(--primary-light); transform: translateY(-2px); box-shadow: var(--shadow-md); }
@@ -629,6 +629,9 @@ nav a .nav-emoji { font-size: 14px; }
 
 /* Place */
 .wk2-place-card { padding: 0 !important; overflow: hidden; position: relative; }
+.wk2-place-text-card { min-height: 190px; }
+.wk2-place-body { display: flex; flex-direction: column; gap: 10px; }
+.wk2-place-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
 .wk2-opt-num-abs { position: absolute; top: 18px; right: 12px; z-index: 2; background: rgba(0,0,0,0.45); color: white; padding: 2px 9px; border-radius: 10px; font-size: 10px; font-weight: 700; }
 .wk2-place-img {
   width: 100%; height: 160px;
