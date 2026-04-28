@@ -292,7 +292,8 @@ nav a .nav-emoji { font-size: 14px; }
 }
 
 /* ── NEWS CARDS ── */
-.news-list { display: flex; flex-direction: column; gap: 10px; }
+.news-list { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 700px) { .news-list { grid-template-columns: 1fr; } }
 .news-card-wrap { animation: fadeUp 0.35s ease; }
 .news-card {
   background: var(--white);
