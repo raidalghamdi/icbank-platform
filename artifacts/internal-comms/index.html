@@ -273,32 +273,67 @@ nav a .nav-emoji { font-size: 14px; }
 .init-arrow { color: var(--text-muted); font-size: 16px; }
 .init-badges { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 2px; }
 
+/* ── NEWS PAGE HEADER ── */
+.news-page-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  gap: 16px; margin-bottom: 16px;
+}
+.news-page-sub { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+.news-count-pill {
+  display: flex; align-items: center; gap: 5px;
+  background: var(--primary-light); color: var(--primary);
+  border: 1.5px solid var(--primary-mid); border-radius: 20px;
+  padding: 6px 16px; font-size: 13px; font-weight: 800;
+  white-space: nowrap; flex-shrink: 0; align-self: center;
+}
+.news-filter-bar {
+  display: flex; gap: 6px; margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
 /* ── NEWS CARDS ── */
 .news-list { display: flex; flex-direction: column; gap: 10px; }
+.news-card-wrap { animation: fadeUp 0.35s ease; }
 .news-card {
   background: var(--white);
   border: 1.5px solid var(--border);
-  border-radius: var(--radius-md);
-  padding: 14px 18px;
-  display: flex; gap: 14px; align-items: flex-start;
-  cursor: pointer;
-  transition: all 0.18s;
-  text-decoration: none;
-  animation: fadeUp 0.4s ease;
+  border-radius: 14px;
+  padding: 16px 20px;
+  display: flex; flex-direction: column; gap: 10px;
+  cursor: pointer; transition: all 0.18s;
+  text-decoration: none; position: relative; overflow: hidden;
 }
-.news-card:hover { box-shadow: var(--shadow-md); border-color: var(--primary-mid); transform: translateY(-1px); }
+.news-card::after {
+  content: '';
+  position: absolute; right: 0; top: 0; bottom: 0; width: 3px;
+  background: var(--primary); border-radius: 0 14px 14px 0;
+  transform: scaleY(0); transition: transform 0.18s ease;
+}
+.news-card.is-local::after { background: var(--green); }
+.news-card:hover { box-shadow: var(--shadow-md); border-color: var(--primary-mid); }
+.news-card.is-local:hover { border-color: #86EFAC; }
+.news-card:hover::after { transform: scaleY(1); }
+/* Card top row */
+.news-card-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.news-source-wrap { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .news-source-icon {
-  width: 34px; height: 34px; border-radius: 8px;
-  background: var(--primary-light); display: flex;
-  align-items: center; justify-content: center;
-  font-size: 15px; flex-shrink: 0;
+  width: 32px; height: 32px; border-radius: 9px; flex-shrink: 0;
+  background: var(--primary-light); color: var(--primary);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10.5px; font-weight: 800; letter-spacing: -0.5px;
 }
-.news-body { flex: 1; }
-.news-title { font-size: 13px; font-weight: 600; color: var(--text-dark); margin-bottom: 6px; line-height: 1.5; }
-.news-desc { font-size: 11.5px; color: var(--text-soft); line-height: 1.6; margin-bottom: 8px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.news-meta { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-.news-time { font-size: 10.5px; color: var(--text-muted); }
-.news-source { font-size: 10.5px; color: var(--text-soft); font-weight: 600; }
+.news-source-icon.local-src { background: var(--green-light); color: var(--green); }
+.news-source-name { font-size: 11.5px; font-weight: 700; color: var(--text-mid); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.news-time { font-size: 10.5px; color: var(--text-muted); white-space: nowrap; flex-shrink: 0; }
+/* Content */
+.news-title { font-size: 13.5px; font-weight: 700; color: var(--text-dark); line-height: 1.55; }
+.news-desc  { font-size: 12px; color: var(--text-soft); line-height: 1.65; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+/* Footer row */
+.news-footer { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding-top: 8px; border-top: 1px solid var(--border-light); }
+.news-tags   { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.news-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.news-ext-link { font-size: 10.5px; color: var(--text-muted); padding: 3px 8px; border-radius: 6px; background: var(--bg); border: 1px solid var(--border); transition: all 0.15s; text-decoration: none; }
+.news-ext-link:hover { background: var(--primary-light); color: var(--primary); border-color: var(--primary-mid); }
 
 /* ── WEEKEND SECTION ── */
 .weekend-card {
@@ -1258,16 +1293,26 @@ nav a .nav-emoji { font-size: 14px; }
 <!-- ══════════════════════ NEWS PAGE ══════════════════════ -->
 <div class="page-section" id="section-news">
 <div class="page-wrapper">
-  <div class="section-hd">
-    <div class="section-title"><div class="section-icon">🌐</div>أخبار الاتصال الداخلي العالمية</div>
+
+  <div class="news-page-header">
+    <div>
+      <div class="section-title"><div class="section-icon">🌐</div>أخبار الاتصال الداخلي</div>
+      <div class="news-page-sub">أحدث المستجدات العالمية والمحلية في مجال التواصل المؤسسي</div>
+    </div>
+    <div class="news-count-pill" id="news-count-pill">
+      <span id="news-count-num">—</span>
+      <span>خبر</span>
+    </div>
   </div>
-  <div class="tabs">
+
+  <div class="news-filter-bar">
     <div class="tab active" onclick="filterNewsPage('all',this)">🌍 الكل</div>
     <div class="tab" onclick="filterNewsPage('global',this)">🌐 عالمي</div>
     <div class="tab" onclick="filterNewsPage('local',this)">🇸🇦 محلي</div>
     <div class="tab" onclick="filterNewsPage('تواصل القيادة',this)">تواصل القيادة</div>
     <div class="tab" onclick="filterNewsPage('قنوات التواصل',this)">قنوات التواصل</div>
   </div>
+
   <div class="news-list" id="all-news">
     <div class="loading-wrap"><div class="spinner"></div><div class="loading-text">جارٍ تحميل الأخبار...</div></div>
   </div>
@@ -1891,6 +1936,8 @@ function renderHomeNews(articles) {
 
 function renderAllNews(articles) {
   const el = document.getElementById('all-news');
+  const countEl = document.getElementById('news-count-num');
+  if (countEl) countEl.textContent = articles.length;
   if (!articles.length) { el.innerHTML = emptyState('لا توجد أخبار'); return; }
   el.innerHTML = articles.map((a, i) => newsCardHTML(a, i)).join('');
 }
@@ -1899,30 +1946,42 @@ function newsCardHTML(a, idx) {
   const ago = timeAgo(a.publishedAt);
   const tag = a.tag || 'تواصل داخلي';
   const tagColor = TAG_COLORS[tag] || 'b-blue';
-  const isGlobal = a.scope !== 'local';
-  const scopeBadge = a.scope === 'local'
+  const isLocal = a.scope === 'local';
+  const cardId = `news-${idx}-${Date.now()}`;
+
+  // Source initials for avatar
+  const srcName = a.source?.name || '';
+  const srcInitials = srcName.replace(/[^a-zA-Z\u0600-\u06FF\s]/g, ' ')
+    .trim().split(/\s+/).filter(Boolean).slice(0, 2)
+    .map(w => w[0]).join('').toUpperCase() || '📰';
+
+  const scopeBadge = isLocal
     ? '<span class="badge b-green">🇸🇦 محلي</span>'
     : '<span class="badge b-blue">🌐 عالمي</span>';
-  const cardId = `news-${idx}-${Date.now()}`;
-  const translateBtn = isGlobal ? `
-    <button class="translate-btn" onclick="event.preventDefault(); translateCard('${cardId}', this)" title="ترجمة فورية">
-      🌐 ترجمة
-    </button>` : '';
+
+  const hasUrl = a.url && a.url !== '#';
+  const extLink = hasUrl
+    ? `<a class="news-ext-link" href="${a.url}" target="_blank" rel="noopener" onclick="event.stopPropagation()">↗ المصدر</a>`
+    : '';
+  const translateBtn = !isLocal
+    ? `<button class="translate-btn" onclick="event.preventDefault(); translateCard('${cardId}', this)" title="ترجمة فورية">🌐 ترجمة</button>`
+    : '';
 
   return `
   <div class="news-card-wrap" id="${cardId}">
-    <a class="news-card" href="${a.url && a.url !== '#' ? a.url : '#'}"  rel="noopener">
-      <div class="news-source-icon">📰</div>
-      <div class="news-body">
-        <div class="news-title" data-original="${escHtml(a.title)}">${escHtml(a.title)}</div>
-        ${a.description ? `<div class="news-desc" data-original="${escHtml(a.description)}">${escHtml(a.description)}</div>` : ''}
-        <div class="news-meta">
-          ${scopeBadge}
-          <span class="badge ${tagColor}">${tag}</span>
-          <span class="news-source">${a.source?.name || ''}</span>
-          <span class="news-time">⏱ ${ago}</span>
-          ${translateBtn}
+    <a class="news-card${isLocal ? ' is-local' : ''}" href="${hasUrl ? a.url : 'javascript:void(0)'}" ${hasUrl ? 'target="_blank"' : ''} rel="noopener">
+      <div class="news-card-top">
+        <div class="news-source-wrap">
+          <div class="news-source-icon${isLocal ? ' local-src' : ''}">${srcInitials}</div>
+          <span class="news-source-name">${escHtml(srcName)}</span>
         </div>
+        <span class="news-time">⏱ ${ago}</span>
+      </div>
+      <div class="news-title" data-original="${escHtml(a.title)}">${escHtml(a.title)}</div>
+      ${a.description ? `<div class="news-desc" data-original="${escHtml(a.description)}">${escHtml(a.description)}</div>` : ''}
+      <div class="news-footer">
+        <div class="news-tags">${scopeBadge}<span class="badge ${tagColor}">${tag}</span></div>
+        <div class="news-actions">${translateBtn}${extLink}</div>
       </div>
     </a>
   </div>`;
@@ -2615,7 +2674,7 @@ function filterNews(type, btn) {
 }
 
 function filterNewsPage(type, btn) {
-  document.querySelectorAll('#section-news .tabs .tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('#section-news .news-filter-bar .tab').forEach(t=>t.classList.remove('active'));
   btn.classList.add('active');
   if (type === 'all') renderAllNews(NEWS_DATA);
   else if (type === 'local') renderAllNews(NEWS_LOCAL.length ? NEWS_LOCAL : NEWS_DATA.filter(a=>a.scope==='local'));
