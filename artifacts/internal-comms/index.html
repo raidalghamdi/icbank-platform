@@ -1145,20 +1145,19 @@ nav a .nav-emoji { font-size: 14px; }
     <!-- Hero -->
     <div class="hero-card" id="hero-area">
       <div class="hero-body">
-        <div class="hero-badges">
-          <span class="badge b-blue">🌟 مبادرة مميزة</span>
-          <span class="badge b-green">محلي</span>
-          <span class="badge b-gray">منصات رقمية</span>
+        <div class="hero-badges" id="hero-badges">
+          <span class="badge b-blue">🌐 عالمي</span>
+          <span class="badge b-gray">تواصل داخلي</span>
         </div>
-        <div class="hero-title">منصة Workplace من Meta للتواصل المؤسسي</div>
-        <div class="hero-en">Workplace by Meta — Employee Social Platform</div>
-        <div class="hero-desc">تُعدّ من أبرز منصات التواصل الداخلي المؤسسي المدفوعة عالمياً، تتيح الرسائل الفورية ومكالمات الفيديو والمجموعات التفاعلية للموظفين بأسلوب مألوف مستوحى من فيسبوك.</div>
+        <div class="hero-title" id="hero-title" style="opacity:0.4">جارٍ تحميل أهم خبر...</div>
+        <div class="hero-en" id="hero-en"></div>
+        <div class="hero-desc" id="hero-desc"></div>
         <div class="hero-actions">
-          <button class="hero-btn">قراءة التفاصيل ←</button>
-          <span class="hero-link">الولايات المتحدة 📍</span>
+          <button class="hero-btn" id="hero-btn">قراءة التفاصيل ←</button>
+          <span class="hero-link" id="hero-link"></span>
         </div>
       </div>
-      <div class="hero-avatar">Meta<br>FB</div>
+      <div class="hero-avatar" id="hero-avatar">📰</div>
     </div>
 
     <!-- Initiatives -->
@@ -1794,9 +1793,42 @@ function showLoaders(ids) {
 }
 
 function renderNewsToAll(articles) {
+  renderHeroArticle(articles[0]);
   renderHomeNews(articles.slice(0,4));
   renderAllNews(articles);
   renderSidebarQuick(articles.slice(0,5));
+}
+
+function renderHeroArticle(article) {
+  if (!article) return;
+  const isLocal = article.scope === 'local';
+  const scopeBadge = isLocal
+    ? '<span class="badge b-green">🇸🇦 محلي</span>'
+    : '<span class="badge b-blue">🌐 عالمي</span>';
+  const tagBadge = article.tag
+    ? `<span class="badge b-gray">${article.tag}</span>`
+    : '';
+
+  // initials for avatar
+  const srcName = article.source?.name || '';
+  const words = srcName.trim().split(/\s+/).slice(0, 2);
+  const initials = words.map(w => w[0]).join('').toUpperCase() || '📰';
+
+  const badgesEl  = document.getElementById('hero-badges');
+  const titleEl   = document.getElementById('hero-title');
+  const enEl      = document.getElementById('hero-en');
+  const descEl    = document.getElementById('hero-desc');
+  const avatarEl  = document.getElementById('hero-avatar');
+  const btnEl     = document.getElementById('hero-btn');
+  const linkEl    = document.getElementById('hero-link');
+
+  if (badgesEl) badgesEl.innerHTML = scopeBadge + tagBadge;
+  if (titleEl)  { titleEl.textContent = article.title; titleEl.style.opacity = ''; }
+  if (enEl)     enEl.textContent = srcName;
+  if (descEl)   descEl.textContent = article.description || '';
+  if (avatarEl) { avatarEl.textContent = ''; avatarEl.style.fontSize = '13px'; avatarEl.style.fontWeight = '800'; avatarEl.textContent = initials; }
+  if (btnEl)    btnEl.onclick = () => { if (article.url && article.url !== '#') window.open(article.url, '_blank'); };
+  if (linkEl)   linkEl.textContent = isLocal ? '🇸🇦 السعودية' : `📅 ${new Date(article.publishedAt).toLocaleDateString('ar-SA-u-nu-latn', {day:'numeric', month:'long'})}`;
 }
 
 // ════════════════════════════════════════
