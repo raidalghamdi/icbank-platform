@@ -270,7 +270,6 @@ nav a .nav-emoji { font-size: 14px; }
 .init-info { flex: 1; }
 .init-name { font-size: 13.5px; font-weight: 700; color: var(--text-dark); margin-bottom: 3px; }
 .init-en { font-size: 10.5px; color: var(--text-muted); margin-bottom: 7px; }
-.init-badges { display: flex; gap: 5px; flex-wrap: wrap; }
 .init-arrow { color: var(--text-muted); font-size: 16px; }
 
 /* ── NEWS CARDS ── */
@@ -1927,15 +1926,12 @@ function renderAllInitiatives(list = INITIATIVES) {
 }
 
 function initSimpleCardHTML(i) {
-  const tagMap = { 'عالمي':'b-blue','محلي':'b-green','تقنية':'b-purple','مقترحة':'b-purple','رؤية 2030':'b-teal','اندماج':'b-orange' };
-  const tagsHTML = i.tags.slice(0,2).map(t=>`<span class="badge ${tagMap[t]||'b-gray'}">${t}</span>`).join('');
   return `
   <div class="init-card" onclick="showSection('initiatives')">
     <div class="init-icon-wrap">${i.icon}</div>
     <div class="init-info">
       <div class="init-name">${i.name}</div>
       <div class="init-en">${i.en}</div>
-      <div class="init-badges">${tagsHTML}${i.status==='جديدة'?'<span class="badge" style="background:#DCFCE7;color:#15803D">✨ جديدة</span>':''}</div>
     </div>
     <span class="init-arrow">‹</span>
   </div>`;
@@ -1951,8 +1947,6 @@ function initFullCardHTML(i) {
   const pctColor   = isAI ? 'color:var(--purple)' : isLoc ? 'color:var(--green)' : 'color:var(--primary)';
   const statusCls  = isAI ? 'status-ai' : isLoc ? 'status-new' : 'status-done';
   const statusTxt  = isAI ? '🤖 مقترحة بالذكاء الاصطناعي' : isLoc ? '🇸🇦 محلية / سعودية' : '🌐 عالمية موثقة';
-  const tagMap = { 'عالمي':'b-blue','محلي':'b-green','تقنية':'b-purple','مقترحة':'b-purple','رؤية 2030':'b-teal','اندماج':'b-orange','تواصل داخلي':'b-blue','تواصل القيادة':'b-orange','قنوات التواصل':'b-teal','إدارة الأزمات':'b-orange','ثقافة مؤسسية':'b-gray','الأداء':'b-gray','محتوى':'b-teal','تخطيط':'b-blue','ذكاء اصطناعي':'b-purple' };
-  const tagsHTML = i.tags.map(t=>`<span class="badge ${tagMap[t]||'b-gray'}">${t}</span>`).join('');
   const goalsHTML = i.goals.map(g=>`<div class="init-goal-item"><div class="init-goal-dot"></div><span>${g}</span></div>`).join('');
   const govMap = { high:{ cls:'gov-high', txt:'✅ جاهز للتطبيق الحكومي' }, medium:{ cls:'gov-medium', txt:'⚙️ يحتاج تكييف' }, low:{ cls:'gov-low', txt:'⚠️ يتطلب بيئة تمهيدية' } };
   const gov = govMap[i.govReady] || govMap.medium;
@@ -1967,7 +1961,6 @@ function initFullCardHTML(i) {
         <div class="init-card-en">${i.en}</div>
       </div>
     </div>
-    <div class="init-badges" style="margin-top:-4px">${tagsHTML}</div>
     ${i.impact ? `
     <div class="init-impact-highlight">
       <div class="init-impact-metric">${i.impact}</div>
