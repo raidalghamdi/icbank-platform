@@ -1822,13 +1822,62 @@ function renderHeroArticle(article) {
   const btnEl     = document.getElementById('hero-btn');
   const linkEl    = document.getElementById('hero-link');
 
+  const hasUrl = article.url && article.url !== '#';
+  const translateBtn = !isLocal
+    ? `<button class="translate-btn" id="hero-translate-btn" onclick="translateHero(this)" title="ترجمة فورية">🌐 ترجمة</button>`
+    : '';
+
   if (badgesEl) badgesEl.innerHTML = scopeBadge + tagBadge;
-  if (titleEl)  { titleEl.textContent = article.title; titleEl.style.opacity = ''; }
+  if (titleEl)  { titleEl.textContent = article.title; titleEl.dataset.original = article.title; titleEl.style.opacity = ''; }
   if (enEl)     enEl.textContent = srcName;
-  if (descEl)   descEl.textContent = article.description || '';
-  if (avatarEl) { avatarEl.textContent = ''; avatarEl.style.fontSize = '13px'; avatarEl.style.fontWeight = '800'; avatarEl.textContent = initials; }
-  if (btnEl)    btnEl.onclick = () => { if (article.url && article.url !== '#') window.open(article.url, '_blank'); };
-  if (linkEl)   linkEl.textContent = isLocal ? '🇸🇦 السعودية' : `📅 ${new Date(article.publishedAt).toLocaleDateString('ar-SA-u-nu-latn', {day:'numeric', month:'long'})}`;
+  if (descEl)   { descEl.textContent = article.description || ''; descEl.dataset.original = article.description || ''; }
+  if (avatarEl) { avatarEl.style.fontSize = '13px'; avatarEl.style.fontWeight = '800'; avatarEl.textContent = initials; }
+  if (btnEl) {
+    if (hasUrl) {
+      btnEl.onclick = () => window.open(article.url, '_blank');
+      btnEl.style.opacity = '';
+      btnEl.title = article.url;
+    } else {
+      btnEl.onclick = null;
+      btnEl.style.opacity = '0.4';
+      btnEl.title = 'لا يوجد رابط للخبر';
+    }
+  }
+  if (linkEl) {
+    linkEl.innerHTML = (isLocal ? '🇸🇦 السعودية' : `📅 ${new Date(article.publishedAt).toLocaleDateString('ar-SA-u-nu-latn', {day:'numeric', month:'long'})}`)
+      + (translateBtn ? '&nbsp;&nbsp;' + translateBtn : '');
+  }
+}
+
+async function translateHero(btn) {
+  const titleEl = document.getElementById('hero-title');
+  const descEl  = document.getElementById('hero-desc');
+
+  if (btn.dataset.translated === '1') {
+    if (titleEl) titleEl.textContent = titleEl.dataset.original;
+    if (descEl)  descEl.textContent  = descEl.dataset.original;
+    btn.textContent = '🌐 ترجمة';
+    btn.dataset.translated = '0';
+    btn.style.color = '';
+    return;
+  }
+
+  btn.textContent = '⏳ جارٍ الترجمة...';
+  btn.disabled = true;
+
+  try {
+    const texts = [titleEl?.dataset.original || '', descEl?.dataset.original || ''].filter(Boolean);
+    const translated = await Promise.all(texts.map(t => googleTranslate(t)));
+    if (titleEl && translated[0]) titleEl.textContent = translated[0];
+    if (descEl  && translated[1]) descEl.textContent  = translated[1];
+    btn.textContent = '↩️ عرض الأصلي';
+    btn.dataset.translated = '1';
+    btn.style.color = 'var(--green)';
+  } catch(e) {
+    btn.textContent = '🌐 ترجمة';
+    console.warn('hero translate error:', e);
+  }
+  btn.disabled = false;
 }
 
 // ════════════════════════════════════════
