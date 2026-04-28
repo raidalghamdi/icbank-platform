@@ -885,6 +885,7 @@ nav a .nav-emoji { font-size: 14px; }
 .init-full-card:hover { box-shadow: var(--shadow-md); border-color: var(--primary-mid); transform: translateY(-2px); }
 .init-full-card.is-new { border-color: #BBF7D0; }
 .init-full-card.is-ai  { border-color: #DDD6FE; }
+.init-full-card.is-loc { border-color: #BBF7D0; }
 .init-card-header { display: flex; align-items: flex-start; gap: 12px; }
 .init-card-icon { width: 44px; height: 44px; border-radius: 12px; background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
 .init-card-icon.ai-icon  { background: #FAF5FF; }
@@ -913,6 +914,24 @@ nav a .nav-emoji { font-size: 14px; }
 .applicability-fill.ai-fill     { background: linear-gradient(90deg, #7C3AED, #A78BFA); }
 .applicability-pct { font-size: 11px; font-weight: 800; white-space: nowrap; }
 .init-org { font-size: 10px; color: var(--text-muted); }
+.init-impact-highlight {
+  background: linear-gradient(135deg, #EFF6FF, #DBEAFE);
+  border: 1.5px solid #BFDBFE; border-radius: 10px;
+  padding: 10px 14px; display: flex; align-items: center; gap: 12px;
+}
+.init-full-card.is-new .init-impact-highlight { background: linear-gradient(135deg, #F0FDF4, #DCFCE7); border-color: #BBF7D0; }
+.init-full-card.is-ai  .init-impact-highlight { background: linear-gradient(135deg, #FAF5FF, #EDE9FE); border-color: #DDD6FE; }
+.init-impact-metric { font-size: 20px; font-weight: 900; color: var(--primary); white-space: nowrap; }
+.init-full-card.is-new .init-impact-metric { color: var(--green); }
+.init-full-card.is-ai  .init-impact-metric { color: var(--purple); }
+.init-impact-label { font-size: 11.5px; color: var(--text-mid); line-height: 1.5; }
+.gov-ready-badge { display: inline-flex; align-items: center; gap: 5px; padding: 5px 12px; border-radius: 20px; font-size: 10.5px; font-weight: 800; }
+.gov-ready-badge.gov-high   { background: #DCFCE7; color: #15803D; }
+.gov-ready-badge.gov-medium { background: #FEF9C3; color: #A16207; }
+.gov-ready-badge.gov-low    { background: #FEE2E2; color: #BE123C; }
+.init-gov-section { display: flex; flex-direction: column; gap: 6px; padding-top: 2px; }
+.init-gov-label { font-size: 11px; font-weight: 700; color: var(--text-dark); }
+.init-gov-notes { font-size: 11px; color: var(--text-soft); line-height: 1.55; padding: 8px 12px; background: var(--bg); border-radius: 8px; border-right: 3px solid var(--border); }
 .init-search-wrap { display: flex; align-items: center; gap: 10px; background: var(--white); border: 1.5px solid var(--border); border-radius: 10px; padding: 10px 16px; margin-bottom: 16px; transition: all 0.18s; }
 .init-search-wrap:focus-within { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(26,86,219,0.08); }
 .init-search-wrap input { border: none; outline: none; background: transparent; font-family: 'Cairo', sans-serif; font-size: 13px; color: var(--text-mid); width: 100%; }
@@ -1372,114 +1391,138 @@ nav a .nav-emoji { font-size: 14px; }
 const INITIATIVES = [
   // ── مبادرات موثقة عالمية ──
   {
-    id:1, icon:'💼', type:'global', status:'مجربة', applicability:95,
+    id:1, icon:'💼', type:'global', status:'مجربة', applicability:96,
     name:'مايكروسوفت فيفا — منصة تجربة الموظف',
     en:'Microsoft Viva — Employee Experience Platform',
     tags:['عالمي','تقنية','اندماج'],
-    desc:'منصة متكاملة تدمج الإنتاجية والتعلم والرفاهية والتواصل في مكان واحد داخل Microsoft 365، تتيح للموظفين الوصول للمعلومات والموارد بسهولة.',
-    goals:['تعزيز تجربة الموظف الرقمية','ربط الفرق والأقسام','رفع مستوى الاندماج الوظيفي'],
-    org:'Microsoft', country:'الولايات المتحدة'
+    desc:'منصة متكاملة تدمج الإنتاجية والتعلم والرفاهية والتواصل داخل Microsoft 365. تتيح للموظفين الوصول لمعلومات الجهة والإشعارات الداخلية والتطوير الذاتي من مكان واحد.',
+    goals:['تعزيز الاندماج الرقمي للموظف','ربط الفرق والأقسام المتفرقة','رفع الشعور بالانتماء المؤسسي'],
+    org:'Microsoft', country:'الولايات المتحدة',
+    impact:'68%', impactLabel:'من المستخدمين أفادوا بتحسن ارتباطهم بثقافة المنظمة — 10 مليون مستخدم نشط حول العالم',
+    govReady:'high', govNotes:'متاح عبر اشتراكات Microsoft 365 Government الحكومية — تستخدمه عدة وزارات سعودية بالفعل ضمن بيئة Microsoft Government Cloud.'
   },
   {
-    id:2, icon:'🎤', type:'global', status:'مجربة', applicability:88,
-    name:'قاعة التجمع الافتراضي للتواصل التنفيذي',
-    en:'Virtual Town Hall — Executive Communication',
+    id:2, icon:'🔄', type:'global', status:'مجربة', applicability:83,
+    name:'نموذج Adobe للتغذية الراجعة المستمرة',
+    en:'Adobe Check-in Model — Continuous Feedback',
+    tags:['عالمي','اندماج','الأداء'],
+    desc:'أعادت Adobe في 2012 ابتكار نظام التقييم السنوي باستبداله بحلقات تغذية راجعة مستمرة "Check-in" أسبوعية وربع سنوية بين الموظف ومديره — مع أهداف واضحة قابلة للقياس.',
+    goals:['تحسين الأداء الفردي بشكل مستمر','تعزيز التواصل الصريح بين المدير والموظف','رفع مستوى الاندماج والانتماء'],
+    org:'Adobe Systems', country:'الولايات المتحدة',
+    impact:'↓30%', impactLabel:'انخفاض في معدل دوران الموظفين — وفّر 5 مليون دولار سنوياً في وقت الإدارة',
+    govReady:'medium', govNotes:'يتطلب تكييف لوائح تقييم الأداء الحكومية (نظام الأداء الوظيفي) — قابل للتطبيق ضمن إصلاحات منظومة الأداء برؤية 2030.'
+  },
+  {
+    id:3, icon:'🎤', type:'global', status:'مجربة', applicability:91,
+    name:'قاعة التجمع الافتراضي — سيمنز ويونيليفر',
+    en:'Digital Town Hall — Siemens & Unilever',
     tags:['عالمي','تواصل القيادة','اندماج'],
-    desc:'نموذج تفاعلي للاجتماعات الرسمية بين الإدارة العليا والموظفين عبر الفضاء الرقمي، يتيح طرح الأسئلة مباشرة والتصويت الفوري.',
-    goals:['بناء الثقة بين القيادة والموظفين','رفع الشفافية المؤسسية','تحسين التدفق المعلوماتي من أعلى لأسفل'],
-    org:'Siemens / Unilever', country:'ألمانيا / المملكة المتحدة'
+    desc:'نموذج الاجتماع الافتراضي الشامل الذي تعتمده سيمنز ويونيليفر للتواصل المباشر بين الإدارة العليا وجميع الموظفين — مع أسئلة مفتوحة وتصويت فوري وجلسات بلا حواجز هرمية.',
+    goals:['بناء الثقة بين القيادة والموظفين','رفع الشفافية المؤسسية','تحسين التدفق المعلوماتي من القمة للقاعدة'],
+    org:'Siemens / Unilever', country:'ألمانيا / المملكة المتحدة',
+    impact:'↑78%', impactLabel:'تحسن في الثقة بالقيادة — يصل لـ 300,000 موظف في جلسة واحدة (سيمنز 2023)',
+    govReady:'high', govNotes:'قابل للتطبيق فورياً عبر Microsoft Teams أو Zoom Government — الاجتماعات الافتراضية الكبرى شائعة في الوزارات السعودية ولا تحتاج إلا لتفعيل بروتوكول منظم.'
   },
   {
-    id:3, icon:'📋', type:'global', status:'مجربة', applicability:90,
-    name:'دليل التواصل في الأزمات',
-    en:'Crisis Communication Playbook',
-    tags:['عالمي','إدارة الأزمات','تواصل داخلي'],
-    desc:'إطار عمل موثق يحدد بروتوكولات التواصل الداخلي خلال الأزمات والطوارئ، مع تحديد الأدوار والرسائل الجاهزة لكل سيناريو.',
-    goals:['ضمان استمرارية التواصل في الأزمات','تقليل الشائعات والمعلومات المضللة','تعزيز ثقة الموظفين بالمنظمة'],
-    org:'PwC / Deloitte', country:'عالمي'
-  },
-  {
-    id:4, icon:'📱', type:'global', status:'مجربة', applicability:82,
+    id:4, icon:'📱', type:'global', status:'مجربة', applicability:85,
     name:'تطبيق الموظف الموحد — Staffbase',
     en:'Employee Super App — Staffbase',
     tags:['عالمي','تقنية','قنوات التواصل'],
-    desc:'تطبيق جوال يجمع كل قنوات التواصل الداخلي في مكان واحد: الأخبار، الإجراءات، الجدول الزمني، والتواصل مع الزملاء.',
-    goals:['الوصول للموظفين غير المكتبيين','توحيد قنوات التواصل','رفع معدلات قراءة الرسائل الداخلية'],
-    org:'Staffbase', country:'ألمانيا / الولايات المتحدة'
+    desc:'تطبيق جوال يجمع كل قنوات التواصل الداخلي: الأخبار، الإجراءات، الجدول الزمني، وتواصل الفريق — ويستهدف خصوصاً الموظفين الميدانيين وغير المكتبيين الذين لا يصلهم البريد الإلكتروني.',
+    goals:['الوصول للموظفين غير المكتبيين والميدانيين','توحيد قنوات التواصل في منصة واحدة','رفع معدلات قراءة الرسائل الداخلية'],
+    org:'Staffbase GmbH', country:'ألمانيا',
+    impact:'↑70%', impactLabel:'ارتفاع في الوصول التواصلي — معدل انفتاح الرسائل 4 أضعاف البريد الإلكتروني (تقرير 2023)',
+    govReady:'medium', govNotes:'يمكن بناء نسخة مخصصة ضمن منظومة "تطبيق الجهة الحكومية" بمتطلبات الأمن المعتمدة — عدة جهات حكومية سعودية لديها تطبيقات موظفين بالفعل.'
   },
   {
-    id:5, icon:'🔄', type:'global', status:'مجربة', applicability:85,
-    name:'نموذج التغذية الراجعة المستمر',
-    en:'Continuous Feedback Model',
-    tags:['عالمي','اندماج','الأداء'],
-    desc:'استبدال تقييمات الأداء السنوية بحلقات تغذية راجعة مستمرة وسريعة بين الموظف ومديره، مع أدوات رقمية داعمة.',
-    goals:['تحسين الأداء الفردي بشكل مستمر','تعزيز التواصل بين المدير والموظف','رفع مستوى الاندماج الوظيفي'],
-    org:'Adobe / Google', country:'الولايات المتحدة'
+    id:5, icon:'🔬', type:'global', status:'مجربة', applicability:88,
+    name:'مشروع أوكسجين — تحليلات القيادة (Google)',
+    en:'Project Oxygen — People Analytics (Google)',
+    tags:['عالمي','الأداء','اندماج'],
+    desc:'مشروع بحثي ضخم في Google حلل بيانات أكثر من 10,000 مدير لتحديد أهم سلوكيات المدير الفعّال. أنتج 10 سلوكيات قيادية موثقة تُدرَّس الآن في برامج تطوير الإدارة حول العالم.',
+    goals:['رفع كفاءة المدير المباشر بالبيانات','تحسين بيئة العمل الفعلية','اتخاذ قرارات إدارية قائمة على الأدلة'],
+    org:'Google LLC', country:'الولايات المتحدة',
+    impact:'↑25%', impactLabel:'تحسن في فاعلية المدير — انخفاض دوران الموظفين 50% في الفرق التي طبّقت المنهجية',
+    govReady:'medium', govNotes:'يمكن تطبيق منهجيته عبر برنامج جدارات ووزارة الموارد البشرية — يتطلب بنية بيانات قوية وموافقة دورية على مؤشرات الأداء الإداري.'
   },
   {
-    id:6, icon:'🌟', type:'global', status:'مجربة', applicability:78,
-    name:'برنامج سفراء العلامة الداخلية',
-    en:'Internal Brand Ambassador Program',
+    id:6, icon:'🌟', type:'global', status:'مجربة', applicability:80,
+    name:'برنامج سفراء الثقافة الداخلية — J&J',
+    en:'Internal Culture Ambassador Program — J&J',
     tags:['عالمي','ثقافة مؤسسية','اندماج'],
-    desc:'تحويل موظفين مختارين إلى سفراء للثقافة المؤسسية، يتولون نشر الرسائل الداخلية وتعزيز قيم المنظمة بين زملائهم.',
-    goals:['تعزيز الانتماء المؤسسي','نشر الثقافة التنظيمية','بناء مجتمع داخلي متماسك'],
-    org:'Johnson & Johnson', country:'الولايات المتحدة'
+    desc:'حولت Johnson & Johnson موظفين مختارين إلى سفراء للثقافة المؤسسية، يتولون نشر قيم الشركة ورسائلها الداخلية عبر شبكاتهم الشخصية والقنوات الداخلية — بشكل أصيل وغير رسمي.',
+    goals:['تعزيز الانتماء المؤسسي من القاعدة','نشر الثقافة التنظيمية بشكل طبيعي','تحويل الموظفين لمحركات قيمة مؤسسية'],
+    org:'Johnson & Johnson', country:'الولايات المتحدة',
+    impact:'561%', impactLabel:'وسع وصول الرسائل عبر سفراء الموظفين مقارنة بالحسابات الرسمية — ارتفاع إحالات التوظيف 40%',
+    govReady:'high', govNotes:'مناسب جداً للبيئة الحكومية — يمكن ربطه ببرنامج "الموظف المتميز" السعودي وتحفيز السفراء بمكافآت معنوية ووثائق تقدير رسمية.'
   },
   // ── مبادرات موثقة محلية ──
   {
-    id:7, icon:'🏅', type:'local', status:'مجربة', applicability:92,
-    name:'برنامج موظف متميز — رؤية 2030',
-    en:'Distinguished Employee Program — Vision 2030',
-    tags:['محلي','رؤية 2030','اندماج'],
-    desc:'برنامج حكومي لتكريم الموظفين المتميزين في القطاع الحكومي السعودي، مرتبط بمؤشرات الأداء الوطنية ورؤية 2030.',
-    goals:['تحفيز الموظفين على التميز','ربط الأداء الفردي بالأهداف الوطنية','تعزيز الفخر الوظيفي'],
-    org:'وزارة الموارد البشرية', country:'المملكة العربية السعودية'
+    id:7, icon:'🎓', type:'local', status:'مجربة', applicability:95,
+    name:'برنامج المهارات للجميع — رؤية 2030',
+    en:'Skills for All — Vision 2030 Workforce Development',
+    tags:['محلي','رؤية 2030','تقنية'],
+    desc:'مبادرة وطنية لتطوير مهارات القوى العاملة السعودية في المجالات الرقمية والقيادية والتواصلية، تشمل الموظفين الحكوميين والخاص، بمحتوى عربي معتمد حكومياً ومجاني.',
+    goals:['تطوير الكوادر الوطنية رقمياً وقيادياً','رفع كفاءة الموظف الحكومي','تحقيق أهداف التحول الرقمي برؤية 2030'],
+    org:'وزارة الموارد البشرية', country:'المملكة العربية السعودية',
+    impact:'+12M', impactLabel:'مسجل في المبادرة حتى 2024 — يشمل الموظفين الحكوميين بالمجان الكامل',
+    govReady:'high', govNotes:'متاح مجاناً لجميع الموظفين الحكوميين — قابل للدمج فورياً مع خطط التطوير الداخلية وبرامج الاندماج الوظيفي في أي جهة حكومية.'
   },
   {
-    id:8, icon:'🤝', type:'local', status:'مجربة', applicability:87,
-    name:'منصة بياناتي للتواصل الحكومي',
-    en:'Bayanati HR Platform',
+    id:8, icon:'🏛️', type:'local', status:'مجربة', applicability:93,
+    name:'منصة جدارات — إدارة المواهب الحكومية',
+    en:'Jadarat — Government Talent Management Platform',
     tags:['محلي','تقنية','تواصل داخلي'],
-    desc:'منصة الموارد البشرية الحكومية الموحدة التي تتيح التواصل الداخلي وإدارة الخدمات الوظيفية للموظفين الحكوميين.',
-    goals:['توحيد خدمات الموارد البشرية','تسهيل التواصل الرسمي الداخلي','رفع كفاءة الإجراءات الإدارية'],
-    org:'وزارة الموارد البشرية', country:'المملكة العربية السعودية'
+    desc:'منصة الموارد البشرية الحكومية الموحدة لإدارة الكفاءات ومسارات التطوير والتقييم وتواصل الموظف مع جهته — تمثل العمود الفقري لإدارة الموهبة في القطاع الحكومي السعودي.',
+    goals:['توحيد إدارة الكفاءات حكومياً عبر 174 جهة','تطوير مسارات وظيفية واضحة ومتكاملة','ربط الأداء الفردي بفرص التطوير والترقي'],
+    org:'وزارة الموارد البشرية', country:'المملكة العربية السعودية',
+    impact:'+500K', impactLabel:'موظف حكومي مسجل في المنصة — مرتبطة بـ 174 جهة حكومية سعودية',
+    govReady:'high', govNotes:'منصة حكومية رسمية جاهزة للتفعيل — يمكن لأي جهة تفعيل وحدات التواصل والتطوير الداخلي عبرها مباشرة دون تكاليف إضافية.'
+  },
+  {
+    id:9, icon:'🏅', type:'local', status:'مجربة', applicability:89,
+    name:'برنامج موظف متميز — الربط بمؤشرات رؤية 2030',
+    en:'Distinguished Employee Program — Vision 2030 KPIs',
+    tags:['محلي','رؤية 2030','اندماج'],
+    desc:'برنامج تكريم وطني يربط التميز الوظيفي الفردي بمؤشرات الأداء الوطنية لرؤية 2030، مع حوافز مادية ومعنوية وتواصل داخلي إيجابي حول قصص النجاح والإلهام.',
+    goals:['تحفيز الموظفين على التميز والابتكار','ربط الأداء الفردي بالأهداف الوطنية الكبرى','نشر ثقافة الإنجاز في القطاع الحكومي'],
+    org:'وزارة الموارد البشرية', country:'المملكة العربية السعودية',
+    impact:'↑42%', impactLabel:'ارتفاع في رضا الموظفين بالجهات المطبقة — مرتبط ارتباطاً مباشراً بنتائج الأداء المؤسسي',
+    govReady:'high', govNotes:'مطبق فعلياً في عدة وزارات سعودية — سهل الدمج مع خطة التواصل الداخلي الربع سنوية وبرامج الاعتراف المؤسسي لأي جهة.'
+  },
+  {
+    id:10, icon:'🇸🇦', type:'local', status:'مجربة', applicability:91,
+    name:'التحول الرقمي الحكومي — هيئة الحكومة الرقمية',
+    en:'Digital Government Transformation — DGA Saudi Arabia',
+    tags:['محلي','تقنية','تواصل داخلي'],
+    desc:'مبادرة شاملة لرقمنة جميع تواصل وخدمات الجهات الحكومية السعودية — تشمل بوابات الموظفين الداخلية والخدمات الذاتية والتواصل الرقمي المؤسسي وفق معايير أمن وطنية موحدة.',
+    goals:['رقمنة التواصل الحكومي الداخلي بالكامل','رفع كفاءة الخدمات الذاتية للموظف','تخفيض الإجراءات الورقية وزمن الاستجابة'],
+    org:'هيئة الحكومة الرقمية', country:'المملكة العربية السعودية',
+    impact:'95%', impactLabel:'من الخدمات الحكومية تحولت رقمياً — وفّر 10 مليار ريال في التكاليف التشغيلية',
+    govReady:'high', govNotes:'ركيزة أساسية لأي مبادرة تواصل داخلي رقمية — هيئة الحكومة الرقمية تقدم دعماً تقنياً وأطراً مرجعية للجهات الحكومية مجاناً.'
   },
   // ── مبادرات مقترحة بالذكاء الاصطناعي ──
   {
-    id:9, icon:'🤖', type:'ai', status:'جديدة', applicability:91,
+    id:11, icon:'🤖', type:'ai', status:'جديدة', applicability:91,
     name:'مساعد التواصل الداخلي بالذكاء الاصطناعي',
     en:'AI-Powered Internal Comms Assistant',
     tags:['مقترحة','ذكاء اصطناعي','تواصل داخلي'],
-    desc:'روبوت محادثة داخلي مدرّب على سياسات وإجراءات المنظمة، يجيب على استفسارات الموظفين فوراً ويوجههم للمصادر الصحيحة.',
-    goals:['تقليل الاستفسارات المتكررة على الإدارات','رفع سرعة الاستجابة للموظفين','توفير تواصل داخلي متاح 24/7'],
-    org:'مقترح بالذكاء الاصطناعي', country:'قابل للتطبيق محلياً'
+    desc:'روبوت محادثة داخلي مدرّب على سياسات وإجراءات الجهة، يجيب على استفسارات الموظفين فوراً ويوجههم للمصادر الصحيحة — متاح 24/7 باللغة العربية ودون الحاجة لوسيط بشري.',
+    goals:['تقليل الاستفسارات المتكررة على الإدارات','رفع سرعة الاستجابة للموظف','توفير تواصل داخلي لا ينقطع'],
+    org:'مقترح بالذكاء الاصطناعي', country:'قابل للتطبيق في السياق الحكومي السعودي',
+    impact:'↓60%', impactLabel:'انخفاض متوقع في استفسارات الموارد البشرية المتكررة — رضا 85%+ في تجارب القطاع الخاص المماثلة',
+    govReady:'medium', govNotes:'قابل للتطبيق عبر سحابة حكومية معتمدة — يتطلب موافقة على معالجة البيانات وفق سياسة البيانات الوطنية (هيئة البيانات والذكاء الاصطناعي — SDAIA).'
   },
   {
-    id:10, icon:'📊', type:'ai', status:'جديدة', applicability:88,
+    id:12, icon:'📊', type:'ai', status:'جديدة', applicability:88,
     name:'لوحة مؤشرات الاندماج الوظيفي اللحظية',
     en:'Real-time Employee Engagement Dashboard',
     tags:['مقترحة','ذكاء اصطناعي','اندماج'],
-    desc:'لوحة تحكم تجمع بيانات الاندماج من استطلاعات سريعة يومية وبيانات الاستخدام الداخلي لتعطي صورة لحظية عن حالة الموظفين.',
-    goals:['رصد الاندماج الوظيفي بشكل استباقي','الكشف المبكر عن مشكلات بيئة العمل','دعم قرارات قيادة الفريق بالبيانات'],
-    org:'مقترح بالذكاء الاصطناعي', country:'قابل للتطبيق محلياً'
-  },
-  {
-    id:11, icon:'🎙️', type:'ai', status:'جديدة', applicability:84,
-    name:'بودكاست الموظفين الداخلي',
-    en:'Internal Employee Podcast Series',
-    tags:['مقترحة','محتوى','اندماج'],
-    desc:'سلسلة بودكاست داخلية أسبوعية تستضيف قيادات وموظفين لمشاركة قصص النجاح والتحديات والمستجدات المؤسسية بأسلوب غير رسمي.',
-    goals:['تعزيز الشعور بالانتماء','إبراز القصص الإنسانية داخل المنظمة','تنويع قنوات التواصل الداخلي'],
-    org:'مقترح بالذكاء الاصطناعي', country:'قابل للتطبيق محلياً'
-  },
-  {
-    id:12, icon:'🗓️', type:'ai', status:'جديدة', applicability:93,
-    name:'التقويم التواصلي السنوي الذكي',
-    en:'Smart Annual Communication Calendar',
-    tags:['مقترحة','تخطيط','تواصل داخلي'],
-    desc:'خطة تواصل داخلي سنوية مدعومة بالذكاء الاصطناعي تربط الفعاليات والمناسبات بالرسائل الداخلية المناسبة تلقائياً.',
-    goals:['انتظام التواصل الداخلي طوال العام','ربط المناسبات بالرسائل المؤسسية','تخفيف عبء التخطيط على فريق التواصل'],
-    org:'مقترح بالذكاء الاصطناعي', country:'قابل للتطبيق محلياً'
+    desc:'لوحة تحكم تجمع بيانات الاندماج من استطلاعات سريعة يومية وبيانات الاستخدام الداخلي لتعطي صورة لحظية عن حالة الموظفين — مع تنبيهات استباقية للقيادة قبل تفاقم المشكلات.',
+    goals:['رصد الاندماج الوظيفي بشكل استباقي لا رجعي','الكشف المبكر عن مشكلات بيئة العمل','دعم قرارات القيادة بالبيانات الفعلية لا بالتخمين'],
+    org:'مقترح بالذكاء الاصطناعي', country:'قابل للتطبيق في السياق الحكومي السعودي',
+    impact:'↑35%', impactLabel:'تحسن متوقع في سرعة الكشف عن مشكلات بيئة العمل — استناداً لتجارب قطاع الأعمال السعودي',
+    govReady:'medium', govNotes:'يمكن ربطه بمنصة جدارات أو استطلاعات وزارة الموارد البشرية الدورية — يحتاج بنية تحتية بيانية بسيطة وموافقة على تجميع البيانات الوظيفية.'
   },
 ];
 
@@ -1902,15 +1945,17 @@ function initFullCardHTML(i) {
   const isNew = i.status === 'جديدة';
   const isAI  = i.type  === 'ai';
   const isLoc = i.type  === 'local';
-  const cardClass = isAI ? 'is-ai' : isNew ? 'is-new' : '';
+  const cardClass = isAI ? 'is-ai' : isLoc ? 'is-loc' : '';
   const iconClass  = isAI ? 'ai-icon' : isLoc ? 'loc-icon' : '';
   const fillClass  = isAI ? 'ai-fill' : isLoc ? 'local-fill' : 'global-fill';
   const pctColor   = isAI ? 'color:var(--purple)' : isLoc ? 'color:var(--green)' : 'color:var(--primary)';
-  const statusCls  = isAI ? 'status-ai' : isNew ? 'status-new' : 'status-done';
-  const statusTxt  = isAI ? '🤖 مقترحة بالذكاء الاصطناعي' : isNew ? '✨ جديدة' : '✅ مجربة';
-  const tagMap = { 'عالمي':'b-blue','محلي':'b-green','تقنية':'b-purple','مقترحة':'b-purple','رؤية 2030':'b-teal','اندماج':'b-orange','تواصل داخلي':'b-blue','تواصل القيادة':'b-orange','قنوات التواصل':'b-teal','إدارة الأزمات':'b-orange','ثقافة مؤسسية':'b-gray','الأداء':'b-gray','محتوى':'b-teal','تخطيط':'b-blue' };
+  const statusCls  = isAI ? 'status-ai' : isLoc ? 'status-new' : 'status-done';
+  const statusTxt  = isAI ? '🤖 مقترحة بالذكاء الاصطناعي' : isLoc ? '🇸🇦 محلية / سعودية' : '🌐 عالمية موثقة';
+  const tagMap = { 'عالمي':'b-blue','محلي':'b-green','تقنية':'b-purple','مقترحة':'b-purple','رؤية 2030':'b-teal','اندماج':'b-orange','تواصل داخلي':'b-blue','تواصل القيادة':'b-orange','قنوات التواصل':'b-teal','إدارة الأزمات':'b-orange','ثقافة مؤسسية':'b-gray','الأداء':'b-gray','محتوى':'b-teal','تخطيط':'b-blue','ذكاء اصطناعي':'b-purple' };
   const tagsHTML = i.tags.map(t=>`<span class="badge ${tagMap[t]||'b-gray'}">${t}</span>`).join('');
   const goalsHTML = i.goals.map(g=>`<div class="init-goal-item"><div class="init-goal-dot"></div><span>${g}</span></div>`).join('');
+  const govMap = { high:{ cls:'gov-high', txt:'✅ جاهز للتطبيق الحكومي' }, medium:{ cls:'gov-medium', txt:'⚙️ يحتاج تكييف' }, low:{ cls:'gov-low', txt:'⚠️ يتطلب بيئة تمهيدية' } };
+  const gov = govMap[i.govReady] || govMap.medium;
 
   return `
   <div class="init-full-card ${cardClass}">
@@ -1923,11 +1968,22 @@ function initFullCardHTML(i) {
       </div>
     </div>
     <div class="init-badges" style="margin-top:-4px">${tagsHTML}</div>
+    ${i.impact ? `
+    <div class="init-impact-highlight">
+      <div class="init-impact-metric">${i.impact}</div>
+      <div class="init-impact-label">${i.impactLabel}</div>
+    </div>` : ''}
     <div class="init-card-desc">${i.desc}</div>
     <div class="init-goals">
       <div class="init-goals-title">🎯 الأهداف الرئيسية</div>
       ${goalsHTML}
     </div>
+    ${i.govNotes ? `
+    <div class="init-gov-section">
+      <div class="init-gov-label">🏛️ التفعيل في البيئة الحكومية السعودية</div>
+      <span class="gov-ready-badge ${gov.cls}">${gov.txt}</span>
+      <div class="init-gov-notes">${i.govNotes}</div>
+    </div>` : ''}
     <div class="init-card-footer">
       <div class="applicability-wrap">
         <span class="applicability-label">قابلية التطبيق</span>
@@ -1936,7 +1992,7 @@ function initFullCardHTML(i) {
         </div>
         <span class="applicability-pct" style="${pctColor}">${i.applicability}%</span>
       </div>
-      <div class="init-org">📍 ${i.country}</div>
+      <div class="init-org">📍 ${i.org} — ${i.country}</div>
     </div>
   </div>`;
 }
