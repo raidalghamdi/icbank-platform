@@ -9,16 +9,23 @@ export interface HealthStatus {
   status: string;
 }
 
+/**
+ * Structured report payload (see frontend renderer for full shape)
+ */
+export type DailyReportInputReportData = { [key: string]: unknown };
+
 export interface DailyReportInput {
-  /** Full HTML content of the report */
-  htmlContent: string;
-  /** ISO date string (YYYY-MM-DD) */
+  /** ISO date YYYY-MM-DD */
   reportDate: string;
+  /** Structured report payload (see frontend renderer for full shape) */
+  reportData: DailyReportInputReportData;
 }
 
-export interface DailyReport {
+export type DailyReportRecordReportData = { [key: string]: unknown };
+
+export interface DailyReportRecord {
   id: number;
   reportDate: string;
-  htmlContent: string;
+  reportData: DailyReportRecordReportData;
   createdAt: string;
 }

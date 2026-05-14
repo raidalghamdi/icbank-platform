@@ -18,7 +18,6 @@ paths:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -31,8 +30,7 @@ paths:
     post:
       operationId: submitDailyReport
       tags: [daily-report]
-      summary: Submit daily report
-      description: Called by N8N automation to save the daily report. Requires x-api-key header.
+      summary: Submit daily report (called by N8N)
       requestBody:
         required: true
         content:
@@ -45,7 +43,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/DailyReport"
+                $ref: "#/components/schemas/DailyReportRecord"
         "400":
           description: Bad request
         "401":
@@ -56,16 +54,15 @@ paths:
       operationId: getLatestDailyReport
       tags: [daily-report]
       summary: Get latest daily report
-      description: Returns the most recently submitted daily report
       responses:
         "200":
           description: Latest report
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/DailyReport"
+                $ref: "#/components/schemas/DailyReportRecord"
         "404":
-          description: No report found yet
+          description: No report found
 
 components:
   schemas:
@@ -74,35 +71,28 @@ components:
       properties:
         status:
           type: string
-      required:
-        - status
+      required: [status]
 
     DailyReportInput:
       type: object
-      required:
-        - htmlContent
-        - reportDate
+      required: [reportDate, reportData]
       properties:
-        htmlContent:
-          type: string
-          description: Full HTML content of the report
         reportDate:
           type: string
-          description: ISO date string (YYYY-MM-DD)
+          description: ISO date YYYY-MM-DD
+        reportData:
+          type: object
+          description: Structured report payload (see frontend renderer for full shape)
 
-    DailyReport:
+    DailyReportRecord:
       type: object
-      required:
-        - id
-        - reportDate
-        - htmlContent
-        - createdAt
+      required: [id, reportDate, reportData, createdAt]
       properties:
         id:
           type: integer
         reportDate:
           type: string
-        htmlContent:
-          type: string
+        reportData:
+          type: object
         createdAt:
           type: string

@@ -437,19 +437,104 @@ nav a .nav-emoji { font-size: 14px; }
 .empty-text { font-size: 13px; }
 
 /* ── DAILY REPORT ── */
-.report-iframe-wrap {
-  background: var(--white);
-  border: 1.5px solid var(--border);
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: var(--shadow-sm);
+.rpt-body { display: flex; flex-direction: column; gap: 20px; }
+.rpt-section {
+  background: var(--white); border: 1.5px solid var(--border);
+  border-radius: 14px; padding: 20px 24px; animation: fadeUp 0.35s ease;
 }
-.report-iframe {
-  width: 100%;
-  min-height: 80vh;
-  border: none;
-  display: block;
+.rpt-section-hd {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
+  padding-bottom: 12px; border-bottom: 1.5px solid var(--border-light);
 }
+.rpt-section-num {
+  width: 28px; height: 28px; border-radius: 8px; background: var(--primary);
+  color: #fff; font-size: 12px; font-weight: 800; display: flex;
+  align-items: center; justify-content: center; flex-shrink: 0;
+}
+.rpt-section-title { font-size: 14px; font-weight: 800; color: var(--text-dark); }
+.rpt-section-badge {
+  margin-right: auto; font-size: 11px; font-weight: 700;
+  background: var(--primary-light); color: var(--primary);
+  padding: 3px 10px; border-radius: 20px;
+}
+
+/* Summary */
+.rpt-summary { font-size: 13px; color: var(--text-mid); line-height: 1.85; }
+
+/* KPIs */
+.rpt-kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+@media (max-width: 700px) { .rpt-kpi-grid { grid-template-columns: 1fr 1fr; } }
+.rpt-kpi-card {
+  background: var(--bg); border: 1.5px solid var(--border);
+  border-radius: 12px; padding: 16px; text-align: center;
+}
+.rpt-kpi-card.kpi-primary { background: var(--primary-light); border-color: var(--primary-mid); }
+.rpt-kpi-card.kpi-green   { background: var(--green-light); border-color: #BBF7D0; }
+.rpt-kpi-card.kpi-orange  { background: var(--orange-light); border-color: #FED7AA; }
+.rpt-kpi-val { font-size: 32px; font-weight: 900; color: var(--text-dark); line-height: 1; margin-bottom: 6px; }
+.rpt-kpi-card.kpi-primary .rpt-kpi-val { color: var(--primary); }
+.rpt-kpi-card.kpi-green   .rpt-kpi-val { color: var(--green); }
+.rpt-kpi-card.kpi-orange  .rpt-kpi-val { color: var(--orange); }
+.rpt-kpi-label { font-size: 11.5px; color: var(--text-soft); font-weight: 600; }
+.rpt-kpi-trend { font-size: 11px; font-weight: 700; margin-top: 4px; }
+.rpt-kpi-trend.up   { color: var(--green); }
+.rpt-kpi-trend.down { color: var(--orange); }
+
+/* Tables */
+.rpt-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.rpt-table th {
+  background: var(--primary-light); color: var(--primary); font-weight: 700;
+  padding: 9px 12px; text-align: right; border-bottom: 2px solid var(--primary-mid);
+}
+.rpt-table td { padding: 9px 12px; border-bottom: 1px solid var(--border-light); color: var(--text-mid); }
+.rpt-table tr:last-child td { border-bottom: none; }
+.rpt-table tr:hover td { background: var(--bg); }
+.rpt-table .td-date { color: var(--text-muted); font-size: 11.5px; direction: ltr; text-align: left; }
+.rpt-table .td-num  { font-weight: 700; color: var(--text-dark); }
+
+/* Bar charts */
+.rpt-bar-list { display: flex; flex-direction: column; gap: 10px; }
+.rpt-bar-row  { display: flex; align-items: center; gap: 12px; }
+.rpt-bar-label { font-size: 12px; color: var(--text-mid); width: 160px; text-align: right; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rpt-bar-track { flex: 1; background: var(--bg); border-radius: 6px; height: 10px; overflow: hidden; }
+.rpt-bar-fill  { height: 100%; border-radius: 6px; background: var(--primary); transition: width 0.6s ease; }
+.rpt-bar-fill.green { background: var(--green); }
+.rpt-bar-num   { font-size: 12px; font-weight: 700; color: var(--text-dark); width: 30px; text-align: center; flex-shrink: 0; }
+
+/* Initiatives */
+.rpt-init-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 700px) { .rpt-init-grid { grid-template-columns: 1fr; } }
+.rpt-init-card {
+  border: 1.5px solid var(--border); border-radius: 12px; padding: 14px 16px;
+  background: var(--bg);
+}
+.rpt-init-label { font-size: 12.5px; font-weight: 700; color: var(--text-dark); margin-bottom: 10px; }
+.rpt-init-row   { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.rpt-init-sub   { font-size: 11px; color: var(--text-muted); }
+.rpt-init-rate  { font-size: 18px; font-weight: 900; color: var(--primary); }
+.rpt-init-bar-track { background: var(--border); border-radius: 6px; height: 6px; margin-top: 6px; overflow: hidden; }
+.rpt-init-bar-fill  { height: 100%; border-radius: 6px; background: var(--primary); }
+
+/* Recommendations */
+.rpt-rec-list { display: flex; flex-direction: column; gap: 10px; list-style: none; }
+.rpt-rec-item {
+  display: flex; gap: 12px; align-items: flex-start;
+  padding: 12px 14px; background: var(--bg); border-radius: 10px;
+  border-right: 3px solid var(--primary);
+}
+.rpt-rec-num  { font-size: 13px; font-weight: 900; color: var(--primary); flex-shrink: 0; }
+.rpt-rec-text { font-size: 12.5px; color: var(--text-mid); line-height: 1.6; }
+
+/* Report header */
+.rpt-header {
+  background: linear-gradient(135deg, #1A56DB, #1E40AF);
+  border-radius: 14px; padding: 24px 28px; color: #fff; margin-bottom: 4px;
+}
+.rpt-header-top    { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+.rpt-header-title  { font-size: 18px; font-weight: 900; }
+.rpt-header-sub    { font-size: 12px; opacity: 0.8; margin-top: 4px; }
+.rpt-header-badge  { background: rgba(255,255,255,0.2); padding: 4px 14px; border-radius: 20px; font-size: 11.5px; font-weight: 700; white-space: nowrap; }
+.rpt-header-dates  { font-size: 11.5px; opacity: 0.75; margin-top: 6px; }
 
 /* Animations */
 @keyframes spin { to { transform: rotate(360deg); } }
@@ -1366,9 +1451,7 @@ nav a .nav-emoji { font-size: 14px; }
     <div class="empty-sub">سيظهر التقرير هنا فور وصوله من N8N</div>
   </div>
 
-  <div id="report-content" class="report-iframe-wrap" style="display:none;">
-    <iframe id="report-iframe" class="report-iframe" sandbox="allow-same-origin" title="التقرير اليومي"></iframe>
-  </div>
+  <div id="report-content" class="rpt-body" style="display:none;"></div>
 
 </div>
 </div>
@@ -2803,16 +2886,16 @@ let reportLoaded = false;
 async function loadDailyReport() {
   if (reportLoaded) return;
 
-  const loading = document.getElementById('report-loading');
-  const empty   = document.getElementById('report-empty');
-  const content = document.getElementById('report-content');
-  const iframe  = document.getElementById('report-iframe');
-  const datePill= document.getElementById('report-date-pill');
-  const dateText= document.getElementById('report-date-text');
+  const loading  = document.getElementById('report-loading');
+  const empty    = document.getElementById('report-empty');
+  const content  = document.getElementById('report-content');
+  const datePill = document.getElementById('report-date-pill');
+  const dateText = document.getElementById('report-date-text');
 
   loading.style.display = 'flex';
   empty.style.display   = 'none';
   content.style.display = 'none';
+  content.innerHTML     = '';
 
   try {
     const res = await fetch('/api/daily-report/latest');
@@ -2823,60 +2906,175 @@ async function loadDailyReport() {
     }
     if (!res.ok) throw new Error('server error');
 
-    const data = await res.json();
+    const record = await res.json();
+    const d = record.reportData || {};
 
-    // inject HTML into iframe via srcdoc
-    const styledHtml = wrapReportHtml(data.htmlContent);
-    iframe.srcdoc = styledHtml;
+    content.innerHTML = renderReportHTML(d);
 
-    // auto-resize iframe after load
-    iframe.onload = () => {
-      try {
-        const h = iframe.contentDocument?.body?.scrollHeight;
-        if (h && h > 200) iframe.style.minHeight = h + 40 + 'px';
-      } catch(_) {}
-    };
-
-    // show date pill
-    if (data.reportDate) {
-      const d = new Date(data.reportDate + 'T12:00:00');
-      dateText.textContent = d.toLocaleDateString('ar-SA-u-nu-latn', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+    if (record.reportDate) {
+      const dt = new Date(record.reportDate + 'T12:00:00');
+      dateText.textContent = dt.toLocaleDateString('ar-SA-u-nu-latn', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
       datePill.style.display = 'flex';
     }
 
     loading.style.display = 'none';
-    content.style.display = 'block';
+    content.style.display = 'flex';
     reportLoaded = true;
+
+    // animate bars after render
+    setTimeout(() => {
+      content.querySelectorAll('.rpt-bar-fill[data-pct]').forEach(el => {
+        el.style.width = el.dataset.pct + '%';
+      });
+      content.querySelectorAll('.rpt-init-bar-fill[data-pct]').forEach(el => {
+        el.style.width = el.dataset.pct + '%';
+      });
+    }, 80);
+
   } catch(e) {
     loading.style.display = 'none';
     empty.style.display   = 'block';
-    console.warn('daily report load error:', e);
+    console.warn('daily report error:', e);
   }
 }
 
-function wrapReportHtml(html) {
-  // إذا كان HTML كاملاً أرجعه كما هو، وإلا أضف wrapper بنفس الفونت
-  if (/<!DOCTYPE|<html/i.test(html)) return html;
-  return `<!DOCTYPE html>
-<html dir="rtl" lang="ar">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Cairo', sans-serif; background: #F7F8FA; color: #0F172A; padding: 24px; direction: rtl; }
-  table { border-collapse: collapse; width: 100%; }
-  th, td { padding: 8px 12px; border: 1px solid #E8ECF0; font-size: 13px; }
-  th { background: #EFF6FF; color: #1A56DB; font-weight: 700; }
-  tr:nth-child(even) td { background: #F7F8FA; }
-  h1, h2, h3 { color: #0F172A; margin-bottom: 12px; }
-  a { color: #1A56DB; }
-  img { max-width: 100%; }
-</style>
-</head>
-<body>${html}</body>
-</html>`;
+function renderReportHTML(d) {
+  const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const sec = (num, title, badge, body) => `
+    <div class="rpt-section">
+      <div class="rpt-section-hd">
+        <div class="rpt-section-num">${num}</div>
+        <div class="rpt-section-title">${title}</div>
+        ${badge ? `<div class="rpt-section-badge">${badge}</div>` : ''}
+      </div>
+      ${body}
+    </div>`;
+
+  let html = '';
+
+  // ── HEADER ──
+  html += `<div class="rpt-header">
+    <div class="rpt-header-top">
+      <div>
+        <div class="rpt-header-title">📊 ${esc(d.title || 'تقرير الأداء التنفيذي')}</div>
+        <div class="rpt-header-sub">${esc(d.subtitle || 'تحرير الأداء السنوي للمشاريع')}</div>
+      </div>
+      <div class="rpt-header-badge">سري — للاستخدام الداخلي فقط</div>
+    </div>
+    ${d.dateRange ? `<div class="rpt-header-dates">📅 ${esc(d.dateRange.from)} — ${esc(d.dateRange.to)}</div>` : ''}
+  </div>`;
+
+  // 01 الملخص التنفيذي
+  if (d.summary) {
+    html += sec('01', 'الملخص التنفيذي', '', `<div class="rpt-summary">${esc(d.summary)}</div>`);
+  }
+
+  // 02 المؤشرات الرئيسية
+  if (d.kpis?.length) {
+    const themes = ['kpi-primary','','kpi-green','kpi-orange'];
+    const kpiCards = d.kpis.map((k,i) => {
+      const trend = k.trend === 'up'
+        ? `<div class="rpt-kpi-trend up">▲ ${esc(k.trendLabel||'')}</div>`
+        : k.trend === 'down'
+        ? `<div class="rpt-kpi-trend down">▼ ${esc(k.trendLabel||'')}</div>`
+        : '';
+      return `<div class="rpt-kpi-card ${themes[i]||''}">
+        <div class="rpt-kpi-val">${esc(k.value)}${k.unit?`<span style="font-size:14px">${esc(k.unit)}</span>`:''}
+        </div>
+        <div class="rpt-kpi-label">${esc(k.label)}</div>
+        ${trend}
+      </div>`;
+    }).join('');
+    html += sec('02', 'المؤشرات الرئيسية', '', `<div class="rpt-kpi-grid">${kpiCards}</div>`);
+  }
+
+  // 03 المشاريع المنجزة
+  if (d.completedProjects?.length) {
+    const rows = d.completedProjects.map(p => `<tr>
+      <td>${esc(p.name)}</td>
+      <td class="td-num">${esc(p.members)}</td>
+      <td class="td-date">${esc(p.dueDate)}</td>
+    </tr>`).join('');
+    const tbl = `<table class="rpt-table">
+      <thead><tr><th>اسم المشروع</th><th>عدد الأعضاء</th><th>تاريخ الاستحقاق</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+    html += sec('03', 'المشاريع المنجزة', `${d.completedProjects.length} مشاريع`, tbl);
+  }
+
+  // 04 المهام المصفّحة في الآونة الأخيرة
+  if (d.recentTasks?.length) {
+    const rows = d.recentTasks.map(t => `<tr>
+      <td>${esc(t.name)}</td>
+      <td>${esc(t.assignee)}</td>
+      <td class="td-date">${esc(t.date)}</td>
+      <td>${esc(t.bucket||'')}</td>
+    </tr>`).join('');
+    const tbl = `<table class="rpt-table">
+      <thead><tr><th>المهمة</th><th>المسؤول</th><th>التاريخ</th><th>القنة</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+    html += sec('04', 'المهام المصفّحة في الآونة الأخيرة', '30 يوماً', tbl);
+  }
+
+  // 05 توزيع المشاريع حسب القنة
+  if (d.projectsByBucket?.length) {
+    const maxCount = Math.max(...d.projectsByBucket.map(b => b.count), 1);
+    const bars = d.projectsByBucket.map(b => {
+      const pct = Math.round((b.count / maxCount) * 100);
+      return `<div class="rpt-bar-row">
+        <div class="rpt-bar-label">${esc(b.label)}</div>
+        <div class="rpt-bar-track"><div class="rpt-bar-fill" data-pct="${pct}" style="width:0%"></div></div>
+        <div class="rpt-bar-num">${b.count}</div>
+      </div>`;
+    }).join('');
+    html += sec('05', 'توزيع المشاريع حسب القنة', '', `<div class="rpt-bar-list">${bars}</div>`);
+  }
+
+  // 06 الأعضاء الأكثر مساهمة
+  if (d.topMembers?.length) {
+    const maxCount = Math.max(...d.topMembers.map(m => m.count), 1);
+    const bars = d.topMembers.map(m => {
+      const pct = Math.round((m.count / maxCount) * 100);
+      return `<div class="rpt-bar-row">
+        <div class="rpt-bar-label">${esc(m.name)}</div>
+        <div class="rpt-bar-track"><div class="rpt-bar-fill green" data-pct="${pct}" style="width:0%"></div></div>
+        <div class="rpt-bar-num">${m.count}</div>
+      </div>`;
+    }).join('');
+    html += sec('06', 'الأعضاء الأكثر مساهمة', '', `<div class="rpt-bar-list">${bars}</div>`);
+  }
+
+  // 07 إنجاز المبادرات
+  if (d.initiatives?.length) {
+    const cards = d.initiatives.map(i => {
+      const rate = parseFloat(i.rate) || 0;
+      const pct  = Math.min(rate, 100);
+      return `<div class="rpt-init-card">
+        <div class="rpt-init-label">${esc(i.label)}</div>
+        <div class="rpt-init-row">
+          <span class="rpt-init-sub">المستهدف: ${esc(i.target)} | الفعلي: ${esc(i.actual)}</span>
+          <span class="rpt-init-rate">${esc(i.rate)}</span>
+        </div>
+        <div class="rpt-init-bar-track">
+          <div class="rpt-init-bar-fill" data-pct="${pct}" style="width:0%"></div>
+        </div>
+      </div>`;
+    }).join('');
+    html += sec('07', 'إنجاز المبادرات — معدل المستهدفات السنوية', '', `<div class="rpt-init-grid">${cards}</div>`);
+  }
+
+  // 08 التوصيات التنفيذية
+  if (d.recommendations?.length) {
+    const items = d.recommendations.map((r,i) => `
+      <li class="rpt-rec-item">
+        <span class="rpt-rec-num">${i+1}</span>
+        <span class="rpt-rec-text">${esc(r)}</span>
+      </li>`).join('');
+    html += sec('08', 'التوصيات التنفيذية', '', `<ul class="rpt-rec-list">${items}</ul>`);
+  }
+
+  return html;
 }
 
 // hook into showSection to load report lazily

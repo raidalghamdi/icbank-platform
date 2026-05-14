@@ -6,6 +6,8 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export * from "./dailyReport";
 export * from "./dailyReportInput";
+export * from "./dailyReportInputReportData";
+export * from "./dailyReportRecord";
+export * from "./dailyReportRecordReportData";
 export * from "./healthStatus";

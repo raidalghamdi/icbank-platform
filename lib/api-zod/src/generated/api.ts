@@ -8,7 +8,6 @@
 import * as zod from "zod";
 
 /**
- * Returns server health status
  * @summary Health check
  */
 export const HealthCheckResponse = zod.object({
@@ -16,21 +15,24 @@ export const HealthCheckResponse = zod.object({
 });
 
 /**
- * Called by N8N automation to save the daily report. Requires x-api-key header.
- * @summary Submit daily report
+ * @summary Submit daily report (called by N8N)
  */
 export const SubmitDailyReportBody = zod.object({
-  htmlContent: zod.string().describe("Full HTML content of the report"),
-  reportDate: zod.string().describe("ISO date string (YYYY-MM-DD)"),
+  reportDate: zod.string().describe("ISO date YYYY-MM-DD"),
+  reportData: zod
+    .object({})
+    .passthrough()
+    .describe(
+      "Structured report payload (see frontend renderer for full shape)",
+    ),
 });
 
 /**
- * Returns the most recently submitted daily report
  * @summary Get latest daily report
  */
 export const GetLatestDailyReportResponse = zod.object({
   id: zod.number(),
   reportDate: zod.string(),
-  htmlContent: zod.string(),
+  reportData: zod.object({}).passthrough(),
   createdAt: zod.string(),
 });

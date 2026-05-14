@@ -5,10 +5,11 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { DailyReportRecordReportData } from "./dailyReportRecordReportData";
 
-export interface DailyReport {
+export interface DailyReportRecord {
   id: number;
   reportDate: string;
-  htmlContent: string;
+  reportData: DailyReportRecordReportData;
   createdAt: string;
 }

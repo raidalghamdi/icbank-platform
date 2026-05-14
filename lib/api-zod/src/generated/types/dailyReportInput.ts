@@ -5,10 +5,11 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { DailyReportInputReportData } from "./dailyReportInputReportData";
 
 export interface DailyReportInput {
-  /** Full HTML content of the report */
-  htmlContent: string;
-  /** ISO date string (YYYY-MM-DD) */
+  /** ISO date YYYY-MM-DD */
   reportDate: string;
+  /** Structured report payload (see frontend renderer for full shape) */
+  reportData: DailyReportInputReportData;
 }

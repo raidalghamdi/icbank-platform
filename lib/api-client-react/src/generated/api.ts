@@ -17,8 +17,8 @@ import type {
 } from "@tanstack/react-query";
 
 import type {
-  DailyReport,
   DailyReportInput,
+  DailyReportRecord,
   HealthStatus,
 } from "./api.schemas";
 
@@ -32,7 +32,6 @@ type Awaited<O> = O extends AwaitedInput<infer T> ? T : never;
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 /**
- * Returns server health status
  * @summary Health check
  */
 export const getHealthCheckUrl = () => {
@@ -108,8 +107,7 @@ export function useHealthCheck<
 }
 
 /**
- * Called by N8N automation to save the daily report. Requires x-api-key header.
- * @summary Submit daily report
+ * @summary Submit daily report (called by N8N)
  */
 export const getSubmitDailyReportUrl = () => {
   return `/api/daily-report`;
@@ -118,8 +116,8 @@ export const getSubmitDailyReportUrl = () => {
 export const submitDailyReport = async (
   dailyReportInput: DailyReportInput,
   options?: RequestInit,
-): Promise<DailyReport> => {
-  return customFetch<DailyReport>(getSubmitDailyReportUrl(), {
+): Promise<DailyReportRecord> => {
+  return customFetch<DailyReportRecord>(getSubmitDailyReportUrl(), {
     ...options,
     method: "POST",
     headers: { "Content-Type": "application/json", ...options?.headers },
@@ -172,7 +170,7 @@ export type SubmitDailyReportMutationBody = BodyType<DailyReportInput>;
 export type SubmitDailyReportMutationError = ErrorType<void>;
 
 /**
- * @summary Submit daily report
+ * @summary Submit daily report (called by N8N)
  */
 export const useSubmitDailyReport = <
   TError = ErrorType<void>,
@@ -195,7 +193,6 @@ export const useSubmitDailyReport = <
 };
 
 /**
- * Returns the most recently submitted daily report
  * @summary Get latest daily report
  */
 export const getGetLatestDailyReportUrl = () => {
@@ -204,8 +201,8 @@ export const getGetLatestDailyReportUrl = () => {
 
 export const getLatestDailyReport = async (
   options?: RequestInit,
-): Promise<DailyReport> => {
-  return customFetch<DailyReport>(getGetLatestDailyReportUrl(), {
+): Promise<DailyReportRecord> => {
+  return customFetch<DailyReportRecord>(getGetLatestDailyReportUrl(), {
     ...options,
     method: "GET",
   });
