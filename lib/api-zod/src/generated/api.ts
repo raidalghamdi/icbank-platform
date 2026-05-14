@@ -14,3 +14,23 @@ import * as zod from "zod";
 export const HealthCheckResponse = zod.object({
   status: zod.string(),
 });
+
+/**
+ * Called by N8N automation to save the daily report. Requires x-api-key header.
+ * @summary Submit daily report
+ */
+export const SubmitDailyReportBody = zod.object({
+  htmlContent: zod.string().describe("Full HTML content of the report"),
+  reportDate: zod.string().describe("ISO date string (YYYY-MM-DD)"),
+});
+
+/**
+ * Returns the most recently submitted daily report
+ * @summary Get latest daily report
+ */
+export const GetLatestDailyReportResponse = zod.object({
+  id: zod.number(),
+  reportDate: zod.string(),
+  htmlContent: zod.string(),
+  createdAt: zod.string(),
+});

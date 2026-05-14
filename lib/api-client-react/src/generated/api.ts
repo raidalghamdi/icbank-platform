@@ -5,18 +5,25 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import type {
+  MutationFunction,
   QueryFunction,
   QueryKey,
+  UseMutationOptions,
+  UseMutationResult,
   UseQueryOptions,
   UseQueryResult,
 } from "@tanstack/react-query";
 
-import type { HealthStatus } from "./api.schemas";
+import type {
+  DailyReport,
+  DailyReportInput,
+  HealthStatus,
+} from "./api.schemas";
 
 import { customFetch } from "../custom-fetch";
-import type { ErrorType } from "../custom-fetch";
+import type { ErrorType, BodyType } from "../custom-fetch";
 
 type AwaitedInput<T> = PromiseLike<T> | T;
 
@@ -92,6 +99,169 @@ export function useHealthCheck<
   request?: SecondParameter<typeof customFetch>;
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getHealthCheckQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * Called by N8N automation to save the daily report. Requires x-api-key header.
+ * @summary Submit daily report
+ */
+export const getSubmitDailyReportUrl = () => {
+  return `/api/daily-report`;
+};
+
+export const submitDailyReport = async (
+  dailyReportInput: DailyReportInput,
+  options?: RequestInit,
+): Promise<DailyReport> => {
+  return customFetch<DailyReport>(getSubmitDailyReportUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(dailyReportInput),
+  });
+};
+
+export const getSubmitDailyReportMutationOptions = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof submitDailyReport>>,
+    TError,
+    { data: BodyType<DailyReportInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof submitDailyReport>>,
+  TError,
+  { data: BodyType<DailyReportInput> },
+  TContext
+> => {
+  const mutationKey = ["submitDailyReport"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof submitDailyReport>>,
+    { data: BodyType<DailyReportInput> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return submitDailyReport(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type SubmitDailyReportMutationResult = NonNullable<
+  Awaited<ReturnType<typeof submitDailyReport>>
+>;
+export type SubmitDailyReportMutationBody = BodyType<DailyReportInput>;
+export type SubmitDailyReportMutationError = ErrorType<void>;
+
+/**
+ * @summary Submit daily report
+ */
+export const useSubmitDailyReport = <
+  TError = ErrorType<void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof submitDailyReport>>,
+    TError,
+    { data: BodyType<DailyReportInput> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof submitDailyReport>>,
+  TError,
+  { data: BodyType<DailyReportInput> },
+  TContext
+> => {
+  return useMutation(getSubmitDailyReportMutationOptions(options));
+};
+
+/**
+ * Returns the most recently submitted daily report
+ * @summary Get latest daily report
+ */
+export const getGetLatestDailyReportUrl = () => {
+  return `/api/daily-report/latest`;
+};
+
+export const getLatestDailyReport = async (
+  options?: RequestInit,
+): Promise<DailyReport> => {
+  return customFetch<DailyReport>(getGetLatestDailyReportUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetLatestDailyReportQueryKey = () => {
+  return [`/api/daily-report/latest`] as const;
+};
+
+export const getGetLatestDailyReportQueryOptions = <
+  TData = Awaited<ReturnType<typeof getLatestDailyReport>>,
+  TError = ErrorType<void>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getLatestDailyReport>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetLatestDailyReportQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getLatestDailyReport>>
+  > = ({ signal }) => getLatestDailyReport({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getLatestDailyReport>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetLatestDailyReportQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getLatestDailyReport>>
+>;
+export type GetLatestDailyReportQueryError = ErrorType<void>;
+
+/**
+ * @summary Get latest daily report
+ */
+
+export function useGetLatestDailyReport<
+  TData = Awaited<ReturnType<typeof getLatestDailyReport>>,
+  TError = ErrorType<void>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getLatestDailyReport>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetLatestDailyReportQueryOptions(options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;

@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: daily-report
+    description: Daily report operations
 paths:
   /healthz:
     get:
@@ -24,6 +26,47 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /daily-report:
+    post:
+      operationId: submitDailyReport
+      tags: [daily-report]
+      summary: Submit daily report
+      description: Called by N8N automation to save the daily report. Requires x-api-key header.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DailyReportInput"
+      responses:
+        "201":
+          description: Report saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DailyReport"
+        "400":
+          description: Bad request
+        "401":
+          description: Unauthorized
+
+  /daily-report/latest:
+    get:
+      operationId: getLatestDailyReport
+      tags: [daily-report]
+      summary: Get latest daily report
+      description: Returns the most recently submitted daily report
+      responses:
+        "200":
+          description: Latest report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DailyReport"
+        "404":
+          description: No report found yet
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +77,32 @@ components:
       required:
         - status
 
+    DailyReportInput:
+      type: object
+      required:
+        - htmlContent
+        - reportDate
+      properties:
+        htmlContent:
+          type: string
+          description: Full HTML content of the report
+        reportDate:
+          type: string
+          description: ISO date string (YYYY-MM-DD)
+
+    DailyReport:
+      type: object
+      required:
+        - id
+        - reportDate
+        - htmlContent
+        - createdAt
+      properties:
+        id:
+          type: integer
+        reportDate:
+          type: string
+        htmlContent:
+          type: string
+        createdAt:
+          type: string

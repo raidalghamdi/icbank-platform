@@ -5,16 +5,6 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-export interface HealthStatus {
-  status: string;
-}
-
-export interface DailyReportInput {
-  /** Full HTML content of the report */
-  htmlContent: string;
-  /** ISO date string (YYYY-MM-DD) */
-  reportDate: string;
-}
 
 export interface DailyReport {
   id: number;
