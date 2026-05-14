@@ -1,0 +1,291 @@
+{
+  "name": "IC Daily Report",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "452809b8-dc9e-4bcb-bda4-0630b22214d4",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Normalize Projects Data (v2) - STRONG DONE DETECTION\n// - Marks card as done if:\n//   1) Trello dueComplete === true\n//   2) card.closed === true (archived)\n//   3) list name indicates completion (Arabic/English keywords like \"إنجاز شهر يناير\")\n\nconst cards = $items(\"Get Cards\").map(i => i.json);\nconst lists = $items(\"Get Lists\").map(i => i.json);\n\n// Map listId -> listName\nconst listMap = {};\nfor (const l of lists) listMap[l.id] = l.name || \"\";\n\n// Helpers\nfunction uniq(arr) {\n  return [...new Set((arr || []).filter(Boolean))];\n}\n\nfunction normalizeText(s) {\n  return (s || \"\")\n    .toString()\n    .trim()\n    .toLowerCase()\n    .replace(/\\s+/g, \" \");\n}\n\n// Detect done list names (add your org naming patterns here)\nfunction isDoneList(listName) {\n  const n = normalizeText(listName);\n\n  // ✅ كلمات إنجاز/إغلاق/أرشفة عربية شائعة + إنجليزية\n  const doneKeywords = [\n    \"done\", \"completed\", \"complete\", \"closed\", \"finished\", \"final\", \"archive\", \"archived\",\n    \"تم\", \"مكتمل\", \"منجز\", \"منجزة\", \"إنجاز\", \"انجاز\", \"إغلاق\", \"اغلاق\", \"مغلق\", \"مقفلة\", \"مقفل\",\n    \"أرشيف\", \"ارشيف\", \"مؤرشف\", \"مؤرشفة\", \"منتهي\", \"منتهية\", \"تم الإنهاء\", \"تم الانتهاء\"\n  ];\n\n  // ✅ نمط قوائم مثل: \"إنجاز شهر يناير\" / \"انجاز شهر فبراير\"\n  const donePatterns = [\n    \"انجاز شهر\", \"إنجاز شهر\",\n    \"انجاز\", \"إنجاز\"\n  ];\n\n  if (doneKeywords.some(k => n.includes(normalizeText(k)))) return true;\n  if (donePatterns.some(k => n.includes(normalizeText(k)))) return true;\n\n  return false;\n}\n\nreturn cards.map(card => {\n  const listName = listMap[card.idList] || \"غير مصنف\";\n\n  // team members\n  const members = Array.isArray(card.members)\n    ? uniq(card.members.map(m => m.fullName || m.username || m.id))\n    : [];\n\n  const dueComplete = card.dueComplete === true;     // Trello built-in\n  const isArchived = card.closed === true;          // Trello archived card\n  const doneByList = isDoneList(listName);          // by list naming\n\n  const isDone = (dueComplete || isArchived || doneByList) ? true : false;\n\n  return {\n    json: {\n      project_id: card.id,\n      project_name: card.name || \"(بدون اسم)\",\n      project_category: listName,\n\n      due_date: card.due || null,\n\n      team_members: members,\n\n      // ✅ status helpers used by KPIs\n      due_complete: dueComplete,\n      is_archived: isArchived,\n      is_done_list: doneByList,\n      is_done: isDone,\n\n      _raw: {\n        idList: card.idList,\n        closed: isArchived\n      }\n    }\n  };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        496,
+        0
+      ],
+      "id": "7557364b-aebe-41bd-846b-0959044415fa",
+      "name": "Normalize Projects Data"
+    },
+    {
+      "parameters": {
+        "url": "https://api.trello.com/1/boards/6937ecff0918a3a3c9654a4b/lists",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "trelloApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "fields",
+              "value": "name"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        208,
+        -208
+      ],
+      "id": "51cd4dbd-5678-4ce4-a515-2bfa285cfa13",
+      "name": "Get Lists",
+      "credentials": {
+        "trelloApi": {
+          "id": "eovrZvWtC9pz0tbW",
+          "name": "Trello account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://api.trello.com/1/boards/6937ecff0918a3a3c9654a4b/cards",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "trelloApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "fields",
+              "value": "name,idList,due,dateLastActivity"
+            },
+            {
+              "name": "members",
+              "value": "true"
+            },
+            {
+              "name": "member_fields",
+              "value": "fullName,username"
+            },
+            {
+              "name": "customFieldItems",
+              "value": "true"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        208,
+        0
+      ],
+      "id": "e5c38421-414a-4fea-b0cf-404fde5ab8b8",
+      "name": "Get Cards",
+      "credentials": {
+        "trelloApi": {
+          "id": "eovrZvWtC9pz0tbW",
+          "name": "Trello account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Executive KPIs v7 - مع المستهدفات السنوية الثابتة للفئات الست\n// Window: now -> now + windowDays\n\nconst projects = $input.all().map(i => i.json);\n\n// ✅ غيّر هنا لو تبي 30 / 14 / 7 ... الخ\nconst windowDays = 30;\n\nconst now = new Date();\nconst windowEnd = new Date(now.getTime() + windowDays * 24 * 60 * 60 * 1000);\n\n// ====== Helpers ======\nfunction safeDate(s) {\n  if (!s) return null;\n  const d = new Date(s);\n  return isNaN(d.getTime()) ? null : d;\n}\n\nfunction uniq(arr) {\n  return [...new Set((arr || []).filter(Boolean))];\n}\n\nfunction pct(num, den) {\n  if (!den) return 0;\n  return Math.round((num / den) * 1000) / 10;\n}\n\nfunction formatISODate(d) {\n  if (!d) return null;\n  return d.toISOString().split(\"T\")[0];\n}\n\nconst todayDay = formatISODate(now);\n\nfunction isOverdueByDay(dueDateObj) {\n  if (!dueDateObj) return false;\n  const dueDay = formatISODate(dueDateObj);\n  return !!(dueDay && dueDay < todayDay);\n}\n\nfunction isDone(p) {\n  return p.is_done === true || p.due_complete === true || p.is_done_list === true;\n}\n\n// ✅ تطبيع النصوص العربية\nfunction normalizeArabic(s) {\n  return (s || \"\")\n    .toString()\n    .trim()\n    .replace(/\\s+/g, \" \")\n    .replace(/[إأآا]/g, \"ا\")\n    .replace(/ى/g, \"ي\")\n    .replace(/ة/g, \"ه\")\n    .replace(/[\\u064B-\\u0652]/g, \"\");\n}\n\n// ====== 0) Normalize + add helper fields ======\nconst normalized = projects.map(p => {\n  const _due = safeDate(p.due_date);\n  const _members = uniq(p.team_members);\n  const _category = p.project_category || \"غير مصنف\";\n  const _name = p.project_name || \"(بدون اسم)\";\n\n  return {\n    ...p,\n    _due,\n    _members,\n    _category,\n    _name,\n    _due_day: _due ? formatISODate(_due) : null,\n    _is_done: isDone(p),\n    _is_overdue: _due ? (isOverdueByDay(_due) && !isDone(p)) : false,\n  };\n});\n\n// ====== 1) ALL counters ======\nconst total_all = normalized.length;\n\nconst overdue_all_list = normalized\n  .filter(p => p._is_overdue)\n  .sort((a, b) => (a._due - b._due));\n\nconst overdue_all = overdue_all_list.length;\nconst missing_due_all = normalized.filter(p => !p._due).length;\nconst unassigned_all = normalized.filter(p => p._members.length === 0).length;\n\n// ====== 2) Window set ======\nconst due_within_window = normalized\n  .filter(p => p._due && p._due >= now && p._due <= windowEnd && !p._is_done)\n  .sort((a, b) => a._due - b._due);\n\nconst total_window = due_within_window.length;\n\nconst window_by_category = {};\nfor (const p of due_within_window) {\n  window_by_category[p._category] = (window_by_category[p._category] || 0) + 1;\n}\n\nconst top_category = Object.entries(window_by_category)\n  .map(([category, count]) => ({ category, count }))\n  .sort((a, b) => b.count - a.count)[0] || { category: \"—\", count: 0 };\n\n// ====== 3) Workload per member ======\nconst window_by_member = {};\nfor (const p of due_within_window) {\n  for (const m of p._members) {\n    window_by_member[m] = (window_by_member[m] || 0) + 1;\n  }\n}\n\nconst window_projects_per_member_sorted = Object.entries(window_by_member)\n  .map(([member, count]) => ({ member, count }))\n  .sort((a, b) => b.count - a.count);\n\nconst top_member = window_projects_per_member_sorted[0] || { member: \"—\", count: 0 };\nconst window_top_members = window_projects_per_member_sorted.slice(0, 10);\n\n// ====== 4) Matrix ======\nconst window_member_category_matrix = {};\nfor (const p of due_within_window) {\n  for (const m of p._members) {\n    if (!window_member_category_matrix[m]) window_member_category_matrix[m] = {};\n    window_member_category_matrix[m][p._category] = (window_member_category_matrix[m][p._category] || 0) + 1;\n  }\n}\n\n// ====== 5) Window projects list ======\nconst window_projects_list = due_within_window.map(p => ({\n  project_id: p.project_id,\n  project_name: p._name,\n  project_category: p._category,\n  due_date: p.due_date,\n  due_day: p._due_day,\n  team_members: p._members,\n  team_size: p._members.length,\n}));\n\nconst due_soon_top20 = window_projects_list.slice(0, 20);\n\n// ====== 6) Overdue list ======\nconst overdue_projects_list = overdue_all_list.map(p => ({\n  project_id: p.project_id,\n  project_name: p._name,\n  project_category: p._category,\n  due_date: p.due_date,\n  due_day: p._due_day,\n  team_members: p._members,\n  team_size: p._members.length,\n}));\n\nconst overdue_projects_table_rows = overdue_projects_list.map(p => ({\n  project_name: p.project_name,\n  project_category: p.project_category,\n  due_day: p.due_day || \"—\",\n  team: (p.team_members && p.team_members.length) ? p.team_members.join(\", \") : \"لا يوجد\"\n}));\n\n// ====== 7) Render-ready lines ======\nconst window_breakdown_lines = Object.entries(window_by_category)\n  .sort((a, b) => b[1] - a[1])\n  .map(([category, count]) => `${category}: ${count}`);\n\nconst window_top_members_lines = window_top_members\n  .map(x => `${x.member}: ${x.count}`);\n\n// ====== 8) ✅ المبادرات في الفئات الرئيسية الست (مع المستهدفات السنوية) ======\n// المطابقة على \"اسم البطاقة\" (project_name)\n// المستهدف ثابت سنوياً، والإنجاز = عدد البطاقات المنجزة فعلياً ÷ المستهدف\nconst targetCategoryDefinitions = [\n  { name: \"تستاهل الصيت\",                target: 9  },\n  { name: \"باختصار\",                     target: 6  },\n  { name: \"رحلة المنظومة\",               target: 11 },\n  { name: \"المنجزات الوزارة والمنظومة\", target: 12 },\n  { name: \"نبذة تعريفية\",                target: 6  },\n  { name: \"مبادرة جسور المنظومة\",       target: 1  }\n];\n\nfunction matchInitiativeByName(cardName, targetName) {\n  const c = normalizeArabic(cardName);\n  const t = normalizeArabic(targetName);\n  return c.includes(t);\n}\n\nconst target_initiatives = targetCategoryDefinitions.map(def => {\n  const matched = normalized.filter(p => matchInitiativeByName(p._name, def.name));\n  const completed = matched.filter(p => p._is_done);\n  const inProgress = matched.filter(p => !p._is_done);\n\n  // نسبة الإنجاز محسوبة من المستهدف وليس من إجمالي البطاقات\n  const achievement_pct = def.target ? Math.round((completed.length / def.target) * 1000) / 10 : 0;\n\n  return {\n    name: def.name,\n    target: def.target,\n    total_cards: matched.length,\n    completed_count: completed.length,\n    in_progress_count: inProgress.length,\n    remaining_to_target: Math.max(def.target - completed.length, 0),\n    achievement_pct,\n    completed_projects: completed.map(p => p._name),\n    in_progress_projects: inProgress.map(p => p._name)\n  };\n});\n\n// ====== KPIs object ======\nconst kpis = {\n  window_days: windowDays,\n  window_start_iso: now.toISOString(),\n  window_end_iso: windowEnd.toISOString(),\n  window_start_day: formatISODate(now),\n  window_end_day: formatISODate(windowEnd),\n\n  all: {\n    total_projects: total_all,\n    overdue_projects: overdue_all,\n    missing_due_projects: missing_due_all,\n    unassigned_projects: unassigned_all,\n    overdue_rate_pct: pct(overdue_all, total_all),\n    missing_due_rate_pct: pct(missing_due_all, total_all),\n    unassigned_rate_pct: pct(unassigned_all, total_all),\n  },\n\n  window: {\n    due_within_window: total_window,\n    due_within_window_rate_pct: pct(total_window, total_all),\n    top_category,\n    top_member,\n  }\n};\n\nreturn [{\n  json: {\n    generated_at: now.toISOString(),\n    kpis,\n\n    breakdowns: {\n      window_by_category,\n      window_projects_per_member_sorted,\n      window_top_members,\n      window_member_category_matrix,\n    },\n\n    projects_within_window: window_projects_list,\n    overdue_projects: overdue_projects_list,\n\n    highlights: {\n      top_category_in_window: top_category,\n      top_member_in_window: top_member,\n      due_soon_top20,\n    },\n\n    target_initiatives,\n\n    render_ready: {\n      window_breakdown_lines,\n      window_top_members_lines,\n      window_label: `${formatISODate(now)} → ${formatISODate(windowEnd)}`,\n      overdue_projects_table_rows\n    }\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        704,
+        0
+      ],
+      "id": "e0fccbce-7244-4113-a310-a1ac366d92c4",
+      "name": "Executive KPIs"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1"
+        },
+        "responses": {
+          "values": [
+            {
+              "role": "system",
+              "content": "أنت محلل تنفيذي يكتب تقارير عربية للإدارة العليا بنمط الشركات الاستشارية الكبرى.\n\nمهمتك: قراءة بيانات JSON المرفقة وكتابة تحليل نصي مكثّف فقط (لا تبني HTML).\n\nالتزم بالآتي:\n1) لا تخترع أرقاماً أو أسماء — استخدم فقط ما هو في JSON.\n2) أسلوبك: تحليلي تنفيذي مختصر، بلا حشو، بلا عبارات إنشائية.\n3) أخرج النتيجة JSON فقط، بدون أي نص خارج JSON، وبدون code fences.\n\nصيغة الإخراج المطلوبة بالضبط:\n{\n  \"subject\": \"تقرير الأداء التنفيذي للمشاريع · [نطاق التاريخ من window_label]\",\n  \"executive_summary\": \"فقرة من 3 إلى 4 جمل تلخّص الوضع العام: حجم المحفظة، نسبة التأخر، الفئة الأبرز، والمساهم الأبرز. اكتب بلغة تنفيذية محايدة.\",\n  \"key_observations\": [\n    \"ملاحظة 1 محددة بأرقام\",\n    \"ملاحظة 2 محددة بأرقام\",\n    \"ملاحظة 3 محددة بأرقام\"\n  ],\n  \"recommendations\": [\n    \"توصية تشغيلية 1\",\n    \"توصية تشغيلية 2\",\n    \"توصية تشغيلية 3\"\n  ],\n  \"risk_level\": \"مرتفع | متوسط | منخفض\"\n}\n\nاختر risk_level بناءً على overdue_rate_pct: أكثر من 40% = مرتفع، 20-40% = متوسط، أقل = منخفض."
+            },
+            {
+              "content": "=حوّل هذا الـ JSON إلى تقرير بحسب الشروط:\n{{ JSON.stringify($json) }}\n"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        912,
+        0
+      ],
+      "id": "72b09f88-3404-47fb-926a-8165aeab354a",
+      "name": "Message a model",
+      "credentials": {
+        "openAiApi": {
+          "id": "5ByTXelKCYHtQT1z",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "aar.alghamdi@gmail.com,  aaalghamdi@mcit.gov.sa, basmari@mcit.gov.sa, fjumayyi@mcit.gov.sa, rhafiz@mcit.gov.sa, Afdosari@mcit.gov.sa, Sqahtani_s@mcit.gov.sa",
+        "subject": "={{$json.subject}}\n",
+        "message": "={{$json.html}}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1472,
+        0
+      ],
+      "id": "8d12214d-d1b9-4463-90c7-b5102f7c6e14",
+      "name": "Send a message",
+      "webhookId": "217485ba-0488-4582-9499-b74660bf1fbe",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "cUXh4XWI8YUzl2qB",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// ============================================================\n// التقرير التنفيذي الكامل - متوافق مع Outlook + Gmail + Apple Mail\n// مع spacer rows لضمان المسافات الداخلية في Outlook\n// ============================================================\n\n// ---------- 1) قراءة نص ChatGPT ----------\nfunction pickTextFromChatGPT(item) {\n  const out = item.output;\n  if (Array.isArray(out) && out[0]?.content?.[0]?.text) return out[0].content[0].text;\n  if (item.content?.[0]?.text) return item.content[0].text;\n  if (typeof item.text === \"string\") return item.text;\n  return null;\n}\n\nlet aiSummary = \"\";\nlet aiInsight = \"\";\nlet aiRecommendations = [];\ntry {\n  const raw = pickTextFromChatGPT($json);\n  if (raw) {\n    let parsed;\n    try {\n      parsed = JSON.parse(raw);\n    } catch (e) {\n      const first = raw.indexOf(\"{\");\n      const last = raw.lastIndexOf(\"}\");\n      if (first >= 0 && last > first) parsed = JSON.parse(raw.slice(first, last + 1));\n    }\n    aiSummary = parsed?.executive_summary || \"\";\n    aiInsight = parsed?.analytical_insight || \"\";\n    aiRecommendations = Array.isArray(parsed?.recommendations) ? parsed.recommendations : [];\n  }\n} catch (e) { /* fallback */ }\n\n// ---------- 2) قراءة بيانات KPIs ----------\nconst kpisData = $('Executive KPIs').first().json;\nconst k = kpisData.kpis;\nconst all = k.all;\nconst win = k.window;\nconst breakdowns = kpisData.breakdowns || {};\nconst overdueProjects = kpisData.overdue_projects || [];\nconst dueSoon = kpisData.highlights?.due_soon_top20 || [];\nconst targetInitiatives = kpisData.target_initiatives || [];\n\n// ---------- 3) لوحة الألوان ----------\nconst C = {\n  navy:       '#1B3A57',\n  gold:       '#C8A55C',\n  ink:        '#1A1A1A',\n  muted:      '#6B7280',\n  card:       '#F8F9FB',\n  cardDanger: '#FEF2F2',\n  border:     '#E5E7EB',\n  danger:     '#B91C1C',\n  warn:       '#D97706',\n  ok:         '#059669',\n  bg:         '#FFFFFF'\n};\n\nconst periodStart = k.window_start_day;\nconst periodEnd   = k.window_end_day;\n\n// ---------- 4) ملخص افتراضي ----------\nif (!aiSummary) {\n  aiSummary = `يستعرض هذا التقرير أداء محفظة المشاريع للفترة من ${periodStart} إلى ${periodEnd}، وتضم ${all.total_projects} مشروعاً. تبلغ نسبة المشاريع المتأخرة ${all.overdue_rate_pct}%، مع ${all.missing_due_projects} مشروعاً دون تاريخ استحقاق محدد، و${all.unassigned_projects} مشروعاً غير مُسند لمالك.`;\n}\n\n// ---------- 5) توصيات افتراضية ----------\nif (!aiRecommendations.length) {\n  const fallback = [];\n  if (all.overdue_projects > 0) {\n    fallback.push(`مراجعة المشاريع المتأخرة البالغ عددها ${all.overdue_projects} مشروعاً مع المسؤولين المباشرين خلال أسبوع لتحديد أسباب التأخر ووضع خطة استدراك.`);\n  }\n  if (all.missing_due_projects > 0) {\n    fallback.push(`تحديد تواريخ استحقاق لـ ${all.missing_due_projects} مشروعاً تفتقد التواريخ خلال 5 أيام عمل لضمان قابلية المتابعة.`);\n  }\n  if (all.unassigned_projects > 0) {\n    fallback.push(`إسناد ${all.unassigned_projects} مشروعاً غير مُسند إلى مالكين محددين لضمان وضوح المسؤوليات.`);\n  }\n  if (!fallback.length) {\n    fallback.push(\"الحفاظ على وتيرة الأداء الحالية مع متابعة دورية للمشاريع القادمة في النافذة التشغيلية.\");\n  }\n  aiRecommendations = fallback;\n}\n\n// ---------- 6) شارة المخاطر ----------\nconst riskLevel = all.overdue_rate_pct >= 30 ? { label: 'مرتفع', color: C.danger }\n                : all.overdue_rate_pct >= 15 ? { label: 'متوسط', color: C.warn }\n                : { label: 'منخفض', color: C.ok };\n\n// ---------- 7) دوال البناء ----------\n\n// ✅ KPI Card مع spacer rows\nconst kpiCard = (label, value, sub, color) => `\n  <td width=\"25%\" valign=\"top\" style=\"padding:6px;\">\n    <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" bgcolor=\"${C.card}\" style=\"background-color:${C.card};border:1px solid ${C.border};border-right:3px solid ${color};\">\n      <tr><td height=\"18\" style=\"font-size:1px;line-height:18px;\">&nbsp;</td></tr>\n      <tr><td style=\"padding:0 20px;font-family:Tahoma,Arial,sans-serif;font-size:11px;color:${C.muted};letter-spacing:0.5px;\">${label}</td></tr>\n      <tr><td height=\"8\" style=\"font-size:1px;line-height:8px;\">&nbsp;</td></tr>\n      <tr><td style=\"padding:0 20px;font-family:Tahoma,Arial,sans-serif;font-size:28px;color:${C.ink};font-weight:700;line-height:1;\">${value}</td></tr>\n      <tr><td height=\"6\" style=\"font-size:1px;line-height:6px;\">&nbsp;</td></tr>\n      <tr><td style=\"padding:0 20px;font-family:Tahoma,Arial,sans-serif;font-size:11px;color:${color};font-weight:600;\">${sub}</td></tr>\n      <tr><td height=\"18\" style=\"font-size:1px;line-height:18px;\">&nbsp;</td></tr>\n    </table>\n  </td>`;\n\n// ✅ Section Title\nconst sectionTitle = (num, title) => `\n  <tr><td style=\"padding:28px 0 12px 0;font-family:Tahoma,Arial,sans-serif;\">\n    <table cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>\n      <td bgcolor=\"${C.navy}\" style=\"background-color:${C.navy};color:#fff;font-size:11px;font-weight:700;padding:4px 10px;letter-spacing:1px;\">${num}</td>\n      <td style=\"padding:0 10px;font-size:16px;color:${C.ink};font-weight:700;\">${title}</td>\n    </tr></table>\n    <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"margin-top:8px;\"><tr>\n      <td bgcolor=\"${C.border}\" height=\"1\" style=\"background-color:${C.border};font-size:1px;line-height:1px;\">&nbsp;</td>\n    </tr></table>\n  </td></tr>`;\n\n// ✅ شريط تقدّم متوافق مع Outlook\nconst progressBar = (label, count, max, color) => {\n  const pct = max ? Math.round((count/max)*100) : 0;\n  const fillPct = Math.max(pct, 1);\n  const emptyPct = 100 - fillPct;\n\n  const fillCell = `<td width=\"${fillPct}%\" height=\"14\" bgcolor=\"${color}\" style=\"background-color:${color};font-size:1px;line-height:14px;\">&nbsp;</td>`;\n  const emptyCell = emptyPct > 0\n    ? `<td width=\"${emptyPct}%\" height=\"14\" bgcolor=\"${C.border}\" style=\"background-color:${C.border};font-size:1px;line-height:14px;\">&nbsp;</td>`\n    : '';\n\n  return `\n  <tr><td style=\"padding:6px 0;font-family:Tahoma,Arial,sans-serif;\">\n    <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" dir=\"rtl\"><tr>\n      <td width=\"35%\" style=\"font-size:12px;color:${C.ink};padding-left:10px;font-family:Tahoma,Arial,sans-serif;\">${label}</td>\n      <td width=\"55%\">\n        <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" dir=\"rtl\" style=\"border-collapse:collapse;\">\n          <tr>${fillCell}${emptyCell}</tr>\n        </table>\n      </td>\n      <td width=\"10%\" style=\"font-size:12px;color:${C.muted};text-align:left;padding-right:10px;font-weight:600;font-family:Tahoma,Arial,sans-serif;\">${count}</td>\n    </tr></table>\n  </td></tr>`;\n};\n\n// ✅ Initiative Card مع spacer rows متوافقة مع Outlook\nconst initiativeCard = (item) => {\n  const pct = item.achievement_pct;\n  const accent = pct >= 90 ? C.ok\n               : pct >= 60 ? C.gold\n               : pct >= 30 ? C.warn\n               : C.danger;\n  const statusLabel = pct >= 90 ? 'تحقق المستهدف'\n                    : pct >= 60 ? 'على المسار'\n                    : pct >= 30 ? 'يحتاج تسريع'\n                    : 'متأخر عن المستهدف';\n\n  const barFill = Math.min(Math.max(pct, 1), 100);\n  const barEmpty = 100 - barFill;\n\n  const barFillCell = `<td width=\"${barFill}%\" height=\"6\" bgcolor=\"${accent}\" style=\"background-color:${accent};font-size:1px;line-height:6px;\">&nbsp;</td>`;\n  const barEmptyCell = barEmpty > 0\n    ? `<td width=\"${barEmpty}%\" height=\"6\" bgcolor=\"${C.border}\" style=\"background-color:${C.border};font-size:1px;line-height:6px;\">&nbsp;</td>`\n    : '';\n\n  return `\n    <td width=\"33%\" valign=\"top\" style=\"padding:6px;\">\n      <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" bgcolor=\"${C.card}\" style=\"background-color:${C.card};border:1px solid ${C.border};border-right:3px solid ${accent};\">\n\n        <tr><td height=\"16\" style=\"font-size:1px;line-height:16px;\">&nbsp;</td></tr>\n\n        <tr><td style=\"padding:0 16px;font-family:Tahoma,Arial,sans-serif;font-size:12px;color:${C.ink};font-weight:700;line-height:1.4;\">${item.name}</td></tr>\n\n        <tr><td height=\"12\" style=\"font-size:1px;line-height:12px;\">&nbsp;</td></tr>\n\n        <tr><td style=\"padding:0 16px;\">\n          <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>\n            <td valign=\"bottom\" style=\"font-family:Tahoma,Arial,sans-serif;font-size:24px;color:${C.ink};font-weight:700;line-height:1;\">\n              ${item.completed_count}<span style=\"font-size:12px;color:${C.muted};font-weight:400;\"> / ${item.target}</span>\n            </td>\n            <td valign=\"bottom\" align=\"left\" style=\"font-family:Tahoma,Arial,sans-serif;font-size:16px;color:${accent};font-weight:700;\">${pct}%</td>\n          </tr></table>\n        </td></tr>\n\n        <tr><td height=\"12\" style=\"font-size:1px;line-height:12px;\">&nbsp;</td></tr>\n\n        <tr><td style=\"padding:0 16px;\">\n          <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" dir=\"rtl\" style=\"border-collapse:collapse;\">\n            <tr>${barFillCell}${barEmptyCell}</tr>\n          </table>\n        </td></tr>\n\n        <tr><td height=\"10\" style=\"font-size:1px;line-height:10px;\">&nbsp;</td></tr>\n\n        <tr><td style=\"padding:0 16px;\">\n          <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>\n            <td style=\"font-family:Tahoma,Arial,sans-serif;font-size:10px;color:${accent};font-weight:600;letter-spacing:0.3px;\">${statusLabel}</td>\n            <td align=\"left\" style=\"font-family:Tahoma,Arial,sans-serif;font-size:10px;color:${C.muted};\">متبقي: ${item.remaining_to_target}</td>\n          </tr></table>\n        </td></tr>\n\n        <tr><td height=\"16\" style=\"font-size:1px;line-height:16px;\">&nbsp;</td></tr>\n\n      </table>\n    </td>`;\n};\n\n// ✅ Project Table Row\nconst projectTableRow = (p, i, dateColor) => {\n  const bgColor = i%2 ? C.card : '#ffffff';\n  return `\n  <tr bgcolor=\"${bgColor}\" style=\"background-color:${bgColor};\">\n    <td style=\"padding:10px 12px;font-size:12px;color:${C.ink};border-bottom:1px solid ${C.border};font-family:Tahoma,Arial,sans-serif;\">${p.project_name || '-'}</td>\n    <td style=\"padding:10px 12px;font-size:12px;color:${C.muted};border-bottom:1px solid ${C.border};font-family:Tahoma,Arial,sans-serif;\">${p.project_category || '-'}</td>\n    <td style=\"padding:10px 12px;font-size:12px;color:${C.ink};border-bottom:1px solid ${C.border};text-align:center;font-family:Tahoma,Arial,sans-serif;\">${p.team_size || 0}</td>\n    <td style=\"padding:10px 12px;font-size:12px;color:${dateColor};border-bottom:1px solid ${C.border};font-weight:600;font-family:Tahoma,Arial,sans-serif;\">${p.due_day || '—'}</td>\n  </tr>`;\n};\n\nconst tableHeader = `\n  <thead><tr bgcolor=\"${C.navy}\" style=\"background-color:${C.navy};\">\n    <th align=\"right\" bgcolor=\"${C.navy}\" style=\"padding:10px 12px;font-family:Tahoma,Arial,sans-serif;font-size:11px;color:#fff;font-weight:600;letter-spacing:0.5px;background-color:${C.navy};\">اسم المشروع</th>\n    <th align=\"right\" bgcolor=\"${C.navy}\" style=\"padding:10px 12px;font-family:Tahoma,Arial,sans-serif;font-size:11px;color:#fff;font-weight:600;letter-spacing:0.5px;background-color:${C.navy};\">الفئة</th>\n    <th align=\"center\" bgcolor=\"${C.navy}\" style=\"padding:10px 12px;font-family:Tahoma,Arial,sans-serif;font-size:11px;color:#fff;font-weight:600;letter-spacing:0.5px;background-color:${C.navy};\">عدد الأعضاء</th>\n    <th align=\"right\" bgcolor=\"${C.navy}\" style=\"padding:10px 12px;font-family:Tahoma,Arial,sans-serif;font-size:11px;color:#fff;font-weight:600;letter-spacing:0.5px;background-color:${C.navy};\">تاريخ الاستحقاق</th>\n  </tr></thead>`;\n\n// ---------- 8) بناء أقسام HTML ----------\nconst overdueRows = overdueProjects.length\n  ? overdueProjects.slice(0, 10).map((p, i) => projectTableRow(p, i, C.danger)).join('')\n  : `<tr><td colspan=\"4\" style=\"padding:14px;text-align:center;color:${C.ok};font-size:12px;font-family:Tahoma,Arial,sans-serif;\">لا توجد مشاريع متأخرة · أداء ممتاز</td></tr>`;\n\nconst upcomingRows = dueSoon.length\n  ? dueSoon.slice(0, 10).map((p, i) => projectTableRow(p, i, C.warn)).join('')\n  : `<tr><td colspan=\"4\" style=\"padding:14px;text-align:center;color:${C.muted};font-size:12px;font-family:Tahoma,Arial,sans-serif;\">لا توجد مشاريع مستحقة قريباً</td></tr>`;\n\nconst categoriesSorted = Object.entries(breakdowns.window_by_category || {}).sort((a,b)=>b[1]-a[1]);\nconst maxCat = categoriesSorted[0] ? categoriesSorted[0][1] : 1;\nconst categoryBars = categoriesSorted.length\n  ? categoriesSorted.map(([name, count]) => progressBar(name, count, maxCat, C.navy)).join('')\n  : `<tr><td style=\"padding:14px;text-align:center;color:${C.muted};font-size:12px;font-family:Tahoma,Arial,sans-serif;\">لا توجد مشاريع ضمن النافذة الحالية</td></tr>`;\n\nconst topMembers = (breakdowns.window_top_members || []).slice(0, 6);\nconst maxMem = topMembers[0] ? topMembers[0].count : 1;\nconst memberBars = topMembers.length\n  ? topMembers.map(m => progressBar(m.member, m.count, maxMem, C.gold)).join('')\n  : `<tr><td style=\"padding:14px;text-align:center;color:${C.muted};font-size:12px;font-family:Tahoma,Arial,sans-serif;\">لا توجد بيانات أعضاء</td></tr>`;\n\nconst initiativesRow1 = targetInitiatives.slice(0, 3).map(initiativeCard).join('');\nconst initiativesRow2 = targetInitiatives.slice(3, 6).map(initiativeCard).join('');\nconst totalCompleted = targetInitiatives.reduce((a, b) => a + b.completed_count, 0);\nconst totalTarget    = targetInitiatives.reduce((a, b) => a + b.target, 0);\nconst overallRate    = totalTarget ? Math.round((totalCompleted / totalTarget) * 100) : 0;\nconst totalRemaining = Math.max(totalTarget - totalCompleted, 0);\n\nconst recommendationsHtml = aiRecommendations.map((rec, i) => `\n  <tr><td style=\"padding:10px 0;font-family:Tahoma,Arial,sans-serif;\">\n    <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>\n      <td width=\"40\" valign=\"top\" style=\"padding-left:14px;\">\n        <table cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>\n          <td width=\"28\" height=\"28\" align=\"center\" bgcolor=\"${C.gold}\" style=\"background-color:${C.gold};color:#fff;font-size:14px;font-weight:700;line-height:28px;font-family:Tahoma,Arial,sans-serif;\">${i + 1}</td>\n        </tr></table>\n      </td>\n      <td valign=\"top\" style=\"font-size:13px;color:${C.ink};line-height:1.9;font-family:Tahoma,Arial,sans-serif;\">\n        ${rec}\n      </td>\n    </tr></table>\n  </td></tr>`).join('');\n\n// ---------- 9) قالب HTML الكامل ----------\nconst html = `\n<!DOCTYPE html>\n<html dir=\"rtl\" lang=\"ar\" xmlns:v=\"urn:schemas-microsoft-com:vml\" xmlns:o=\"urn:schemas-microsoft-com:office:office\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n<meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\">\n<title>تقرير الأداء التنفيذي</title>\n<!--[if mso]>\n<style type=\"text/css\">\ntable {border-collapse:collapse;border-spacing:0;margin:0;}\ndiv, td {padding:0;}\ndiv {margin:0 !important;}\n</style>\n<noscript>\n<xml>\n<o:OfficeDocumentSettings>\n<o:PixelsPerInch>96</o:PixelsPerInch>\n</o:OfficeDocumentSettings>\n</xml>\n</noscript>\n<![endif]-->\n</head>\n<body dir=\"rtl\" style=\"margin:0;padding:0;background-color:#EEF1F4;font-family:Tahoma,Arial,sans-serif;\">\n<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" bgcolor=\"#EEF1F4\" style=\"background-color:#EEF1F4;padding:24px 0;\">\n<tr><td align=\"center\">\n\n<table width=\"720\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" dir=\"rtl\" bgcolor=\"${C.bg}\" style=\"background-color:${C.bg};max-width:720px;width:100%;\">\n\n  <!-- HEADER -->\n  <tr><td bgcolor=\"${C.navy}\" style=\"background-color:${C.navy};padding:32px 40px;\">\n    <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>\n      <td style=\"font-family:Tahoma,Arial,sans-serif;\">\n        <div style=\"color:${C.gold};font-size:11px;letter-spacing:2px;font-weight:600;margin-bottom:8px;\">EXECUTIVE PERFORMANCE REPORT</div>\n        <div style=\"color:#ffffff;font-size:22px;font-weight:700;line-height:1.3;\">تقرير الأداء التنفيذي للمشاريع</div>\n        <div style=\"color:#B8C5D2;font-size:12px;margin-top:8px;\">إدارة التواصل الداخلي · ${periodStart} — ${periodEnd}</div>\n      </td>\n      <td align=\"left\" valign=\"top\" style=\"font-family:Tahoma,Arial,sans-serif;\">\n        <table cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>\n          <td bgcolor=\"${riskLevel.color}\" style=\"background-color:${riskLevel.color};color:#ffffff;font-size:11px;font-weight:700;padding:6px 14px;letter-spacing:0.5px;font-family:Tahoma,Arial,sans-serif;\">مستوى المخاطر: ${riskLevel.label}</td>\n        </tr></table>\n      </td>\n    </tr></table>\n  </td></tr>\n\n  <tr><td bgcolor=\"${C.gold}\" height=\"3\" style=\"background-color:${C.gold};font-size:1px;line-height:3px;\">&nbsp;</td></tr>\n\n  <!-- المحتوى -->\n  <tr><td style=\"padding:32px 40px;\">\n    <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\">\n\n      <!-- 01 الملخص التنفيذي -->\n      ${sectionTitle('01', 'الملخص التنفيذي')}\n      <tr><td style=\"padding-bottom:8px;\">\n        <p style=\"font-family:Tahoma,Arial,sans-serif;font-size:13px;line-height:1.9;color:${C.ink};margin:0 0 14px 0;\">\n          ${aiSummary}\n        </p>\n      </td></tr>\n\n      <!-- 02 المؤشرات الرئيسية -->\n      ${sectionTitle('02', 'المؤشرات الرئيسية')}\n      <tr><td style=\"padding:8px 0 4px 0;\">\n        <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\">\n          <tr>\n            ${kpiCard('إجمالي المشاريع', all.total_projects, 'محفظة كاملة', C.navy)}\n            ${kpiCard('المشاريع المتأخرة', all.overdue_projects, all.overdue_rate_pct + '% من الإجمالي', C.danger)}\n            ${kpiCard('بدون تاريخ استحقاق', all.missing_due_projects, all.missing_due_rate_pct + '% تحتاج تحديد', C.warn)}\n            ${kpiCard('غير مُسندة', all.unassigned_projects, all.unassigned_rate_pct + '% بلا مالك', C.muted)}\n          </tr>\n        </table>\n      </td></tr>\n\n      <!-- 03 المشاريع المتأخرة -->\n      ${sectionTitle('03', `المشاريع المتأخرة · ${overdueProjects.length} مشروعاً`)}\n      <tr><td style=\"padding:6px 0;\">\n        <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"border:1px solid ${C.border};\">\n          ${tableHeader}\n          <tbody>${overdueRows}</tbody>\n        </table>\n        ${overdueProjects.length > 10 ? `<div style=\"font-family:Tahoma,Arial,sans-serif;font-size:11px;color:${C.muted};text-align:left;padding:8px 4px;\">عُرضت أول 10 مشاريع من إجمالي ${overdueProjects.length}</div>` : ''}\n      </td></tr>\n\n      <!-- 04 المشاريع المستحقة -->\n      ${sectionTitle('04', `المشاريع المستحقة في النافذة القادمة · ${k.window_days} يوماً`)}\n      <tr><td style=\"padding:6px 0;\">\n        <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"border:1px solid ${C.border};\">\n          ${tableHeader}\n          <tbody>${upcomingRows}</tbody>\n        </table>\n      </td></tr>\n\n      <!-- 05 توزيع الفئات -->\n      ${sectionTitle('05', 'توزيع المشاريع حسب الفئة')}\n      <tr><td style=\"padding:6px 0;\">\n        <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" bgcolor=\"${C.card}\" style=\"background-color:${C.card};padding:16px 8px;border:1px solid ${C.border};\">\n          ${categoryBars}\n        </table>\n      </td></tr>\n\n      <!-- 06 الأعضاء الأكثر مساهمة -->\n      ${sectionTitle('06', 'الأعضاء الأكثر مساهمة')}\n      <tr><td style=\"padding:6px 0;\">\n        <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" bgcolor=\"${C.card}\" style=\"background-color:${C.card};padding:16px 8px;border:1px solid ${C.border};\">\n          ${memberBars}\n        </table>\n      </td></tr>\n\n      <!-- 07 إنجاز المبادرات مقابل المستهدفات -->\n      ${sectionTitle('07', 'إنجاز المبادرات مقابل المستهدفات السنوية')}\n      <tr><td style=\"padding:0 0 12px 0;font-family:Tahoma,Arial,sans-serif;font-size:13px;color:${C.muted};line-height:1.9;\">\n        المستهدف السنوي للفئات الست هو <b style=\"color:${C.ink};\">${totalTarget}</b> مبادرة، تم تنفيذ <b style=\"color:${C.ink};\">${totalCompleted}</b> منها حتى تاريخ التقرير، بنسبة تحقّق <b style=\"color:${C.navy};\">${overallRate}%</b> من المستهدف · المتبقي <b style=\"color:${C.danger};\">${totalRemaining}</b> مبادرة.\n      </td></tr>\n      <tr><td style=\"padding:0 0 6px 0;\">\n        <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>${initiativesRow1}</tr></table>\n      </td></tr>\n      <tr><td style=\"padding:0;\">\n        <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>${initiativesRow2}</tr></table>\n      </td></tr>\n\n      <!-- 08 ملاحظات تحليلية -->\n      ${aiInsight ? `\n      ${sectionTitle('08', 'ملاحظات تحليلية')}\n      <tr><td style=\"padding:6px 0;\">\n        <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" bgcolor=\"${C.card}\" style=\"background-color:${C.card};border-right:3px solid ${C.gold};\">\n          <tr><td bgcolor=\"${C.card}\" style=\"padding:18px 22px;font-family:Tahoma,Arial,sans-serif;font-size:13px;line-height:1.9;color:${C.ink};background-color:${C.card};\">\n            ${String(aiInsight).replace(/\\n/g, '<br>')}\n          </td></tr>\n        </table>\n      </td></tr>` : ''}\n\n      <!-- 09 التوصيات التنفيذية -->\n      ${sectionTitle(aiInsight ? '09' : '08', 'التوصيات التنفيذية')}\n      <tr><td style=\"padding:6px 0;\">\n        <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" bgcolor=\"${C.card}\" style=\"background-color:${C.card};border:1px solid ${C.border};\">\n          <tr><td bgcolor=\"${C.card}\" style=\"padding:14px 18px;background-color:${C.card};\">\n            <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\">\n              ${recommendationsHtml}\n            </table>\n          </td></tr>\n        </table>\n      </td></tr>\n\n    </table>\n  </td></tr>\n\n  <!-- FOOTER -->\n  <tr><td bgcolor=\"${C.navy}\" style=\"background-color:${C.navy};padding:20px 40px;\">\n    <table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>\n      <td style=\"font-family:Tahoma,Arial,sans-serif;font-size:11px;color:#B8C5D2;line-height:1.7;\">\n        تم إعداد هذا التقرير آلياً بواسطة إدارة التواصل الداخلي · <br>\n        <span style=\"color:${C.gold};\">CONFIDENTIAL · INTERNAL USE ONLY</span>\n      </td>\n    </tr></table>\n  </td></tr>\n\n</table>\n\n</td></tr></table>\n</body></html>`;\n\nconst subject = `التقرير اليومي لإدارة التواصل الداخلي · ${periodStart} — ${periodEnd}`;\n\nreturn [{\n  json: { subject, html }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1264,
+        0
+      ],
+      "id": "825a0fec-74e4-4529-bfc9-e8176b318fb1",
+      "name": "Code in JavaScript"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Lists",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get Cards",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Lists": {
+      "main": [
+        []
+      ]
+    },
+    "Get Cards": {
+      "main": [
+        [
+          {
+            "node": "Normalize Projects Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Projects Data": {
+      "main": [
+        [
+          {
+            "node": "Executive KPIs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Executive KPIs": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "0d27ac23-a32c-40c5-9d69-94d71c5b65f2",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9b7489f262766292c58da4dc09bb5e741c278f64c9f783ad1b8c7688553c3f8e"
+  },
+  "id": "x2Gq7nY6-KB4fyNhB_2RZ",
+  "tags": []
+}
