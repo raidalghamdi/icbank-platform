@@ -432,7 +432,24 @@ nav a .nav-emoji { font-size: 14px; }
 /* Empty state */
 .empty-state { text-align: center; padding: 40px 20px; color: var(--text-muted); }
 .empty-icon { font-size: 40px; margin-bottom: 10px; }
+.empty-title { font-size: 14px; font-weight: 700; color: var(--text-mid); margin-bottom: 6px; }
+.empty-sub { font-size: 12px; color: var(--text-muted); }
 .empty-text { font-size: 13px; }
+
+/* ── DAILY REPORT ── */
+.report-iframe-wrap {
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+.report-iframe {
+  width: 100%;
+  min-height: 80vh;
+  border: none;
+  display: block;
+}
 
 /* Animations */
 @keyframes spin { to { transform: rotate(360deg); } }
@@ -1158,6 +1175,9 @@ nav a .nav-emoji { font-size: 14px; }
     <a href="#" id="nav-weekend" onclick="showSection('weekend')">
       <span class="nav-emoji">🌟</span><span class="nav-label">نهاية الأسبوع</span>
     </a>
+    <a href="#" id="nav-report" onclick="showSection('report')">
+      <span class="nav-emoji">📊</span><span class="nav-label">التقرير اليومي</span>
+    </a>
   </nav>
 
   <div class="header-actions">
@@ -1317,6 +1337,39 @@ nav a .nav-emoji { font-size: 14px; }
   <div class="news-list" id="all-news">
     <div class="loading-wrap"><div class="spinner"></div><div class="loading-text">جارٍ تحميل الأخبار...</div></div>
   </div>
+</div>
+</div>
+
+<!-- ══════════════════════ DAILY REPORT PAGE ══════════════════════ -->
+<div class="page-section" id="section-report">
+<div class="page-wrapper">
+
+  <div class="news-page-header">
+    <div>
+      <div class="section-title"><div class="section-icon">📊</div>التقرير اليومي</div>
+      <div class="news-page-sub">تقرير أداء المشاريع — يتجدد تلقائياً كل يوم</div>
+    </div>
+    <div id="report-date-pill" class="news-count-pill" style="display:none;">
+      <span>📅</span>
+      <span id="report-date-text">—</span>
+    </div>
+  </div>
+
+  <div id="report-loading" class="loading-wrap">
+    <div class="spinner"></div>
+    <div class="loading-text">جارٍ تحميل التقرير...</div>
+  </div>
+
+  <div id="report-empty" class="empty-state" style="display:none;">
+    <div class="empty-icon">📭</div>
+    <div class="empty-title">لم يُرسَل أي تقرير بعد</div>
+    <div class="empty-sub">سيظهر التقرير هنا فور وصوله من N8N</div>
+  </div>
+
+  <div id="report-content" class="report-iframe-wrap" style="display:none;">
+    <iframe id="report-iframe" class="report-iframe" sandbox="allow-same-origin" title="التقرير اليومي"></iframe>
+  </div>
+
 </div>
 </div>
 
@@ -2741,6 +2794,97 @@ document.querySelectorAll('.topic-tag').forEach(t => {
     t.classList.add('active');
   });
 });
+
+// ════════════════════════════════════════
+// DAILY REPORT
+// ════════════════════════════════════════
+let reportLoaded = false;
+
+async function loadDailyReport() {
+  if (reportLoaded) return;
+
+  const loading = document.getElementById('report-loading');
+  const empty   = document.getElementById('report-empty');
+  const content = document.getElementById('report-content');
+  const iframe  = document.getElementById('report-iframe');
+  const datePill= document.getElementById('report-date-pill');
+  const dateText= document.getElementById('report-date-text');
+
+  loading.style.display = 'flex';
+  empty.style.display   = 'none';
+  content.style.display = 'none';
+
+  try {
+    const res = await fetch('/api/daily-report/latest');
+    if (res.status === 404) {
+      loading.style.display = 'none';
+      empty.style.display   = 'block';
+      return;
+    }
+    if (!res.ok) throw new Error('server error');
+
+    const data = await res.json();
+
+    // inject HTML into iframe via srcdoc
+    const styledHtml = wrapReportHtml(data.htmlContent);
+    iframe.srcdoc = styledHtml;
+
+    // auto-resize iframe after load
+    iframe.onload = () => {
+      try {
+        const h = iframe.contentDocument?.body?.scrollHeight;
+        if (h && h > 200) iframe.style.minHeight = h + 40 + 'px';
+      } catch(_) {}
+    };
+
+    // show date pill
+    if (data.reportDate) {
+      const d = new Date(data.reportDate + 'T12:00:00');
+      dateText.textContent = d.toLocaleDateString('ar-SA-u-nu-latn', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+      datePill.style.display = 'flex';
+    }
+
+    loading.style.display = 'none';
+    content.style.display = 'block';
+    reportLoaded = true;
+  } catch(e) {
+    loading.style.display = 'none';
+    empty.style.display   = 'block';
+    console.warn('daily report load error:', e);
+  }
+}
+
+function wrapReportHtml(html) {
+  // إذا كان HTML كاملاً أرجعه كما هو، وإلا أضف wrapper بنفس الفونت
+  if (/<!DOCTYPE|<html/i.test(html)) return html;
+  return `<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Cairo', sans-serif; background: #F7F8FA; color: #0F172A; padding: 24px; direction: rtl; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { padding: 8px 12px; border: 1px solid #E8ECF0; font-size: 13px; }
+  th { background: #EFF6FF; color: #1A56DB; font-weight: 700; }
+  tr:nth-child(even) td { background: #F7F8FA; }
+  h1, h2, h3 { color: #0F172A; margin-bottom: 12px; }
+  a { color: #1A56DB; }
+  img { max-width: 100%; }
+</style>
+</head>
+<body>${html}</body>
+</html>`;
+}
+
+// hook into showSection to load report lazily
+const _origShowSection = showSection;
+window.showSection = function(name) {
+  _origShowSection(name);
+  if (name === 'report') loadDailyReport();
+};
 </script>
 </body>
 </html>
