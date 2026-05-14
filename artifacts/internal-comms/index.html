@@ -2660,12 +2660,13 @@ function renderReportHTML(d) {
 
   if (d.dueSoon?.length) {
     const rows = d.dueSoon.map(p=>`<tr>
-      <td>${esc(p.project_name||p.name)}</td>
-      <td>${esc(Array.isArray(p.team_members)?p.team_members.join('، '):(p.assignee||'—'))}</td>
+      <td>${esc(p.project_name||p.name||'—')}</td>
+      <td>${esc(p.project_category||p.category||'—')}</td>
+      <td style="text-align:center">${esc(p.team_size??'—')}</td>
       <td class="td-date">${esc(p.due_date||p.dueDate||'—')}</td>
     </tr>`).join('');
-    html += sec(`تستحق خلال ${d.windowDays||30} يوماً`, `${d.dueSoon.length} مشروع`,
-      `<table class="rpt-table"><thead><tr><th>المشروع</th><th>الأعضاء</th><th>تاريخ الاستحقاق</th></tr></thead><tbody>${rows}</tbody></table>`);
+    html += sec(`المشاريع المستحقة في النافذة القادمة · ${d.windowDays||30} يوماً`, `${d.dueSoon.length} مشروع`,
+      `<table class="rpt-table"><thead><tr><th>المشروع</th><th>الفئة</th><th>عدد الأعضاء</th><th>تاريخ الاستحقاق</th></tr></thead><tbody>${rows}</tbody></table>`);
   }
 
   const bkItems = d.projectsByBucket || (d.breakdowns ? Object.entries(d.breakdowns).map(([label,v])=>({label, count:v.total||0})) : []);
