@@ -19,15 +19,49 @@ const DailyReportInputSchema = z.object({
   reportData: z.record(z.string(), z.unknown()),
 });
 
-router.post("/daily-report", requireApiKey, async (req: Request, res: Response) => {
-  const parsed = DailyReportInputSchema.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ error: "Invalid payload", details: parsed.error.issues });
-    return;
+const N8NReportSchema = z.object({
+  report_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  reportDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  title: z.string().optional(),
+  subtitle: z.string().optional(),
+  summary: z.string().optional(),
+  risk_level: z.string().optional(),
+  kpis: z.record(z.string(), z.unknown()).optional(),
+  breakdowns: z.record(z.string(), z.unknown()).optional(),
+  overdue_projects: z.array(z.record(z.string(), z.unknown())).optional(),
+  target_initiatives: z.array(z.record(z.string(), z.unknown())).optional(),
+  keyObservations: z.array(z.string()).optional(),
+  recommendations: z.array(z.string()).optional(),
+}).passthrough();
+
+function normalizeN8NPayload(body: Record<string, unknown>): { reportDate: string; reportData: Record<string, unknown> } {
+  const date = (body.report_date || body.reportDate) as string;
+
+  const reportData: Record<string, unknown> = { ...body };
+
+  if (body.overdue_projects) {
+    reportData.overdueProjects = body.overdue_projects;
+  }
+  if (body.target_initiatives) {
+    reportData.initiatives = body.target_initiatives;
+  }
+  if (body.kpis && typeof body.kpis === "object") {
+    reportData.kpis = body.kpis;
+  }
+  if (body.breakdowns && typeof body.breakdowns === "object") {
+    reportData.breakdowns = body.breakdowns;
   }
 
-  const { reportDate, reportData } = parsed.data;
+  reportData._receivedAt = new Date().toISOString();
+  reportData._source = "n8n";
 
+  delete reportData.report_date;
+  delete reportData.reportDate;
+
+  return { reportDate: date, reportData };
+}
+
+async function upsertReport(reportDate: string, reportData: Record<string, unknown>, res: Response) {
   const existing = await db
     .select()
     .from(dailyReportsTable)
@@ -51,9 +85,50 @@ router.post("/daily-report", requireApiKey, async (req: Request, res: Response) 
   }
 
   res.status(201).json(report);
+}
+
+router.post("/daily-report", requireApiKey, async (req: Request, res: Response) => {
+  const parsed = DailyReportInputSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Invalid payload", details: parsed.error.issues });
+    return;
+  }
+  await upsertReport(parsed.data.reportDate, parsed.data.reportData, res);
+});
+
+router.post("/report", requireApiKey, async (req: Request, res: Response) => {
+  const parsed = N8NReportSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Invalid payload", details: parsed.error.issues });
+    return;
+  }
+
+  const date = (parsed.data.report_date || parsed.data.reportDate) as string | undefined;
+  if (!date) {
+    res.status(400).json({ error: "report_date is required (YYYY-MM-DD)" });
+    return;
+  }
+
+  const { reportDate, reportData } = normalizeN8NPayload(parsed.data as Record<string, unknown>);
+  await upsertReport(reportDate, reportData, res);
 });
 
 router.get("/daily-report/latest", async (_req: Request, res: Response) => {
+  const rows = await db
+    .select()
+    .from(dailyReportsTable)
+    .orderBy(desc(dailyReportsTable.reportDate))
+    .limit(1);
+
+  if (!rows.length) {
+    res.status(404).json({ error: "No report found" });
+    return;
+  }
+
+  res.json(rows[0]);
+});
+
+router.get("/report/latest", async (_req: Request, res: Response) => {
   const rows = await db
     .select()
     .from(dailyReportsTable)
