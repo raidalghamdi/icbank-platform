@@ -2108,7 +2108,7 @@ function newsCardHTML(a, idx) {
   const srcInitials = srcName.replace(/[^a-zA-Z\u0600-\u06FF\s]/g,' ').trim().split(/\s+/).filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase() || '📰';
   const scopeBadge = isLocal ? '<span class="badge b-green">🇸🇦 محلي</span>' : '<span class="badge b-blue">🌐 عالمي</span>';
   const hasUrl = a.url && a.url !== '#';
-  const extLink = hasUrl ? `<a class="translate-btn" style="text-decoration:none" href="${a.url}" target="_blank" rel="noopener" onclick="event.stopPropagation()">↗ المصدر</a>` : '';
+  const extLink = hasUrl ? `<button class="translate-btn" onclick="event.preventDefault();event.stopPropagation();window.open('${escHtml(a.url)}','_blank')">↗ المصدر</button>` : '';
   const translateBtn = !isLocal ? `<button class="translate-btn" onclick="event.preventDefault(); translateCard('${cardId}', this)">🌐 ترجمة</button>` : '';
   return `
   <div class="news-card-wrap" id="${cardId}">
