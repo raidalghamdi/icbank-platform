@@ -1,0 +1,1597 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>بنك التواصل الداخلي</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --primary:        #1E40AF;
+  --primary-hover:  #1E3A8A;
+  --primary-50:     #EFF6FF;
+  --primary-100:    #DBEAFE;
+  --primary-600:    #2563EB;
+
+  --bg:             #F8F9FB;
+  --surface:        #FFFFFF;
+  --surface-2:      #F4F5F8;
+  --sidebar-bg:     #FFFFFF;
+
+  --border:         #E5E7EB;
+  --border-strong:  #D1D5DB;
+  --border-subtle:  #F0F1F4;
+
+  --text:           #0F172A;
+  --text-2:         #334155;
+  --text-3:         #64748B;
+  --text-4:         #94A3B8;
+  --text-5:         #CBD5E1;
+
+  --success:        #16A34A;
+  --success-bg:     #F0FDF4;
+  --warning:        #D97706;
+  --warning-bg:     #FFFBEB;
+  --danger:         #DC2626;
+  --danger-bg:      #FEF2F2;
+  --info:           #0284C7;
+  --info-bg:        #F0F9FF;
+
+  --sans:    'IBM Plex Sans Arabic', 'Inter', system-ui, -apple-system, sans-serif;
+  --sans-en: 'Inter', 'IBM Plex Sans Arabic', system-ui, sans-serif;
+  --mono:    'JetBrains Mono', 'IBM Plex Mono', ui-monospace, monospace;
+
+  --sidebar-w: 240px;
+  --topbar-h:  60px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { -webkit-font-smoothing: antialiased; }
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+  font-feature-settings: "tnum" 1, "lnum" 1;
+}
+.num, .mono { font-family: var(--mono); }
+.en { font-family: var(--sans-en); }
+
+/* ═══ ICON SYSTEM (inline SVG) ═══ */
+.ico {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: currentColor;
+}
+.ico svg { width: 100%; height: 100%; stroke-width: 2; }
+
+/* ═══ APP SHELL ═══ */
+.app {
+  display: grid;
+  grid-template-columns: var(--sidebar-w) 1fr;
+  grid-template-rows: var(--topbar-h) 1fr;
+  min-height: 100vh;
+}
+
+/* ═══ SIDEBAR ═══ */
+.sidebar {
+  grid-row: 1 / 3;
+  grid-column: 1;
+  background: var(--sidebar-bg);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+.sidebar-brand {
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.brand-logo {
+  width: 36px; height: 36px;
+  background: var(--primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+}
+.brand-info { line-height: 1.3; }
+.brand-title { font-size: 13.5px; font-weight: 700; color: var(--text); }
+.brand-sub { font-size: 10.5px; color: var(--text-4); font-weight: 500; letter-spacing: 0.2px; }
+
+.sidebar-section { padding: 16px 12px 8px; }
+.sidebar-section-title {
+  padding: 0 8px 8px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-4);
+}
+
+.sidebar-nav { display: flex; flex-direction: column; gap: 1px; }
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 8px 10px;
+  color: var(--text-2);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+  border: 1px solid transparent;
+}
+.nav-item:hover { background: var(--surface-2); color: var(--text); }
+.nav-item.active {
+  background: var(--primary-50);
+  color: var(--primary);
+  border-color: var(--primary-100);
+}
+.nav-item-count {
+  margin-right: auto;
+  font-size: 10.5px;
+  background: var(--surface-2);
+  padding: 2px 7px;
+  color: var(--text-3);
+  font-family: var(--mono);
+  font-weight: 600;
+}
+.nav-item.active .nav-item-count { background: white; color: var(--primary); }
+
+.sidebar-foot {
+  margin-top: auto;
+  padding: 12px;
+  border-top: 1px solid var(--border);
+}
+.user-card {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.user-card:hover { background: var(--surface-2); }
+.user-avatar {
+  width: 32px; height: 32px;
+  background: var(--primary);
+  color: white;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 600;
+  flex-shrink: 0;
+}
+.user-info { flex: 1; line-height: 1.2; }
+.user-name { font-size: 12.5px; font-weight: 600; color: var(--text); }
+.user-role { font-size: 10.5px; color: var(--text-4); }
+
+/* ═══ TOPBAR ═══ */
+.topbar {
+  grid-column: 2;
+  grid-row: 1;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 28px;
+  gap: 20px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.breadcrumb {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px;
+  color: var(--text-3);
+}
+.breadcrumb-current { color: var(--text); font-weight: 600; }
+.breadcrumb-sep { color: var(--text-5); width: 14px; height: 14px; }
+
+.topbar-right { margin-right: auto; display: flex; align-items: center; gap: 10px; }
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 280px;
+  padding: 8px 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  transition: all 0.15s;
+}
+.search-bar:focus-within {
+  border-color: var(--primary);
+  background: white;
+  box-shadow: 0 0 0 3px rgba(30,64,175,0.08);
+}
+.search-bar .ico { color: var(--text-4); width: 15px; height: 15px; }
+.search-bar input {
+  background: none; border: none; outline: none;
+  font-family: var(--sans);
+  font-size: 12.5px;
+  color: var(--text);
+  width: 100%;
+}
+.search-bar input::placeholder { color: var(--text-4); }
+.search-kbd {
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 1px 6px;
+  background: white;
+  border: 1px solid var(--border);
+  color: var(--text-3);
+}
+
+.icon-btn {
+  width: 34px; height: 34px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+  position: relative;
+}
+.icon-btn .ico { width: 15px; height: 15px; }
+.icon-btn:hover { background: var(--surface-2); border-color: var(--border-strong); }
+.icon-btn .dot {
+  position: absolute;
+  top: 6px; left: 6px;
+  width: 6px; height: 6px;
+  background: var(--danger);
+  border: 1.5px solid white;
+}
+
+/* ═══ MAIN ═══ */
+.main {
+  grid-column: 2;
+  grid-row: 2;
+  padding: 28px 32px 60px;
+  min-width: 0;
+}
+.main-inner { max-width: 1400px; margin: 0 auto; }
+
+/* ═══ PAGE HEADER ═══ */
+.page-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 28px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+.page-title { font-size: 24px; font-weight: 700; color: var(--text); letter-spacing: -0.4px; margin-bottom: 6px; }
+.page-sub { font-size: 13px; color: var(--text-3); line-height: 1.6; max-width: 720px; }
+.page-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+.period-chip {
+  display: flex; align-items: center; gap: 6px;
+  padding: 7px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--text-2);
+  cursor: pointer;
+  font-family: var(--sans);
+}
+.period-chip .ico { width: 14px; height: 14px; color: var(--text-3); }
+.period-chip:hover { border-color: var(--border-strong); }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
+  font-family: var(--sans);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  border: 1px solid transparent;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.btn .ico { width: 14px; height: 14px; }
+.btn-primary { background: var(--primary); color: white; }
+.btn-primary:hover { background: var(--primary-hover); }
+.btn-ghost { background: var(--surface); color: var(--text-2); border-color: var(--border); }
+.btn-ghost:hover { background: var(--surface-2); border-color: var(--border-strong); }
+
+/* ═══ STATUS BAR ═══ */
+.status-bar {
+  display: flex;
+  gap: 0;
+  margin-bottom: 24px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+.status-cell {
+  flex: 1;
+  padding: 14px 18px;
+  border-left: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.status-cell:last-child { border-left: none; }
+.status-cell-icon {
+  width: 30px; height: 30px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.status-cell-icon .ico { width: 15px; height: 15px; }
+.status-cell-icon.success { background: var(--success-bg); color: var(--success); }
+.status-cell-icon.warning { background: var(--warning-bg); color: var(--warning); }
+.status-cell-icon.danger  { background: var(--danger-bg); color: var(--danger); }
+.status-cell-icon.info    { background: var(--info-bg); color: var(--info); }
+.status-cell-body { flex: 1; line-height: 1.3; min-width: 0; }
+.status-cell-label { font-size: 10.5px; font-weight: 600; color: var(--text-4); letter-spacing: 0.3px; text-transform: uppercase; margin-bottom: 2px; }
+.status-cell-value { font-size: 13px; font-weight: 600; color: var(--text); }
+
+/* ═══ KPI GRID ═══ */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 28px;
+}
+.kpi {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 18px 20px;
+  position: relative;
+  transition: all 0.15s;
+}
+.kpi:hover { border-color: var(--border-strong); }
+.kpi-top {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 14px;
+}
+.kpi-label { font-size: 11.5px; color: var(--text-3); font-weight: 600; }
+.kpi-icon {
+  width: 28px; height: 28px;
+  background: var(--surface-2);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-3);
+}
+.kpi-icon .ico { width: 14px; height: 14px; }
+.kpi-value {
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.8px;
+  line-height: 1;
+  margin-bottom: 4px;
+  font-family: var(--mono);
+}
+.kpi-value-sub {
+  font-size: 14px;
+  color: var(--text-4);
+  font-weight: 500;
+  margin-right: 2px;
+}
+.kpi-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-subtle);
+}
+.kpi-trend {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 2px 8px;
+}
+.kpi-trend .ico { width: 11px; height: 11px; }
+.kpi-trend.up { color: var(--success); background: var(--success-bg); }
+.kpi-trend.down { color: var(--danger); background: var(--danger-bg); }
+.kpi-trend.warn { color: var(--warning); background: var(--warning-bg); }
+.kpi-comparison { font-size: 11px; color: var(--text-4); }
+
+.kpi.accent-primary { border-top: 2px solid var(--primary); }
+.kpi.accent-danger  { border-top: 2px solid var(--danger); }
+.kpi.accent-warning { border-top: 2px solid var(--warning); }
+.kpi.accent-muted   { border-top: 2px solid var(--text-4); }
+
+/* ═══ SECTION ═══ */
+.section { margin-bottom: 28px; }
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  gap: 16px;
+}
+.section-title-row { display: flex; align-items: center; gap: 10px; }
+.section-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.2px;
+}
+.section-badge {
+  font-size: 10.5px;
+  color: var(--text-3);
+  font-family: var(--mono);
+  font-weight: 600;
+  padding: 2px 8px;
+  background: var(--surface-2);
+}
+.section-desc { font-size: 12px; color: var(--text-3); margin-top: 2px; }
+.section-actions { display: flex; gap: 6px; align-items: center; }
+.link-action {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--primary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--sans);
+}
+.link-action .ico { width: 13px; height: 13px; }
+.link-action:hover { background: var(--primary-50); }
+
+/* ═══ CARD ═══ */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+.card-body { padding: 18px 20px; }
+
+.dual { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+/* ═══ BARS ═══ */
+.bar-list { display: flex; flex-direction: column; }
+.bar-row {
+  display: grid;
+  grid-template-columns: 150px 1fr 50px;
+  gap: 14px;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.bar-row:last-child { border-bottom: none; }
+.bar-label { font-size: 12.5px; color: var(--text-2); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bar-track { height: 6px; background: var(--surface-2); overflow: hidden; }
+.bar-fill { height: 100%; transition: width 0.6s cubic-bezier(0.16,1,0.3,1); }
+.bar-fill.blue   { background: var(--primary); }
+.bar-fill.teal   { background: #0D9488; }
+.bar-count {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  text-align: left;
+}
+
+/* ═══ TABLE ═══ */
+.table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.table thead { background: var(--surface-2); }
+.table th {
+  text-align: right;
+  padding: 11px 16px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-2);
+  vertical-align: middle;
+}
+.table tr:last-child td { border-bottom: none; }
+.table tr:hover td { background: var(--surface-2); }
+.table .row-title { color: var(--text); font-weight: 600; font-size: 13px; }
+.table .row-meta { font-size: 11px; color: var(--text-4); font-family: var(--mono); margin-top: 2px; }
+
+.cell-tag {
+  display: inline-flex;
+  font-size: 11px;
+  padding: 2px 8px;
+  background: var(--surface-2);
+  color: var(--text-3);
+  font-weight: 500;
+}
+.cell-date {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+}
+.cell-date.danger { color: var(--danger); }
+.cell-date.warn { color: var(--warning); }
+.cell-date.muted { color: var(--text-4); }
+.cell-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.cell-pill .ico { width: 10px; height: 10px; }
+.cell-pill.success { background: var(--success-bg); color: var(--success); }
+.cell-pill.warning { background: var(--warning-bg); color: var(--warning); }
+.cell-pill.danger { background: var(--danger-bg); color: var(--danger); }
+
+.avatar-stack { display: inline-flex; flex-direction: row-reverse; }
+.avatar-stack .av {
+  width: 24px; height: 24px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9.5px; font-weight: 600;
+  background: var(--primary); color: white;
+  border: 2px solid white;
+  margin-right: -6px;
+  font-family: var(--sans-en);
+}
+.avatar-stack .av:first-child { margin-right: 0; }
+.avatar-stack .av.more { background: var(--text-5); color: var(--text); }
+
+/* ═══ TARGETS ═══ */
+.targets-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+.target-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 18px 20px;
+  position: relative;
+  transition: all 0.15s;
+}
+.target-card:hover { border-color: var(--border-strong); }
+.target-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; gap: 10px; }
+.target-name { font-size: 13.5px; font-weight: 600; color: var(--text); line-height: 1.4; }
+.target-status-pill {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  padding: 3px 8px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.target-status-pill.ok     { color: var(--success); background: var(--success-bg); }
+.target-status-pill.gold   { color: var(--primary); background: var(--primary-50); }
+.target-status-pill.warn   { color: var(--warning); background: var(--warning-bg); }
+.target-status-pill.danger { color: var(--danger);  background: var(--danger-bg); }
+
+.target-nums {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.target-big {
+  font-family: var(--mono);
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -1px;
+  line-height: 1;
+  direction: ltr;
+  unicode-bidi: embed;
+}
+.target-big-sub {
+  font-size: 14px;
+  color: var(--text-4);
+  font-weight: 500;
+}
+.target-pct {
+  font-family: var(--mono);
+  font-size: 16px;
+  font-weight: 700;
+}
+.target-pct.ok     { color: var(--success); }
+.target-pct.gold   { color: var(--primary); }
+.target-pct.warn   { color: var(--warning); }
+.target-pct.danger { color: var(--danger); }
+
+.target-progress {
+  height: 5px;
+  background: var(--surface-2);
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+.target-progress-fill { height: 100%; transition: width 0.8s cubic-bezier(0.16,1,0.3,1); }
+.target-progress-fill.ok     { background: var(--success); }
+.target-progress-fill.gold   { background: var(--primary); }
+.target-progress-fill.warn   { background: var(--warning); }
+.target-progress-fill.danger { background: var(--danger); }
+
+.target-foot {
+  display: flex; justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-4);
+}
+.target-foot strong { color: var(--text-2); font-family: var(--mono); font-weight: 600; }
+
+/* ═══ INSIGHT ═══ */
+.insight-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 20px 22px;
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  gap: 14px;
+}
+.insight-icon {
+  width: 36px; height: 36px;
+  background: var(--primary-50);
+  color: var(--primary);
+  display: flex; align-items: center; justify-content: center;
+}
+.insight-icon .ico { width: 18px; height: 18px; }
+.insight-eyebrow {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--primary);
+  margin-bottom: 6px;
+}
+.insight-body { font-size: 13.5px; line-height: 1.85; color: var(--text-2); }
+.insight-body p + p { margin-top: 10px; }
+.insight-body strong { color: var(--text); font-weight: 700; }
+
+/* ═══ RECOMMENDATIONS ═══ */
+.recs-list { display: flex; flex-direction: column; gap: 8px; }
+.rec-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 14px 18px;
+  display: grid;
+  grid-template-columns: 28px 1fr auto;
+  gap: 14px;
+  align-items: center;
+}
+.rec-item:hover { border-color: var(--border-strong); }
+.rec-num {
+  width: 28px; height: 28px;
+  background: var(--primary-50);
+  color: var(--primary);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+}
+.rec-text { font-size: 13px; line-height: 1.7; color: var(--text-2); }
+.rec-priority {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  padding: 4px 9px;
+  white-space: nowrap;
+}
+.rec-priority.high { color: var(--danger); background: var(--danger-bg); }
+.rec-priority.mid  { color: var(--warning); background: var(--warning-bg); }
+.rec-priority.low  { color: var(--text-3); background: var(--surface-2); }
+
+/* ═══ HERO ═══ */
+.hero {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+.hero-main { padding: 28px 32px; border-left: 1px solid var(--border); }
+.hero-eyebrow {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--primary);
+  background: var(--primary-50);
+  padding: 4px 10px;
+  margin-bottom: 14px;
+}
+.hero-eyebrow .ico { width: 11px; height: 11px; }
+.hero-title { font-size: 22px; font-weight: 700; color: var(--text); letter-spacing: -0.5px; line-height: 1.3; margin-bottom: 8px; }
+.hero-en { font-size: 11px; color: var(--text-4); font-family: var(--sans-en); margin-bottom: 14px; }
+.hero-desc { font-size: 13.5px; color: var(--text-3); line-height: 1.7; margin-bottom: 18px; max-width: 540px; }
+.hero-actions { display: flex; gap: 8px; }
+.hero-side { background: var(--surface-2); padding: 24px 26px; }
+.hero-stats { display: flex; flex-direction: column; gap: 0; }
+.hero-stat {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.hero-stat:first-child { padding-top: 0; }
+.hero-stat:last-child { border-bottom: none; padding-bottom: 0; }
+.hero-stat-label { font-size: 11.5px; color: var(--text-3); font-weight: 600; }
+.hero-stat-val { font-size: 13px; color: var(--text); font-weight: 600; }
+
+/* ═══ INITIATIVES ═══ */
+.init-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+.init-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 16px 18px;
+  transition: all 0.15s;
+  cursor: pointer;
+}
+.init-card:hover { border-color: var(--primary-100); background: var(--primary-50); }
+.init-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.init-tag {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  background: var(--surface-2);
+  color: var(--text-3);
+}
+.init-tag.global { background: var(--info-bg); color: var(--info); }
+.init-tag.local  { background: var(--success-bg); color: var(--success); }
+.init-num {
+  margin-right: auto;
+  font-size: 10.5px;
+  color: var(--text-4);
+  font-family: var(--mono);
+  font-weight: 600;
+}
+.init-name { font-size: 14px; font-weight: 700; color: var(--text); line-height: 1.4; margin-bottom: 4px; }
+.init-en { font-size: 11px; color: var(--text-4); font-family: var(--sans-en); margin-bottom: 10px; }
+.init-desc { font-size: 12.5px; color: var(--text-3); line-height: 1.6; margin-bottom: 12px; }
+.init-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.init-applicability { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
+.init-app-label { font-size: 10.5px; color: var(--text-4); white-space: nowrap; }
+.init-app-bar { flex: 1; height: 4px; background: var(--surface-2); min-width: 40px; overflow: hidden; }
+.init-app-fill { height: 100%; background: var(--primary); }
+.init-app-pct { font-size: 11px; font-weight: 700; color: var(--text-2); font-family: var(--mono); }
+.init-org { font-size: 10.5px; color: var(--text-4); }
+
+/* ═══ PAGE SECTIONS (SPA) ═══ */
+.page-section { display: none; }
+.page-section.active { display: block; animation: fadeUp 0.35s ease; }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ═══ EMPTY ═══ */
+.empty {
+  padding: 80px 32px;
+  text-align: center;
+  background: var(--surface);
+  border: 1px dashed var(--border);
+}
+.empty-icon {
+  width: 48px; height: 48px;
+  background: var(--surface-2);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 14px;
+  color: var(--text-4);
+}
+.empty-icon .ico { width: 20px; height: 20px; }
+.empty-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+.empty-sub { font-size: 12.5px; color: var(--text-4); }
+
+/* ═══ FILTER TABS ═══ */
+.filter-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  margin-bottom: 18px;
+  width: fit-content;
+}
+.filter-tab {
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-3);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: var(--sans);
+  transition: all 0.15s;
+}
+.filter-tab.active { background: var(--surface); color: var(--text); }
+.filter-tab:hover:not(.active) { color: var(--text-2); }
+
+/* ═══ RESPONSIVE ═══ */
+@media (max-width: 1100px) {
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .targets-grid { grid-template-columns: repeat(2, 1fr); }
+  .dual, .hero, .init-grid { grid-template-columns: 1fr; }
+  .hero-main { border-left: none; border-bottom: 1px solid var(--border); }
+}
+@media (max-width: 800px) {
+  .app { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+  .topbar { padding: 0 16px; grid-column: 1; }
+  .main { padding: 18px 16px 40px; grid-column: 1; }
+  .kpi-grid, .targets-grid { grid-template-columns: 1fr; }
+  .status-bar { flex-direction: column; }
+  .status-cell { border-left: none; border-bottom: 1px solid var(--border); }
+  .status-cell:last-child { border-bottom: none; }
+  .search-bar { width: 180px; }
+  .page-head { flex-direction: column; align-items: flex-start; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ ALL ICONS DEFINED AS SVG SYMBOLS (loaded once) ═══ -->
+<svg width="0" height="0" style="position:absolute;" aria-hidden="true">
+  <defs>
+    <symbol id="i-dashboard" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></symbol>
+    <symbol id="i-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></symbol>
+    <symbol id="i-bulb" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7c.6.6 1 1.4 1 2.3v1h6v-1c0-.9.4-1.7 1-2.3A7 7 0 0 0 12 2z"/></symbol>
+    <symbol id="i-news" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8M15 18h-5M10 6h8v4h-8z"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></symbol>
+    <symbol id="i-bot" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="12" rx="2"/><path d="M12 8V4M8 4h8"/><circle cx="9" cy="14" r="1"/><circle cx="15" cy="14" r="1"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol>
+    <symbol id="i-chevron-up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></symbol>
+    <symbol id="i-chevron-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></symbol>
+    <symbol id="i-chevron-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></symbol>
+    <symbol id="i-arrow-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></symbol>
+    <symbol id="i-arrow-up-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></symbol>
+    <symbol id="i-arrow-down-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="7" x2="17" y2="17"/><polyline points="17 7 17 17 7 17"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></symbol>
+    <symbol id="i-help" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></symbol>
+    <symbol id="i-filter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></symbol>
+    <symbol id="i-bookmark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></symbol>
+    <symbol id="i-folder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></symbol>
+    <symbol id="i-alert-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></symbol>
+    <symbol id="i-alert-triangle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
+    <symbol id="i-calendar-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9" y1="15" x2="15" y2="21"/><line x1="15" y1="15" x2="9" y2="21"/></symbol>
+    <symbol id="i-user-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="17" y1="8" x2="22" y2="13"/><line x1="22" y1="8" x2="17" y2="13"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
+    <symbol id="i-shield-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></symbol>
+    <symbol id="i-trending-up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></symbol>
+    <symbol id="i-brain" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44A2.5 2.5 0 0 1 4.5 17.5 2.5 2.5 0 0 1 3 15a2.5 2.5 0 0 1-.96-4.06A2.5 2.5 0 0 1 2 8.5a2.5 2.5 0 0 1 1.04-2.06A2.5 2.5 0 0 1 4.5 2a2.5 2.5 0 0 1 2.96-.04A2.5 2.5 0 0 1 9.5 2z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44A2.5 2.5 0 0 0 19.5 17.5 2.5 2.5 0 0 0 21 15a2.5 2.5 0 0 0 .96-4.06A2.5 2.5 0 0 0 22 8.5a2.5 2.5 0 0 0-1.04-2.06A2.5 2.5 0 0 0 19.5 2a2.5 2.5 0 0 0-2.96-.04A2.5 2.5 0 0 0 14.5 2z"/></symbol>
+  </defs>
+</svg>
+
+<div class="app">
+
+  <!-- ═══ SIDEBAR ═══ -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-logo">ب</div>
+      <div class="brand-info">
+        <div class="brand-title">بنك التواصل الداخلي</div>
+        <div class="brand-sub en">INTERNAL COMMS · 2026</div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title en">Workspace</div>
+      <div class="sidebar-nav">
+        <a class="nav-item active" data-page="reports" onclick="showSection('reports')">
+          <span class="ico"><svg><use href="#i-dashboard"/></svg></span>
+          <span>الأداء التنفيذي</span>
+        </a>
+        <a class="nav-item" data-page="home" onclick="showSection('home')">
+          <span class="ico"><svg><use href="#i-home"/></svg></span>
+          <span>الرئيسية</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title en">Library</div>
+      <div class="sidebar-nav">
+        <a class="nav-item" data-page="initiatives" onclick="showSection('initiatives')">
+          <span class="ico"><svg><use href="#i-bulb"/></svg></span>
+          <span>المبادرات</span>
+          <span class="nav-item-count">42</span>
+        </a>
+        <a class="nav-item" data-page="news" onclick="showSection('news')">
+          <span class="ico"><svg><use href="#i-news"/></svg></span>
+          <span>الأخبار العالمية</span>
+        </a>
+        <a class="nav-item" data-page="weekend" onclick="showSection('weekend')">
+          <span class="ico"><svg><use href="#i-calendar"/></svg></span>
+          <span>نهاية الأسبوع</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title en">Tools</div>
+      <div class="sidebar-nav">
+        <a class="nav-item">
+          <span class="ico"><svg><use href="#i-bot"/></svg></span>
+          <span>المساعد الذكي</span>
+        </a>
+        <a class="nav-item">
+          <span class="ico"><svg><use href="#i-settings"/></svg></span>
+          <span>الإعدادات</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="sidebar-foot">
+      <div class="user-card">
+        <div class="user-avatar">أأ</div>
+        <div class="user-info">
+          <div class="user-name">أحمد الغامدي</div>
+          <div class="user-role">مدير الإدارة</div>
+        </div>
+        <span class="ico" style="width:14px;height:14px;color:var(--text-4);"><svg><use href="#i-chevron-up"/></svg></span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ═══ TOPBAR ═══ -->
+  <header class="topbar">
+    <nav class="breadcrumb">
+      <span>Workspace</span>
+      <span class="breadcrumb-sep ico" style="width:14px;height:14px;"><svg><use href="#i-chevron-left"/></svg></span>
+      <span class="breadcrumb-current" id="bc-current">الأداء التنفيذي</span>
+    </nav>
+
+    <div class="topbar-right">
+      <div class="search-bar">
+        <span class="ico"><svg><use href="#i-search"/></svg></span>
+        <input type="text" placeholder="بحث في كل البيانات...">
+        <span class="search-kbd">⌘ K</span>
+      </div>
+      <button class="icon-btn" title="الإشعارات">
+        <span class="ico"><svg><use href="#i-bell"/></svg></span>
+        <span class="dot"></span>
+      </button>
+      <button class="icon-btn" title="المساعدة">
+        <span class="ico"><svg><use href="#i-help"/></svg></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ═══ MAIN ═══ -->
+  <main class="main">
+  <div class="main-inner">
+
+    <!-- ═══ REPORTS PAGE ═══ -->
+    <div class="page-section active" id="section-reports">
+
+      <div class="page-head">
+        <div>
+          <h1 class="page-title">الأداء التنفيذي للمشاريع</h1>
+          <p class="page-sub">قراءة شاملة للحالة التشغيلية لمحفظة مشاريع الإدارة، مع تحليل المخاطر والتقدم نحو المستهدفات السنوية.</p>
+        </div>
+        <div class="page-actions">
+          <button class="period-chip">
+            <span class="ico"><svg><use href="#i-calendar"/></svg></span>
+            <span class="en">11 May — 10 Jun 2026</span>
+            <span class="ico" style="width:13px;height:13px;color:var(--text-4);"><svg><use href="#i-chevron-down"/></svg></span>
+          </button>
+          <button class="btn btn-ghost">
+            <span class="ico"><svg><use href="#i-download"/></svg></span>
+            <span>تصدير</span>
+          </button>
+          <button class="btn btn-primary">
+            <span class="ico"><svg><use href="#i-refresh"/></svg></span>
+            <span>تحديث</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="status-bar">
+        <div class="status-cell">
+          <div class="status-cell-icon success"><span class="ico"><svg><use href="#i-shield-check"/></svg></span></div>
+          <div class="status-cell-body">
+            <div class="status-cell-label en">Risk Level</div>
+            <div class="status-cell-value">منخفض</div>
+          </div>
+        </div>
+        <div class="status-cell">
+          <div class="status-cell-icon info"><span class="ico"><svg><use href="#i-clock"/></svg></span></div>
+          <div class="status-cell-body">
+            <div class="status-cell-label en">Generated</div>
+            <div class="status-cell-value">منذ 12 دقيقة</div>
+          </div>
+        </div>
+        <div class="status-cell">
+          <div class="status-cell-icon warning"><span class="ico"><svg><use href="#i-alert-triangle"/></svg></span></div>
+          <div class="status-cell-body">
+            <div class="status-cell-label en">Attention Needed</div>
+            <div class="status-cell-value">3 بنود</div>
+          </div>
+        </div>
+        <div class="status-cell">
+          <div class="status-cell-icon info"><span class="ico"><svg><use href="#i-trending-up"/></svg></span></div>
+          <div class="status-cell-body">
+            <div class="status-cell-label en">Annual Progress</div>
+            <div class="status-cell-value"><span class="mono">33%</span> من المستهدف</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi accent-primary">
+          <div class="kpi-top">
+            <span class="kpi-label">إجمالي المشاريع</span>
+            <div class="kpi-icon"><span class="ico"><svg><use href="#i-folder"/></svg></span></div>
+          </div>
+          <div class="kpi-value">108</div>
+          <div class="kpi-meta">
+            <span class="kpi-trend up"><span class="ico"><svg><use href="#i-arrow-up-right"/></svg></span><span class="en">+6</span></span>
+            <span class="kpi-comparison">مقابل الأسبوع الماضي</span>
+          </div>
+        </div>
+
+        <div class="kpi accent-danger">
+          <div class="kpi-top">
+            <span class="kpi-label">المتأخرة</span>
+            <div class="kpi-icon"><span class="ico"><svg><use href="#i-alert-circle"/></svg></span></div>
+          </div>
+          <div class="kpi-value">1 <span class="kpi-value-sub">/ 108</span></div>
+          <div class="kpi-meta">
+            <span class="kpi-trend up"><span class="ico"><svg><use href="#i-arrow-down-right"/></svg></span><span class="en">−4</span></span>
+            <span class="kpi-comparison"><span class="mono">0.9%</span> من الإجمالي</span>
+          </div>
+        </div>
+
+        <div class="kpi accent-warning">
+          <div class="kpi-top">
+            <span class="kpi-label">بدون تاريخ استحقاق</span>
+            <div class="kpi-icon"><span class="ico"><svg><use href="#i-calendar-x"/></svg></span></div>
+          </div>
+          <div class="kpi-value">26</div>
+          <div class="kpi-meta">
+            <span class="kpi-trend warn"><span class="ico"><svg><use href="#i-arrow-up-right"/></svg></span><span class="en">+3</span></span>
+            <span class="kpi-comparison"><span class="mono">24.1%</span> تحتاج تحديد</span>
+          </div>
+        </div>
+
+        <div class="kpi accent-muted">
+          <div class="kpi-top">
+            <span class="kpi-label">غير مُسندة</span>
+            <div class="kpi-icon"><span class="ico"><svg><use href="#i-user-x"/></svg></span></div>
+          </div>
+          <div class="kpi-value">18</div>
+          <div class="kpi-meta">
+            <span class="kpi-trend down"><span class="ico"><svg><use href="#i-arrow-up-right"/></svg></span><span class="en">+2</span></span>
+            <span class="kpi-comparison"><span class="mono">16.7%</span> بلا مالك</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title-row">
+            <h2 class="section-title">توزيع المحفظة</h2>
+            <span class="section-badge">30 يوماً</span>
+          </div>
+          <div class="section-actions">
+            <button class="link-action">
+              <span>التفاصيل</span>
+              <span class="ico"><svg><use href="#i-arrow-left"/></svg></span>
+            </button>
+          </div>
+        </div>
+
+        <div class="dual">
+          <div class="card">
+            <div class="card-body">
+              <div class="section-header" style="margin-bottom:6px;">
+                <div class="section-title-row">
+                  <span class="kpi-label" style="font-weight:700;">حسب الفئة</span>
+                </div>
+              </div>
+              <div class="bar-list">
+                <div class="bar-row"><span class="bar-label">نهاية أسبوع سعيدة</span><div class="bar-track"><div class="bar-fill blue" style="width:100%;"></div></div><span class="bar-count">2</span></div>
+                <div class="bar-row"><span class="bar-label">بداية أسبوع سعيدة</span><div class="bar-track"><div class="bar-fill blue" style="width:50%;"></div></div><span class="bar-count">1</span></div>
+                <div class="bar-row"><span class="bar-label">الأيام العالمية</span><div class="bar-track"><div class="bar-fill blue" style="width:50%;"></div></div><span class="bar-count">1</span></div>
+                <div class="bar-row"><span class="bar-label">الحملات</span><div class="bar-track"><div class="bar-fill blue" style="width:50%;"></div></div><span class="bar-count">1</span></div>
+                <div class="bar-row"><span class="bar-label">رحلة المنظومة</span><div class="bar-track"><div class="bar-fill blue" style="width:50%;"></div></div><span class="bar-count">1</span></div>
+                <div class="bar-row"><span class="bar-label">باختصار</span><div class="bar-track"><div class="bar-fill blue" style="width:50%;"></div></div><span class="bar-count">1</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-body">
+              <div class="section-header" style="margin-bottom:6px;">
+                <div class="section-title-row">
+                  <span class="kpi-label" style="font-weight:700;">الأعضاء الأكثر مساهمة</span>
+                </div>
+              </div>
+              <div class="bar-list">
+                <div class="bar-row"><span class="bar-label en">Ashwag F. Aldosari</span><div class="bar-track"><div class="bar-fill teal" style="width:100%;"></div></div><span class="bar-count">9</span></div>
+                <div class="bar-row"><span class="bar-label en">Bader A.</span><div class="bar-track"><div class="bar-fill teal" style="width:100%;"></div></div><span class="bar-count">9</span></div>
+                <div class="bar-row"><span class="bar-label en">Ahmed A. AlGhamdi</span><div class="bar-track"><div class="bar-fill teal" style="width:100%;"></div></div><span class="bar-count">9</span></div>
+                <div class="bar-row"><span class="bar-label en">Redwan Hafiz</span><div class="bar-track"><div class="bar-fill teal" style="width:67%;"></div></div><span class="bar-count">6</span></div>
+                <div class="bar-row"><span class="bar-label en">Fahad Aljumayyi</span><div class="bar-track"><div class="bar-fill teal" style="width:33%;"></div></div><span class="bar-count">3</span></div>
+                <div class="bar-row"><span class="bar-label en">Shahad Alqahtani</span><div class="bar-track"><div class="bar-fill teal" style="width:11%;"></div></div><span class="bar-count">1</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <div>
+            <div class="section-title-row">
+              <h2 class="section-title">إنجاز المبادرات مقابل المستهدفات السنوية</h2>
+              <span class="section-badge mono">15 / 45</span>
+            </div>
+            <p class="section-desc">المستهدف السنوي للفئات الست هو <strong style="color:var(--text);">45</strong> مبادرة · تم تنفيذ <strong style="color:var(--text);">15</strong> · نسبة التحقّق <strong style="color:var(--primary);">33%</strong> · المتبقي <strong style="color:var(--danger);">30</strong> مبادرة.</p>
+          </div>
+        </div>
+
+        <div class="targets-grid">
+
+          <div class="target-card">
+            <div class="target-head">
+              <div class="target-name">تستاهل الصيت</div>
+              <span class="target-status-pill warn">يحتاج تسريع</span>
+            </div>
+            <div class="target-nums">
+              <div class="target-big">3 <span class="target-big-sub">/ 9</span></div>
+              <div class="target-pct warn">33.3%</div>
+            </div>
+            <div class="target-progress"><div class="target-progress-fill warn" style="width:33%;"></div></div>
+            <div class="target-foot">
+              <span>متبقي: <strong>6</strong></span>
+              <span class="en">Q2 cycle</span>
+            </div>
+          </div>
+
+          <div class="target-card">
+            <div class="target-head">
+              <div class="target-name">باختصار</div>
+              <span class="target-status-pill danger">متأخر</span>
+            </div>
+            <div class="target-nums">
+              <div class="target-big">0 <span class="target-big-sub">/ 6</span></div>
+              <div class="target-pct danger">0%</div>
+            </div>
+            <div class="target-progress"><div class="target-progress-fill danger" style="width:1%;"></div></div>
+            <div class="target-foot">
+              <span>متبقي: <strong>6</strong></span>
+              <span class="en">Q2 cycle</span>
+            </div>
+          </div>
+
+          <div class="target-card">
+            <div class="target-head">
+              <div class="target-name">رحلة المنظومة</div>
+              <span class="target-status-pill warn">يحتاج تسريع</span>
+            </div>
+            <div class="target-nums">
+              <div class="target-big">4 <span class="target-big-sub">/ 11</span></div>
+              <div class="target-pct warn">36.4%</div>
+            </div>
+            <div class="target-progress"><div class="target-progress-fill warn" style="width:36%;"></div></div>
+            <div class="target-foot">
+              <span>متبقي: <strong>7</strong></span>
+              <span class="en">Q2 cycle</span>
+            </div>
+          </div>
+
+          <div class="target-card">
+            <div class="target-head">
+              <div class="target-name">المنجزات الوزارة والمنظومة</div>
+              <span class="target-status-pill gold">على المسار</span>
+            </div>
+            <div class="target-nums">
+              <div class="target-big">6 <span class="target-big-sub">/ 12</span></div>
+              <div class="target-pct gold">50.0%</div>
+            </div>
+            <div class="target-progress"><div class="target-progress-fill gold" style="width:50%;"></div></div>
+            <div class="target-foot">
+              <span>متبقي: <strong>6</strong></span>
+              <span class="en">Q2 cycle</span>
+            </div>
+          </div>
+
+          <div class="target-card">
+            <div class="target-head">
+              <div class="target-name">نبذة تعريفية</div>
+              <span class="target-status-pill warn">يحتاج تسريع</span>
+            </div>
+            <div class="target-nums">
+              <div class="target-big">2 <span class="target-big-sub">/ 6</span></div>
+              <div class="target-pct warn">33.3%</div>
+            </div>
+            <div class="target-progress"><div class="target-progress-fill warn" style="width:33%;"></div></div>
+            <div class="target-foot">
+              <span>متبقي: <strong>4</strong></span>
+              <span class="en">Q2 cycle</span>
+            </div>
+          </div>
+
+          <div class="target-card">
+            <div class="target-head">
+              <div class="target-name">مبادرة جسور المنظومة</div>
+              <span class="target-status-pill danger">متأخر</span>
+            </div>
+            <div class="target-nums">
+              <div class="target-big">0 <span class="target-big-sub">/ 1</span></div>
+              <div class="target-pct danger">0%</div>
+            </div>
+            <div class="target-progress"><div class="target-progress-fill danger" style="width:1%;"></div></div>
+            <div class="target-foot">
+              <span>متبقي: <strong>1</strong></span>
+              <span class="en">Q2 cycle</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title-row">
+            <h2 class="section-title">المشاريع المتأخرة</h2>
+            <span class="section-badge">1 مشروع</span>
+          </div>
+          <div class="section-actions">
+            <button class="link-action"><span>عرض الكل</span><span class="ico"><svg><use href="#i-arrow-left"/></svg></span></button>
+          </div>
+        </div>
+        <div class="card">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>المشروع</th>
+                <th>الفئة</th>
+                <th>الفريق</th>
+                <th>الاستحقاق</th>
+                <th>الحالة</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <div class="row-title">حملة الأداء لعام Q2 2026</div>
+                  <div class="row-meta">AAR-2026-0042</div>
+                </td>
+                <td><span class="cell-tag">حملة الأداء</span></td>
+                <td>
+                  <div class="avatar-stack">
+                    <div class="av">AA</div><div class="av">BA</div><div class="av">RH</div><div class="av more">+1</div>
+                  </div>
+                </td>
+                <td><span class="cell-date danger en">10 May 2026</span></td>
+                <td><span class="cell-pill danger"><span class="ico"><svg><use href="#i-alert-circle"/></svg></span> متأخر يوم</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title-row">
+            <h2 class="section-title">المشاريع المستحقة قريباً</h2>
+            <span class="section-badge">4 مشاريع · 30 يوماً</span>
+          </div>
+        </div>
+        <div class="card">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>المشروع</th>
+                <th>الفئة</th>
+                <th>الفريق</th>
+                <th>الاستحقاق</th>
+                <th>المتبقي</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><div class="row-title">رحلة المنظومة شهر مايو</div></td>
+                <td><span class="cell-tag">رحلة المنظومة</span></td>
+                <td><div class="avatar-stack"><div class="av">AA</div><div class="av">BA</div><div class="av">RH</div></div></td>
+                <td><span class="cell-date warn en">21 May 2026</span></td>
+                <td><span class="cell-pill warning"><span class="ico"><svg><use href="#i-clock"/></svg></span> 10 أيام</span></td>
+              </tr>
+              <tr>
+                <td><div class="row-title">ضيف الربع الثاني</div></td>
+                <td><span class="cell-tag">باختصار</span></td>
+                <td><div class="avatar-stack"><div class="av">AS</div><div class="av">FJ</div></div></td>
+                <td><span class="cell-date warn en">28 May 2026</span></td>
+                <td><span class="cell-pill warning"><span class="ico"><svg><use href="#i-clock"/></svg></span> 17 يوماً</span></td>
+              </tr>
+              <tr>
+                <td><div class="row-title">عيد الأضحى</div></td>
+                <td><span class="cell-tag">الفعاليات</span></td>
+                <td><div class="avatar-stack"><div class="av">SA</div><div class="av">AA</div><div class="av">BA</div></div></td>
+                <td><span class="cell-date muted en">01 Jun 2026</span></td>
+                <td><span class="cell-pill warning"><span class="ico"><svg><use href="#i-clock"/></svg></span> 21 يوماً</span></td>
+              </tr>
+              <tr>
+                <td><div class="row-title">حملة الأداء لعام Q2 2026</div></td>
+                <td><span class="cell-tag">حملة الأداء</span></td>
+                <td><div class="avatar-stack"><div class="av">AA</div><div class="av">BA</div></div></td>
+                <td><span class="cell-date muted en">02 Jun 2026</span></td>
+                <td><span class="cell-pill success"><span class="ico"><svg><use href="#i-check"/></svg></span> 22 يوماً</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title-row">
+            <h2 class="section-title">قراءة تحليلية</h2>
+          </div>
+        </div>
+        <div class="insight-card">
+          <div class="insight-icon"><span class="ico"><svg><use href="#i-brain"/></svg></span></div>
+          <div>
+            <div class="insight-eyebrow en">Analytical Insight</div>
+            <div class="insight-body">
+              <p>تشير المؤشرات إلى وضع تشغيلي إيجابي في الجانب الزمني، إذ تبلغ نسبة التأخر <strong>0.9%</strong> فقط — وهي نسبة استثنائية تعكس انضباطاً في إدارة المواعيد. غير أن الجانب التخطيطي يستدعي انتباهاً: ربع المحفظة تقريباً (<strong>24.1%</strong>) دون تواريخ استحقاق محددة، ما يخفي مخاطر متراكمة قد لا تظهر إلا متأخراً.</p>
+              <p>في المستهدفات السنوية، تتمركز فئتان حرجتان حول الصفر (<strong>باختصار</strong> و<strong>مبادرة جسور المنظومة</strong>)، وهو ما يستدعي تفعيلاً عاجلاً قبل دخول الربع الثالث.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title-row">
+            <h2 class="section-title">التوصيات التنفيذية</h2>
+            <span class="section-badge">4 توصيات</span>
+          </div>
+        </div>
+        <div class="recs-list">
+          <div class="rec-item">
+            <div class="rec-num">01</div>
+            <div class="rec-text">رفع نسبة التحديد الزمني لمواعيد استحقاق جميع المشاريع بهدف تقليل المشاريع مجهولة الجدولة إلى أقل من 10% خلال أسبوعين.</div>
+            <span class="rec-priority high">عاجلة</span>
+          </div>
+          <div class="rec-item">
+            <div class="rec-num">02</div>
+            <div class="rec-text">إسناد المشاريع الـ18 غير المُسندة لمالكين محددين، مع توزيع متوازن يحول دون تكدس الأعباء على عدد محدود من الأعضاء.</div>
+            <span class="rec-priority high">عاجلة</span>
+          </div>
+          <div class="rec-item">
+            <div class="rec-num">03</div>
+            <div class="rec-text">تفعيل مبادرتي "باختصار" و"جسور المنظومة" قبل نهاية الربع الثاني لتجنب الفجوة في النصف الثاني من السنة.</div>
+            <span class="rec-priority mid">متوسطة</span>
+          </div>
+          <div class="rec-item">
+            <div class="rec-num">04</div>
+            <div class="rec-text">الحفاظ على معدل التأخر المنخفض الحالي مع مراقبة مستمرة للمشاريع المستهدفة ذات الاكتمال المنخفض.</div>
+            <span class="rec-priority low">متابعة</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ═══ HOME PAGE ═══ -->
+    <div class="page-section" id="section-home">
+
+      <div class="page-head">
+        <div>
+          <h1 class="page-title">الرئيسية</h1>
+          <p class="page-sub">مرجع تنفيذي شامل للممارسين والمختصين في مجال التواصل الداخلي المؤسسي.</p>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-ghost"><span class="ico"><svg><use href="#i-filter"/></svg></span><span>تصفية</span></button>
+          <button class="btn btn-primary"><span class="ico"><svg><use href="#i-plus"/></svg></span><span>إضافة محتوى</span></button>
+        </div>
+      </div>
+
+      <div class="hero">
+        <div class="hero-main">
+          <span class="hero-eyebrow"><span class="ico"><svg><use href="#i-star"/></svg></span> مبادرة مميزة · 037</span>
+          <h2 class="hero-title">منصة Workplace من Meta للتواصل المؤسسي</h2>
+          <div class="hero-en">Workplace by Meta — Employee Social Platform</div>
+          <p class="hero-desc">تُعدّ من أبرز منصات التواصل الداخلي المؤسسي المدفوعة عالمياً، تتيح الرسائل الفورية ومكالمات الفيديو والمجموعات التفاعلية للموظفين بأسلوب مألوف مستوحى من فيسبوك.</p>
+          <div class="hero-actions">
+            <button class="btn btn-primary"><span>قراءة التفاصيل</span><span class="ico"><svg><use href="#i-arrow-left"/></svg></span></button>
+            <button class="btn btn-ghost"><span class="ico"><svg><use href="#i-bookmark"/></svg></span><span>حفظ</span></button>
+          </div>
+        </div>
+        <div class="hero-side">
+          <div class="hero-stats">
+            <div class="hero-stat"><span class="hero-stat-label">الموقع</span><span class="hero-stat-val">الولايات المتحدة</span></div>
+            <div class="hero-stat"><span class="hero-stat-label">الفئة</span><span class="hero-stat-val">منصات رقمية</span></div>
+            <div class="hero-stat"><span class="hero-stat-label">النموذج</span><span class="hero-stat-val">SaaS · مدفوع</span></div>
+            <div class="hero-stat"><span class="hero-stat-label">التطبيق</span><span class="hero-stat-val en mono">7,000+ org</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title-row">
+            <h2 class="section-title">المبادرات المميزة</h2>
+            <span class="section-badge">8 من 42</span>
+          </div>
+          <div class="section-actions">
+            <button class="link-action" onclick="showSection('initiatives')"><span>عرض الكل</span><span class="ico"><svg><use href="#i-arrow-left"/></svg></span></button>
+          </div>
+        </div>
+
+        <div class="init-grid">
+          <div class="init-card">
+            <div class="init-meta"><span class="init-tag global">عالمية</span><span class="init-num">№ 001</span></div>
+            <div class="init-name">Coffee Connect — Microsoft</div>
+            <div class="init-en">Random Pairing for Cross-Department Meetings</div>
+            <div class="init-desc">نظام آلي يربط موظفَين عشوائيَين أسبوعياً لقهوة افتراضية مدتها 30 دقيقة، بهدف كسر الجزر الإدارية وبناء شبكات تواصل أفقية.</div>
+            <div class="init-foot">
+              <div class="init-applicability">
+                <span class="init-app-label">قابلية محلية</span>
+                <div class="init-app-bar"><div class="init-app-fill" style="width:87%;"></div></div>
+                <span class="init-app-pct">87%</span>
+              </div>
+              <span class="init-org">Microsoft</span>
+            </div>
+          </div>
+
+          <div class="init-card">
+            <div class="init-meta"><span class="init-tag global">عالمية</span><span class="init-num">№ 002</span></div>
+            <div class="init-name">Pulse Surveys — Google</div>
+            <div class="init-en">Weekly 3-Question Sentiment Pulse</div>
+            <div class="init-desc">استبانة ذكية أسبوعية مكونة من ثلاثة أسئلة فقط، تقيس النبض الانفعالي للموظفين وتُخرج لوحة قيادة تنفيذية تكشف الاتجاهات قبل تحوّلها لمشكلات.</div>
+            <div class="init-foot">
+              <div class="init-applicability">
+                <span class="init-app-label">قابلية محلية</span>
+                <div class="init-app-bar"><div class="init-app-fill" style="width:92%;"></div></div>
+                <span class="init-app-pct">92%</span>
+              </div>
+              <span class="init-org">Google</span>
+            </div>
+          </div>
+
+          <div class="init-card">
+            <div class="init-meta"><span class="init-tag global">عالمية</span><span class="init-num">№ 003</span></div>
+            <div class="init-name">All-Hands Live — Spotify</div>
+            <div class="init-en">Monthly Town Hall with Real-Time Q&amp;A</div>
+            <div class="init-desc">لقاء شهري مع القيادة العليا يتيح للموظفين التصويت على الأسئلة قبل البث المباشر.</div>
+            <div class="init-foot">
+              <div class="init-applicability">
+                <span class="init-app-label">قابلية محلية</span>
+                <div class="init-app-bar"><div class="init-app-fill" style="width:78%;"></div></div>
+                <span class="init-app-pct">78%</span>
+              </div>
+              <span class="init-org">Spotify</span>
+            </div>
+          </div>
+
+          <div class="init-card">
+            <div class="init-meta"><span class="init-tag local">محلية</span><span class="init-num">№ 004</span></div>
+            <div class="init-name">حلقات النقاش الأسبوعية</div>
+            <div class="init-en">Weekly Discussion Circles</div>
+            <div class="init-desc">جلسات نقاش غير رسمية مدتها 45 دقيقة تجمع الموظفين من إدارات مختلفة لتبادل الأفكار حول موضوعات مؤسسية.</div>
+            <div class="init-foot">
+              <div class="init-applicability">
+                <span class="init-app-label">قابلية محلية</span>
+                <div class="init-app-bar"><div class="init-app-fill" style="width:95%;"></div></div>
+                <span class="init-app-pct">95%</span>
+              </div>
+              <span class="init-org">داخلي</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ═══ OTHER PAGES ═══ -->
+    <div class="page-section" id="section-initiatives">
+      <div class="page-head">
+        <div>
+          <h1 class="page-title">المبادرات</h1>
+          <p class="page-sub">قاعدة بيانات شاملة لمبادرات التواصل الداخلي.</p>
+        </div>
+      </div>
+      <div class="filter-tabs">
+        <button class="filter-tab active">الكل</button>
+        <button class="filter-tab">عالمية</button>
+        <button class="filter-tab">محلية</button>
+        <button class="filter-tab">مقترحة بالذكاء الاصطناعي</button>
+        <button class="filter-tab">جديدة</button>
+      </div>
+      <div class="empty">
+        <div class="empty-icon"><span class="ico"><svg><use href="#i-bulb"/></svg></span></div>
+        <div class="empty-title">قاعدة بيانات المبادرات</div>
+        <div class="empty-sub">42 مبادرة من 12 منظمة عالمية ومحلية — يتم تحميلها من الـ JS الموجود في ملفك الأصلي</div>
+      </div>
+    </div>
+
+    <div class="page-section" id="section-news">
+      <div class="page-head">
+        <div>
+          <h1 class="page-title">الأخبار العالمية</h1>
+          <p class="page-sub">أحدث المستجدات في مجال التواصل المؤسسي.</p>
+        </div>
+      </div>
+      <div class="filter-tabs">
+        <button class="filter-tab active">الكل</button>
+        <button class="filter-tab">عالمي</button>
+        <button class="filter-tab">محلي</button>
+        <button class="filter-tab">تواصل القيادة</button>
+        <button class="filter-tab">قنوات التواصل</button>
+      </div>
+      <div class="empty">
+        <div class="empty-icon"><span class="ico"><svg><use href="#i-news"/></svg></span></div>
+        <div class="empty-title">قسم الأخبار</div>
+        <div class="empty-sub">يحدّث آلياً من المصادر العالمية المتخصصة</div>
+      </div>
+    </div>
+
+    <div class="page-section" id="section-weekend">
+      <div class="page-head">
+        <div>
+          <h1 class="page-title">نهاية الأسبوع</h1>
+          <p class="page-sub">إصدار نهاية الأسبوع — قراءات منتقاة وموجز أسبوعي.</p>
+        </div>
+      </div>
+      <div class="empty">
+        <div class="empty-icon"><span class="ico"><svg><use href="#i-calendar"/></svg></span></div>
+        <div class="empty-title">الإصدار القادم</div>
+        <div class="empty-sub">الخميس القادم</div>
+      </div>
+    </div>
+
+  </div>
+  </main>
+</div>
+
+<script>
+function showSection(name) {
+  document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(a => a.classList.remove('active'));
+  const sec = document.getElementById('section-' + name);
+  if (sec) sec.classList.add('active');
+  const navItem = document.querySelector('.nav-item[data-page="' + name + '"]');
+  if (navItem) navItem.classList.add('active');
+
+  const labels = {
+    reports: 'الأداء التنفيذي',
+    home: 'الرئيسية',
+    initiatives: 'المبادرات',
+    news: 'الأخبار العالمية',
+    weekend: 'نهاية الأسبوع'
+  };
+  document.getElementById('bc-current').textContent = labels[name] || '';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+
+</body>
+</html>
