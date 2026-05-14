@@ -42,9 +42,6 @@ function normalizeN8NPayload(body: Record<string, unknown>): { reportDate: strin
   if (body.overdue_projects) {
     reportData.overdueProjects = body.overdue_projects;
   }
-  if (body.due_soon_projects) {
-    reportData.dueSoon = body.due_soon_projects;
-  }
   if (body.target_initiatives) {
     reportData.initiatives = body.target_initiatives;
   }
