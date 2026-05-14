@@ -17,14 +17,12 @@ localPort = 21454
 [services.development]
 run = "pnpm --filter @workspace/internal-comms run dev"
 
-[services.production]
-build = [ "pnpm", "--filter", "@workspace/internal-comms", "run", "build" ]
-publicDir = "artifacts/internal-comms/dist/public"
-serve = "static"
+[services.production.run]
+args = ["node", "artifacts/internal-comms/server.mjs"]
 
-[[services.production.rewrites]]
-from = "/*"
-to = "/index.html"
+[services.production.run.env]
+PORT = "21454"
+NODE_ENV = "production"
 
 [services.env]
 PORT = "21454"
