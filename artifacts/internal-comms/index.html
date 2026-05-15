@@ -2142,13 +2142,9 @@ function renderHeroArticle(article) {
   if (descEl)   { descEl.textContent = article.description || ''; descEl.dataset.original = article.description || ''; }
   if (avatarEl) avatarEl.textContent = srcName;
   if (btnEl) {
-    if (hasUrl) {
-      btnEl.onclick = () => window.open(article.url, '_blank');
-      btnEl.style.opacity = '';
-    } else {
-      btnEl.onclick = null;
-      btnEl.style.opacity = '0.4';
-    }
+    const resolvedUrl = resolveNewsUrl(article.url, article.title);
+    btnEl.onclick = () => window.open(resolvedUrl, '_blank');
+    btnEl.style.opacity = '';
   }
   if (linkEl) {
     const dateStr = new Date(article.publishedAt).toLocaleDateString('ar-SA-u-nu-latn', {day:'numeric', month:'long'});
@@ -2200,12 +2196,12 @@ function newsCardHTML(a, idx) {
   const srcName = a.source?.name || '';
   const srcInitials = srcName.replace(/[^a-zA-Z\u0600-\u06FF\s]/g,' ').trim().split(/\s+/).filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase() || '📰';
   const scopeBadge = isLocal ? '<span class="badge b-green">🇸🇦 محلي</span>' : '<span class="badge b-blue">🌐 عالمي</span>';
-  const hasUrl = a.url && a.url !== '#';
-  const extLink = hasUrl ? `<button class="translate-btn" onclick="event.preventDefault();event.stopPropagation();window.open('${escHtml(a.url)}','_blank')">↗ المصدر</button>` : '';
+  const resolvedUrl = resolveNewsUrl(a.url, a.title);
+  const extLink = `<button class="translate-btn" onclick="event.preventDefault();event.stopPropagation();window.open('${escHtml(resolvedUrl)}','_blank')">↗ المصدر</button>`;
   const translateBtn = !isLocal ? `<button class="translate-btn" onclick="event.preventDefault(); translateCard('${cardId}', this)">🌐 ترجمة</button>` : '';
   return `
   <div class="news-card-wrap" id="${cardId}">
-    <a class="news-card${isLocal?' is-local':''}" href="${hasUrl?a.url:'javascript:void(0)'}" ${hasUrl?'target="_blank"':''} rel="noopener">
+    <a class="news-card${isLocal?' is-local':''}" href="${escHtml(resolvedUrl)}" target="_blank" rel="noopener">
       <div class="news-card-top">
         <div class="news-source-wrap">
           <div class="news-source-icon${isLocal?' local-src':''}">${srcInitials}</div>
@@ -2336,8 +2332,18 @@ function initFullCardHTML(i) {
         <span class="applicability-pct" style="${pctColor}">${i.applicability}%</span>
       </div>
       <div class="init-org">📍 ${i.org} — ${i.country}</div>
+      <a href="https://www.google.com/search?q=${encodeURIComponent((i.en||i.name)+' '+i.org)}" target="_blank" rel="noopener" class="translate-btn" style="text-decoration:none;margin-top:4px;display:inline-flex;align-items:center;gap:5px;" onclick="event.stopPropagation()">↗ بحث عن المبادرة</a>
     </div>
   </div>`;
+}
+
+function resolveNewsUrl(url, title) {
+  if (!url || url === '#') return `https://www.google.com/search?q=${encodeURIComponent(title)}`;
+  try {
+    const u = new URL(url);
+    if (!u.pathname || u.pathname === '/') return `https://www.google.com/search?q=${encodeURIComponent(title)}`;
+    return url;
+  } catch { return `https://www.google.com/search?q=${encodeURIComponent(title)}`; }
 }
 
 function filterInitiatives(f, btn) {
