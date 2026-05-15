@@ -226,6 +226,46 @@ async function generateWeekendData(dateStr, cacheKey) {
 const server = http.createServer(async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
 
+  if (req.url === '/imgtest' && req.method === 'GET') {
+    const testHtml = `<!DOCTYPE html><html><head><style>
+body{font-family:sans-serif;background:#111;color:#fff;padding:20px;}
+.row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:24px;}
+.card{background:#222;border-radius:6px;overflow:hidden;width:260px;}
+.card img{width:260px;height:160px;object-fit:cover;display:block;}
+.card p{padding:6px;font-size:11px;word-break:break-all;margin:0;}
+h2{color:#aaa;font-size:13px;border-bottom:1px solid #444;padding-bottom:6px;}
+</style></head><body>
+<h2>Test IDs (200 verified):</h2>
+<div class="row">
+<div class="card"><img src="https://images.unsplash.com/photo-1580834341580-8c17a3a630ca?w=260&h=160&fit=crop" /><p>1580834341580</p></div>
+<div class="card"><img src="https://images.unsplash.com/photo-1586339949916-3e9457bef6d3?w=260&h=160&fit=crop" /><p>1586339949916</p></div>
+<div class="card"><img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=260&h=160&fit=crop" /><p>1558618666</p></div>
+<div class="card"><img src="https://images.unsplash.com/photo-1543269865-cbf427effbad?w=260&h=160&fit=crop" /><p>1543269865</p></div>
+<div class="card"><img src="https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=260&h=160&fit=crop" /><p>1517048676732</p></div>
+<div class="card"><img src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=260&h=160&fit=crop" /><p>1529156069898</p></div>
+<div class="card"><img src="https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=260&h=160&fit=crop" /><p>1497366754035</p></div>
+<div class="card"><img src="https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=260&h=160&fit=crop" /><p>1497366811353</p></div>
+<div class="card"><img src="https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=260&h=160&fit=crop" /><p>1560179707</p></div>
+<div class="card"><img src="https://images.unsplash.com/photo-1486325212027-8081e485255e?w=260&h=160&fit=crop" /><p>1486325212027</p></div>
+</div>
+<h2>Current in use:</h2>
+<div class="row">
+<div class="card"><img src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=260&h=160&fit=crop" /><p>تواصل داخلي</p></div>
+<div class="card"><img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=260&h=160&fit=crop" /><p>مشاركة الموظفين</p></div>
+<div class="card"><img src="https://images.unsplash.com/photo-1557804506-669a67965ba0?w=260&h=160&fit=crop" /><p>INIT global</p></div>
+<div class="card"><img src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=260&h=160&fit=crop" /><p>INIT local</p></div>
+<div class="card"><img src="https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=260&h=160&fit=crop" /><p>ذكاء اصطناعي</p></div>
+<div class="card"><img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=260&h=160&fit=crop" /><p>تواصل القيادة</p></div>
+<div class="card"><img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=260&h=160&fit=crop" /><p>الموارد البشرية</p></div>
+<div class="card"><img src="https://images.unsplash.com/photo-1563986768609-322da13575f3?w=260&h=160&fit=crop" /><p>قنوات التواصل</p></div>
+<div class="card"><img src="https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=260&h=160&fit=crop" /><p>DEFAULT</p></div>
+</div>
+</body></html>`;
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+    res.end(testHtml);
+    return;
+  }
+
   if (req.url === '/wk2-data' && req.method === 'GET') {
     try {
       const cacheKey = new Date().toISOString().slice(0, 10);
