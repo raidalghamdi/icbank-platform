@@ -969,6 +969,9 @@ body {
 .rpt-init-rate  { font-size: 18px; font-weight: 700; color: var(--primary); font-family: var(--mono); }
 .rpt-init-bar-track { background: var(--border); height: 6px; margin-top: 6px; overflow: hidden; }
 .rpt-init-bar-fill  { height: 100%; background: var(--primary); transition: width 0.7s cubic-bezier(.4,0,.2,1); }
+.rpt-init-bar-fill.ibar-green  { background: var(--success); }
+.rpt-init-bar-fill.ibar-orange { background: var(--warning); }
+.rpt-init-bar-fill.ibar-blue   { background: var(--primary); }
 
 /* Recommendations inside report */
 .rpt-rec-list { display: flex; flex-direction: column; gap: 10px; list-style: none; }
@@ -2783,10 +2786,11 @@ function renderReportHTML(d) {
   if (d.initiatives?.length) {
     const cards = d.initiatives.map(i=>{
       const rate = parseFloat(i.rate)||0, pct = Math.min(rate,100);
+      const barColor = pct <= 30 ? 'ibar-green' : pct <= 60 ? 'ibar-orange' : pct <= 80 ? 'ibar-blue' : 'ibar-green';
       return `<div class="rpt-init-card">
         <div class="rpt-init-label">${esc(i.label||i.name||'—')}</div>
-        <div class="rpt-init-row"><span class="rpt-init-sub">المستهدف: ${esc(i.target)} | الفعلي: ${esc(i.actual??i.count??'—')}</span><span class="rpt-init-rate">${esc(i.rate||'—')}</span></div>
-        <div class="rpt-init-bar-track"><div class="rpt-init-bar-fill" data-pct="${pct}" style="width:0%"></div></div>
+        <div class="rpt-init-row"><span class="rpt-init-sub">المستهدف: ${esc(i.target)} | الفعلي: ${esc(i.actual??i.count??'—')}</span><span class="rpt-init-rate" style="color:${pct<=30?'var(--success)':pct<=60?'var(--warning)':pct<=80?'var(--primary)':'var(--success)'}">${esc(i.rate||'—')}</span></div>
+        <div class="rpt-init-bar-track"><div class="rpt-init-bar-fill ${barColor}" data-pct="${pct}" style="width:0%"></div></div>
       </div>`;
     }).join('');
     html += sec('إنجاز المبادرات — معدل المستهدفات', '', `<div class="rpt-init-grid">${cards}</div>`);
