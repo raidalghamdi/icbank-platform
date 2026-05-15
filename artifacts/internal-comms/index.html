@@ -1204,6 +1204,31 @@ body {
 /* ══════════════════════════════════
    RESPONSIVE
 ══════════════════════════════════ */
+/* ═══ HAMBURGER BUTTON ═══ */
+.hamburger {
+  display: none;
+  width: 36px; height: 36px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  cursor: pointer;
+  align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.12s;
+}
+.hamburger:hover { background: var(--surface-2); }
+.hamburger .ico { width: 18px; height: 18px; }
+
+/* ═══ MOBILE OVERLAY ═══ */
+.mob-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 199;
+  backdrop-filter: blur(2px);
+}
+.mob-overlay.open { display: block; }
+
 @media (max-width: 1100px) {
   .kpi-grid { grid-template-columns: repeat(2, 1fr); }
   .targets-grid { grid-template-columns: repeat(2, 1fr); }
@@ -1211,21 +1236,65 @@ body {
   .hero-main { border-left: none; border-bottom: 1px solid var(--border); }
   #opts-place, #opts-movies, #opts-matches, #opts-deals, #opts-podcast, #opts-ai { grid-template-columns: repeat(2,1fr); }
 }
+
 @media (max-width: 800px) {
+  /* Layout */
   .app { grid-template-columns: 1fr; }
-  .sidebar { display: none; }
-  .topbar { padding: 0 16px; grid-column: 1; }
-  .main { padding: 18px 16px 40px; grid-column: 1; }
+  .topbar { padding: 0 14px; grid-column: 1; gap: 10px; }
+  .main  { padding: 16px 14px 50px; grid-column: 1; }
+
+  /* Hamburger visible */
+  .hamburger { display: flex; }
+
+  /* Sidebar becomes slide-in drawer */
+  .sidebar {
+    position: fixed;
+    top: 0; right: -270px;
+    width: 260px; height: 100%;
+    z-index: 200;
+    box-shadow: -4px 0 24px rgba(0,0,0,0.15);
+    transition: right 0.25s cubic-bezier(.4,0,.2,1);
+    overflow-y: auto;
+  }
+  .sidebar.mob-open { right: 0; }
+
+  /* Grids */
   .kpi-grid, .targets-grid, .rpt-kpi-grid { grid-template-columns: 1fr 1fr; }
+  .rpt-init-grid { grid-template-columns: 1fr; }
+  .news-list { grid-template-columns: 1fr; }
+  .wk2-options-grid, #opts-place, #opts-movies, #opts-matches, #opts-deals, #opts-podcast, #opts-ai { grid-template-columns: 1fr !important; }
+
+  /* Misc */
   .status-bar { flex-direction: column; }
   .status-cell { border-left: none; border-bottom: 1px solid var(--border); }
   .status-cell:last-child { border-bottom: none; }
-  .search-bar { width: 180px; }
-  .page-head { flex-direction: column; align-items: flex-start; }
-  .news-list { grid-template-columns: 1fr; }
-  .rpt-init-grid { grid-template-columns: 1fr; }
-  .wk2-options-grid, #opts-place, #opts-movies, #opts-matches, #opts-deals, #opts-podcast, #opts-ai { grid-template-columns: 1fr !important; }
-  .wk2-hero { flex-direction: column; padding: 20px 18px; }
+  .page-head { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .page-head-actions { flex-wrap: wrap; }
+  .wk2-hero { flex-direction: column; padding: 20px 16px; }
+  .search-bar { width: 170px; }
+
+  /* Tables: horizontal scroll */
+  .rpt-table, .table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+  }
+  .rpt-table td, .rpt-table th { white-space: nowrap; }
+
+  /* Report bars */
+  .rpt-bar-label { width: 110px; font-size: 11px; }
+}
+
+@media (max-width: 480px) {
+  .topbar { gap: 8px; }
+  .search-bar { display: none; }
+  .breadcrumb .en { display: none; }
+  .breadcrumb-sep { display: none; }
+  .kpi-grid, .rpt-kpi-grid { grid-template-columns: 1fr; }
+  .rpt-kpi-grid { grid-template-columns: 1fr 1fr; }
+  .rpt-bar-label { width: 85px; font-size: 10.5px; }
+  .main { padding: 14px 12px 50px; }
 }
 </style>
 </head>
@@ -1266,6 +1335,8 @@ body {
     <symbol id="i-trending-up"   viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></symbol>
     <symbol id="i-check"   viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></symbol>
     <symbol id="i-brain"   viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44A2.5 2.5 0 0 1 4.5 17.5 2.5 2.5 0 0 1 3 15a2.5 2.5 0 0 1-.96-4.06A2.5 2.5 0 0 1 2 8.5a2.5 2.5 0 0 1 1.04-2.06A2.5 2.5 0 0 1 4.5 2a2.5 2.5 0 0 1 2.96-.04A2.5 2.5 0 0 1 9.5 2z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44A2.5 2.5 0 0 0 19.5 17.5 2.5 2.5 0 0 0 21 15a2.5 2.5 0 0 0 .96-4.06A2.5 2.5 0 0 0 22 8.5a2.5 2.5 0 0 0-1.04-2.06A2.5 2.5 0 0 0 19.5 2a2.5 2.5 0 0 0-2.96-.04A2.5 2.5 0 0 0 14.5 2z"/></symbol>
+    <symbol id="i-menu"    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6"  x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></symbol>
+    <symbol id="i-x"       viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></symbol>
   </defs>
 </svg>
 
@@ -1276,6 +1347,8 @@ body {
 <div id="sidebar-quick" style="display:none"></div>
 <span id="stat-news-count" style="display:none"></span>
 <span id="stat-total" style="display:none"></span>
+
+<div class="mob-overlay" id="mob-overlay" onclick="closeMobileSidebar()"></div>
 
 <div class="app">
 
@@ -1350,6 +1423,9 @@ body {
 
   <!-- ═══ TOPBAR ═══ -->
   <header class="topbar">
+    <button class="hamburger" onclick="toggleMobileSidebar()" title="القائمة">
+      <span class="ico"><svg><use href="#i-menu"/></svg></span>
+    </button>
     <nav class="breadcrumb">
       <span class="en">Workspace</span>
       <span class="breadcrumb-sep ico" style="width:14px;height:14px;"><svg><use href="#i-chevron-left"/></svg></span>
@@ -1984,6 +2060,23 @@ function showSection(name) {
   const bc = document.getElementById('bc-current');
   if (bc) bc.textContent = PAGE_LABELS[name] || name;
   window.scrollTo({ top: 0, behavior: 'smooth' });
+  closeMobileSidebar();
+}
+
+function toggleMobileSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  const overlay = document.getElementById('mob-overlay');
+  const isOpen = sidebar.classList.toggle('mob-open');
+  overlay.classList.toggle('open', isOpen);
+  document.body.style.overflow = isOpen ? 'hidden' : '';
+}
+
+function closeMobileSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  const overlay = document.getElementById('mob-overlay');
+  sidebar.classList.remove('mob-open');
+  overlay.classList.remove('open');
+  document.body.style.overflow = '';
 }
 
 // ════════════════════════════════════════
