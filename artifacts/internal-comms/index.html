@@ -855,6 +855,29 @@ body {
 .news-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 .news-ext-link { font-size: 10.5px; color: var(--text-3); padding: 3px 8px; background: var(--bg); border: 1px solid var(--border); text-decoration: none; transition: all 0.12s; }
 .news-ext-link:hover { background: var(--primary-50); color: var(--primary); border-color: var(--primary-100); }
+/* ═══ CARD IMAGES ═══ */
+.news-card-img {
+  display: block;
+  width: calc(100% + 40px);
+  height: 160px;
+  object-fit: cover;
+  margin: -16px -20px 14px -20px;
+  flex-shrink: 0;
+  background: var(--surface-2);
+  transition: opacity 0.2s;
+}
+.news-card:hover .news-card-img { opacity: 0.92; }
+
+.init-full-card-img {
+  display: block;
+  width: calc(100% + 40px);
+  height: 150px;
+  object-fit: cover;
+  margin: -20px -20px 0 -20px;
+  flex-shrink: 0;
+  background: var(--surface-2);
+}
+
 .translate-btn {
   display: inline-flex; align-items: center; gap: 4px;
   padding: 2px 10px;
@@ -2202,9 +2225,11 @@ function newsCardHTML(a, idx) {
   const resolvedUrl = resolveNewsUrl(a.url, a.title);
   const extLink = `<button class="translate-btn" onclick="event.preventDefault();event.stopPropagation();window.open('${escHtml(resolvedUrl)}','_blank')">↗ المصدر</button>`;
   const translateBtn = !isLocal ? `<button class="translate-btn" onclick="event.preventDefault(); translateCard('${cardId}', this)">🌐 ترجمة</button>` : '';
+  const imgSrc = NEWS_IMG[tag] || NEWS_IMG_DEFAULT;
   return `
   <div class="news-card-wrap" id="${cardId}">
     <a class="news-card${isLocal?' is-local':''}" href="${escHtml(resolvedUrl)}" target="_blank" rel="noopener">
+      <img class="news-card-img" src="${imgSrc}" alt="" loading="lazy" onerror="this.style.display='none'">
       <div class="news-card-top">
         <div class="news-source-wrap">
           <div class="news-source-icon${isLocal?' local-src':''}">${srcInitials}</div>
@@ -2313,8 +2338,10 @@ function initFullCardHTML(i) {
   const goalsHTML = i.goals.map(g=>`<div class="init-goal-item"><div class="init-goal-dot"></div><span>${g}</span></div>`).join('');
   const govMap = { high:{ cls:'gov-high', txt:'✅ جاهز للتطبيق الحكومي' }, medium:{ cls:'gov-medium', txt:'⚙️ يحتاج تكييف' }, low:{ cls:'gov-low', txt:'⚠️ يتطلب بيئة تمهيدية' } };
   const gov = govMap[i.govReady] || govMap.medium;
+  const initImgSrc = INIT_IMG[i.type] || INIT_IMG.global;
   return `
   <div class="init-full-card ${cardClass}">
+    <img class="init-full-card-img" src="${initImgSrc}" alt="" loading="lazy" onerror="this.style.display='none'">
     <span class="status-badge ${statusCls}">${statusTxt}</span>
     <div class="init-card-header">
       <div class="init-card-icon ${iconClass}">${i.icon}</div>
@@ -2339,6 +2366,22 @@ function initFullCardHTML(i) {
     </div>
   </div>`;
 }
+
+const NEWS_IMG = {
+  'تواصل داخلي':     'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=600&h=200&fit=crop&q=75',
+  'مشاركة الموظفين': 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600&h=200&fit=crop&q=75',
+  'تواصل القيادة':   'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=600&h=200&fit=crop&q=75',
+  'الموارد البشرية': 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=600&h=200&fit=crop&q=75',
+  'قنوات التواصل':   'https://images.unsplash.com/photo-1563986768609-322da13575f3?w=600&h=200&fit=crop&q=75',
+  'ذكاء اصطناعي':    'https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=600&h=200&fit=crop&q=75',
+};
+const NEWS_IMG_DEFAULT = 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=600&h=200&fit=crop&q=75';
+
+const INIT_IMG = {
+  global: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=600&h=200&fit=crop&q=75',
+  local:  'https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&h=200&fit=crop&q=75',
+  ai:     'https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=600&h=200&fit=crop&q=75',
+};
 
 function resolveNewsUrl(url, title) {
   if (!url || url === '#') return `https://www.google.com/search?q=${encodeURIComponent(title)}`;
