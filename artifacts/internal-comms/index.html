@@ -1322,6 +1322,60 @@ body {
   .rpt-bar-label { width: 85px; font-size: 10.5px; }
   .main { padding: 14px 12px 50px; }
 }
+
+/* ═══ WEEK START — بداية الأسبوع ═══ */
+.ws-layout{display:grid;grid-template-columns:290px 1fr;gap:20px;align-items:start}
+.ws-sidebar-panel{display:flex;flex-direction:column;gap:16px}
+.ws-main-panel{display:flex;flex-direction:column;gap:16px}
+.ws-upload-zone{margin-top:10px}
+.ws-drop-area{border:2px dashed var(--border-strong);border-radius:8px;padding:22px;text-align:center;cursor:pointer;transition:all .2s;background:var(--bg)}
+.ws-drop-area:hover,.ws-drop-area.dragover{border-color:var(--primary);background:rgba(30,64,175,.05)}
+.ws-drop-icon{font-size:26px;margin-bottom:6px}
+.ws-drop-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px}
+.ws-drop-sub{font-size:11px;color:var(--text-4)}
+.ws-selected-files{margin-top:10px;display:flex;flex-direction:column;gap:4px;max-height:140px;overflow-y:auto}
+.ws-file-item{display:flex;align-items:center;gap:8px;padding:5px 9px;background:var(--surface-2);border-radius:4px;font-size:12px}
+.ws-file-item span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ws-file-size{color:var(--text-4);font-size:11px;flex-shrink:0}
+.ws-archive-list{margin-top:10px;display:flex;flex-direction:column;gap:5px;max-height:260px;overflow-y:auto}
+.ws-archive-item{padding:7px 10px;background:var(--surface-2);border-radius:6px;font-size:12px}
+.ws-archive-item-title{font-weight:600;color:var(--text);margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ws-archive-item-meta{font-size:11px;color:var(--text-4)}
+.ws-empty-state{text-align:center;color:var(--text-4);font-size:12px;padding:18px 0}
+.ws-form{display:flex;flex-direction:column;gap:14px}
+.ws-form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ws-form-group{display:flex;flex-direction:column;gap:5px}
+.ws-form-label{font-size:12px;font-weight:600;color:var(--text-2)}
+.ws-input,.ws-textarea{padding:8px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);font-family:var(--sans);font-size:13px;color:var(--text);transition:border-color .15s;direction:rtl;width:100%;box-sizing:border-box}
+.ws-input:focus,.ws-textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(30,64,175,.08)}
+.ws-textarea{resize:vertical;min-height:58px}
+.ws-radio-group{display:flex;gap:10px;flex-wrap:wrap}
+.ws-radio{display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer}
+.ws-radio input{accent-color:var(--primary)}
+.ws-gen-btn{width:100%;justify-content:center;gap:8px;padding:11px;font-size:14px;font-weight:700}
+.ws-gen-btn:disabled{opacity:.6;cursor:not-allowed}
+.ws-spinner{display:inline-block;width:12px;height:12px;border:2px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:ws-spin .7s linear infinite}
+@keyframes ws-spin{to{transform:rotate(360deg)}}
+.ws-output-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.ws-output-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;display:flex;flex-direction:column}
+.ws-model-header{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border)}
+.ws-claude-h{background:linear-gradient(135deg,#f0f4ff,#e8ecff)}
+.ws-openai-h{background:linear-gradient(135deg,#f0fff4,#e8f5e9)}
+.ws-gemini-h{background:linear-gradient(135deg,#fff8f0,#fff3e0)}
+.ws-model-icon{font-size:16px}
+.ws-model-name{font-size:13px;font-weight:700;flex:1}
+.ws-word-count{font-size:11px;color:var(--text-4)}
+.ws-model-status{margin-right:4px;display:flex;align-items:center}
+.ws-output-text{flex:1;padding:14px;font-size:13px;line-height:1.85;color:var(--text);min-height:180px;max-height:480px;overflow-y:auto;white-space:pre-wrap;direction:rtl}
+.ws-card-actions{padding:9px 14px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:center;justify-content:flex-end}
+.ws-profile-row{display:flex;flex-direction:column;gap:6px}
+.ws-profile-item{font-size:12px}
+.ws-profile-label{color:var(--text-4);font-size:11px}
+.ws-profile-val{color:var(--text);font-weight:500}
+.ws-approved-badge{font-size:11px;color:var(--success);font-weight:600;padding:2px 8px;background:rgba(22,163,74,.1);border-radius:4px}
+.ws-progress-msg{font-size:12px;display:flex;align-items:center;gap:6px;margin-top:8px}
+@media(max-width:1100px){.ws-layout{grid-template-columns:1fr}.ws-output-grid{grid-template-columns:1fr}}
+@media(max-width:800px){.ws-form-row{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -1417,6 +1471,10 @@ body {
         <a class="nav-item" data-page="weekend" onclick="showSection('weekend')">
           <span class="ico"><svg><use href="#i-calendar"/></svg></span>
           <span>نهاية الأسبوع</span>
+        </a>
+        <a class="nav-item" data-page="weekstart" onclick="showSection('weekstart')">
+          <span class="ico"><svg><use href="#i-star"/></svg></span>
+          <span>بداية الأسبوع</span>
         </a>
       </div>
     </div>
@@ -1781,6 +1839,185 @@ body {
     </div>
   </div>
 
+  <!-- ══════════════════════════════════════
+       WEEK START PAGE — بداية الأسبوع
+  ══════════════════════════════════════ -->
+  <div class="page-section" id="section-weekstart">
+
+    <div class="page-head">
+      <div>
+        <h1 class="page-title">بداية الأسبوع</h1>
+        <p class="page-sub">أنشئ رسائل بداية الأسبوع بالاستفادة من الأرشيف وثلاثة نماذج ذكاء اصطناعي</p>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span class="badge b-green" id="ws-archive-count">جاري التحميل...</span>
+      </div>
+    </div>
+
+    <div class="ws-layout">
+
+      <!-- ═══ Sidebar: Archive + Style Profile ═══ -->
+      <div class="ws-sidebar-panel">
+
+        <div class="card">
+          <div class="card-body">
+            <div class="card-title-row">
+              <span class="card-title">📁 أرشيف النماذج</span>
+              <button class="btn btn-sm btn-primary" onclick="wsOpenUpload()">+ رفع</button>
+            </div>
+
+            <!-- Upload zone (hidden by default) -->
+            <div id="ws-upload-zone" class="ws-upload-zone" style="display:none">
+              <input type="file" id="ws-file-input" multiple
+                accept=".pdf,.docx,.txt,.md,.jpg,.jpeg,.png"
+                style="display:none" onchange="wsHandleFileSelect(this)">
+              <div class="ws-drop-area" onclick="document.getElementById('ws-file-input').click()" id="ws-drop-target">
+                <div class="ws-drop-icon">📄</div>
+                <div class="ws-drop-title">اسحب الملفات أو انقر للاختيار</div>
+                <div class="ws-drop-sub">PDF · DOCX · TXT · MD · JPG · PNG · حتى 25MB لكل ملف</div>
+              </div>
+              <div id="ws-selected-files" class="ws-selected-files"></div>
+              <div style="display:flex;gap:8px;margin-top:12px">
+                <button class="btn btn-sm btn-primary" onclick="wsUploadFiles()">رفع وتحليل</button>
+                <button class="btn btn-sm btn-ghost" onclick="wsCloseUpload()">إلغاء</button>
+              </div>
+              <div id="ws-upload-progress"></div>
+            </div>
+
+            <!-- Archive list -->
+            <div id="ws-archive-list" class="ws-archive-list">
+              <div class="ws-empty-state">لا يوجد أرشيف بعد.<br>ارفع نماذج سابقة لتحسين جودة التوليد.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Style profile card -->
+        <div class="card" id="ws-profile-card" style="display:none">
+          <div class="card-body">
+            <div class="card-title-row">
+              <span class="card-title">🎨 ملف الأسلوب</span>
+            </div>
+            <div id="ws-profile-content" class="ws-profile-row"></div>
+          </div>
+        </div>
+
+      </div><!-- /sidebar -->
+
+      <!-- ═══ Main: Form + Outputs ═══ -->
+      <div class="ws-main-panel">
+
+        <!-- Generation form -->
+        <div class="card">
+          <div class="card-body">
+            <div class="card-title-row">
+              <span class="card-title">✍️ توليد محتوى جديد</span>
+            </div>
+
+            <div class="ws-form">
+              <div class="ws-form-group">
+                <label class="ws-form-label">موضوع / هدف بداية الأسبوع <span style="color:var(--danger)">*</span></label>
+                <textarea id="ws-topic" class="ws-textarea" rows="2"
+                  placeholder="مثال: تعزيز ثقافة التعلم المستمر وبناء مهارات المستقبل..."></textarea>
+              </div>
+
+              <div class="ws-form-row">
+                <div class="ws-form-group">
+                  <label class="ws-form-label">المناسبة (اختياري)</label>
+                  <input id="ws-occasion" class="ws-input" type="text" placeholder="رمضان، اليوم الوطني...">
+                </div>
+                <div class="ws-form-group">
+                  <label class="ws-form-label">الجمهور (اختياري)</label>
+                  <input id="ws-audience" class="ws-input" type="text" placeholder="موظفو القطاع الحكومي">
+                </div>
+              </div>
+
+              <div class="ws-form-row">
+                <div class="ws-form-group">
+                  <label class="ws-form-label">النبرة</label>
+                  <div class="ws-radio-group">
+                    <label class="ws-radio"><input type="radio" name="ws-tone" value="رسمية"> <span>رسمية</span></label>
+                    <label class="ws-radio"><input type="radio" name="ws-tone" value="ودية" checked> <span>ودية</span></label>
+                    <label class="ws-radio"><input type="radio" name="ws-tone" value="تحفيزية"> <span>تحفيزية</span></label>
+                  </div>
+                </div>
+                <div class="ws-form-group">
+                  <label class="ws-form-label">الطول</label>
+                  <div class="ws-radio-group">
+                    <label class="ws-radio"><input type="radio" name="ws-length" value="short"> <span>قصير</span></label>
+                    <label class="ws-radio"><input type="radio" name="ws-length" value="medium" checked> <span>متوسط</span></label>
+                    <label class="ws-radio"><input type="radio" name="ws-length" value="long"> <span>طويل</span></label>
+                  </div>
+                </div>
+              </div>
+
+              <button class="btn btn-primary ws-gen-btn" id="ws-generate-btn" onclick="wsGenerate()">
+                <span>⚡</span>
+                <span id="ws-gen-label">توليد المحتوى من ٣ نماذج</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Output grid (hidden until generation starts) -->
+        <div id="ws-output-section" style="display:none">
+          <div class="ws-output-grid">
+
+            <!-- Claude -->
+            <div class="ws-output-card" id="ws-card-claude">
+              <div class="ws-model-header ws-claude-h">
+                <span class="ws-model-icon">🤖</span>
+                <span class="ws-model-name">Claude Sonnet</span>
+                <span class="ws-word-count" id="ws-wc-claude">—</span>
+                <div class="ws-model-status" id="ws-status-claude"></div>
+              </div>
+              <div class="ws-output-text" id="ws-text-claude" dir="rtl"></div>
+              <div class="ws-card-actions">
+                <button class="btn btn-sm btn-ghost" onclick="wsCopy('claude')">نسخ</button>
+                <button class="btn btn-sm btn-ghost" onclick="wsExport('claude')">⬇ Word</button>
+                <button class="btn btn-sm btn-primary" onclick="wsApprove('claude')" id="ws-approve-claude" disabled>اعتمد</button>
+              </div>
+            </div>
+
+            <!-- OpenAI -->
+            <div class="ws-output-card" id="ws-card-openai">
+              <div class="ws-model-header ws-openai-h">
+                <span class="ws-model-icon">✨</span>
+                <span class="ws-model-name">GPT-4o</span>
+                <span class="ws-word-count" id="ws-wc-openai">—</span>
+                <div class="ws-model-status" id="ws-status-openai"></div>
+              </div>
+              <div class="ws-output-text" id="ws-text-openai" dir="rtl"></div>
+              <div class="ws-card-actions">
+                <button class="btn btn-sm btn-ghost" onclick="wsCopy('openai')">نسخ</button>
+                <button class="btn btn-sm btn-ghost" onclick="wsExport('openai')">⬇ Word</button>
+                <button class="btn btn-sm btn-primary" onclick="wsApprove('openai')" id="ws-approve-openai" disabled>اعتمد</button>
+              </div>
+            </div>
+
+            <!-- Gemini -->
+            <div class="ws-output-card" id="ws-card-gemini">
+              <div class="ws-model-header ws-gemini-h">
+                <span class="ws-model-icon">💎</span>
+                <span class="ws-model-name">Gemini 2.5 Pro</span>
+                <span class="ws-word-count" id="ws-wc-gemini">—</span>
+                <div class="ws-model-status" id="ws-status-gemini"></div>
+              </div>
+              <div class="ws-output-text" id="ws-text-gemini" dir="rtl"></div>
+              <div class="ws-card-actions">
+                <button class="btn btn-sm btn-ghost" onclick="wsCopy('gemini')">نسخ</button>
+                <button class="btn btn-sm btn-ghost" onclick="wsExport('gemini')">⬇ Word</button>
+                <button class="btn btn-sm btn-primary" onclick="wsApprove('gemini')" id="ws-approve-gemini" disabled>اعتمد</button>
+              </div>
+            </div>
+
+          </div>
+        </div><!-- /output section -->
+
+      </div><!-- /main panel -->
+    </div><!-- /ws-layout -->
+
+  </div><!-- /section-weekstart -->
+
   </div><!-- end main-inner -->
   </main>
 </div><!-- end .app -->
@@ -2073,7 +2310,8 @@ const STATIC_DATA = {
 // ════════════════════════════════════════
 const PAGE_LABELS = {
   reports:'الأداء التنفيذي', home:'الرئيسية',
-  initiatives:'المبادرات', news:'الأخبار العالمية', weekend:'نهاية الأسبوع'
+  initiatives:'المبادرات', news:'الأخبار العالمية', weekend:'نهاية الأسبوع',
+  weekstart:'بداية الأسبوع'
 };
 
 function showSection(name) {
@@ -2847,11 +3085,276 @@ function renderReportHTML(d) {
   return html;
 }
 
+// ════════════════════════════════════════
+// WEEK START — بداية الأسبوع
+// ════════════════════════════════════════
+let wsFiles = [];
+let wsOutputIds = {};
+let wsFullTexts = {};
+
+async function wsLoadArchive() {
+  try {
+    const res = await fetch('/api/week-start/archive');
+    const data = await res.json();
+    const count = data.count || 0;
+    const countEl = document.getElementById('ws-archive-count');
+    if (countEl) countEl.textContent = count + ' نموذج في الأرشيف';
+
+    const list = document.getElementById('ws-archive-list');
+    if (!list) return;
+    if (count === 0) {
+      list.innerHTML = '<div class="ws-empty-state">لا يوجد أرشيف بعد.<br>ارفع نماذج سابقة لتحسين جودة التوليد.</div>';
+    } else {
+      list.innerHTML = data.entries.map(function(e) {
+        return '<div class="ws-archive-item"><div class="ws-archive-item-title">' + e.title + '</div>' +
+          '<div class="ws-archive-item-meta">' + (e.sourceFile || '') + ' · ' + new Date(e.createdAt).toLocaleDateString('ar-SA') + '</div></div>';
+      }).join('');
+    }
+  } catch(e) { /* silent */ }
+
+  try {
+    const res = await fetch('/api/week-start/style-profile');
+    const profile = await res.json();
+    if (profile) {
+      const card = document.getElementById('ws-profile-card');
+      const content = document.getElementById('ws-profile-content');
+      if (card) card.style.display = '';
+      if (content) {
+        const kws = (profile.recurringKeywords || []).slice(0, 5).join(' · ') || '—';
+        content.innerHTML =
+          '<div class="ws-profile-item"><span class="ws-profile-label">النبرة: </span><span class="ws-profile-val">' + (profile.toneSummary || '—') + '</span></div>' +
+          '<div class="ws-profile-item"><span class="ws-profile-label">متوسط الفقرة: </span><span class="ws-profile-val">' + (profile.avgParagraphLength || '—') + ' كلمة</span></div>' +
+          '<div class="ws-profile-item"><span class="ws-profile-label">الاقتباسات: </span><span class="ws-profile-val">' + (profile.quoteUsage || '—') + '</span></div>' +
+          '<div class="ws-profile-item"><span class="ws-profile-label">كلمات شائعة: </span><span class="ws-profile-val">' + kws + '</span></div>';
+      }
+    }
+  } catch(e) { /* silent */ }
+}
+
+function wsOpenUpload() {
+  const zone = document.getElementById('ws-upload-zone');
+  if (zone) zone.style.display = '';
+  wsFiles = [];
+  wsRenderSelectedFiles();
+}
+
+function wsCloseUpload() {
+  const zone = document.getElementById('ws-upload-zone');
+  if (zone) zone.style.display = 'none';
+  wsFiles = [];
+  const inp = document.getElementById('ws-file-input');
+  if (inp) inp.value = '';
+}
+
+function wsHandleFileSelect(input) {
+  wsFiles = Array.from(input.files || []);
+  wsRenderSelectedFiles();
+}
+
+function wsRenderSelectedFiles() {
+  const container = document.getElementById('ws-selected-files');
+  if (!container) return;
+  if (wsFiles.length === 0) { container.innerHTML = ''; return; }
+  container.innerHTML = wsFiles.map(function(f) {
+    return '<div class="ws-file-item"><span>' + f.name + '</span><span class="ws-file-size">' + (f.size/1024).toFixed(0) + ' KB</span></div>';
+  }).join('');
+}
+
+async function wsUploadFiles() {
+  if (wsFiles.length === 0) return;
+  const progress = document.getElementById('ws-upload-progress');
+  if (progress) progress.innerHTML = '<div class="ws-progress-msg"><span class="ws-spinner"></span> جاري الرفع والتحليل وإنشاء التضمينات...</div>';
+
+  const formData = new FormData();
+  wsFiles.forEach(function(f) { formData.append('files', f); });
+
+  try {
+    const res = await fetch('/api/week-start/upload', { method: 'POST', body: formData });
+    const data = await res.json();
+    const ok = (data.results || []).filter(function(r) { return r.id; }).length;
+    const errors = (data.results || []).filter(function(r) { return r.error; }).length;
+    if (progress) {
+      progress.innerHTML = '<div style="color:var(--success);font-size:12px;margin-top:8px">✓ تمت معالجة ' + ok + ' ملف' + (errors > 0 ? ' (' + errors + ' أخطاء)' : '') + '</div>';
+    }
+    setTimeout(function() { wsCloseUpload(); wsLoadArchive(); }, 1800);
+  } catch (err) {
+    if (progress) progress.innerHTML = '<div style="color:var(--danger);font-size:12px;margin-top:8px">خطأ: ' + err.message + '</div>';
+  }
+}
+
+// Drag and drop setup
+(function() {
+  function setupDrop() {
+    var dt = document.getElementById('ws-drop-target');
+    if (!dt) return;
+    dt.addEventListener('dragover', function(e) { e.preventDefault(); dt.classList.add('dragover'); });
+    dt.addEventListener('dragleave', function() { dt.classList.remove('dragover'); });
+    dt.addEventListener('drop', function(e) {
+      e.preventDefault();
+      dt.classList.remove('dragover');
+      wsFiles = Array.from(e.dataTransfer.files || []);
+      wsRenderSelectedFiles();
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupDrop);
+  } else {
+    setTimeout(setupDrop, 300);
+  }
+})();
+
+async function wsGenerate() {
+  var topic = (document.getElementById('ws-topic') || {}).value || '';
+  topic = topic.trim();
+  if (!topic) { alert('يرجى إدخال موضوع بداية الأسبوع'); return; }
+
+  var toneEl = document.querySelector('input[name="ws-tone"]:checked');
+  var lengthEl = document.querySelector('input[name="ws-length"]:checked');
+  var tone = toneEl ? toneEl.value : 'ودية';
+  var length = lengthEl ? lengthEl.value : 'medium';
+  var occasion = (document.getElementById('ws-occasion') || {}).value || '';
+  var audience = (document.getElementById('ws-audience') || {}).value || '';
+
+  var outSection = document.getElementById('ws-output-section');
+  if (outSection) outSection.style.display = '';
+
+  wsOutputIds = {}; wsFullTexts = {};
+  ['claude','openai','gemini'].forEach(function(m) {
+    var textEl = document.getElementById('ws-text-' + m);
+    var statusEl = document.getElementById('ws-status-' + m);
+    var wcEl = document.getElementById('ws-wc-' + m);
+    var approveBtn = document.getElementById('ws-approve-' + m);
+    if (textEl) textEl.textContent = '';
+    if (statusEl) statusEl.innerHTML = '<span class="ws-spinner"></span>';
+    if (wcEl) wcEl.textContent = '—';
+    if (approveBtn) { approveBtn.disabled = true; approveBtn.textContent = 'اعتمد'; }
+  });
+
+  var genBtn = document.getElementById('ws-generate-btn');
+  var genLabel = document.getElementById('ws-gen-label');
+  if (genBtn) genBtn.disabled = true;
+  if (genLabel) genLabel.textContent = 'جاري التوليد...';
+
+  if (outSection) outSection.scrollIntoView({ behavior:'smooth', block:'start' });
+
+  try {
+    var response = await fetch('/api/week-start/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ topic: topic, tone: tone, length: length, occasion: occasion, audience: audience })
+    });
+
+    var reader = response.body.getReader();
+    var decoder = new TextDecoder();
+    var buffer = '';
+
+    while (true) {
+      var result = await reader.read();
+      if (result.done) break;
+      buffer += decoder.decode(result.value, { stream: true });
+      var lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+      lines.forEach(function(line) {
+        if (!line.startsWith('data: ')) return;
+        try { wsHandleGenerateEvent(JSON.parse(line.slice(6))); } catch(e) {}
+      });
+    }
+  } catch (err) {
+    ['claude','openai','gemini'].forEach(function(m) {
+      var s = document.getElementById('ws-status-' + m);
+      if (s) s.innerHTML = '<span style="color:var(--danger);font-size:11px">✗</span>';
+    });
+  } finally {
+    if (genBtn) genBtn.disabled = false;
+    if (genLabel) genLabel.textContent = 'توليد المحتوى من ٣ نماذج';
+  }
+}
+
+function wsHandleGenerateEvent(event) {
+  if (!event) return;
+  if (event.type === 'start') { wsOutputIds = event.outputIds || {}; return; }
+  if (event.allDone) return;
+  if (!event.model) return;
+
+  var m = event.model;
+  var textEl = document.getElementById('ws-text-' + m);
+  var statusEl = document.getElementById('ws-status-' + m);
+  var wcEl = document.getElementById('ws-wc-' + m);
+  var approveBtn = document.getElementById('ws-approve-' + m);
+
+  if (event.chunk && textEl) {
+    if (!wsFullTexts[m]) wsFullTexts[m] = '';
+    wsFullTexts[m] += event.chunk;
+    textEl.textContent = wsFullTexts[m];
+    textEl.scrollTop = textEl.scrollHeight;
+  }
+
+  if (event.done) {
+    if (statusEl) statusEl.innerHTML = '<span style="color:var(--success);font-size:16px">✓</span>';
+    if (wcEl) wcEl.textContent = (event.wordCount || 0) + ' كلمة';
+    if (approveBtn) approveBtn.disabled = false;
+    if (event.outputId) wsOutputIds[m] = event.outputId;
+  }
+
+  if (event.error) {
+    if (statusEl) statusEl.innerHTML = '<span style="color:var(--danger);font-size:11px" title="' + event.error + '">✗</span>';
+    if (textEl && !wsFullTexts[m]) textEl.textContent = 'حدث خطأ: ' + event.error;
+  }
+}
+
+async function wsApprove(model) {
+  var id = wsOutputIds[model];
+  if (!id) return;
+  try {
+    await fetch('/api/week-start/approve', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: id })
+    });
+    var btn = document.getElementById('ws-approve-' + model);
+    if (btn) btn.outerHTML = '<span class="ws-approved-badge">✓ تم الاعتماد</span>';
+  } catch(e) {}
+}
+
+function wsCopy(model) {
+  var text = wsFullTexts[model] || (document.getElementById('ws-text-' + model) || {}).textContent || '';
+  if (!text) return;
+  var done = function() {
+    var btn = document.querySelector('#ws-card-' + model + ' .btn-ghost');
+    if (btn) { var orig = btn.textContent; btn.textContent = '✓ تم النسخ'; setTimeout(function() { btn.textContent = orig; }, 1500); }
+  };
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(done).catch(function() {
+      var ta = document.createElement('textarea');
+      ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); done();
+    });
+  } else {
+    var ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); done();
+  }
+}
+
+function wsExport(model) {
+  var text = wsFullTexts[model] || (document.getElementById('ws-text-' + model) || {}).textContent || '';
+  if (!text) return;
+  var html = '<html dir="rtl"><head><meta charset="UTF-8"><style>body{font-family:Arial,sans-serif;font-size:14pt;direction:rtl;line-height:1.9;padding:50px 60px;}</style></head><body>' +
+    text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>') +
+    '</body></html>';
+  var blob = new Blob([html], { type: 'application/msword' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'بداية-الأسبوع-' + model + '-' + new Date().toISOString().slice(0,10) + '.doc';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 // Hook showSection to load report lazily
 const _origShowSection = showSection;
 window.showSection = function(name) {
   _origShowSection(name);
   if (name === 'reports') loadDailyReport();
+  if (name === 'weekstart') wsLoadArchive();
 };
 </script>
 </body>
