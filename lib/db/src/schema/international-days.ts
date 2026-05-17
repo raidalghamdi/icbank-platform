@@ -36,6 +36,7 @@ export const dayActivationsTable = pgTable("day_activations", {
   entityName: text("entity_name"),
   entityType: text("entity_type"),
   activationType: text("activation_type"),
+  platform: text("platform"),
   description: text("description"),
   mediaUrl: text("media_url"),
   sourceUrl: text("source_url"),

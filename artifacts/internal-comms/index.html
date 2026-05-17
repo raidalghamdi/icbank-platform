@@ -1437,6 +1437,15 @@ body {
 .id-badge-priv{background:rgba(124,58,237,.1);color:#7c3aed}
 .id-badge-intl{background:rgba(5,150,105,.1);color:#059669}
 .id-badge-type{background:var(--surface-3);color:var(--text-3)}
+.id-badge-act-campaign{background:rgba(245,158,11,.12);color:#b45309}
+.id-badge-act-event{background:rgba(59,130,246,.12);color:#1d4ed8}
+.id-badge-act-post{background:rgba(16,185,129,.12);color:#047857}
+.id-badge-act-infographic{background:rgba(139,92,246,.12);color:#6d28d9}
+.id-act-filter-bar{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 4px}
+.id-act-filter-tab{padding:4px 14px;border-radius:20px;border:1.5px solid var(--border);background:transparent;cursor:pointer;font-size:12px;color:var(--text-2);transition:all .15s;font-family:inherit}
+.id-act-filter-tab:hover{border-color:var(--primary);color:var(--primary)}
+.id-act-filter-tab.active{background:var(--primary);border-color:var(--primary);color:#fff}
+.id-act-platform{font-size:11px;color:var(--text-3);margin-top:4px}
 .id-act-desc{font-size:12px;color:var(--text-2);line-height:1.6;direction:rtl}
 .id-act-footer{display:flex;align-items:center;justify-content:space-between;margin-top:10px;font-size:11px;color:var(--text-4)}
 .id-act-src{display:inline-flex;align-items:center;gap:3px;color:var(--primary);text-decoration:none;font-size:11px;font-weight:600}
@@ -2226,7 +2235,8 @@ body {
           <!-- Card 3: Activations -->
           <div class="card">
             <div class="card-body">
-              <div class="card-title-row"><span class="card-title">⚡ تفعيلات سابقة</span><span id="id-act-count" class="badge b-blue" style="display:none"></span></div>
+              <div class="card-title-row"><span class="card-title">🇸🇦 تفعيلات سعودية</span><span id="id-act-count" class="badge b-blue" style="display:none"></span></div>
+              <div id="id-act-filter-bar" style="display:none" class="id-act-filter-bar"></div>
               <div id="id-card-activations"><div class="ws-empty-state">لا توجد نتائج بعد.</div></div>
             </div>
           </div>
@@ -3845,7 +3855,7 @@ function idCachedToData(cached) {
     .filter(function(a) { return a.activationType !== 'تصميم بصري'; })
     .map(function(a) {
       return { entity_name: a.entityName, entity_type: a.entityType, activation_type: a.activationType,
-        description: a.description, source_url: a.sourceUrl, country: a.country, year: a.year };
+        platform: a.platform, description: a.description, source_url: a.sourceUrl, country: a.country, year: a.year };
     });
   var designSamples = allActivations
     .filter(function(a) { return a.activationType === 'تصميم بصري'; })
@@ -3983,32 +3993,90 @@ function idRenderTheme(data) {
   document.getElementById('id-card-theme').innerHTML = html;
 }
 
-function idRenderActivations(data) {
-  var acts = data.activations || [];
-  var countEl = document.getElementById('id-act-count');
-  if (countEl) { countEl.textContent = acts.length + ' تفعيل'; countEl.style.display = acts.length ? '' : 'none'; }
+var idAllActivations = [];
+
+function idActTypeBadgeClass(type) {
+  if (!type) return 'id-badge-type';
+  if (type === 'حملة') return 'id-badge-act-campaign';
+  if (type === 'فعالية') return 'id-badge-act-event';
+  if (type === 'منشور') return 'id-badge-act-post';
+  if (type === 'إنفوجرافيك') return 'id-badge-act-infographic';
+  return 'id-badge-type';
+}
+
+function idActTypeIcon(type) {
+  if (type === 'حملة') return '📢';
+  if (type === 'فعالية') return '🎪';
+  if (type === 'منشور') return '📝';
+  if (type === 'إنفوجرافيك') return '📊';
+  return '⚡';
+}
+
+function idRenderActivationGrid(acts) {
   if (!acts.length) {
-    document.getElementById('id-card-activations').innerHTML = '<div class="ws-empty-state"><span class="id-unverified">⚠️ لم تُعثر على تفعيلات موثقة</span></div>';
+    document.getElementById('id-card-activations').innerHTML = '<div class="ws-empty-state">لا توجد تفعيلات من هذا النوع.</div>';
     return;
   }
   var html = '<div class="id-act-grid">';
   acts.forEach(function(act) {
-    var badgeClass = idEntityBadgeClass(act.entity_type);
+    var entityBadge = idEntityBadgeClass(act.entity_type);
+    var typeBadge = idActTypeBadgeClass(act.activation_type);
+    var icon = idActTypeIcon(act.activation_type);
     html += '<div class="id-act-item">';
     html += '<div class="id-act-header">';
     html += '<div class="id-act-entity">' + esc(act.entity_name || '—') + '</div>';
     html += '<div class="id-act-badges">';
-    if (act.entity_type) html += '<span class="id-badge ' + badgeClass + '">' + esc(act.entity_type) + '</span>';
-    if (act.activation_type) html += '<span class="id-badge id-badge-type">' + esc(act.activation_type) + '</span>';
+    if (act.entity_type) html += '<span class="id-badge ' + entityBadge + '">' + esc(act.entity_type) + '</span>';
+    if (act.activation_type) html += '<span class="id-badge ' + typeBadge + '">' + icon + ' ' + esc(act.activation_type) + '</span>';
     html += '</div></div>';
+    if (act.platform) html += '<div class="id-act-platform">🔗 ' + esc(act.platform) + '</div>';
     if (act.description) html += '<div class="id-act-desc">' + esc(act.description) + '</div>';
     html += '<div class="id-act-footer">';
-    html += '<span>' + (act.country ? '📍 ' + esc(act.country) : '') + (act.year ? ' · ' + act.year : '') + '</span>';
+    html += '<span>' + (act.year ? '📅 ' + act.year : '') + '</span>';
     html += idVerifiedBadge(act.source_url);
     html += '</div></div>';
   });
   html += '</div>';
   document.getElementById('id-card-activations').innerHTML = html;
+}
+
+function idRenderActivations(data) {
+  idAllActivations = data.activations || [];
+  var countEl = document.getElementById('id-act-count');
+  if (countEl) { countEl.textContent = idAllActivations.length + ' تفعيل'; countEl.style.display = idAllActivations.length ? '' : 'none'; }
+
+  var filterBar = document.getElementById('id-act-filter-bar');
+  if (!idAllActivations.length) {
+    if (filterBar) filterBar.style.display = 'none';
+    document.getElementById('id-card-activations').innerHTML = '<div class="ws-empty-state"><span class="id-unverified">⚠️ لم تُعثر على تفعيلات موثقة</span></div>';
+    return;
+  }
+
+  // Build filter tabs
+  var types = ['الكل', 'حملة', 'فعالية', 'منشور', 'إنفوجرافيك'];
+  var typeCounts = {};
+  idAllActivations.forEach(function(a) { typeCounts[a.activation_type] = (typeCounts[a.activation_type] || 0) + 1; });
+
+  if (filterBar) {
+    filterBar.style.display = 'flex';
+    filterBar.innerHTML = types.map(function(t, i) {
+      var count = t === 'الكل' ? idAllActivations.length : (typeCounts[t] || 0);
+      if (t !== 'الكل' && count === 0) return '';
+      var icon = t === 'الكل' ? '⚡' : idActTypeIcon(t);
+      return '<button class="id-act-filter-tab' + (i === 0 ? ' active' : '') + '" onclick="idFilterActivations(\'' + t + '\', this)">' +
+        icon + ' ' + t + (count ? ' <span style="opacity:.7">(' + count + ')</span>' : '') +
+        '</button>';
+    }).join('');
+  }
+
+  idRenderActivationGrid(idAllActivations);
+}
+
+function idFilterActivations(type, btn) {
+  document.querySelectorAll('.id-act-filter-tab').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+  var filtered = type === 'الكل' ? idAllActivations : idAllActivations.filter(function(a) { return a.activation_type === type; });
+  idRenderActivationGrid(filtered);
 }
 
 function idRenderSuggestions(data) {
@@ -4208,7 +4276,7 @@ async function idOpenDay(id) {
     var theme = (data.themes || [])[0] || {};
     var activations = (data.activations || []).map(function(a) {
       return { entity_name: a.entityName, entity_type: a.entityType, activation_type: a.activationType,
-        description: a.description, source_url: a.sourceUrl, country: a.country, year: a.year };
+        platform: a.platform, description: a.description, source_url: a.sourceUrl, country: a.country, year: a.year };
     });
     var sources = (data.sources || []).map(function(s) {
       return { url: s.sourceUrl, title: s.sourceTitle, publisher: s.sourcePublisher };

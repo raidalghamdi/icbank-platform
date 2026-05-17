@@ -55,12 +55,12 @@ function buildPrompt(dayName: string, year: number): string {
   "theme_source_url": "رابط المصدر الرسمي للثيم أو null",
   "activations": [
     {
-      "entity_name": "اسم الجهة",
-      "entity_type": "حكومي أو خاص أو دولي",
-      "activation_type": "تصميم أو فيديو أو حملة أو فعالية أو منشور",
-      "description": "وصف موجز للتفعيل",
+      "entity_name": "اسم الجهة السعودية (وزارة أو هيئة أو شركة)",
+      "entity_type": "حكومي أو خاص",
+      "activation_type": "حملة أو فعالية أو منشور أو إنفوجرافيك",
+      "platform": "اسم المنصة مثل: تويتر أو لينكدإن أو إنستغرام أو موقع رسمي أو يوتيوب",
+      "description": "وصف موجز للتفعيل ومحتواه",
       "source_url": "رابط مباشر للمحتوى أو null",
-      "country": "البلد",
       "year": ${year - 1}
     }
   ],
@@ -85,12 +85,14 @@ function buildPrompt(dayName: string, year: number): string {
 }
 
 تعليمات مهمة:
-1. أمثلة التفعيل يجب أن تكون حقيقية من جهات سعودية وخليجية وعالمية خلال آخر 3 سنوات.
-2. رتّب التفعيلات: سعودية أولاً، ثم خليجية، ثم عربية، ثم عالمية.
-3. كل حقل source_url يجب أن يكون رابطاً حقيقياً أو null - لا تخترع روابط.
-4. design_samples: ابحث تحديداً عن تصاميم ومواد بصرية نشرتها الجهات على مواقعها أو منصاتها الاجتماعية. قدّم 4-6 أمثلة حقيقية موثقة بروابط.
-5. اذكر 5 أفكار تفعيل مقترحة على الأقل.
-6. أرجع JSON صالحاً فقط.`;
+1. التفعيلات للجهات السعودية فقط (وزارات، هيئات، شركات كبرى) — لا تضمّن جهات من دول أخرى في حقل activations.
+2. اجمع تفعيلات من الأعوام ${year - 2} و${year - 1} و${year} فقط.
+3. أنواع التفعيل المطلوبة حصراً: حملة (توعوية أو إعلانية)، فعالية (مؤتمر أو ورشة أو احتفالية)، منشور (محتوى سوشيال ميديا)، إنفوجرافيك (مادة بصرية توضيحية).
+4. قدّم 8 إلى 15 تفعيلاً من جهات سعودية متنوعة موزعة على الأنواع الأربعة.
+5. كل حقل source_url يجب أن يكون رابطاً حقيقياً أو null — لا تخترع روابط.
+6. design_samples: 3-5 أمثلة بصرية من أي جهة موثقة بروابط.
+7. اذكر 5 أفكار تفعيل مقترحة على الأقل.
+8. أرجع JSON صالحاً فقط.`;
 }
 
 // ─── Perplexity search ───────────────────────────────────────────
@@ -115,6 +117,7 @@ interface Activation {
   entity_name?: string;
   entity_type?: string;
   activation_type?: string;
+  platform?: string;
   description?: string;
   source_url?: string | null;
   country?: string;
@@ -184,7 +187,7 @@ async function searchWithAnthropic(dayName: string, year: number): Promise<Searc
     "\n\nاستخدم أداة البحث للحصول على معلومات حديثة ودقيقة.";
 
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 90_000);
+  const timer = setTimeout(() => controller.abort(), 120_000);
 
   const response = await anthropic.messages.create(
     {
@@ -536,6 +539,7 @@ router.post("/intl-days/save", async (req: Request, res: Response) => {
           entityName: act.entity_name,
           entityType: act.entity_type,
           activationType: act.activation_type,
+          platform: act.platform,
           description: act.description,
           sourceUrl: act.source_url ?? undefined,
           country: act.country,
