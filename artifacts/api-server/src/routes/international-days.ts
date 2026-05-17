@@ -64,6 +64,18 @@ function buildPrompt(dayName: string, year: number): string {
       "year": ${year - 1}
     }
   ],
+  "design_samples": [
+    {
+      "entity_name": "اسم الجهة التي نشرت التصميم",
+      "entity_type": "حكومي أو خاص أو دولي",
+      "platform": "اسم المنصة مثل: موقع رسمي أو تويتر أو إنستغرام أو لينكدإن أو فيسبوك",
+      "description": "وصف التصميم أو الحملة البصرية ومضمونها",
+      "page_url": "رابط المنشور أو الصفحة التي تحتوي التصميم أو null",
+      "image_url": "رابط مباشر للصورة أو البوستر (ينتهي بـ .jpg أو .png أو .webp أو .gif) إن وجد أو null",
+      "country": "البلد",
+      "year": ${year - 1}
+    }
+  ],
   "suggestions": [
     "فكرة تفعيل مقترحة قابلة للتطبيق في بيئة عمل حكومية سعودية"
   ],
@@ -76,8 +88,9 @@ function buildPrompt(dayName: string, year: number): string {
 1. أمثلة التفعيل يجب أن تكون حقيقية من جهات سعودية وخليجية وعالمية خلال آخر 3 سنوات.
 2. رتّب التفعيلات: سعودية أولاً، ثم خليجية، ثم عربية، ثم عالمية.
 3. كل حقل source_url يجب أن يكون رابطاً حقيقياً أو null - لا تخترع روابط.
-4. اذكر 5 أفكار تفعيل مقترحة على الأقل.
-5. أرجع JSON صالحاً فقط.`;
+4. design_samples: ابحث تحديداً عن تصاميم ومواد بصرية نشرتها الجهات على مواقعها أو منصاتها الاجتماعية. قدّم 4-6 أمثلة حقيقية موثقة بروابط.
+5. اذكر 5 أفكار تفعيل مقترحة على الأقل.
+6. أرجع JSON صالحاً فقط.`;
 }
 
 // ─── Perplexity search ───────────────────────────────────────────
@@ -93,6 +106,7 @@ interface SearchResult {
   current_theme_en?: string;
   theme_source_url?: string | null;
   activations?: Activation[];
+  design_samples?: DesignSample[];
   suggestions?: string[];
   sources?: Source[];
 }
@@ -103,6 +117,17 @@ interface Activation {
   activation_type?: string;
   description?: string;
   source_url?: string | null;
+  country?: string;
+  year?: number;
+}
+
+interface DesignSample {
+  entity_name?: string;
+  entity_type?: string;
+  platform?: string;
+  description?: string;
+  page_url?: string | null;
+  image_url?: string | null;
   country?: string;
   year?: number;
 }
@@ -207,6 +232,15 @@ function mergeResults(primary: SearchResult, secondary: SearchResult): SearchRes
   const seen = new Set(primaryActs.map((a) => `${a.entity_name}|${a.year}`));
   const extraActs = secondaryActs.filter((a) => !seen.has(`${a.entity_name}|${a.year}`));
   merged.activations = [...primaryActs, ...extraActs].sort(
+    (a, b) => regionOrder(a.country) - regionOrder(b.country)
+  );
+
+  // Merge design_samples
+  const primaryDesigns = primary.design_samples ?? [];
+  const secondaryDesigns = secondary.design_samples ?? [];
+  const seenDesigns = new Set(primaryDesigns.map((d) => `${d.entity_name}|${d.year}`));
+  const extraDesigns = secondaryDesigns.filter((d) => !seenDesigns.has(`${d.entity_name}|${d.year}`));
+  merged.design_samples = [...primaryDesigns, ...extraDesigns].sort(
     (a, b) => regionOrder(a.country) - regionOrder(b.country)
   );
 
@@ -461,6 +495,38 @@ router.post("/intl-days/save", async (req: Request, res: Response) => {
           sourceUrl: act.source_url ?? undefined,
           country: act.country,
           verified: !!act.source_url,
+        });
+      }
+    }
+  }
+
+  // Save design_samples as activations (activation_type = "تصميم بصري")
+  if (data.design_samples?.length) {
+    for (const ds of data.design_samples) {
+      if (!ds.entity_name) continue;
+      const [dsExists] = await db
+        .select({ id: dayActivationsTable.id })
+        .from(dayActivationsTable)
+        .where(
+          and(
+            eq(dayActivationsTable.dayId, dayId),
+            eq(dayActivationsTable.entityName, ds.entity_name),
+            eq(dayActivationsTable.activationType, "تصميم بصري"),
+            eq(dayActivationsTable.year, ds.year ?? currentYear)
+          )
+        )
+        .limit(1);
+      if (!dsExists) {
+        await db.insert(dayActivationsTable).values({
+          dayId,
+          year: ds.year ?? currentYear,
+          entityName: ds.entity_name,
+          entityType: ds.entity_type,
+          activationType: "تصميم بصري",
+          description: [ds.platform ? `[${ds.platform}]` : "", ds.description ?? ""].filter(Boolean).join(" "),
+          sourceUrl: ds.page_url ?? ds.image_url ?? undefined,
+          country: ds.country,
+          verified: !!(ds.page_url || ds.image_url),
         });
       }
     }
