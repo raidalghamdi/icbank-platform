@@ -159,7 +159,7 @@ async function searchWithPerplexity(dayName: string, year: number): Promise<Sear
       ],
       max_tokens: 4000,
     }),
-    signal: AbortSignal.timeout(22_000),
+    signal: AbortSignal.timeout(40_000),
   });
 
   if (!response.ok) {
@@ -335,65 +335,80 @@ router.post("/intl-days/search", async (req: Request, res: Response) => {
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
   res.setHeader("Connection", "keep-alive");
+  // Flush headers immediately so proxy sees activity
+  if (typeof (res as unknown as { flush?: () => void }).flush === "function") {
+    (res as unknown as { flush: () => void }).flush();
+  }
 
   const send = (event: string, data: unknown) => {
     res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
   };
 
-  send("status", { message: "جاري البحث في Perplexity (sonar-pro)…", step: 1 });
+  // Keepalive comment every 5s so the proxy doesn't drop the connection
+  const keepalive = setInterval(() => {
+    try { res.write(": keepalive\n\n"); } catch { /* closed */ }
+  }, 5000);
 
-  // ── Strategy: launch both in parallel, but return as soon as
-  //   Perplexity finishes. Anthropic supplements if it finishes
-  //   within a 5-second grace window after Perplexity.
-  let perplexityResult: SearchResult = {};
-  let anthropicResult: SearchResult = {};
+  const cleanup = () => clearInterval(keepalive);
 
-  // Start Anthropic immediately in background (fire-and-forget promise)
-  const anthropicPromise = searchWithAnthropic(query.trim(), currentYear).catch(() => ({} as SearchResult));
-
-  // Await Perplexity first (22s cap)
-  let perplexityOk = false;
   try {
-    perplexityResult = await searchWithPerplexity(query.trim(), currentYear);
-    perplexityOk = !!perplexityResult.day_name_ar;
-    send("status", { message: "اكتمل Perplexity ✓ جاري التحقق من Anthropic…", step: 2 });
-  } catch {
-    send("status", { message: "تعذّر Perplexity، جاري الاعتماد على Anthropic…", step: 2 });
-  }
+    send("status", { message: "جاري البحث في Perplexity…", step: 1 });
 
-  // Give Anthropic up to 5s extra after Perplexity returns (total max ~27s)
-  try {
-    const grace = perplexityOk ? 5_000 : 22_000;
-    anthropicResult = await Promise.race([
-      anthropicPromise,
-      new Promise<SearchResult>((resolve) => setTimeout(() => resolve({}), grace)),
-    ]);
-    if (anthropicResult.day_name_ar) {
-      send("status", { message: "اكتمل Anthropic ✓ جاري الدمج والتنظيم…", step: 3 });
-    } else {
+    // ── Strategy: Perplexity is primary (40s timeout).
+    //   Anthropic runs in background; gets 8s grace after Perplexity.
+    let perplexityResult: SearchResult = {};
+    let anthropicResult: SearchResult = {};
+
+    const anthropicPromise = searchWithAnthropic(query.trim(), currentYear)
+      .catch(() => ({} as SearchResult));
+
+    let perplexityOk = false;
+    try {
+      perplexityResult = await searchWithPerplexity(query.trim(), currentYear);
+      perplexityOk = !!perplexityResult.day_name_ar;
+      send("status", { message: "اكتمل Perplexity ✓ جاري التحقق من Anthropic…", step: 2 });
+    } catch (e) {
+      req.log.warn({ err: e }, "Perplexity failed");
+      send("status", { message: "تعذّر Perplexity، جاري الاعتماد على Anthropic…", step: 2 });
+    }
+
+    // Grace: 8s extra if Perplexity succeeded, 40s if it failed
+    const grace = perplexityOk ? 8_000 : 40_000;
+    try {
+      anthropicResult = await Promise.race([
+        anthropicPromise,
+        new Promise<SearchResult>((resolve) => setTimeout(() => resolve({}), grace)),
+      ]);
+      if (anthropicResult.day_name_ar) {
+        send("status", { message: "اكتمل Anthropic ✓ جاري الدمج والتنظيم…", step: 3 });
+      } else {
+        send("status", { message: "جاري تنظيم النتائج…", step: 3 });
+      }
+    } catch {
       send("status", { message: "جاري تنظيم النتائج…", step: 3 });
     }
-  } catch {
-    send("status", { message: "جاري تنظيم النتائج…", step: 3 });
+
+    if (!perplexityResult.day_name_ar && !anthropicResult.day_name_ar) {
+      send("error", { message: "تعذّر البحث من كلا النموذجين. حاول مرة أخرى بعد لحظة." });
+      cleanup();
+      res.end();
+      return;
+    }
+
+    const merged = mergeResults(
+      perplexityResult.day_name_ar ? perplexityResult : anthropicResult,
+      perplexityResult.day_name_ar ? anthropicResult : {}
+    );
+
+    send("result", {
+      remaining_searches: getRemainingSearches(ip),
+      cached: false,
+      category: category ?? null,
+      data: merged,
+    });
+  } finally {
+    cleanup();
   }
-
-  if (!perplexityResult.day_name_ar && !anthropicResult.day_name_ar) {
-    send("error", { message: "تعذّر البحث. تحقق من الاتصال أو حاول مرة أخرى." });
-    res.end();
-    return;
-  }
-
-  const merged = mergeResults(
-    perplexityResult.day_name_ar ? perplexityResult : anthropicResult,
-    perplexityResult.day_name_ar ? anthropicResult : {}
-  );
-
-  send("result", {
-    remaining_searches: getRemainingSearches(ip),
-    cached: false,
-    category: category ?? null,
-    data: merged,
-  });
 
   res.end();
 });

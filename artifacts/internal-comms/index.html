@@ -3801,7 +3801,8 @@ async function idDeepSearch(forceRefresh) {
     var reader = res.body.getReader();
     var decoder = new TextDecoder();
     var buffer = '';
-    while (true) {
+    var sseError = null;
+    outer: while (true) {
       var chunk = await reader.read();
       if (chunk.done) break;
       buffer += decoder.decode(chunk.value, { stream: true });
@@ -3809,17 +3810,24 @@ async function idDeepSearch(forceRefresh) {
       buffer = lines.pop();
       var eventType = '';
       for (var line of lines) {
-        if (line.startsWith('event: ')) { eventType = line.slice(7).trim(); }
-        else if (line.startsWith('data: ')) {
-          try {
-            var payload = JSON.parse(line.slice(6));
-            if (eventType === 'status') { idUpdateStep(payload); }
-            else if (eventType === 'result') { idShowResults(payload); }
-            else if (eventType === 'error') { throw new Error(payload.message || 'خطأ غير معروف'); }
-          } catch(parseErr) { /* ignore */ }
+        if (line.startsWith('event: ')) {
+          eventType = line.slice(7).trim();
+        } else if (line.startsWith('data: ')) {
+          var rawData = line.slice(6);
+          var payload = null;
+          try { payload = JSON.parse(rawData); } catch(e) { continue; }
+          if (eventType === 'status') {
+            idUpdateStep(payload);
+          } else if (eventType === 'result') {
+            idShowResults(payload);
+          } else if (eventType === 'error') {
+            sseError = payload.message || 'خطأ غير معروف';
+            break outer;
+          }
         }
       }
     }
+    if (sseError) throw new Error(sseError);
   } catch(err) {
     document.getElementById('id-progress').style.display = 'none';
     alert('حدث خطأ: ' + err.message);
