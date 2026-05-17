@@ -159,7 +159,7 @@ async function searchWithPerplexity(dayName: string, year: number): Promise<Sear
       ],
       max_tokens: 4000,
     }),
-    signal: AbortSignal.timeout(45_000),
+    signal: AbortSignal.timeout(22_000),
   });
 
   if (!response.ok) {
@@ -183,12 +183,19 @@ async function searchWithAnthropic(dayName: string, year: number): Promise<Searc
   const prompt = buildPrompt(dayName, year) +
     "\n\nاستخدم أداة البحث للحصول على معلومات حديثة ودقيقة.";
 
-  const response = await anthropic.messages.create({
-    model: "claude-sonnet-4-5",
-    max_tokens: 4000,
-    tools: [{ type: "web_search_20250305" as const, name: "web_search" }],
-    messages: [{ role: "user", content: prompt }],
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 22_000);
+
+  const response = await anthropic.messages.create(
+    {
+      model: "claude-sonnet-4-5",
+      max_tokens: 3000,
+      tools: [{ type: "web_search_20250305" as const, name: "web_search" }],
+      messages: [{ role: "user", content: prompt }],
+    },
+    { signal: controller.signal }
+  );
+  clearTimeout(timer);
 
   // Extract text from response blocks
   let text = "";
@@ -335,39 +342,43 @@ router.post("/intl-days/search", async (req: Request, res: Response) => {
 
   send("status", { message: "جاري البحث في Perplexity (sonar-pro)…", step: 1 });
 
+  // ── Strategy: launch both in parallel, but return as soon as
+  //   Perplexity finishes. Anthropic supplements if it finishes
+  //   within a 5-second grace window after Perplexity.
   let perplexityResult: SearchResult = {};
   let anthropicResult: SearchResult = {};
-  let perplexityError: string | null = null;
-  let anthropicError: string | null = null;
 
-  // Run both in parallel
-  const [pRes, aRes] = await Promise.allSettled([
-    searchWithPerplexity(query.trim(), currentYear),
-    searchWithAnthropic(query.trim(), currentYear),
-  ]);
+  // Start Anthropic immediately in background (fire-and-forget promise)
+  const anthropicPromise = searchWithAnthropic(query.trim(), currentYear).catch(() => ({} as SearchResult));
 
-  if (pRes.status === "fulfilled") {
-    perplexityResult = pRes.value;
-    send("status", { message: "اكتمل Perplexity ✓ جاري دمج نتائج Anthropic…", step: 2 });
-  } else {
-    perplexityError = String(pRes.reason);
-    send("status", { message: "تعذّر Perplexity، يُكتفى بـ Anthropic…", step: 2 });
+  // Await Perplexity first (22s cap)
+  let perplexityOk = false;
+  try {
+    perplexityResult = await searchWithPerplexity(query.trim(), currentYear);
+    perplexityOk = !!perplexityResult.day_name_ar;
+    send("status", { message: "اكتمل Perplexity ✓ جاري التحقق من Anthropic…", step: 2 });
+  } catch {
+    send("status", { message: "تعذّر Perplexity، جاري الاعتماد على Anthropic…", step: 2 });
   }
 
-  if (aRes.status === "fulfilled") {
-    anthropicResult = aRes.value;
-    send("status", { message: "اكتمل Anthropic ✓ جاري الدمج والتنظيم…", step: 3 });
-  } else {
-    anthropicError = String(aRes.reason);
-    send("status", { message: "تعذّر Anthropic، يُكتفى بـ Perplexity…", step: 3 });
+  // Give Anthropic up to 5s extra after Perplexity returns (total max ~27s)
+  try {
+    const grace = perplexityOk ? 5_000 : 22_000;
+    anthropicResult = await Promise.race([
+      anthropicPromise,
+      new Promise<SearchResult>((resolve) => setTimeout(() => resolve({}), grace)),
+    ]);
+    if (anthropicResult.day_name_ar) {
+      send("status", { message: "اكتمل Anthropic ✓ جاري الدمج والتنظيم…", step: 3 });
+    } else {
+      send("status", { message: "جاري تنظيم النتائج…", step: 3 });
+    }
+  } catch {
+    send("status", { message: "جاري تنظيم النتائج…", step: 3 });
   }
 
   if (!perplexityResult.day_name_ar && !anthropicResult.day_name_ar) {
-    send("error", {
-      message: "تعذّر البحث من كلا النموذجين.",
-      perplexity_error: perplexityError,
-      anthropic_error: anthropicError,
-    });
+    send("error", { message: "تعذّر البحث. تحقق من الاتصال أو حاول مرة أخرى." });
     res.end();
     return;
   }
