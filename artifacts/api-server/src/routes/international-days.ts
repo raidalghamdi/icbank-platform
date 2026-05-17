@@ -184,12 +184,12 @@ async function searchWithAnthropic(dayName: string, year: number): Promise<Searc
     "\n\nاستخدم أداة البحث للحصول على معلومات حديثة ودقيقة.";
 
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 22_000);
+  const timer = setTimeout(() => controller.abort(), 90_000);
 
   const response = await anthropic.messages.create(
     {
       model: "claude-sonnet-4-5",
-      max_tokens: 3000,
+      max_tokens: 8096,
       tools: [{ type: "web_search_20250305" as const, name: "web_search" }],
       messages: [{ role: "user", content: prompt }],
     },
@@ -206,9 +206,50 @@ async function searchWithAnthropic(dayName: string, year: number): Promise<Searc
   }
 
   const clean = text.replace(/^```(?:json)?\n?/m, "").replace(/\n?```$/m, "").trim();
-  const jsonMatch = clean.match(/\{[\s\S]*\}/);
+  const jsonMatch = clean.match(/\{[\s\S]*/);
   if (!jsonMatch) return {};
-  return JSON.parse(jsonMatch[0]) as SearchResult;
+
+  // Attempt parse; if truncated JSON, repair it by closing open structures
+  let jsonStr = jsonMatch[0];
+  try {
+    return JSON.parse(jsonStr) as SearchResult;
+  } catch {
+    // Try to salvage truncated JSON: strip to last complete top-level field
+    jsonStr = repairTruncatedJson(jsonStr);
+    try {
+      return JSON.parse(jsonStr) as SearchResult;
+    } catch {
+      return {};
+    }
+  }
+}
+
+// ─── Repair truncated JSON ────────────────────────────────────────
+function repairTruncatedJson(raw: string): string {
+  // Walk back from end to find last complete key-value at depth 1
+  // Strategy: find the last top-level comma at depth 1 and close from there
+  let depth = 0;
+  let lastSafeCommaPos = -1;
+  let inString = false;
+  let escape = false;
+
+  for (let i = 0; i < raw.length; i++) {
+    const ch = raw[i];
+    if (escape) { escape = false; continue; }
+    if (ch === "\\") { escape = true; continue; }
+    if (ch === '"') { inString = !inString; continue; }
+    if (inString) continue;
+    if (ch === "{" || ch === "[") depth++;
+    else if (ch === "}" || ch === "]") depth--;
+    else if (ch === "," && depth === 1) lastSafeCommaPos = i;
+  }
+
+  // Trim to last safe comma and close the object
+  const trimmed = lastSafeCommaPos > 0
+    ? raw.slice(0, lastSafeCommaPos)
+    : raw.replace(/,\s*$/, "");
+
+  return trimmed + "}";
 }
 
 // ─── Merge results ────────────────────────────────────────────────
@@ -352,53 +393,31 @@ router.post("/intl-days/search", async (req: Request, res: Response) => {
   const cleanup = () => clearInterval(keepalive);
 
   try {
-    send("status", { message: "جاري البحث في Perplexity…", step: 1 });
+    send("status", { message: "جاري البحث عبر Anthropic Claude…", step: 1 });
 
-    // ── Strategy: Perplexity is primary (40s timeout).
-    //   Anthropic runs in background; gets 8s grace after Perplexity.
-    let perplexityResult: SearchResult = {};
+    // ── Anthropic-only mode (Perplexity key unavailable)
     let anthropicResult: SearchResult = {};
 
-    const anthropicPromise = searchWithAnthropic(query.trim(), currentYear)
-      .catch(() => ({} as SearchResult));
-
-    let perplexityOk = false;
     try {
-      perplexityResult = await searchWithPerplexity(query.trim(), currentYear);
-      perplexityOk = !!perplexityResult.day_name_ar;
-      send("status", { message: "اكتمل Perplexity ✓ جاري التحقق من Anthropic…", step: 2 });
+      send("status", { message: "الذكاء الاصطناعي يبحث في الإنترنت…", step: 2 });
+      anthropicResult = await searchWithAnthropic(query.trim(), currentYear);
+      send("status", { message: "اكتمل البحث ✓ جاري تنظيم النتائج…", step: 3 });
     } catch (e) {
-      req.log.warn({ err: e }, "Perplexity failed");
-      send("status", { message: "تعذّر Perplexity، جاري الاعتماد على Anthropic…", step: 2 });
-    }
-
-    // Grace: 8s extra if Perplexity succeeded, 40s if it failed
-    const grace = perplexityOk ? 8_000 : 40_000;
-    try {
-      anthropicResult = await Promise.race([
-        anthropicPromise,
-        new Promise<SearchResult>((resolve) => setTimeout(() => resolve({}), grace)),
-      ]);
-      if (anthropicResult.day_name_ar) {
-        send("status", { message: "اكتمل Anthropic ✓ جاري الدمج والتنظيم…", step: 3 });
-      } else {
-        send("status", { message: "جاري تنظيم النتائج…", step: 3 });
-      }
-    } catch {
-      send("status", { message: "جاري تنظيم النتائج…", step: 3 });
-    }
-
-    if (!perplexityResult.day_name_ar && !anthropicResult.day_name_ar) {
-      send("error", { message: "تعذّر البحث من كلا النموذجين. حاول مرة أخرى بعد لحظة." });
+      req.log.warn({ err: e }, "Anthropic failed");
+      send("error", { message: "تعذّر البحث. حاول مرة أخرى بعد لحظة." });
       cleanup();
       res.end();
       return;
     }
 
-    const merged = mergeResults(
-      perplexityResult.day_name_ar ? perplexityResult : anthropicResult,
-      perplexityResult.day_name_ar ? anthropicResult : {}
-    );
+    if (!anthropicResult.day_name_ar) {
+      send("error", { message: "لم تُعثر على نتائج لهذا اليوم. جرب صياغة مختلفة." });
+      cleanup();
+      res.end();
+      return;
+    }
+
+    const merged = mergeResults(anthropicResult, {});
 
     send("result", {
       remaining_searches: getRemainingSearches(ip),
