@@ -379,18 +379,28 @@ router.post("/intl-days/search", async (req: Request, res: Response) => {
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
   res.setHeader("Connection", "keep-alive");
+  res.setHeader("X-Accel-Buffering", "no");
+
+  const flushRes = () => {
+    if (typeof (res as unknown as { flush?: () => void }).flush === "function") {
+      (res as unknown as { flush: () => void }).flush();
+    }
+  };
+
   // Flush headers immediately so proxy sees activity
-  if (typeof (res as unknown as { flush?: () => void }).flush === "function") {
-    (res as unknown as { flush: () => void }).flush();
-  }
+  flushRes();
 
   const send = (event: string, data: unknown) => {
     res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+    flushRes();
   };
 
   // Keepalive comment every 5s so the proxy doesn't drop the connection
   const keepalive = setInterval(() => {
-    try { res.write(": keepalive\n\n"); } catch { /* closed */ }
+    try {
+      res.write(": keepalive\n\n");
+      flushRes();
+    } catch { /* closed */ }
   }, 5000);
 
   const cleanup = () => clearInterval(keepalive);
