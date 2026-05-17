@@ -1389,6 +1389,89 @@ body {
 .ws-profile-label{color:var(--text-4);font-size:11px}
 .ws-profile-val{color:var(--text);font-weight:500}
 .ws-approved-badge{font-size:11px;color:var(--success);font-weight:600;padding:2px 8px;background:rgba(22,163,74,.1);border-radius:4px}
+/* ════════ International Days ════════ */
+.id-search-hero{text-align:center;padding:16px 0 14px}
+.id-search-globe{font-size:36px;margin-bottom:10px;line-height:1;display:block}
+.id-search-input{width:100%;padding:14px 18px;border:2px solid var(--border);border-radius:12px;background:var(--bg);font-family:var(--sans);font-size:15px;color:var(--text);transition:border-color .2s,box-shadow .2s;direction:rtl;box-sizing:border-box}
+.id-search-input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 4px rgba(30,64,175,.08)}
+.id-search-input::placeholder{color:var(--text-4)}
+.id-filters{margin:14px 0 0}
+.id-filter-label{font-size:11px;font-weight:700;color:var(--text-4);margin-bottom:8px;letter-spacing:.04em}
+.id-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.id-chip{padding:5px 12px;background:var(--surface-2);border-radius:20px;font-size:12px;font-weight:600;color:var(--text-3);cursor:pointer;transition:all .15s;border:1px solid var(--border)}
+.id-chip.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.id-chip:hover:not(.active){border-color:var(--primary);color:var(--primary)}
+.id-search-btn{width:100%;padding:12px;font-size:14px;margin-top:14px;border-radius:10px;display:flex;align-items:center;justify-content:center;gap:8px}
+.id-progress-body{padding:16px}
+.id-progress-steps{display:flex;flex-direction:column;gap:8px}
+.id-step{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text-3);padding:10px 14px;border-radius:8px;background:var(--surface-2);transition:all .3s}
+.id-step.active{color:var(--primary);background:rgba(30,64,175,.07);font-weight:600}
+.id-step.done{color:var(--success);background:rgba(22,163,74,.07)}
+.id-step-icon{font-size:18px;width:26px;text-align:center;flex-shrink:0}
+.id-action-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;padding:12px 16px;background:var(--surface-2);border-radius:10px;border:1px solid var(--border)}
+.id-day-name{font-size:16px;font-weight:700;color:var(--text)}
+.id-action-btns{display:flex;gap:8px;flex-wrap:wrap}
+.id-result-grid{display:flex;flex-direction:column;gap:14px}
+.id-identity-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+@media(max-width:600px){.id-identity-row{grid-template-columns:1fr}}
+.id-identity-field{background:var(--surface-2);border-radius:8px;padding:10px 12px}
+.id-identity-label{font-size:10px;font-weight:700;color:var(--text-4);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em}
+.id-identity-value{font-size:13px;font-weight:600;color:var(--text);line-height:1.4}
+.id-identity-value a{color:var(--primary);text-decoration:none}
+.id-identity-value a:hover{text-decoration:underline}
+.id-history-text{font-size:13px;color:var(--text-2);line-height:1.85;direction:rtl;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+.id-unverified{display:inline-flex;align-items:center;gap:4px;font-size:11px;color:#d97706;background:rgba(251,191,36,.1);padding:2px 8px;border-radius:4px;font-weight:600}
+.id-theme-box{background:linear-gradient(135deg,rgba(30,64,175,.06),rgba(124,58,237,.06));border:1px solid rgba(30,64,175,.2);border-radius:10px;padding:16px}
+.id-theme-ar{font-size:17px;font-weight:700;color:var(--text);margin-bottom:4px;direction:rtl;line-height:1.5}
+.id-theme-en{font-size:12px;color:var(--text-3);margin-bottom:10px;direction:ltr;text-align:left;font-style:italic}
+.id-theme-src a{color:var(--primary);text-decoration:none;font-size:12px;display:inline-flex;align-items:center;gap:4px}
+.id-theme-src a:hover{text-decoration:underline}
+.id-act-grid{display:flex;flex-direction:column;gap:10px;margin-top:4px}
+.id-act-item{border:1px solid var(--border);border-radius:10px;padding:12px 14px;transition:border-color .15s}
+.id-act-item:hover{border-color:var(--primary-light,#93c5fd)}
+.id-act-header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px}
+.id-act-entity{font-size:13px;font-weight:700;color:var(--text);flex:1}
+.id-act-badges{display:flex;gap:4px;flex-wrap:wrap;flex-shrink:0}
+.id-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px}
+.id-badge-gov{background:rgba(30,64,175,.1);color:var(--primary)}
+.id-badge-priv{background:rgba(124,58,237,.1);color:#7c3aed}
+.id-badge-intl{background:rgba(5,150,105,.1);color:#059669}
+.id-badge-type{background:var(--surface-3);color:var(--text-3)}
+.id-act-desc{font-size:12px;color:var(--text-2);line-height:1.6;direction:rtl}
+.id-act-footer{display:flex;align-items:center;justify-content:space-between;margin-top:10px;font-size:11px;color:var(--text-4)}
+.id-act-src{display:inline-flex;align-items:center;gap:3px;color:var(--primary);text-decoration:none;font-size:11px;font-weight:600}
+.id-act-src:hover{text-decoration:underline}
+.id-act-unverified{color:#d97706;font-size:11px}
+.id-suggestions-list{display:flex;flex-direction:column;gap:7px;margin-top:4px}
+.id-suggestion-item{display:flex;align-items:flex-start;gap:10px;background:var(--surface-2);border-radius:8px;padding:11px 13px;font-size:13px;color:var(--text);direction:rtl;line-height:1.6}
+.id-suggestion-num{font-size:11px;font-weight:700;color:var(--primary);background:rgba(30,64,175,.1);padding:2px 8px;border-radius:4px;flex-shrink:0;margin-top:1px}
+.id-sources-list{display:flex;flex-direction:column;gap:7px;margin-top:4px}
+.id-source-item{display:flex;align-items:flex-start;gap:8px;padding:9px 12px;border-radius:8px;background:var(--surface-2)}
+.id-source-num{font-size:11px;font-weight:700;color:var(--text-4);flex-shrink:0;width:20px;text-align:center;margin-top:2px}
+.id-source-body{flex:1;min-width:0}
+.id-source-title{font-size:12px;font-weight:600;color:var(--primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.id-source-pub{font-size:11px;color:var(--text-4);margin-top:2px}
+.id-cached-banner{background:rgba(22,163,74,.07);border:1px solid rgba(22,163,74,.2);border-radius:8px;padding:10px 14px;font-size:13px;color:#15803d;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.id-archive-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.id-archive-search-inp{flex:1;min-width:200px;padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg);font-family:var(--sans);font-size:13px;color:var(--text);direction:rtl}
+.id-archive-search-inp:focus{outline:none;border-color:var(--primary)}
+.id-archive-cat-select{padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg);font-family:var(--sans);font-size:13px;color:var(--text);direction:rtl}
+.id-archive-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px;margin-top:4px}
+.id-archive-card{background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:14px 15px;cursor:pointer;transition:all .15s;position:relative}
+.id-archive-card:hover{border-color:var(--primary);background:var(--bg);box-shadow:0 2px 12px rgba(30,64,175,.08)}
+.id-archive-card-name{font-size:14px;font-weight:700;color:var(--text);margin-bottom:3px;line-height:1.4}
+.id-archive-card-en{font-size:11px;color:var(--text-4);margin-bottom:8px}
+.id-archive-card-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.id-arc-tag{font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;background:rgba(30,64,175,.1);color:var(--primary)}
+.id-arc-date{font-size:11px;color:var(--text-4)}
+.id-archive-card-footer{display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--text-4)}
+.id-archive-card-del{opacity:0;transition:opacity .15s;padding:2px 7px;border:none;background:transparent;cursor:pointer;font-size:11px;color:var(--text-4);border-radius:4px}
+.id-archive-card:hover .id-archive-card-del{opacity:1}
+.id-archive-card-del:hover{color:var(--danger);background:rgba(220,38,38,.08)}
+.id-compare-section{margin-top:24px}
+.id-compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.id-compare-select{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg);font-family:var(--sans);font-size:13px;color:var(--text);direction:rtl;margin-bottom:8px}
+.id-compare-result{background:var(--surface-2);border-radius:8px;padding:12px;font-size:13px;min-height:80px}
 .ws-progress-msg{font-size:12px;display:flex;align-items:center;gap:6px;margin-top:8px}
 @media(max-width:1100px){.ws-layout{grid-template-columns:1fr}.ws-output-grid{grid-template-columns:1fr}}
 @media(max-width:800px){.ws-form-row{grid-template-columns:1fr}}
@@ -1433,6 +1516,7 @@ body {
     <symbol id="i-brain"   viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44A2.5 2.5 0 0 1 4.5 17.5 2.5 2.5 0 0 1 3 15a2.5 2.5 0 0 1-.96-4.06A2.5 2.5 0 0 1 2 8.5a2.5 2.5 0 0 1 1.04-2.06A2.5 2.5 0 0 1 4.5 2a2.5 2.5 0 0 1 2.96-.04A2.5 2.5 0 0 1 9.5 2z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44A2.5 2.5 0 0 0 19.5 17.5 2.5 2.5 0 0 0 21 15a2.5 2.5 0 0 0 .96-4.06A2.5 2.5 0 0 0 22 8.5a2.5 2.5 0 0 0-1.04-2.06A2.5 2.5 0 0 0 19.5 2a2.5 2.5 0 0 0-2.96-.04A2.5 2.5 0 0 0 14.5 2z"/></symbol>
     <symbol id="i-menu"    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6"  x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></symbol>
     <symbol id="i-x"       viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></symbol>
+    <symbol id="i-globe"   viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></symbol>
   </defs>
 </svg>
 
@@ -1491,6 +1575,10 @@ body {
         <a class="nav-item" data-page="weekstart" onclick="showSection('weekstart')">
           <span class="ico"><svg><use href="#i-star"/></svg></span>
           <span>بداية الأسبوع</span>
+        </a>
+        <a class="nav-item" data-page="intldays" onclick="showSection('intldays')">
+          <span class="ico"><svg><use href="#i-globe"/></svg></span>
+          <span>الأيام العالمية</span>
         </a>
       </div>
     </div>
@@ -2040,6 +2128,165 @@ body {
 
   </div><!-- /section-weekstart -->
 
+  <!-- ═══ SECTION: INTERNATIONAL DAYS ═══ -->
+  <div class="page-section" id="section-intldays">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title">الأيام العالمية</h1>
+        <p class="page-sub">محرك بحث ذكي للأيام العالمية — مصادر موثقة وأرشيف قابل للرجوع</p>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span class="badge b-blue" id="id-remaining-badge">10 عمليات</span>
+        <button class="btn btn-sm btn-ghost" onclick="idToggleArchive()">📚 الأرشيف</button>
+      </div>
+    </div>
+
+    <!-- ── Search View ── -->
+    <div id="id-search-view">
+
+      <!-- Search card -->
+      <div class="card" style="margin-bottom:14px">
+        <div class="card-body">
+          <div class="id-search-hero">
+            <span class="id-search-globe">🌍</span>
+            <input id="id-query" class="id-search-input"
+              placeholder="اكتب اسم اليوم العالمي… مثل: اليوم العالمي للموارد البشرية"
+              onkeydown="if(event.key==='Enter') idDeepSearch()" />
+          </div>
+          <div class="id-filters">
+            <div class="id-filter-label">الفئة</div>
+            <div class="id-chips">
+              <span class="id-chip active" onclick="idSetCategory(null,this)">الكل</span>
+              <span class="id-chip" onclick="idSetCategory('صحة',this)">🏥 صحة</span>
+              <span class="id-chip" onclick="idSetCategory('تعليم',this)">📚 تعليم</span>
+              <span class="id-chip" onclick="idSetCategory('بيئة',this)">🌿 بيئة</span>
+              <span class="id-chip" onclick="idSetCategory('موارد بشرية',this)">👥 موارد بشرية</span>
+              <span class="id-chip" onclick="idSetCategory('تقنية',this)">💻 تقنية</span>
+              <span class="id-chip" onclick="idSetCategory('اجتماعي',this)">🤝 اجتماعي</span>
+            </div>
+          </div>
+          <button class="btn btn-primary id-search-btn" id="id-search-btn" onclick="idDeepSearch()">
+            <span>🔍</span><span id="id-search-label">بحث عميق</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Progress indicator -->
+      <div id="id-progress" class="card" style="display:none;margin-bottom:14px">
+        <div class="id-progress-body">
+          <div class="id-progress-steps">
+            <div class="id-step" id="id-step-1"><span class="id-step-icon">🔍</span><span id="id-step-1-text">جاري البحث في Perplexity وAnthropic…</span></div>
+            <div class="id-step" id="id-step-2"><span class="id-step-icon">🤖</span><span id="id-step-2-text">في انتظار النتائج…</span></div>
+            <div class="id-step" id="id-step-3"><span class="id-step-icon">✨</span><span id="id-step-3-text">دمج وتنظيم المعلومات…</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results -->
+      <div id="id-results" style="display:none">
+        <div class="id-action-bar">
+          <div class="id-day-name" id="id-day-title-bar">—</div>
+          <div class="id-action-btns">
+            <button class="btn btn-sm btn-ghost" id="id-save-btn" onclick="idSave()">💾 حفظ في الأرشيف</button>
+            <button class="btn btn-sm btn-ghost" id="id-export-btn" onclick="idExport()">⬇ Word</button>
+            <button class="btn btn-sm btn-ghost" onclick="idRefresh()">🔄 تحديث</button>
+          </div>
+        </div>
+        <div id="id-cached-banner" class="id-cached-banner" style="display:none">
+          <span>✅</span><span>هذه بيانات محفوظة من آخر بحث. اضغط "تحديث" لإعادة البحث من الإنترنت.</span>
+        </div>
+        <div class="id-result-grid">
+          <!-- Card 1: Identity -->
+          <div class="card">
+            <div class="card-body">
+              <div class="card-title-row"><span class="card-title">📋 التعريف</span></div>
+              <div id="id-card-identity"><div class="ws-empty-state">لا توجد نتائج بعد.</div></div>
+            </div>
+          </div>
+          <!-- Card 2: Theme -->
+          <div class="card">
+            <div class="card-body">
+              <div class="card-title-row"><span class="card-title" id="id-theme-label">🎯 شعار العام الحالي</span></div>
+              <div id="id-card-theme"><div class="ws-empty-state">لا توجد نتائج بعد.</div></div>
+            </div>
+          </div>
+          <!-- Card 3: Activations -->
+          <div class="card">
+            <div class="card-body">
+              <div class="card-title-row"><span class="card-title">⚡ تفعيلات سابقة</span><span id="id-act-count" class="badge b-blue" style="display:none"></span></div>
+              <div id="id-card-activations"><div class="ws-empty-state">لا توجد نتائج بعد.</div></div>
+            </div>
+          </div>
+          <!-- Card 4: Suggestions -->
+          <div class="card">
+            <div class="card-body">
+              <div class="card-title-row">
+                <span class="card-title">💡 أفكار مقترحة للتفعيل</span>
+                <button class="btn btn-sm btn-ghost" onclick="idCopySuggestions()">نسخ الكل</button>
+              </div>
+              <div id="id-card-suggestions"><div class="ws-empty-state">لا توجد نتائج بعد.</div></div>
+            </div>
+          </div>
+          <!-- Card 5: Sources -->
+          <div class="card">
+            <div class="card-body">
+              <div class="card-title-row"><span class="card-title">🔗 المصادر</span></div>
+              <div id="id-card-sources"><div class="ws-empty-state">لا توجد نتائج بعد.</div></div>
+            </div>
+          </div>
+        </div>
+      </div><!-- /results -->
+
+    </div><!-- /search-view -->
+
+    <!-- ── Archive View ── -->
+    <div id="id-archive-view" style="display:none">
+      <div class="id-archive-toolbar">
+        <button class="btn btn-sm btn-ghost" onclick="idToggleArchive()">← العودة للبحث</button>
+        <input id="id-archive-search-inp" class="id-archive-search-inp"
+          placeholder="ابحث في الأرشيف…" oninput="idSearchArchive(this.value)" />
+        <select id="id-archive-cat" class="id-archive-cat-select" onchange="idSearchArchive()">
+          <option value="">كل الفئات</option>
+          <option value="صحة">🏥 صحة</option>
+          <option value="تعليم">📚 تعليم</option>
+          <option value="بيئة">🌿 بيئة</option>
+          <option value="موارد بشرية">👥 موارد بشرية</option>
+          <option value="تقنية">💻 تقنية</option>
+          <option value="اجتماعي">🤝 اجتماعي</option>
+        </select>
+        <span class="badge b-blue" id="id-archive-count-badge">0 يوم</span>
+      </div>
+
+      <div id="id-archive-grid" class="id-archive-grid">
+        <div class="ws-empty-state">لا يوجد أيام محفوظة بعد. ابحث وأرشف أول يوم عالمي.</div>
+      </div>
+
+      <!-- Themes comparison -->
+      <div class="id-compare-section" id="id-compare-section" style="display:none">
+        <div class="card">
+          <div class="card-body">
+            <div class="card-title-row"><span class="card-title">📊 مقارنة الشعارات بين سنتين</span></div>
+            <div class="id-compare-grid">
+              <div>
+                <select class="id-compare-select" id="id-cmp-year1" onchange="idCompare()">
+                  <option value="">اختر السنة الأولى</option>
+                </select>
+                <div class="id-compare-result" id="id-cmp-res1">—</div>
+              </div>
+              <div>
+                <select class="id-compare-select" id="id-cmp-year2" onchange="idCompare()">
+                  <option value="">اختر السنة الثانية</option>
+                </select>
+                <div class="id-compare-result" id="id-cmp-res2">—</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /archive-view -->
+
+  </div><!-- /section-intldays -->
+
   </div><!-- end main-inner -->
   </main>
 </div><!-- end .app -->
@@ -2333,7 +2580,7 @@ const STATIC_DATA = {
 const PAGE_LABELS = {
   reports:'الأداء التنفيذي', home:'الرئيسية',
   initiatives:'المبادرات', news:'الأخبار العالمية', weekend:'نهاية الأسبوع',
-  weekstart:'بداية الأسبوع'
+  weekstart:'بداية الأسبوع', intldays:'الأيام العالمية'
 };
 
 function showSection(name) {
@@ -3434,7 +3681,499 @@ window.showSection = function(name) {
   _origShowSection(name);
   if (name === 'reports') loadDailyReport();
   if (name === 'weekstart') wsLoadArchive();
+  if (name === 'intldays') idInit();
 };
+
+// ════════════════════════════════════════
+// INTERNATIONAL DAYS
+// ════════════════════════════════════════
+var idCurrentCategory = null;
+var idCurrentData = null;
+var idCurrentDayId = null;
+var idArchiveData = [];
+var idArchiveOpen = false;
+var idInitialized = false;
+
+function idInit() {
+  if (!idInitialized) {
+    idInitialized = true;
+    // nothing to preload
+  }
+}
+
+function idSetCategory(cat, el) {
+  idCurrentCategory = cat;
+  document.querySelectorAll('.id-chip').forEach(function(c) { c.classList.remove('active'); });
+  if (el) el.classList.add('active');
+}
+
+function esc(str) {
+  return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function idVerifiedBadge(url) {
+  if (url) return '<a class="id-act-src" href="' + esc(url) + '" target="_blank" rel="noopener">🔗 افتح المصدر</a>';
+  return '<span class="id-act-unverified">⚠️ غير موثق - يحتاج تحقق</span>';
+}
+
+function idEntityBadgeClass(type) {
+  if (!type) return 'id-badge-type';
+  if (type.includes('حكومي')) return 'id-badge-gov';
+  if (type.includes('خاص')) return 'id-badge-priv';
+  return 'id-badge-intl';
+}
+
+// ── Deep search (SSE) ────────────────────────────────────────────
+async function idDeepSearch(forceRefresh) {
+  var query = (document.getElementById('id-query') || {}).value || '';
+  query = query.trim();
+  if (!query) {
+    alert('أدخل اسم اليوم العالمي للبحث.');
+    return;
+  }
+  idCurrentData = null;
+  idCurrentDayId = null;
+
+  var btn = document.getElementById('id-search-btn');
+  var lbl = document.getElementById('id-search-label');
+  if (btn) btn.disabled = true;
+  if (lbl) lbl.textContent = 'جاري البحث…';
+  document.getElementById('id-results').style.display = 'none';
+  document.getElementById('id-progress').style.display = '';
+  ['id-step-1','id-step-2','id-step-3'].forEach(function(id, i) {
+    var el = document.getElementById(id);
+    if (el) { el.className = 'id-step' + (i === 0 ? ' active' : ''); }
+  });
+
+  try {
+    var body = JSON.stringify({ query: query, category: idCurrentCategory, force_refresh: !!forceRefresh });
+    var res = await fetch('/api/intl-days/search', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: body
+    });
+
+    if (!res.ok) {
+      var errData = await res.json().catch(function() { return {}; });
+      throw new Error(errData.error || 'خطأ في البحث: ' + res.status);
+    }
+
+    var contentType = res.headers.get('content-type') || '';
+
+    // Cached result (JSON, not SSE)
+    if (contentType.includes('application/json')) {
+      var cached = await res.json();
+      idStepDone(1); idStepDone(2); idStepDone(3);
+      idCurrentDayId = cached.day ? cached.day.id : null;
+      idShowResults({
+        cached: true,
+        data: idCachedToData(cached),
+        remaining_searches: cached.remaining_searches
+      });
+      return;
+    }
+
+    // SSE stream
+    var reader = res.body.getReader();
+    var decoder = new TextDecoder();
+    var buffer = '';
+    while (true) {
+      var chunk = await reader.read();
+      if (chunk.done) break;
+      buffer += decoder.decode(chunk.value, { stream: true });
+      var lines = buffer.split('\n');
+      buffer = lines.pop();
+      var eventType = '';
+      for (var line of lines) {
+        if (line.startsWith('event: ')) { eventType = line.slice(7).trim(); }
+        else if (line.startsWith('data: ')) {
+          try {
+            var payload = JSON.parse(line.slice(6));
+            if (eventType === 'status') { idUpdateStep(payload); }
+            else if (eventType === 'result') { idShowResults(payload); }
+            else if (eventType === 'error') { throw new Error(payload.message || 'خطأ غير معروف'); }
+          } catch(parseErr) { /* ignore */ }
+        }
+      }
+    }
+  } catch(err) {
+    document.getElementById('id-progress').style.display = 'none';
+    alert('حدث خطأ: ' + err.message);
+  } finally {
+    if (btn) btn.disabled = false;
+    if (lbl) lbl.textContent = 'بحث عميق';
+  }
+}
+
+function idCachedToData(cached) {
+  var d = cached.day || {};
+  var theme = (cached.themes || [])[0] || {};
+  var activations = (cached.activations || []).map(function(a) {
+    return { entity_name: a.entityName, entity_type: a.entityType, activation_type: a.activationType,
+      description: a.description, source_url: a.sourceUrl, country: a.country, year: a.year };
+  });
+  var sources = (cached.sources || []).map(function(s) {
+    return { url: s.sourceUrl, title: s.sourceTitle, publisher: s.sourcePublisher };
+  });
+  return {
+    day_name_ar: d.dayNameAr, day_name_en: d.dayNameEn,
+    annual_date: d.annualDate, category: d.category,
+    official_organizer: d.officialOrganizer, official_organizer_source: d.officialOrganizerSource,
+    history_summary: d.historySummary, history_source: d.historySource,
+    current_theme_ar: theme.themeAr, current_theme_en: theme.themeEn, theme_source_url: theme.themeSourceUrl,
+    activations: activations, suggestions: d.suggestions || [],
+    sources: sources
+  };
+}
+
+function idUpdateStep(payload) {
+  var step = payload.step || 1;
+  for (var i = 1; i <= 3; i++) {
+    var el = document.getElementById('id-step-' + i);
+    if (!el) continue;
+    if (i < step) { el.className = 'id-step done'; }
+    else if (i === step) {
+      el.className = 'id-step active';
+      var txt = el.querySelector('span:last-child');
+      if (txt) txt.textContent = payload.message || '';
+    } else { el.className = 'id-step'; }
+  }
+}
+
+function idStepDone(n) {
+  var el = document.getElementById('id-step-' + n);
+  if (el) el.className = 'id-step done';
+}
+
+function idShowResults(payload) {
+  idStepDone(1); idStepDone(2); idStepDone(3);
+  setTimeout(function() { document.getElementById('id-progress').style.display = 'none'; }, 600);
+
+  var data = payload.data || {};
+  idCurrentData = data;
+
+  var remaining = payload.remaining_searches;
+  if (remaining !== undefined) {
+    var badge = document.getElementById('id-remaining-badge');
+    if (badge) badge.textContent = remaining + ' عمليات متبقية';
+  }
+
+  // Cached banner
+  var banner = document.getElementById('id-cached-banner');
+  if (banner) banner.style.display = payload.cached ? '' : 'none';
+
+  // Title bar
+  var titleBar = document.getElementById('id-day-title-bar');
+  if (titleBar) titleBar.textContent = data.day_name_ar || '—';
+
+  // Theme label
+  var currentYear = new Date().getFullYear();
+  var themeLabel = document.getElementById('id-theme-label');
+  if (themeLabel) themeLabel.textContent = '🎯 شعار ' + currentYear;
+
+  // Render cards
+  idRenderIdentity(data);
+  idRenderTheme(data);
+  idRenderActivations(data);
+  idRenderSuggestions(data);
+  idRenderSources(data);
+
+  // Save/export button state
+  var saveBtn = document.getElementById('id-save-btn');
+  var exportBtn = document.getElementById('id-export-btn');
+  if (saveBtn) saveBtn.textContent = idCurrentDayId ? '✅ محفوظ — تحديث' : '💾 حفظ في الأرشيف';
+  if (exportBtn) exportBtn.style.display = idCurrentDayId ? '' : (payload.cached ? '' : 'none');
+
+  document.getElementById('id-results').style.display = '';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function idRenderIdentity(data) {
+  var html = '<div class="id-identity-row">';
+  function field(label, value, link) {
+    var val = value ? esc(value) : '<span class="id-unverified">⚠️ غير موثق</span>';
+    if (value && link) val = '<a href="' + esc(link) + '" target="_blank" rel="noopener">' + esc(value) + ' 🔗</a>';
+    return '<div class="id-identity-field"><div class="id-identity-label">' + label + '</div><div class="id-identity-value">' + val + '</div></div>';
+  }
+  html += field('📅 التاريخ السنوي', data.annual_date, null);
+  html += field('🏛 الجهة الراعية', data.official_organizer, data.official_organizer_source);
+  html += field('🌐 الاسم الإنجليزي', data.day_name_en, null);
+  html += field('🏷 الفئة', data.category || idCurrentCategory, null);
+  html += '</div>';
+  if (data.history_summary) {
+    html += '<div class="id-history-text">' + esc(data.history_summary).replace(/\n/g,'<br>') + '</div>';
+    if (data.history_source) {
+      html += '<div style="margin-top:8px;font-size:12px"><a href="' + esc(data.history_source) + '" target="_blank" rel="noopener" style="color:var(--primary)">📖 مصدر التاريخ</a></div>';
+    }
+  } else {
+    html += '<div class="id-history-text"><span class="id-unverified">⚠️ لا يوجد ملخص تاريخي موثق</span></div>';
+  }
+  document.getElementById('id-card-identity').innerHTML = html;
+}
+
+function idRenderTheme(data) {
+  var html = '';
+  if (data.current_theme_ar || data.current_theme_en) {
+    html = '<div class="id-theme-box">';
+    if (data.current_theme_ar) {
+      html += '<div class="id-theme-ar">' + esc(data.current_theme_ar) + '</div>';
+    } else {
+      html += '<div class="id-theme-ar"><span class="id-unverified">⚠️ الثيم العربي غير موثق</span></div>';
+    }
+    if (data.current_theme_en) {
+      html += '<div class="id-theme-en">' + esc(data.current_theme_en) + '</div>';
+    }
+    if (data.theme_source_url) {
+      html += '<div class="id-theme-src"><a href="' + esc(data.theme_source_url) + '" target="_blank" rel="noopener">🔗 المصدر الرسمي للشعار</a></div>';
+    } else {
+      html += '<div class="id-theme-src"><span class="id-unverified">⚠️ مصدر الشعار غير موثق</span></div>';
+    }
+    html += '</div>';
+  } else {
+    html = '<div class="ws-empty-state"><span class="id-unverified">⚠️ شعار العام الحالي غير متوفر — يحتاج تحقق يدوي</span></div>';
+  }
+  document.getElementById('id-card-theme').innerHTML = html;
+}
+
+function idRenderActivations(data) {
+  var acts = data.activations || [];
+  var countEl = document.getElementById('id-act-count');
+  if (countEl) { countEl.textContent = acts.length + ' تفعيل'; countEl.style.display = acts.length ? '' : 'none'; }
+  if (!acts.length) {
+    document.getElementById('id-card-activations').innerHTML = '<div class="ws-empty-state"><span class="id-unverified">⚠️ لم تُعثر على تفعيلات موثقة</span></div>';
+    return;
+  }
+  var html = '<div class="id-act-grid">';
+  acts.forEach(function(act) {
+    var badgeClass = idEntityBadgeClass(act.entity_type);
+    html += '<div class="id-act-item">';
+    html += '<div class="id-act-header">';
+    html += '<div class="id-act-entity">' + esc(act.entity_name || '—') + '</div>';
+    html += '<div class="id-act-badges">';
+    if (act.entity_type) html += '<span class="id-badge ' + badgeClass + '">' + esc(act.entity_type) + '</span>';
+    if (act.activation_type) html += '<span class="id-badge id-badge-type">' + esc(act.activation_type) + '</span>';
+    html += '</div></div>';
+    if (act.description) html += '<div class="id-act-desc">' + esc(act.description) + '</div>';
+    html += '<div class="id-act-footer">';
+    html += '<span>' + (act.country ? '📍 ' + esc(act.country) : '') + (act.year ? ' · ' + act.year : '') + '</span>';
+    html += idVerifiedBadge(act.source_url);
+    html += '</div></div>';
+  });
+  html += '</div>';
+  document.getElementById('id-card-activations').innerHTML = html;
+}
+
+function idRenderSuggestions(data) {
+  var suggestions = data.suggestions || [];
+  if (!suggestions.length) {
+    document.getElementById('id-card-suggestions').innerHTML = '<div class="ws-empty-state">لا توجد اقتراحات.</div>';
+    return;
+  }
+  var html = '<div class="id-suggestions-list">';
+  suggestions.forEach(function(s, i) {
+    html += '<div class="id-suggestion-item"><span class="id-suggestion-num">' + (i+1) + '</span><span>' + esc(s) + '</span></div>';
+  });
+  html += '</div>';
+  document.getElementById('id-card-suggestions').innerHTML = html;
+}
+
+function idRenderSources(data) {
+  var sources = data.sources || [];
+  if (!sources.length) {
+    document.getElementById('id-card-sources').innerHTML = '<div class="ws-empty-state"><span class="id-unverified">⚠️ لا توجد مصادر مسجلة</span></div>';
+    return;
+  }
+  var html = '<div class="id-sources-list">';
+  sources.forEach(function(s, i) {
+    html += '<div class="id-source-item"><div class="id-source-num">' + (i+1) + '</div><div class="id-source-body">';
+    if (s.url) {
+      html += '<a class="id-source-title" href="' + esc(s.url) + '" target="_blank" rel="noopener">' + esc(s.title || s.url) + '</a>';
+    } else {
+      html += '<span class="id-source-title">' + esc(s.title || '—') + '</span>';
+    }
+    if (s.publisher) html += '<div class="id-source-pub">' + esc(s.publisher) + '</div>';
+    html += '</div></div>';
+  });
+  html += '</div>';
+  document.getElementById('id-card-sources').innerHTML = html;
+}
+
+// ── Save to archive ──────────────────────────────────────────────
+async function idSave() {
+  if (!idCurrentData) return;
+  var btn = document.getElementById('id-save-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'جاري الحفظ…'; }
+  try {
+    var currentYear = new Date().getFullYear();
+    var res = await fetch('/api/intl-days/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ data: Object.assign({ current_year: currentYear }, idCurrentData), category: idCurrentCategory })
+    });
+    var result = await res.json();
+    if (result.ok) {
+      idCurrentDayId = result.id;
+      if (btn) { btn.disabled = false; btn.textContent = '✅ محفوظ — تحديث'; }
+      var exportBtn = document.getElementById('id-export-btn');
+      if (exportBtn) exportBtn.style.display = '';
+    }
+  } catch(err) {
+    if (btn) { btn.disabled = false; btn.textContent = '💾 حفظ في الأرشيف'; }
+    alert('خطأ في الحفظ: ' + err.message);
+  }
+}
+
+// ── Export Word ──────────────────────────────────────────────────
+function idExport() {
+  if (!idCurrentDayId) { alert('احفظ في الأرشيف أولاً للتمكن من التصدير.'); return; }
+  window.open('/api/intl-days/export/' + idCurrentDayId, '_blank');
+}
+
+// ── Refresh (force re-search) ────────────────────────────────────
+function idRefresh() {
+  idDeepSearch(true);
+}
+
+// ── Copy suggestions ─────────────────────────────────────────────
+function idCopySuggestions() {
+  if (!idCurrentData || !idCurrentData.suggestions) return;
+  var text = idCurrentData.suggestions.map(function(s, i) { return (i+1) + '. ' + s; }).join('\n');
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(function() {
+      var btn = document.querySelector('#id-card-suggestions').previousElementSibling;
+    }).catch(function() {});
+  }
+  var ta = document.createElement('textarea');
+  ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+  var btn = document.querySelector('.id-result-grid .card:nth-child(4) .btn-ghost');
+  if (btn) { var orig = btn.textContent; btn.textContent = '✓ تم النسخ'; setTimeout(function() { btn.textContent = orig; }, 1500); }
+}
+
+// ── Archive toggle ───────────────────────────────────────────────
+function idToggleArchive() {
+  idArchiveOpen = !idArchiveOpen;
+  var sv = document.getElementById('id-search-view');
+  var av = document.getElementById('id-archive-view');
+  if (idArchiveOpen) {
+    sv.style.display = 'none'; av.style.display = '';
+    idLoadArchive();
+  } else {
+    sv.style.display = ''; av.style.display = 'none';
+  }
+}
+
+// ── Load archive ─────────────────────────────────────────────────
+async function idLoadArchive() {
+  var q = (document.getElementById('id-archive-search-inp') || {}).value || '';
+  var cat = (document.getElementById('id-archive-cat') || {}).value || '';
+  var params = new URLSearchParams();
+  if (q) params.set('q', q);
+  if (cat) params.set('category', cat);
+  try {
+    var res = await fetch('/api/intl-days/archive?' + params.toString());
+    var data = await res.json();
+    idArchiveData = data.days || [];
+    var badge = document.getElementById('id-archive-count-badge');
+    if (badge) badge.textContent = idArchiveData.length + ' يوم';
+    idRenderArchiveGrid(idArchiveData);
+  } catch(err) { /* silent */ }
+}
+
+function idSearchArchive() {
+  idLoadArchive();
+}
+
+function idRenderArchiveGrid(days) {
+  var grid = document.getElementById('id-archive-grid');
+  if (!grid) return;
+  if (!days || !days.length) {
+    grid.innerHTML = '<div class="ws-empty-state">لا يوجد أيام محفوظة تطابق البحث.</div>';
+    return;
+  }
+  grid.innerHTML = days.map(function(day) {
+    var cat = day.category ? '<span class="id-arc-tag">' + esc(day.category) + '</span>' : '';
+    var date = day.annualDate ? '<span class="id-arc-date">📅 ' + esc(day.annualDate) + '</span>' : '';
+    var actCount = day.activation_count || 0;
+    var updated = day.updatedAt ? new Date(day.updatedAt).toLocaleDateString('ar-SA', { year:'numeric', month:'short', day:'numeric' }) : '';
+    return '<div class="id-archive-card" onclick="idOpenDay(' + day.id + ')">' +
+      '<div class="id-archive-card-name">' + esc(day.dayNameAr) + '</div>' +
+      (day.dayNameEn ? '<div class="id-archive-card-en">' + esc(day.dayNameEn) + '</div>' : '') +
+      '<div class="id-archive-card-meta">' + cat + date + '</div>' +
+      '<div class="id-archive-card-footer">' +
+        '<span>⚡ ' + actCount + ' تفعيل · ' + updated + '</span>' +
+        '<button class="id-archive-card-del" onclick="event.stopPropagation();idDeleteDay(' + day.id + ')" title="حذف">✕</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+async function idOpenDay(id) {
+  try {
+    var res = await fetch('/api/intl-days/' + id);
+    var data = await res.json();
+    var day = data.day || {};
+    var theme = (data.themes || [])[0] || {};
+    var activations = (data.activations || []).map(function(a) {
+      return { entity_name: a.entityName, entity_type: a.entityType, activation_type: a.activationType,
+        description: a.description, source_url: a.sourceUrl, country: a.country, year: a.year };
+    });
+    var sources = (data.sources || []).map(function(s) {
+      return { url: s.sourceUrl, title: s.sourceTitle, publisher: s.sourcePublisher };
+    });
+    idCurrentData = {
+      day_name_ar: day.dayNameAr, day_name_en: day.dayNameEn, annual_date: day.annualDate,
+      category: day.category, official_organizer: day.officialOrganizer,
+      official_organizer_source: day.officialOrganizerSource,
+      history_summary: day.historySummary, history_source: day.historySource,
+      current_theme_ar: theme.themeAr, current_theme_en: theme.themeEn, theme_source_url: theme.themeSourceUrl,
+      activations: activations, suggestions: day.suggestions || [], sources: sources
+    };
+    idCurrentDayId = id;
+    var qEl = document.getElementById('id-query');
+    if (qEl) qEl.value = day.dayNameAr || '';
+    idArchiveOpen = false;
+    document.getElementById('id-archive-view').style.display = 'none';
+    document.getElementById('id-search-view').style.display = '';
+    idShowResults({ cached: true, data: idCurrentData, remaining_searches: undefined });
+  } catch(err) {
+    alert('خطأ في تحميل اليوم: ' + err.message);
+  }
+}
+
+async function idDeleteDay(id) {
+  if (!confirm('هل تريد حذف هذا اليوم من الأرشيف؟')) return;
+  try {
+    await fetch('/api/intl-days/' + id, { method: 'DELETE' });
+    await idLoadArchive();
+  } catch(err) { /* silent */ }
+}
+
+// ── Compare years ────────────────────────────────────────────────
+function idSetupCompare(themes) {
+  var cmp = document.getElementById('id-compare-section');
+  if (!cmp) return;
+  if (!themes || themes.length < 2) { cmp.style.display = 'none'; return; }
+  cmp.style.display = '';
+  var years = themes.map(function(t) { return t.year; });
+  ['id-cmp-year1','id-cmp-year2'].forEach(function(sid) {
+    var sel = document.getElementById(sid);
+    if (!sel) return;
+    sel.innerHTML = '<option value="">اختر السنة</option>' +
+      years.map(function(y) { return '<option value="' + y + '">' + y + '</option>'; }).join('');
+  });
+}
+
+function idCompare() {
+  // placeholder — compare selected year themes from idArchiveData
+  ['1','2'].forEach(function(n) {
+    var year = (document.getElementById('id-cmp-year' + n) || {}).value;
+    var res = document.getElementById('id-cmp-res' + n);
+    if (!res) return;
+    if (!year) { res.textContent = '—'; return; }
+    // search idArchiveData for selected day themes
+    res.textContent = 'السنة: ' + year;
+  });
+}
 </script>
 </body>
 </html>
