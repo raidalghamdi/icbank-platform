@@ -522,7 +522,51 @@ router.post("/week-start/approve", async (req: Request, res: Response) => {
     .set({ selected: true })
     .where(eq(generatedOutputsTable.id, id))
     .returning();
+
+  if (updated) {
+    const modelLabel =
+      updated.modelName === "claude"
+        ? "Claude Sonnet"
+        : updated.modelName === "openai"
+          ? "GPT-4o"
+          : "Gemini 2.5 Pro";
+    setImmediate(async () => {
+      try {
+        const [entry] = await db
+          .insert(archiveEntriesTable)
+          .values({
+            title: updated.topic.slice(0, 80),
+            bodyText: updated.outputText,
+            sourceFile: `معتمد · ${modelLabel}`,
+          })
+          .returning();
+        if (entry) {
+          const emb = await generateEmbedding(updated.outputText.slice(0, 800));
+          if (emb) {
+            await db
+              .update(archiveEntriesTable)
+              .set({ embedding: emb })
+              .where(eq(archiveEntriesTable.id, entry.id));
+          }
+        }
+      } catch (err) {
+        req.log?.error({ err }, "archive approved output failed");
+      }
+    });
+  }
+
   res.json(updated ?? null);
+});
+
+// DELETE /api/week-start/archive/:id
+router.delete("/week-start/archive/:id", async (req: Request, res: Response) => {
+  const id = parseInt(String(req.params.id), 10);
+  if (isNaN(id)) {
+    res.status(400).json({ error: "id غير صالح" });
+    return;
+  }
+  await db.delete(archiveEntriesTable).where(eq(archiveEntriesTable.id, id));
+  res.json({ ok: true });
 });
 
 // GET /api/week-start/outputs

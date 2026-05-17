@@ -1337,10 +1337,26 @@ body {
 .ws-file-item{display:flex;align-items:center;gap:8px;padding:5px 9px;background:var(--surface-2);border-radius:4px;font-size:12px}
 .ws-file-item span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ws-file-size{color:var(--text-4);font-size:11px;flex-shrink:0}
-.ws-archive-list{margin-top:10px;display:flex;flex-direction:column;gap:5px;max-height:260px;overflow-y:auto}
-.ws-archive-item{padding:7px 10px;background:var(--surface-2);border-radius:6px;font-size:12px}
-.ws-archive-item-title{font-weight:600;color:var(--text);margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ws-archive-item-meta{font-size:11px;color:var(--text-4)}
+.ws-archive-tabs{display:flex;gap:0;margin-top:10px;border-bottom:1px solid var(--border);margin-bottom:10px}
+.ws-archive-tab{padding:5px 11px;font-size:12px;font-weight:600;color:var(--text-4);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;margin-bottom:-1px;white-space:nowrap}
+.ws-archive-tab.active{color:var(--primary);border-bottom-color:var(--primary)}
+.ws-archive-tab:hover:not(.active){color:var(--text-2)}
+.ws-archive-tab-count{font-size:10px;font-weight:700;background:var(--surface-3);color:var(--text-4);padding:1px 5px;border-radius:10px;margin-right:4px}
+.ws-archive-tab.active .ws-archive-tab-count{background:rgba(30,64,175,.12);color:var(--primary)}
+.ws-archive-list{display:flex;flex-direction:column;gap:6px;max-height:340px;overflow-y:auto;padding-left:2px}
+.ws-archive-card{background:var(--surface-2);border-radius:8px;padding:9px 11px;border:1px solid transparent;transition:border-color .15s,background .15s;position:relative}
+.ws-archive-card:hover{border-color:var(--border);background:var(--bg)}
+.ws-archive-card-top{display:flex;align-items:flex-start;gap:7px}
+.ws-arc-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;flex-shrink:0;margin-top:1px;line-height:1.5}
+.ws-arc-badge-approved{background:rgba(22,163,74,.12);color:#16a34a}
+.ws-arc-badge-file{background:rgba(30,64,175,.10);color:var(--primary)}
+.ws-archive-card-title{font-size:12px;font-weight:600;color:var(--text);flex:1;line-height:1.45;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.ws-archive-card-preview{font-size:11px;color:var(--text-4);margin-top:5px;line-height:1.55;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;direction:rtl}
+.ws-archive-card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:7px}
+.ws-archive-card-meta{font-size:10px;color:var(--text-4)}
+.ws-archive-card-del{font-size:11px;color:var(--text-4);cursor:pointer;opacity:0;transition:opacity .15s;padding:2px 7px;border-radius:4px;border:none;background:transparent}
+.ws-archive-card:hover .ws-archive-card-del{opacity:1}
+.ws-archive-card-del:hover{color:var(--danger);background:rgba(220,38,38,.07)}
 .ws-empty-state{text-align:center;color:var(--text-4);font-size:12px;padding:18px 0}
 .ws-form{display:flex;flex-direction:column;gap:14px}
 .ws-form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
@@ -1884,6 +1900,12 @@ body {
               <div id="ws-upload-progress"></div>
             </div>
 
+            <!-- Archive tabs -->
+            <div class="ws-archive-tabs">
+              <div class="ws-archive-tab active" onclick="wsFilterArchive('all',this)">الكل <span class="ws-archive-tab-count" id="ws-tab-all">0</span></div>
+              <div class="ws-archive-tab" onclick="wsFilterArchive('approved',this)">معتمدة <span class="ws-archive-tab-count" id="ws-tab-approved">0</span></div>
+              <div class="ws-archive-tab" onclick="wsFilterArchive('file',this)">مرفوعة <span class="ws-archive-tab-count" id="ws-tab-file">0</span></div>
+            </div>
             <!-- Archive list -->
             <div id="ws-archive-list" class="ws-archive-list">
               <div class="ws-empty-state">لا يوجد أرشيف بعد.<br>ارفع نماذج سابقة لتحسين جودة التوليد.</div>
@@ -3092,23 +3114,79 @@ let wsFiles = [];
 let wsOutputIds = {};
 let wsFullTexts = {};
 
+var wsArchiveEntries = [];
+var wsArchiveFilter = 'all';
+
+function wsRenderArchive(entries) {
+  var list = document.getElementById('ws-archive-list');
+  if (!list) return;
+  if (!entries || entries.length === 0) {
+    list.innerHTML = '<div class="ws-empty-state">لا يوجد عناصر في هذا التصنيف.</div>';
+    return;
+  }
+  list.innerHTML = entries.map(function(e) {
+    var isApproved = e.sourceFile && e.sourceFile.startsWith('معتمد');
+    var badgeClass = isApproved ? 'ws-arc-badge-approved' : 'ws-arc-badge-file';
+    var badgeText = isApproved ? '✓ معتمد' : '📁 ملف';
+    var source = e.sourceFile || '';
+    var date = new Date(e.createdAt).toLocaleDateString('ar-SA', { year:'numeric', month:'short', day:'numeric' });
+    var preview = (e.preview || '').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    return '<div class="ws-archive-card">' +
+      '<div class="ws-archive-card-top">' +
+        '<span class="ws-arc-badge ' + badgeClass + '">' + badgeText + '</span>' +
+        '<div class="ws-archive-card-title">' + e.title + '</div>' +
+      '</div>' +
+      (preview ? '<div class="ws-archive-card-preview">' + preview + '</div>' : '') +
+      '<div class="ws-archive-card-footer">' +
+        '<span class="ws-archive-card-meta">' + source + ' &nbsp;·&nbsp; ' + date + '</span>' +
+        '<button class="ws-archive-card-del" onclick="wsDeleteArchive(' + e.id + ')" title="حذف">✕</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function wsFilterArchive(type, el) {
+  wsArchiveFilter = type;
+  document.querySelectorAll('.ws-archive-tab').forEach(function(t){ t.classList.remove('active'); });
+  if (el) el.classList.add('active');
+  var filtered = wsArchiveFilter === 'all' ? wsArchiveEntries :
+    wsArchiveFilter === 'approved' ? wsArchiveEntries.filter(function(e){ return e.sourceFile && e.sourceFile.startsWith('معتمد'); }) :
+    wsArchiveEntries.filter(function(e){ return !e.sourceFile || !e.sourceFile.startsWith('معتمد'); });
+  wsRenderArchive(filtered);
+}
+
+async function wsDeleteArchive(id) {
+  if (!confirm('هل تريد حذف هذا العنصر من الأرشيف؟')) return;
+  try {
+    await fetch('/api/week-start/archive/' + id, { method: 'DELETE' });
+    await wsLoadArchive();
+  } catch(e) { /* silent */ }
+}
+
 async function wsLoadArchive() {
   try {
     const res = await fetch('/api/week-start/archive');
     const data = await res.json();
-    const count = data.count || 0;
-    const countEl = document.getElementById('ws-archive-count');
-    if (countEl) countEl.textContent = count + ' نموذج في الأرشيف';
+    wsArchiveEntries = data.entries || [];
+    var total = wsArchiveEntries.length;
+    var approved = wsArchiveEntries.filter(function(e){ return e.sourceFile && e.sourceFile.startsWith('معتمد'); }).length;
+    var files = total - approved;
 
-    const list = document.getElementById('ws-archive-list');
-    if (!list) return;
-    if (count === 0) {
-      list.innerHTML = '<div class="ws-empty-state">لا يوجد أرشيف بعد.<br>ارفع نماذج سابقة لتحسين جودة التوليد.</div>';
+    var countEl = document.getElementById('ws-archive-count');
+    if (countEl) countEl.textContent = total + ' نموذج في الأرشيف';
+
+    var tabAll = document.getElementById('ws-tab-all');
+    var tabApproved = document.getElementById('ws-tab-approved');
+    var tabFile = document.getElementById('ws-tab-file');
+    if (tabAll) tabAll.textContent = total;
+    if (tabApproved) tabApproved.textContent = approved;
+    if (tabFile) tabFile.textContent = files;
+
+    if (total === 0) {
+      var list = document.getElementById('ws-archive-list');
+      if (list) list.innerHTML = '<div class="ws-empty-state">لا يوجد أرشيف بعد.<br>ارفع نماذج سابقة لتحسين جودة التوليد.</div>';
     } else {
-      list.innerHTML = data.entries.map(function(e) {
-        return '<div class="ws-archive-item"><div class="ws-archive-item-title">' + e.title + '</div>' +
-          '<div class="ws-archive-item-meta">' + (e.sourceFile || '') + ' · ' + new Date(e.createdAt).toLocaleDateString('ar-SA') + '</div></div>';
-      }).join('');
+      wsFilterArchive(wsArchiveFilter, null);
     }
   } catch(e) { /* silent */ }
 
@@ -3313,6 +3391,7 @@ async function wsApprove(model) {
     });
     var btn = document.getElementById('ws-approve-' + model);
     if (btn) btn.outerHTML = '<span class="ws-approved-badge">✓ تم الاعتماد</span>';
+    setTimeout(wsLoadArchive, 800);
   } catch(e) {}
 }
 
