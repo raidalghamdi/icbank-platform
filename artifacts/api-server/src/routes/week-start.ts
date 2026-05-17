@@ -11,7 +11,7 @@ import {
   styleProfileTable,
   generatedOutputsTable,
 } from "@workspace/db";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, isNull } from "drizzle-orm";
 
 const router: Router = Router();
 
@@ -102,12 +102,39 @@ async function extractText(
   return "";
 }
 
-async function generateEmbedding(text: string): Promise<number[]> {
-  const response = await openai.embeddings.create({
-    model: "text-embedding-3-small",
-    input: text.slice(0, 8000),
-  });
-  return response.data[0]?.embedding ?? [];
+async function generateEmbedding(text: string): Promise<number[] | null> {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 12000);
+    const response = await openai.embeddings.create(
+      { model: "text-embedding-3-small", input: text.slice(0, 8000) },
+      { signal: controller.signal }
+    );
+    clearTimeout(timeout);
+    return response.data[0]?.embedding ?? null;
+  } catch {
+    return null;
+  }
+}
+
+async function backfillEmbeddings(): Promise<void> {
+  try {
+    const entries = await db
+      .select({ id: archiveEntriesTable.id, bodyText: archiveEntriesTable.bodyText })
+      .from(archiveEntriesTable)
+      .where(isNull(archiveEntriesTable.embedding));
+    for (const entry of entries) {
+      const emb = await generateEmbedding(entry.bodyText);
+      if (emb) {
+        await db
+          .update(archiveEntriesTable)
+          .set({ embedding: emb })
+          .where(eq(archiveEntriesTable.id, entry.id));
+      }
+    }
+  } catch {
+    /* best-effort */
+  }
 }
 
 async function updateStyleProfile(): Promise<void> {
@@ -204,45 +231,39 @@ router.post(
       return;
     }
 
-    const results: Array<Record<string, unknown>> = [];
+    // Process all files in parallel — extract text and save to DB immediately
+    // Embeddings are generated asynchronously in background (non-blocking)
+    const results = await Promise.all(
+      files.map(async (file) => {
+        try {
+          const text = await extractText(file.buffer, file.mimetype, file.originalname);
+          if (!text.trim()) {
+            return { skipped: file.originalname, reason: "لا يوجد نص قابل للاستخراج" };
+          }
 
-    for (const file of files) {
-      try {
-        const text = await extractText(
-          file.buffer,
-          file.mimetype,
-          file.originalname
-        );
-        if (!text.trim()) {
-          results.push({ skipped: file.originalname, reason: "لا يوجد نص" });
-          continue;
+          const [entry] = await db
+            .insert(archiveEntriesTable)
+            .values({
+              title: file.originalname.replace(/\.[^.]+$/, ""),
+              bodyText: text,
+              sourceFile: file.originalname,
+              embedding: null,
+            })
+            .returning();
+
+          return { id: entry.id, title: entry.title, wordCount: text.split(/\s+/).length };
+        } catch (err) {
+          req.log.error({ err, file: file.originalname }, "upload extract failed");
+          return { error: `فشل ${file.originalname}: ${(err as Error).message}` };
         }
+      })
+    );
 
-        const embedding = await generateEmbedding(text);
-
-        const [entry] = await db
-          .insert(archiveEntriesTable)
-          .values({
-            title: file.originalname.replace(/\.[^.]+$/, ""),
-            bodyText: text,
-            sourceFile: file.originalname,
-            embedding,
-          })
-          .returning();
-
-        results.push({
-          id: entry.id,
-          title: entry.title,
-          wordCount: text.split(/\s+/).length,
-        });
-      } catch (err) {
-        results.push({
-          error: `فشل معالجة ${file.originalname}: ${(err as Error).message}`,
-        });
-      }
-    }
-
-    updateStyleProfile().catch(console.error);
+    // Fire-and-forget: backfill embeddings + style profile after responding
+    setImmediate(() => {
+      backfillEmbeddings().catch(() => {});
+      updateStyleProfile().catch(() => {});
+    });
 
     res.json({ processed: results.filter((r) => r.id).length, results });
   }
@@ -320,11 +341,15 @@ router.post("/week-start/generate", async (req: Request, res: Response) => {
 
     if (entries.length > 0) {
       const topicEmbedding = await generateEmbedding(topic);
-      const scored = entries
-        .filter((e) => e.embedding && Array.isArray(e.embedding))
+      type WithEmb = (typeof entries)[number] & { embedding: number[] };
+      const entriesWithEmb = entries.filter(
+        (e): e is WithEmb => Array.isArray(e.embedding) && e.embedding.length > 0
+      );
+      if (topicEmbedding && entriesWithEmb.length > 0) {
+      const scored = entriesWithEmb
         .map((e) => ({
           entry: e,
-          score: cosineSimilarity(topicEmbedding, e.embedding as number[]),
+          score: cosineSimilarity(topicEmbedding, e.embedding),
         }))
         .sort((a, b) => b.score - a.score)
         .slice(0, 5);
@@ -332,6 +357,7 @@ router.post("/week-start/generate", async (req: Request, res: Response) => {
       archiveContext = scored
         .map((s, i) => `نموذج ${i + 1}:\n${s.entry.bodyText.slice(0, 600)}`)
         .join("\n\n---\n\n");
+      } // end if topicEmbedding
     }
 
     const [styleProfile] = await db
