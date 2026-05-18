@@ -6,6 +6,7 @@ import intlDaysRouter from "./international-days";
 import aiYearRouter from "./ai-year";
 import storageRouter from "./storage";
 import authRouter from "./auth";
+import adminRouter from "./admin";
 import { authenticate, requireAuth, requirePageAccess } from "../middleware/auth";
 
 const router: IRouter = Router();
@@ -39,5 +40,6 @@ router.use(weekStartRouter);
 router.use(intlDaysRouter);
 router.use(aiYearRouter);
 router.use(storageRouter);
+router.use(adminRouter);
 
 export default router;

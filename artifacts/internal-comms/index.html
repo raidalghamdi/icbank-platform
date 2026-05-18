@@ -2710,7 +2710,7 @@ body {
           <span class="ico"><svg><use href="#i-download"/></svg></span>
           <span>تقرير سنوي</span>
         </button>
-        <button class="btn btn-primary" onclick="aiyOpenAdd()">
+        <button class="btn btn-primary" id="aiy-btn-add" onclick="aiyOpenAdd()">
           <span class="ico"><svg><use href="#i-plus"/></svg></span>
           <span>إضافة تفعيل</span>
         </button>
@@ -2938,6 +2938,289 @@ body {
     </div>
   </div>
 
+  <!-- ══ Smart Assistant ══ -->
+  <div class="page-section" id="section-smart_assistant">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title">المساعد الذكي</h1>
+        <p class="page-sub">الوصول المباشر لأدوات الذكاء الاصطناعي المعتمدة.</p>
+      </div>
+    </div>
+    <div id="smart-assistant-content"></div>
+  </div>
+
+  <!-- ══ Settings ══ -->
+  <div class="page-section" id="section-settings">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title">الإعدادات</h1>
+        <p class="page-sub">إعدادات الحساب الشخصي والتفضيلات.</p>
+      </div>
+    </div>
+    <div class="card" style="max-width:600px;">
+      <div class="card-body">
+        <p style="color:var(--text-3);font-size:13px;">سيتم تطوير هذه الصفحة في المراحل القادمة.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ Admin Panel ══ -->
+  <style>
+  .adm-tabs{display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:24px;}
+  .adm-tab{padding:10px 18px;font-size:13px;font-weight:600;color:var(--text-3);background:none;border:none;border-bottom:2px solid transparent;margin-bottom:-2px;cursor:pointer;font-family:var(--sans);transition:all .15s;}
+  .adm-tab:hover{color:var(--text);}
+  .adm-tab.active{color:var(--primary);border-bottom-color:var(--primary);}
+  .adm-pane{display:none;}.adm-pane.active{display:block;}
+  .adm-filters{display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap;}
+  .adm-input{height:34px;padding:0 10px;border:1px solid var(--border);background:var(--surface);font-family:var(--sans);font-size:12.5px;color:var(--text);outline:none;min-width:160px;}
+  .adm-input:focus{border-color:var(--primary);}
+  .adm-select{height:34px;padding:0 8px;border:1px solid var(--border);background:var(--surface);font-family:var(--sans);font-size:12.5px;color:var(--text);cursor:pointer;}
+  .adm-table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--border);}
+  .adm-table th{background:var(--surface-2);font-size:11.5px;font-weight:600;color:var(--text-3);padding:9px 12px;text-align:right;border-bottom:1px solid var(--border);white-space:nowrap;}
+  .adm-table td{padding:9px 12px;font-size:12.5px;border-bottom:1px solid var(--border-subtle);vertical-align:middle;}
+  .adm-table tr:last-child td{border-bottom:none;}
+  .adm-table tr:hover td{background:var(--primary-50);}
+  .adm-badge{display:inline-block;padding:2px 8px;font-size:11px;font-weight:600;}
+  .adm-badge.active{background:var(--success-bg);color:var(--success);}
+  .adm-badge.inactive{background:var(--danger-bg);color:var(--danger);}
+  .adm-badge.locked{background:var(--warning-bg);color:var(--warning);}
+  .adm-badge.system{background:var(--info-bg);color:var(--info);}
+  .adm-btn-sm{padding:4px 10px;font-size:11.5px;font-weight:600;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-family:var(--sans);color:var(--text-2);transition:all .12s;}
+  .adm-btn-sm:hover{background:var(--surface-2);}
+  .adm-btn-sm.danger{color:var(--danger);border-color:var(--danger);background:white;}
+  .adm-btn-sm.danger:hover{background:var(--danger-bg);}
+  .adm-btn-sm.warn{color:var(--warning);border-color:var(--warning);background:white;}
+  .adm-btn-sm.primary{background:var(--primary);color:white;border-color:var(--primary);}
+  .adm-btn-sm.primary:hover{background:var(--primary-hover);}
+  .adm-btn-actions{display:flex;gap:4px;flex-wrap:nowrap;}
+  .adm-modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;align-items:center;justify-content:center;}
+  .adm-modal-bg.open{display:flex;}
+  .adm-modal{background:var(--surface);width:100%;max-width:520px;max-height:90vh;overflow-y:auto;border:1px solid var(--border);box-shadow:var(--shadow-md);}
+  .adm-modal-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);}
+  .adm-modal-title{font-size:15px;font-weight:700;color:var(--text);}
+  .adm-modal-close{background:none;border:none;cursor:pointer;color:var(--text-3);font-size:18px;line-height:1;}
+  .adm-modal-body{padding:20px;}
+  .adm-modal-foot{padding:14px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;}
+  .adm-field{margin-bottom:16px;}
+  .adm-label{display:block;font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:6px;}
+  .adm-field input,.adm-field select,.adm-field textarea{width:100%;height:36px;padding:0 10px;border:1px solid var(--border);background:var(--surface);font-family:var(--sans);font-size:13px;color:var(--text);outline:none;}
+  .adm-field select{cursor:pointer;}
+  .adm-field input:focus,.adm-field select:focus{border-color:var(--primary);}
+  .adm-field textarea{height:auto;padding:8px 10px;resize:vertical;}
+  .adm-roles-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;}
+  .adm-role-card{background:var(--surface);border:1px solid var(--border);padding:16px;position:relative;transition:border-color .15s;}
+  .adm-role-card:hover{border-color:var(--border-strong);}
+  .adm-role-name{font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;}
+  .adm-role-meta{font-size:11.5px;color:var(--text-3);margin-bottom:10px;}
+  .adm-role-count{display:inline-block;background:var(--surface-2);padding:2px 8px;font-size:11px;font-family:var(--mono);font-weight:700;color:var(--text-3);margin-left:6px;}
+  .adm-perm-tree{border:1px solid var(--border);overflow:hidden;}
+  .adm-perm-row{display:flex;align-items:center;padding:8px 12px;border-bottom:1px solid var(--border-subtle);gap:10px;}
+  .adm-perm-row:last-child{border-bottom:none;}
+  .adm-perm-row:nth-child(even){background:var(--surface-2);}
+  .adm-perm-page{width:130px;font-size:12.5px;font-weight:600;color:var(--text-2);flex-shrink:0;}
+  .adm-perm-checks{display:flex;gap:6px;flex-wrap:wrap;}
+  .adm-perm-check{display:flex;align-items:center;gap:4px;font-size:11.5px;color:var(--text-3);cursor:pointer;padding:3px 6px;border:1px solid var(--border);user-select:none;transition:all .1s;}
+  .adm-perm-check:hover{background:var(--surface-2);}
+  .adm-perm-check input{accent-color:var(--primary);}
+  .adm-mx-wrap{overflow-x:auto;}
+  .adm-mx-table{border-collapse:collapse;min-width:600px;background:var(--surface);}
+  .adm-mx-table th{background:var(--surface-2);padding:8px 10px;font-size:11px;font-weight:600;color:var(--text-3);text-align:center;border:1px solid var(--border);white-space:nowrap;}
+  .adm-mx-table th.row-head{text-align:right;min-width:140px;}
+  .adm-mx-table td{padding:6px 10px;border:1px solid var(--border-subtle);text-align:center;font-size:13px;}
+  .adm-mx-table td.row-head{text-align:right;font-size:12px;font-weight:600;background:var(--surface-2);white-space:nowrap;}
+  .adm-mx-cell{cursor:pointer;padding:4px 8px;display:inline-block;min-width:28px;transition:background .1s;}
+  .adm-mx-cell:hover{background:var(--primary-50);}
+  .adm-mx-none{color:var(--text-5);}
+  .adm-mx-view{color:var(--success);}
+  .adm-mx-edit{color:var(--info);}
+  .adm-mx-full{color:var(--purple);}
+  .adm-mx-popup{position:fixed;background:var(--surface);border:1px solid var(--border);box-shadow:var(--shadow-md);z-index:200;padding:4px 0;min-width:140px;}
+  .adm-mx-popup-item{padding:8px 14px;font-size:12.5px;cursor:pointer;display:flex;align-items:center;gap:8px;}
+  .adm-mx-popup-item:hover{background:var(--surface-2);}
+  .adm-log-timeline{display:flex;flex-direction:column;gap:0;}
+  .adm-log-day{font-size:11px;font-weight:700;color:var(--text-4);letter-spacing:.5px;padding:8px 0 4px;text-transform:uppercase;}
+  .adm-log-item{display:flex;gap:12px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border-subtle);}
+  .adm-log-dot{width:8px;height:8px;border-radius:50%;background:var(--text-4);flex-shrink:0;margin-top:5px;}
+  .adm-log-dot.sensitive{background:var(--danger);}
+  .adm-log-dot.auth{background:var(--info);}
+  .adm-log-dot.admin{background:var(--purple);}
+  .adm-log-body{flex:1;}
+  .adm-log-action{font-size:12.5px;font-weight:600;color:var(--text);}
+  .adm-log-meta{font-size:11.5px;color:var(--text-3);margin-top:2px;}
+  .adm-log-sensitive{color:var(--danger);font-size:11px;font-weight:700;padding:1px 6px;background:var(--danger-bg);margin-right:4px;}
+  .adm-pager{display:flex;gap:6px;align-items:center;margin-top:14px;justify-content:flex-end;}
+  .adm-pager-btn{padding:5px 12px;font-size:12px;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-family:var(--sans);}
+  .adm-pager-btn:hover{background:var(--surface-2);}
+  .adm-pager-btn:disabled{opacity:.5;cursor:not-allowed;}
+  .adm-set-section{background:var(--surface);border:1px solid var(--border);margin-bottom:20px;}
+  .adm-set-head{padding:14px 18px;border-bottom:1px solid var(--border);font-size:14px;font-weight:700;color:var(--text);}
+  .adm-set-body{padding:18px;}
+  .adm-set-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+  .adm-temp-pw{background:var(--success-bg);border:1px solid var(--success);padding:12px 16px;margin-top:12px;font-size:13px;font-weight:600;color:var(--success);display:none;}
+  </style>
+
+  <div class="page-section" id="section-admin_panel">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title">لوحة التحكم</h1>
+        <p class="page-sub">إدارة المستخدمين والأدوار والصلاحيات ومتابعة النشاطات.</p>
+      </div>
+    </div>
+
+    <div class="adm-tabs" id="adm-tab-nav">
+      <button class="adm-tab active" onclick="adminSwitchTab('users')">المستخدمون</button>
+      <button class="adm-tab" onclick="adminSwitchTab('roles')">الأدوار والصلاحيات</button>
+      <button class="adm-tab" onclick="adminSwitchTab('matrix')">مصفوفة الصلاحيات</button>
+      <button class="adm-tab" onclick="adminSwitchTab('logs')">سجل النشاطات</button>
+      <button class="adm-tab" onclick="adminSwitchTab('settings')">إعدادات النظام</button>
+    </div>
+
+    <!-- ── Tab: Users ───────────────────────────────────── -->
+    <div class="adm-pane active" id="adm-pane-users">
+      <div class="adm-filters">
+        <input class="adm-input" id="adm-user-search" placeholder="بحث بالاسم أو البريد أو الإدارة…" oninput="adminLoadUsers(1)">
+        <select class="adm-select" id="adm-user-role-filter" onchange="adminLoadUsers(1)">
+          <option value="">كل الأدوار</option>
+        </select>
+        <button class="btn btn-primary" style="height:34px;" onclick="adminShowUserModal()">
+          <span class="ico"><svg><use href="#i-plus"/></svg></span> إضافة مستخدم
+        </button>
+      </div>
+      <div id="adm-users-table-wrap"></div>
+      <div class="adm-pager" id="adm-users-pager"></div>
+    </div>
+
+    <!-- ── Tab: Roles ───────────────────────────────────── -->
+    <div class="adm-pane" id="adm-pane-roles">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:16px;">
+        <button class="btn btn-primary" onclick="adminShowRoleModal()">
+          <span class="ico"><svg><use href="#i-plus"/></svg></span> إضافة دور
+        </button>
+      </div>
+      <div class="adm-roles-grid" id="adm-roles-grid"></div>
+    </div>
+
+    <!-- ── Tab: Matrix ──────────────────────────────────── -->
+    <div class="adm-pane" id="adm-pane-matrix">
+      <div style="display:flex;gap:10px;margin-bottom:16px;align-items:center;">
+        <button class="btn btn-ghost" onclick="adminExportMatrix()">
+          <span class="ico"><svg><use href="#i-download"/></svg></span> تصدير CSV
+        </button>
+        <button class="btn btn-ghost" onclick="adminShowBulkApply()">
+          <span class="ico"><svg><use href="#i-users"/></svg></span> تطبيق جماعي
+        </button>
+        <span style="font-size:12px;color:var(--text-3);">انقر على أي خلية لتغيير الصلاحية</span>
+      </div>
+      <div class="adm-mx-wrap" id="adm-matrix-wrap"></div>
+    </div>
+
+    <!-- ── Tab: Logs ────────────────────────────────────── -->
+    <div class="adm-pane" id="adm-pane-logs">
+      <div class="adm-filters">
+        <select class="adm-select" id="adm-log-user" style="min-width:140px;"><option value="">كل المستخدمين</option></select>
+        <input class="adm-input" id="adm-log-action" placeholder="نوع العملية…" style="min-width:140px;" oninput="adminLoadLogs(1)">
+        <input class="adm-input" type="date" id="adm-log-from">
+        <input class="adm-input" type="date" id="adm-log-to">
+        <button class="btn btn-ghost" style="height:34px;" onclick="adminLoadLogs(1)">
+          <span class="ico"><svg><use href="#i-search"/></svg></span> بحث
+        </button>
+        <button class="btn btn-ghost" style="height:34px;" onclick="adminExportLogs()">
+          <span class="ico"><svg><use href="#i-download"/></svg></span> تصدير CSV
+        </button>
+      </div>
+      <div class="adm-log-timeline" id="adm-logs-list"></div>
+      <div class="adm-pager" id="adm-logs-pager"></div>
+    </div>
+
+    <!-- ── Tab: Settings ────────────────────────────────── -->
+    <div class="adm-pane" id="adm-pane-settings">
+      <div id="adm-settings-form"></div>
+      <button class="btn btn-primary" onclick="adminSaveSettings()">
+        <span class="ico"><svg><use href="#i-check"/></svg></span> حفظ الإعدادات
+      </button>
+    </div>
+  </div>
+
+  <!-- ══ Modal: User ══ -->
+  <div class="adm-modal-bg" id="adm-user-modal">
+    <div class="adm-modal">
+      <div class="adm-modal-head">
+        <span class="adm-modal-title" id="adm-user-modal-title">إضافة مستخدم</span>
+        <button class="adm-modal-close" onclick="adminCloseUserModal()">✕</button>
+      </div>
+      <div class="adm-modal-body">
+        <input type="hidden" id="adm-user-id">
+        <div class="adm-field"><label class="adm-label">الاسم الكامل *</label><input id="adm-user-name" placeholder="اسم المستخدم"></div>
+        <div class="adm-field"><label class="adm-label">البريد الإلكتروني *</label><input id="adm-user-email" type="email" placeholder="user@domain.com" dir="ltr"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div class="adm-field"><label class="adm-label">المسمى الوظيفي</label><input id="adm-user-title" placeholder="مثال: محرر أول"></div>
+          <div class="adm-field"><label class="adm-label">الإدارة</label><input id="adm-user-dept" placeholder="مثال: التواصل الداخلي"></div>
+        </div>
+        <div class="adm-field"><label class="adm-label">الدور *</label><select id="adm-user-role"><option value="">— اختر دوراً —</option></select></div>
+        <div class="adm-field" id="adm-user-pw-field"><label class="adm-label">كلمة مرور مؤقتة <span style="color:var(--text-4);font-weight:400">(تُولَّد تلقائياً إن تركت فارغة)</span></label><input id="adm-user-pw" placeholder="اتركها فارغة للتوليد التلقائي" dir="ltr"></div>
+        <div class="adm-temp-pw" id="adm-user-saved-pw">
+          <span>✓ تم الحفظ — كلمة المرور المؤقتة: </span><span id="adm-user-pw-val" style="font-family:var(--mono);"></span>
+          <span style="font-size:11px;display:block;margin-top:4px;color:var(--success);opacity:.8">احرص على مشاركتها مع المستخدم فوراً</span>
+        </div>
+      </div>
+      <div class="adm-modal-foot">
+        <button class="btn btn-ghost" onclick="adminCloseUserModal()">إلغاء</button>
+        <button class="btn btn-primary" onclick="adminSaveUser()">حفظ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ Modal: Role ══ -->
+  <div class="adm-modal-bg" id="adm-role-modal">
+    <div class="adm-modal" style="max-width:640px;">
+      <div class="adm-modal-head">
+        <span class="adm-modal-title" id="adm-role-modal-title">إضافة دور جديد</span>
+        <button class="adm-modal-close" onclick="adminCloseRoleModal()">✕</button>
+      </div>
+      <div class="adm-modal-body">
+        <input type="hidden" id="adm-role-id">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div class="adm-field"><label class="adm-label">اسم الدور (EN) *</label><input id="adm-role-name" placeholder="editor" dir="ltr"></div>
+          <div class="adm-field"><label class="adm-label">اسم الدور (عربي) *</label><input id="adm-role-name-ar" placeholder="محرر"></div>
+        </div>
+        <div class="adm-field"><label class="adm-label">الوصف</label><input id="adm-role-desc" placeholder="وصف مختصر للدور"></div>
+        <div class="adm-field" id="adm-role-perm-field" style="display:none;">
+          <label class="adm-label">الصلاحيات لكل صفحة</label>
+          <div style="display:flex;gap:8px;margin-bottom:10px;">
+            <select class="adm-select" id="adm-copy-from-role" style="min-width:160px;"><option value="">— نسخ من دور موجود —</option></select>
+            <button class="adm-btn-sm" onclick="adminCopyRolePerms()">نسخ</button>
+          </div>
+          <div id="adm-perm-tree" class="adm-perm-tree"></div>
+        </div>
+      </div>
+      <div class="adm-modal-foot">
+        <button class="btn btn-ghost" onclick="adminCloseRoleModal()">إلغاء</button>
+        <button class="btn btn-primary" onclick="adminSaveRole()">حفظ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ Matrix cell popup ══ -->
+  <div id="adm-mx-popup" class="adm-mx-popup" style="display:none;"></div>
+
+  <!-- ══ Bulk Apply Modal ══ -->
+  <div class="adm-modal-bg" id="adm-bulk-modal">
+    <div class="adm-modal" style="max-width:420px;">
+      <div class="adm-modal-head">
+        <span class="adm-modal-title">تطبيق جماعي</span>
+        <button class="adm-modal-close" onclick="document.getElementById('adm-bulk-modal').classList.remove('open')">✕</button>
+      </div>
+      <div class="adm-modal-body">
+        <div class="adm-field"><label class="adm-label">نسخ صلاحيات من دور</label><select class="adm-select" id="adm-bulk-from-role" style="width:100%;height:36px;"><option value="">— اختر دوراً —</option></select></div>
+        <div class="adm-field"><label class="adm-label">تطبيق على المستخدمين</label><div id="adm-bulk-users" style="max-height:200px;overflow-y:auto;border:1px solid var(--border);padding:10px;display:flex;flex-direction:column;gap:6px;"></div></div>
+      </div>
+      <div class="adm-modal-foot">
+        <button class="btn btn-ghost" onclick="document.getElementById('adm-bulk-modal').classList.remove('open')">إلغاء</button>
+        <button class="btn btn-primary" onclick="adminDoBulkApply()">تطبيق</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ══ 403 Forbidden Section ══ -->
   <div class="page-section" id="section-403" style="display:none;">
     <div style="text-align:center;padding:80px 20px;">
@@ -3090,12 +3373,36 @@ function authUpdateUI() {
     var allowed = perms[permKey] && perms[permKey].includes('view');
     if (!allowed) el.style.display = 'none';
   });
+
+  // ── Button visibility by permission ──
+  function hasP(page, perm) {
+    if (u.isSuperAdmin) return true;
+    var key = PAGE_PERM_MAP[page] || page;
+    return !!(perms[key] && perms[key].includes(perm));
+  }
+
+  // ai_year
+  var aiyAdd = document.getElementById('aiy-btn-add');
+  if (aiyAdd) aiyAdd.style.display = hasP('ai_year', 'create') ? '' : 'none';
+  var aiyEdit = document.getElementById('aiy-lb-edit-btn');
+  if (aiyEdit) aiyEdit.style.display = hasP('ai_year', 'edit') ? '' : 'none';
+  var aiyDel = document.getElementById('aiy-lb-del-btn');
+  if (aiyDel) aiyDel.style.display = hasP('ai_year', 'delete') ? '' : 'none';
+}
+
+function authCanPerm(page, perm) {
+  if (!AUTH_USER) return false;
+  if (AUTH_USER.isSuperAdmin) return true;
+  var key = (typeof PAGE_PERM_MAP !== 'undefined' && PAGE_PERM_MAP[page]) || page;
+  return !!((AUTH_USER.permissions || {})[key] && (AUTH_USER.permissions || {})[key].includes(perm));
 }
 
 function authCanView(pageName) {
   if (!AUTH_USER) return false;
   if (AUTH_USER.isSuperAdmin) return true;
   if (pageName === 'home') return true;
+  if (pageName === 'admin_panel') return AUTH_USER.role === 'admin' || AUTH_USER.role === 'super_admin';
+  if (pageName === 'smart_assistant' || pageName === 'settings') return !!AUTH_USER;
   var permKey = PAGE_PERM_MAP[pageName] || pageName;
   var pagePerms = (AUTH_USER.permissions || {})[permKey] || [];
   return pagePerms.includes('view');
@@ -3391,13 +3698,789 @@ const STATIC_DATA = {
 };
 
 // ════════════════════════════════════════
+// ADMIN PANEL
+// ════════════════════════════════════════
+(function() {
+var ADM = {
+  tab: 'users',
+  usersPage: 1,
+  logsPage: 1,
+  roles: [],
+  pages: [],
+  perms: [],
+  matrixData: null,
+  editingRoleId: null,
+  editingUserId: null,
+  mxPopupCell: null,
+};
+
+// ── helpers ────────────────────────────────────────────────────────────────────
+function admApi(path, opts) {
+  opts = opts || {};
+  return authFetchWithToken('/api' + path, opts).then(function(r) {
+    if (!r.ok) return r.json().then(function(e) { throw new Error(e.error || ('HTTP '+r.status)); });
+    if (r.status === 204) return {};
+    var ct = r.headers.get('content-type')||'';
+    if (ct.includes('text/')) return r.text();
+    return r.json();
+  });
+}
+
+function admJson(path, method, body) {
+  return admApi(path, {
+    method: method || 'GET',
+    headers: { 'Content-Type': 'application/json' },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+}
+
+function admFmt(dt) {
+  if (!dt) return '—';
+  var d = new Date(dt);
+  return d.toLocaleDateString('ar-SA', { year:'numeric', month:'short', day:'numeric' })
+    + ' ' + d.toLocaleTimeString('ar-SA', { hour:'2-digit', minute:'2-digit' });
+}
+
+function admFmtDay(dt) {
+  if (!dt) return '—';
+  return new Date(dt).toLocaleDateString('ar-SA', { year:'numeric', month:'long', day:'numeric' });
+}
+
+var SENSITIVE_ACTIONS = ['user_deleted','role_deleted','settings_updated','password_reset','user_suspended'];
+function admActionLabel(a) {
+  var map = {
+    user_created:'إنشاء مستخدم', user_updated:'تعديل مستخدم', user_deleted:'حذف مستخدم',
+    user_suspended:'تعليق مستخدم', user_activated:'تفعيل مستخدم', user_unlocked:'فتح قفل مستخدم',
+    password_reset:'إعادة تعيين كلمة المرور', role_created:'إنشاء دور', role_updated:'تعديل دور',
+    role_deleted:'حذف دور', role_permissions_updated:'تحديث صلاحيات الدور',
+    matrix_override:'تجاوز صلاحية في المصفوفة', settings_updated:'تحديث إعدادات النظام',
+    login:'تسجيل دخول', logout:'تسجيل خروج',
+  };
+  return map[a] || a;
+}
+
+function admDotClass(a) {
+  if (SENSITIVE_ACTIONS.includes(a)) return 'sensitive';
+  if (a === 'login' || a === 'logout') return 'auth';
+  if (a.startsWith('role') || a.startsWith('settings') || a.startsWith('matrix')) return 'admin';
+  return '';
+}
+
+function admPermLabel(p) {
+  return { view:'عرض', create:'إنشاء', edit:'تعديل', delete:'حذف', export:'تصدير' }[p] || p;
+}
+
+// ── init ───────────────────────────────────────────────────────────────────────
+window.adminInit = function() {
+  admApi('/admin/roles').then(function(d) {
+    ADM.roles = d.roles || [];
+    admPopulateRoleFilters();
+  });
+  adminSwitchTab(ADM.tab || 'users', true);
+};
+
+window.adminSwitchTab = function(tab, force) {
+  ADM.tab = tab;
+  document.querySelectorAll('.adm-tab').forEach(function(b,i) {
+    var tabs = ['users','roles','matrix','logs','settings'];
+    b.classList.toggle('active', tabs[i] === tab);
+  });
+  document.querySelectorAll('.adm-pane').forEach(function(p) { p.classList.remove('active'); });
+  var pane = document.getElementById('adm-pane-' + tab);
+  if (pane) pane.classList.add('active');
+  if (tab === 'users') adminLoadUsers(1);
+  else if (tab === 'roles') adminLoadRoles();
+  else if (tab === 'matrix') adminLoadMatrix();
+  else if (tab === 'logs') adminLoadLogs(1);
+  else if (tab === 'settings') adminLoadSettings();
+};
+
+function admPopulateRoleFilters() {
+  var rolesSel = document.getElementById('adm-user-role-filter');
+  var userRoleSel = document.getElementById('adm-user-role');
+  var copyFromSel = document.getElementById('adm-copy-from-role');
+  var bulkFromSel = document.getElementById('adm-bulk-from-role');
+  if (rolesSel) {
+    var cur = rolesSel.value;
+    rolesSel.innerHTML = '<option value="">كل الأدوار</option>';
+    ADM.roles.forEach(function(r) {
+      rolesSel.innerHTML += '<option value="' + r.name + '">' + r.nameAr + '</option>';
+    });
+    rolesSel.value = cur;
+  }
+  if (userRoleSel) {
+    var cur2 = userRoleSel.value;
+    userRoleSel.innerHTML = '<option value="">— اختر دوراً —</option>';
+    ADM.roles.forEach(function(r) {
+      userRoleSel.innerHTML += '<option value="' + r.id + '">' + r.nameAr + '</option>';
+    });
+    if (cur2) userRoleSel.value = cur2;
+  }
+  if (copyFromSel) {
+    copyFromSel.innerHTML = '<option value="">— نسخ من دور موجود —</option>';
+    ADM.roles.forEach(function(r) {
+      copyFromSel.innerHTML += '<option value="' + r.id + '">' + r.nameAr + '</option>';
+    });
+  }
+  if (bulkFromSel) {
+    bulkFromSel.innerHTML = '<option value="">— اختر دوراً —</option>';
+    ADM.roles.forEach(function(r) {
+      bulkFromSel.innerHTML += '<option value="' + r.id + '">' + r.nameAr + '</option>';
+    });
+  }
+}
+
+// ── Users tab ─────────────────────────────────────────────────────────────────
+window.adminLoadUsers = function(page) {
+  page = page || ADM.usersPage;
+  ADM.usersPage = page;
+  var search = (document.getElementById('adm-user-search')||{}).value||'';
+  var role = (document.getElementById('adm-user-role-filter')||{}).value||'';
+  var wrap = document.getElementById('adm-users-table-wrap');
+  if (wrap) wrap.innerHTML = '<p style="color:var(--text-3);font-size:12.5px;padding:16px 0;">جارٍ التحميل…</p>';
+  admApi('/admin/users?search='+encodeURIComponent(search)+'&role='+encodeURIComponent(role)+'&page='+page+'&limit=25')
+    .then(function(d) { admRenderUsers(d); })
+    .catch(function(e) { if (wrap) wrap.innerHTML = '<p style="color:var(--danger);font-size:12.5px;">' + e.message + '</p>'; });
+};
+
+function admRenderUsers(d) {
+  var wrap = document.getElementById('adm-users-table-wrap');
+  if (!wrap) return;
+  if (!d.users || !d.users.length) {
+    wrap.innerHTML = '<p style="color:var(--text-3);font-size:12.5px;padding:16px 0;">لا يوجد مستخدمون.</p>';
+    admRenderPager('adm-users-pager', d.page, d.pages, 'adminLoadUsers');
+    return;
+  }
+  var h = '<table class="adm-table"><thead><tr>'
+    + '<th>الاسم</th><th>البريد</th><th>الدور</th><th>الحالة</th><th>آخر دخول</th><th>إجراءات</th>'
+    + '</tr></thead><tbody>';
+  d.users.forEach(function(u) {
+    var status = u.isLocked
+      ? '<span class="adm-badge locked">مقفل</span>'
+      : (u.isActive ? '<span class="adm-badge active">نشط</span>' : '<span class="adm-badge inactive">معلق</span>');
+    var suspBtn = u.isActive
+      ? '<button class="adm-btn-sm warn" onclick="adminSuspend(' + u.id + ')">تعليق</button>'
+      : '<button class="adm-btn-sm" onclick="adminSuspend(' + u.id + ')">تفعيل</button>';
+    var unlockBtn = u.isLocked ? '<button class="adm-btn-sm" onclick="adminUnlock(' + u.id + ')">فتح</button>' : '';
+    h += '<tr>'
+      + '<td><b>' + admEsc(u.name) + '</b>'
+        + (u.title ? '<br><span style="font-size:11px;color:var(--text-3)">' + admEsc(u.title) + (u.department ? ' — ' + admEsc(u.department) : '') + '</span>' : '')
+        + '</td>'
+      + '<td dir="ltr" style="font-size:12px;color:var(--text-2)">' + admEsc(u.email) + '</td>'
+      + '<td>' + (u.roleNameAr ? admEsc(u.roleNameAr) : '<span style="color:var(--text-4)">—</span>') + '</td>'
+      + '<td>' + status + '</td>'
+      + '<td style="font-size:11.5px;color:var(--text-3)">' + admFmt(u.lastLogin) + '</td>'
+      + '<td><div class="adm-btn-actions">'
+        + '<button class="adm-btn-sm" onclick="adminShowUserModal(' + u.id + ')">تعديل</button>'
+        + suspBtn + unlockBtn
+        + '<button class="adm-btn-sm" onclick="adminResetPw(' + u.id + ',\'' + admEsc(u.name).replace(/'/g,'') + '\')">إعادة كلمة مرور</button>'
+        + '<button class="adm-btn-sm danger" onclick="adminDeleteUser(' + u.id + ',\'' + admEsc(u.name).replace(/'/g,'') + '\')">حذف</button>'
+        + '</div></td>'
+      + '</tr>';
+  });
+  h += '</tbody></table>';
+  wrap.innerHTML = h;
+  admRenderPager('adm-users-pager', d.page, d.pages, 'adminLoadUsers');
+}
+
+function admRenderPager(id, page, pages, fn) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  if (!pages || pages <= 1) { el.innerHTML = ''; return; }
+  var h = '<button class="adm-pager-btn" onclick="' + fn + '(' + (page-1) + ')" ' + (page<=1?'disabled':'') + '>السابق</button>';
+  h += '<span style="font-size:12px;color:var(--text-3)">صفحة ' + page + ' من ' + pages + '</span>';
+  h += '<button class="adm-pager-btn" onclick="' + fn + '(' + (page+1) + ')" ' + (page>=pages?'disabled':'') + '>التالي</button>';
+  el.innerHTML = h;
+}
+
+function admEsc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+window.adminShowUserModal = function(userId) {
+  ADM.editingUserId = userId || null;
+  var modal = document.getElementById('adm-user-modal');
+  var title = document.getElementById('adm-user-modal-title');
+  var pwField = document.getElementById('adm-user-pw-field');
+  var savedPw = document.getElementById('adm-user-saved-pw');
+  if (savedPw) savedPw.style.display = 'none';
+  if (title) title.textContent = userId ? 'تعديل مستخدم' : 'إضافة مستخدم';
+  if (pwField) pwField.style.display = userId ? 'none' : 'block';
+  admPopulateRoleFilters();
+  ['adm-user-id','adm-user-name','adm-user-email','adm-user-title','adm-user-dept','adm-user-pw']
+    .forEach(function(id) { var el = document.getElementById(id); if (el) el.value = ''; });
+
+  if (userId) {
+    admApi('/admin/users?page=1&limit=200').then(function(d) {
+      var u = (d.users||[]).find(function(x) { return x.id === userId; });
+      if (!u) return;
+      document.getElementById('adm-user-id').value = u.id;
+      document.getElementById('adm-user-name').value = u.name || '';
+      document.getElementById('adm-user-email').value = u.email || '';
+      document.getElementById('adm-user-title').value = u.title || '';
+      document.getElementById('adm-user-dept').value = u.department || '';
+      var roleEl = document.getElementById('adm-user-role');
+      if (roleEl && u.roleId) roleEl.value = u.roleId;
+    });
+  }
+  if (modal) modal.classList.add('open');
+};
+
+window.adminCloseUserModal = function() {
+  var modal = document.getElementById('adm-user-modal');
+  if (modal) modal.classList.remove('open');
+  ADM.editingUserId = null;
+};
+
+window.adminSaveUser = function() {
+  var id = ADM.editingUserId;
+  var name = (document.getElementById('adm-user-name')||{}).value||'';
+  var email = (document.getElementById('adm-user-email')||{}).value||'';
+  var title = (document.getElementById('adm-user-title')||{}).value||'';
+  var dept = (document.getElementById('adm-user-dept')||{}).value||'';
+  var roleId = parseInt((document.getElementById('adm-user-role')||{}).value||'0');
+  var pw = (document.getElementById('adm-user-pw')||{}).value||'';
+  if (!name || !email || !roleId) { alert('الاسم والبريد والدور مطلوبة.'); return; }
+  var body = { name, email, title, department: dept, roleId };
+  if (!id && pw) body.password = pw;
+  var url = id ? ('/admin/users/' + id) : '/admin/users';
+  var method = id ? 'PATCH' : 'POST';
+  admJson(url, method, body).then(function(d) {
+    if (!id && d.tempPassword) {
+      var savedPw = document.getElementById('adm-user-saved-pw');
+      var pwVal = document.getElementById('adm-user-pw-val');
+      if (savedPw) savedPw.style.display = 'block';
+      if (pwVal) pwVal.textContent = d.tempPassword;
+      return;
+    }
+    adminCloseUserModal();
+    adminLoadUsers();
+    admApi('/admin/roles').then(function(r) { ADM.roles = r.roles || []; admPopulateRoleFilters(); });
+  }).catch(function(e) { alert('خطأ: ' + e.message); });
+};
+
+window.adminSuspend = function(id) {
+  admJson('/admin/users/' + id + '/suspend', 'POST').then(function() { adminLoadUsers(); })
+    .catch(function(e) { alert('خطأ: ' + e.message); });
+};
+
+window.adminUnlock = function(id) {
+  admJson('/admin/users/' + id + '/unlock', 'POST').then(function() { adminLoadUsers(); })
+    .catch(function(e) { alert('خطأ: ' + e.message); });
+};
+
+window.adminResetPw = function(id, name) {
+  if (!confirm('إعادة تعيين كلمة مرور ' + name + '؟ ستُولَّد كلمة مرور جديدة عشوائية.')) return;
+  admJson('/admin/users/' + id + '/reset-password', 'POST').then(function(d) {
+    alert('✓ كلمة المرور الجديدة لـ ' + name + ':\n\n' + d.tempPassword + '\n\nاحرص على مشاركتها فوراً.');
+  }).catch(function(e) { alert('خطأ: ' + e.message); });
+};
+
+window.adminDeleteUser = function(id, name) {
+  if (!confirm('حذف المستخدم "' + name + '" بشكل نهائي؟ لا يمكن التراجع.')) return;
+  admJson('/admin/users/' + id, 'DELETE').then(function() { adminLoadUsers(); })
+    .catch(function(e) { alert('خطأ: ' + e.message); });
+};
+
+// ── Roles tab ─────────────────────────────────────────────────────────────────
+window.adminLoadRoles = function() {
+  var grid = document.getElementById('adm-roles-grid');
+  if (grid) grid.innerHTML = '<p style="color:var(--text-3);font-size:12.5px;">جارٍ التحميل…</p>';
+  admApi('/admin/roles').then(function(d) {
+    ADM.roles = d.roles || [];
+    admPopulateRoleFilters();
+    admRenderRoles(d.roles || []);
+  });
+};
+
+function admRenderRoles(roles) {
+  var grid = document.getElementById('adm-roles-grid');
+  if (!grid) return;
+  if (!roles.length) { grid.innerHTML = '<p style="color:var(--text-3);font-size:12.5px;">لا يوجد أدوار.</p>'; return; }
+  grid.innerHTML = roles.map(function(r) {
+    var delBtn = r.isSystem ? '' : '<button class="adm-btn-sm danger" onclick="adminDeleteRole(' + r.id + ',\'' + admEsc(r.nameAr).replace(/'/g,'') + '\')">حذف</button>';
+    var sysTag = r.isSystem ? '<span class="adm-badge system" style="margin-right:6px;">جوهري</span>' : '';
+    return '<div class="adm-role-card">'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">'
+        + '<span class="adm-role-name">' + admEsc(r.nameAr) + sysTag + '</span>'
+        + '<span class="adm-role-count">' + r.userCount + ' مستخدم</span>'
+        + '</div>'
+      + '<div class="adm-role-meta" dir="ltr">' + admEsc(r.name) + (r.description ? ' — ' + admEsc(r.description) : '') + '</div>'
+      + '<div class="adm-btn-actions">'
+        + '<button class="adm-btn-sm primary" onclick="adminShowRolePermModal(' + r.id + ')">الصلاحيات</button>'
+        + '<button class="adm-btn-sm" onclick="adminShowEditRoleMeta(' + r.id + ')">تعديل</button>'
+        + delBtn
+        + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+window.adminShowRoleModal = function() {
+  ADM.editingRoleId = null;
+  document.getElementById('adm-role-modal-title').textContent = 'إضافة دور جديد';
+  ['adm-role-id','adm-role-name','adm-role-name-ar','adm-role-desc'].forEach(function(id) {
+    var el = document.getElementById(id); if (el) el.value = '';
+  });
+  var permField = document.getElementById('adm-role-perm-field');
+  if (permField) permField.style.display = 'none';
+  var nameF = document.getElementById('adm-role-name');
+  if (nameF) nameF.disabled = false;
+  document.getElementById('adm-role-modal').classList.add('open');
+};
+
+window.adminShowEditRoleMeta = function(id) {
+  var r = ADM.roles.find(function(x) { return x.id === id; });
+  if (!r) return;
+  ADM.editingRoleId = id;
+  document.getElementById('adm-role-modal-title').textContent = 'تعديل الدور';
+  document.getElementById('adm-role-id').value = r.id;
+  document.getElementById('adm-role-name').value = r.name;
+  document.getElementById('adm-role-name').disabled = true;
+  document.getElementById('adm-role-name-ar').value = r.nameAr;
+  document.getElementById('adm-role-desc').value = r.description || '';
+  var permField = document.getElementById('adm-role-perm-field');
+  if (permField) permField.style.display = 'none';
+  document.getElementById('adm-role-modal').classList.add('open');
+};
+
+window.adminShowRolePermModal = function(id) {
+  var r = ADM.roles.find(function(x) { return x.id === id; });
+  if (!r) return;
+  ADM.editingRoleId = id;
+  document.getElementById('adm-role-modal-title').textContent = 'صلاحيات الدور: ' + r.nameAr;
+  document.getElementById('adm-role-id').value = r.id;
+  document.getElementById('adm-role-name').value = r.name;
+  document.getElementById('adm-role-name').disabled = true;
+  document.getElementById('adm-role-name-ar').value = r.nameAr;
+  document.getElementById('adm-role-desc').value = r.description || '';
+  var permField = document.getElementById('adm-role-perm-field');
+  if (permField) permField.style.display = 'block';
+  admApi('/admin/roles/' + id + '/permissions').then(function(d) {
+    ADM.pages = d.pages || [];
+    ADM.perms = d.permissions || [];
+    admRenderPermTree(d.matrix || {});
+  });
+  document.getElementById('adm-role-modal').classList.add('open');
+};
+
+function admRenderPermTree(matrix) {
+  var tree = document.getElementById('adm-perm-tree');
+  if (!tree) return;
+  var PERM_NAMES = ['view','create','edit','delete','export'];
+  tree.innerHTML = ADM.pages.map(function(pg) {
+    var grantedSet = new Set(matrix[pg.slug] || []);
+    var checks = PERM_NAMES.map(function(pn) {
+      var checked = grantedSet.has(pn) ? 'checked' : '';
+      return '<label class="adm-perm-check">'
+        + '<input type="checkbox" data-page="' + pg.slug + '" data-perm="' + pn + '" ' + checked + '>'
+        + admPermLabel(pn) + '</label>';
+    }).join('');
+    return '<div class="adm-perm-row"><span class="adm-perm-page">' + admEsc(pg.nameAr || pg.slug) + '</span><div class="adm-perm-checks">' + checks + '</div></div>';
+  }).join('');
+}
+
+window.adminCopyRolePerms = function() {
+  var fromId = parseInt((document.getElementById('adm-copy-from-role')||{}).value||'0');
+  if (!fromId) return;
+  admApi('/admin/roles/' + fromId + '/permissions').then(function(d) {
+    admRenderPermTree(d.matrix || {});
+  });
+};
+
+window.adminCloseRoleModal = function() {
+  document.getElementById('adm-role-modal').classList.remove('open');
+  ADM.editingRoleId = null;
+};
+
+window.adminSaveRole = function() {
+  var id = ADM.editingRoleId;
+  var name = (document.getElementById('adm-role-name')||{}).value||'';
+  var nameAr = (document.getElementById('adm-role-name-ar')||{}).value||'';
+  var desc = (document.getElementById('adm-role-desc')||{}).value||'';
+  var permField = document.getElementById('adm-role-perm-field');
+  var hasPermTree = permField && permField.style.display !== 'none';
+
+  if (!nameAr) { alert('الاسم العربي مطلوب'); return; }
+
+  var savePerms = function() {
+    if (!hasPermTree || !id) return Promise.resolve();
+    var matrix = {};
+    var boxes = document.querySelectorAll('#adm-perm-tree input[type="checkbox"]');
+    boxes.forEach(function(cb) {
+      var pg = cb.dataset.page;
+      var perm = cb.dataset.perm;
+      if (!matrix[pg]) matrix[pg] = [];
+      if (cb.checked) matrix[pg].push(perm);
+    });
+    return admJson('/admin/roles/' + id + '/permissions', 'PUT', { permissions: matrix });
+  };
+
+  var save = id
+    ? admJson('/admin/roles/' + id, 'PATCH', { nameAr, description: desc })
+    : admJson('/admin/roles', 'POST', { name, nameAr, description: desc });
+
+  save.then(function(d) {
+    if (!id && d.role) ADM.editingRoleId = d.role.id;
+    return savePerms();
+  }).then(function() {
+    adminCloseRoleModal();
+    adminLoadRoles();
+  }).catch(function(e) { alert('خطأ: ' + e.message); });
+};
+
+window.adminDeleteRole = function(id, name) {
+  if (!confirm('حذف الدور "' + name + '" نهائياً؟')) return;
+  admJson('/admin/roles/' + id, 'DELETE').then(function() { adminLoadRoles(); })
+    .catch(function(e) { alert('خطأ: ' + e.message); });
+};
+
+// ── Matrix tab ────────────────────────────────────────────────────────────────
+window.adminLoadMatrix = function() {
+  var wrap = document.getElementById('adm-matrix-wrap');
+  if (wrap) wrap.innerHTML = '<p style="color:var(--text-3);font-size:12.5px;padding:16px 0;">جارٍ التحميل…</p>';
+  admApi('/admin/matrix').then(function(d) {
+    ADM.matrixData = d;
+    ADM.pages = d.pages || [];
+    admRenderMatrix(d);
+  }).catch(function(e) {
+    if (wrap) wrap.innerHTML = '<p style="color:var(--danger);font-size:12.5px;">' + e.message + '</p>';
+  });
+};
+
+function admPermLevel(perms) {
+  var s = new Set(perms || []);
+  if (s.has('delete') || s.has('export')) return 'full';
+  if (s.has('create') || s.has('edit')) return 'edit';
+  if (s.has('view')) return 'view';
+  return 'none';
+}
+
+function admLevelIcon(level) {
+  if (level === 'full') return '<span class="adm-mx-full" title="كامل">★</span>';
+  if (level === 'edit') return '<span class="adm-mx-edit" title="تعديل">✏</span>';
+  if (level === 'view') return '<span class="adm-mx-view" title="عرض">✓</span>';
+  return '<span class="adm-mx-none" title="لا يوجد">✗</span>';
+}
+
+function admRenderMatrix(d) {
+  var wrap = document.getElementById('adm-matrix-wrap');
+  if (!wrap) return;
+  var pages = d.pages || [];
+  var users = d.users || [];
+  if (!users.length) { wrap.innerHTML = '<p style="color:var(--text-3);font-size:12.5px;padding:16px 0;">لا يوجد مستخدمون.</p>'; return; }
+
+  var h = '<table class="adm-mx-table"><thead><tr><th class="row-head">المستخدم / الصفحة</th>';
+  pages.forEach(function(pg) { h += '<th>' + admEsc(pg.nameAr || pg.slug) + '</th>'; });
+  h += '</tr></thead><tbody>';
+
+  users.forEach(function(u) {
+    h += '<tr><td class="row-head">' + admEsc(u.name) + '<br><span style="font-size:10.5px;color:var(--text-4)">' + admEsc(u.roleNameAr||'—') + '</span></td>';
+    pages.forEach(function(pg) {
+      var perms = (u.permissions || {})[pg.slug] || [];
+      var level = admPermLevel(perms);
+      h += '<td><span class="adm-mx-cell" onclick="admMxCellClick(' + u.id + ',\'' + pg.slug + '\',this)" data-level="' + level + '" data-user="' + u.id + '" data-page="' + pg.slug + '">' + admLevelIcon(level) + '</span></td>';
+    });
+    h += '</tr>';
+  });
+  h += '</tbody></table>';
+  wrap.innerHTML = h;
+}
+
+window.admMxCellClick = function(userId, pageSlug, el) {
+  admClosePopup();
+  var popup = document.getElementById('adm-mx-popup');
+  if (!popup) return;
+  var rect = el.getBoundingClientRect();
+  popup.style.top = (rect.bottom + window.scrollY + 4) + 'px';
+  popup.style.left = (rect.left + window.scrollX) + 'px';
+  var levels = [
+    { val: null, label: '✗  لا يوجد', cls: 'adm-mx-none' },
+    { val: 'view', label: '✓  عرض فقط', cls: 'adm-mx-view' },
+    { val: 'edit', label: '✏  عرض + تعديل', cls: 'adm-mx-edit' },
+    { val: 'full', label: '★  كامل', cls: 'adm-mx-full' },
+  ];
+  var LEVEL_PERMS = { none: [], view: ['view'], edit: ['view','create','edit'], full: ['view','create','edit','delete','export'] };
+  popup.innerHTML = levels.map(function(lv) {
+    return '<div class="adm-mx-popup-item" onclick="admMxSetLevel(' + userId + ',\'' + pageSlug + '\',\'' + (lv.val||'') + '\')">'
+      + '<span class="' + lv.cls + '">' + lv.label + '</span></div>';
+  }).join('');
+  popup.style.display = 'block';
+  ADM.mxPopupCell = el;
+  setTimeout(function() { document.addEventListener('click', admClosePopupOutside, { once: true }); }, 10);
+};
+
+window.admMxSetLevel = function(userId, pageSlug, level) {
+  admClosePopup();
+  var LEVEL_PERMS = { '': [], view: ['view'], edit: ['view','create','edit'], full: ['view','create','edit','delete','export'] };
+  var targetPerms = LEVEL_PERMS[level] || [];
+  var allPermNames = ['view','create','edit','delete','export'];
+  var chain = Promise.resolve();
+  allPermNames.forEach(function(pn) {
+    var inTarget = targetPerms.includes(pn);
+    chain = chain.then(function() {
+      return admJson('/admin/matrix/user-override', 'PUT', {
+        userId: userId,
+        pageSlug: pageSlug,
+        permName: pn,
+        grantType: inTarget ? 'allow' : 'deny',
+      });
+    });
+  });
+  chain.then(function() { adminLoadMatrix(); })
+    .catch(function(e) { alert('خطأ: ' + e.message); });
+};
+
+function admClosePopup() {
+  var popup = document.getElementById('adm-mx-popup');
+  if (popup) popup.style.display = 'none';
+}
+
+function admClosePopupOutside(e) {
+  var popup = document.getElementById('adm-mx-popup');
+  if (popup && !popup.contains(e.target)) admClosePopup();
+}
+
+window.adminExportMatrix = function() {
+  if (!ADM.matrixData) { alert('الرجاء تحميل المصفوفة أولاً'); return; }
+  var pages = ADM.matrixData.pages || [];
+  var users = ADM.matrixData.users || [];
+  var header = ['المستخدم','الدور'].concat(pages.map(function(p) { return p.nameAr || p.slug; }));
+  var rows = [header];
+  users.forEach(function(u) {
+    var row = [u.name, u.roleNameAr || '—'];
+    pages.forEach(function(pg) {
+      var perms = (u.permissions || {})[pg.slug] || [];
+      var lvMap = { none:'✗', view:'✓ عرض', edit:'✏ تعديل', full:'★ كامل' };
+      row.push(lvMap[admPermLevel(perms)] || '✗');
+    });
+    rows.push(row);
+  });
+  var csv = rows.map(function(r) { return r.map(function(v) { return '"' + String(v).replace(/"/g,'""') + '"'; }).join(','); }).join('\n');
+  admDownloadCsv(csv, 'permission-matrix.csv');
+};
+
+window.adminShowBulkApply = function() {
+  if (!ADM.roles.length) {
+    admApi('/admin/roles').then(function(d) {
+      ADM.roles = d.roles || [];
+      admPopulateRoleFilters();
+      admOpenBulkApply();
+    });
+  } else { admOpenBulkApply(); }
+};
+
+function admOpenBulkApply() {
+  var bulkUsers = document.getElementById('adm-bulk-users');
+  if (bulkUsers && ADM.matrixData) {
+    bulkUsers.innerHTML = (ADM.matrixData.users || []).map(function(u) {
+      return '<label style="display:flex;align-items:center;gap:8px;font-size:12.5px;">'
+        + '<input type="checkbox" value="' + u.id + '"> '
+        + admEsc(u.name) + ' <span style="color:var(--text-4);font-size:11px;">(' + admEsc(u.roleNameAr||'—') + ')</span></label>';
+    }).join('');
+  }
+  document.getElementById('adm-bulk-modal').classList.add('open');
+}
+
+window.adminDoBulkApply = function() {
+  var roleId = parseInt((document.getElementById('adm-bulk-from-role')||{}).value||'0');
+  if (!roleId) { alert('اختر دوراً للنسخ منه'); return; }
+  var checked = Array.from(document.querySelectorAll('#adm-bulk-users input[type="checkbox"]:checked')).map(function(cb) { return parseInt(cb.value); });
+  if (!checked.length) { alert('اختر مستخدماً على الأقل'); return; }
+  admApi('/admin/roles/' + roleId + '/permissions').then(function(d) {
+    var matrix = d.matrix || {};
+    var chain = Promise.resolve();
+    checked.forEach(function(userId) {
+      Object.entries(matrix).forEach(function(entry) {
+        var pageSlug = entry[0];
+        var permNames = entry[1];
+        var allPn = ['view','create','edit','delete','export'];
+        allPn.forEach(function(pn) {
+          chain = chain.then(function() {
+            return admJson('/admin/matrix/user-override','PUT',{
+              userId: userId, pageSlug: pageSlug, permName: pn,
+              grantType: permNames.includes(pn) ? 'allow' : 'deny',
+            });
+          });
+        });
+      });
+    });
+    return chain;
+  }).then(function() {
+    document.getElementById('adm-bulk-modal').classList.remove('open');
+    adminLoadMatrix();
+  }).catch(function(e) { alert('خطأ: ' + e.message); });
+};
+
+// ── Logs tab ──────────────────────────────────────────────────────────────────
+window.adminLoadLogs = function(page) {
+  page = page || ADM.logsPage;
+  ADM.logsPage = page;
+  var uid = (document.getElementById('adm-log-user')||{}).value||'';
+  var action = (document.getElementById('adm-log-action')||{}).value||'';
+  var from = (document.getElementById('adm-log-from')||{}).value||'';
+  var to = (document.getElementById('adm-log-to')||{}).value||'';
+  var list = document.getElementById('adm-logs-list');
+  if (list) list.innerHTML = '<p style="color:var(--text-3);font-size:12.5px;padding:16px 0;">جارٍ التحميل…</p>';
+  var qs = '?page=' + page + '&limit=30'
+    + (uid ? '&userId=' + uid : '')
+    + (action ? '&action=' + encodeURIComponent(action) : '')
+    + (from ? '&dateFrom=' + from : '')
+    + (to ? '&dateTo=' + to : '');
+  admApi('/admin/activity' + qs).then(function(d) {
+    admRenderLogs(d);
+    admPopulateLogUsers(d.logs || []);
+  }).catch(function(e) {
+    if (list) list.innerHTML = '<p style="color:var(--danger);font-size:12.5px;">' + e.message + '</p>';
+  });
+};
+
+function admPopulateLogUsers(logs) {
+  var sel = document.getElementById('adm-log-user');
+  if (!sel) return;
+  var seen = new Set();
+  var cur = sel.value;
+  var opts = '<option value="">كل المستخدمين</option>';
+  logs.forEach(function(l) {
+    if (l.userId && !seen.has(l.userId)) {
+      seen.add(l.userId);
+      opts += '<option value="' + l.userId + '">' + admEsc(l.userName||'#'+l.userId) + '</option>';
+    }
+  });
+  sel.innerHTML = opts;
+  if (cur) sel.value = cur;
+}
+
+function admRenderLogs(d) {
+  var list = document.getElementById('adm-logs-list');
+  if (!list) return;
+  var logs = d.logs || [];
+  if (!logs.length) { list.innerHTML = '<p style="color:var(--text-3);font-size:12.5px;padding:16px 0;">لا يوجد سجلات.</p>'; admRenderPager('adm-logs-pager', d.page, d.pages, 'adminLoadLogs'); return; }
+  var h = '';
+  var lastDay = '';
+  logs.forEach(function(l) {
+    var day = admFmtDay(l.createdAt);
+    if (day !== lastDay) {
+      h += '<div class="adm-log-day">' + day + '</div>';
+      lastDay = day;
+    }
+    var isSensitive = SENSITIVE_ACTIONS.includes(l.action);
+    var dotCls = admDotClass(l.action);
+    h += '<div class="adm-log-item">'
+      + '<div class="adm-log-dot ' + dotCls + '"></div>'
+      + '<div class="adm-log-body">'
+        + '<div class="adm-log-action">'
+          + (isSensitive ? '<span class="adm-log-sensitive">حساس</span>' : '')
+          + admActionLabel(l.action)
+          + '</div>'
+        + '<div class="adm-log-meta">'
+          + admEsc(l.userName||'غير معروف')
+          + (l.userEmail ? ' &lt;' + admEsc(l.userEmail) + '&gt;' : '')
+          + ' • '
+          + admFmt(l.createdAt)
+          + (l.ipAddress ? ' • IP: ' + admEsc(l.ipAddress) : '')
+          + '</div>'
+        + '</div>'
+      + '</div>';
+  });
+  list.innerHTML = h;
+  admRenderPager('adm-logs-pager', d.page, d.pages, 'adminLoadLogs');
+}
+
+window.adminExportLogs = function() {
+  var uid = (document.getElementById('adm-log-user')||{}).value||'';
+  var action = (document.getElementById('adm-log-action')||{}).value||'';
+  var from = (document.getElementById('adm-log-from')||{}).value||'';
+  var to = (document.getElementById('adm-log-to')||{}).value||'';
+  var qs = '?limit=5000'
+    + (uid ? '&userId=' + uid : '')
+    + (action ? '&action=' + encodeURIComponent(action) : '')
+    + (from ? '&dateFrom=' + from : '')
+    + (to ? '&dateTo=' + to : '');
+  authFetchWithToken('/api/admin/activity/export' + qs).then(function(r) {
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.text();
+  }).then(function(csv) {
+    admDownloadCsv(csv, 'activity-log.csv');
+  }).catch(function(e) { alert('خطأ: ' + e.message); });
+};
+
+function admDownloadCsv(csv, filename) {
+  var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  setTimeout(function() { URL.revokeObjectURL(url); a.remove(); }, 1000);
+}
+
+// ── Settings tab ──────────────────────────────────────────────────────────────
+window.adminLoadSettings = function() {
+  var form = document.getElementById('adm-settings-form');
+  if (form) form.innerHTML = '<p style="color:var(--text-3);font-size:12.5px;">جارٍ التحميل…</p>';
+  admApi('/admin/settings').then(function(d) {
+    admRenderSettings(d.settings || {});
+  }).catch(function(e) {
+    if (form) form.innerHTML = '<p style="color:var(--danger);font-size:12.5px;">' + e.message + '</p>';
+  });
+};
+
+function admRenderSettings(s) {
+  var form = document.getElementById('adm-settings-form');
+  if (!form) return;
+  form.innerHTML = ''
+    + '<div class="adm-set-section"><div class="adm-set-head">إعدادات كلمة المرور</div><div class="adm-set-body">'
+    + '<div class="adm-set-row">'
+    + admSetNum('password_min_length', 'الحد الأدنى لأحرف كلمة المرور', s.password_min_length||'8', 4, 64)
+    + admSetNum('password_expiry_days', 'انتهاء صلاحية كلمة المرور (أيام)', s.password_expiry_days||'90', 0, 365)
+    + '</div>'
+    + '<div class="adm-set-row">'
+    + admSetCheck('password_require_uppercase', 'تطلب حرفاً كبيراً واحداً على الأقل', s.password_require_uppercase !== 'false')
+    + admSetCheck('password_require_symbols', 'تطلب رمزاً خاصاً واحداً على الأقل', s.password_require_symbols !== 'false')
+    + '</div>'
+    + '</div></div>'
+    + '<div class="adm-set-section"><div class="adm-set-head">إعدادات الجلسة</div><div class="adm-set-body">'
+    + '<div class="adm-set-row">'
+    + admSetNum('session_duration_minutes', 'مدة الجلسة (بالدقائق)', s.session_duration_minutes||'60', 5, 1440)
+    + admSetNum('auto_logout_minutes', 'تسجيل خروج تلقائي بعد خمول (دقائق)', s.auto_logout_minutes||'30', 5, 480)
+    + '</div>'
+    + '</div></div>';
+}
+
+function admSetNum(key, label, val, min, max) {
+  return '<div><label class="adm-label">' + label + '</label>'
+    + '<input class="adm-input" type="number" min="' + min + '" max="' + max + '" id="adm-set-' + key + '" value="' + admEsc(val) + '" style="width:100%;height:36px;"></div>';
+}
+
+function admSetCheck(key, label, checked) {
+  return '<div style="display:flex;align-items:center;gap:8px;">'
+    + '<input type="checkbox" id="adm-set-' + key + '" ' + (checked?'checked':'') + ' style="accent-color:var(--primary);width:16px;height:16px;">'
+    + '<label for="adm-set-' + key + '" class="adm-label" style="margin:0;cursor:pointer;">' + label + '</label></div>';
+}
+
+window.adminSaveSettings = function() {
+  var keys = ['password_min_length','password_expiry_days','password_require_uppercase','password_require_symbols','session_duration_minutes','auto_logout_minutes'];
+  var settings = {};
+  keys.forEach(function(k) {
+    var el = document.getElementById('adm-set-' + k);
+    if (!el) return;
+    if (el.type === 'checkbox') settings[k] = el.checked ? 'true' : 'false';
+    else settings[k] = el.value;
+  });
+  admJson('/admin/settings', 'PUT', { settings: settings }).then(function() {
+    alert('✓ تم حفظ الإعدادات بنجاح');
+  }).catch(function(e) { alert('خطأ: ' + e.message); });
+};
+
+})(); // end admin IIFE
+
+// ════════════════════════════════════════
 // NAVIGATION
 // ════════════════════════════════════════
 const PAGE_LABELS = {
   reports:'الأداء التنفيذي', home:'الرئيسية',
   initiatives:'المبادرات', news:'الأخبار العالمية', weekend:'نهاية الأسبوع',
   weekstart:'بداية الأسبوع', intldays:'الأيام العالمية',
-  aiyear:'عام الذكاء الاصطناعي ٢٠٢٦'
+  aiyear:'عام الذكاء الاصطناعي ٢٠٢٦',
+  smart_assistant:'المساعد الذكي', settings:'الإعدادات',
+  admin_panel:'لوحة التحكم',
 };
 
 function showSection(name) {
@@ -3425,6 +4508,7 @@ function showSection(name) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
   closeMobileSidebar();
   if (name === 'aiyear') aiyInit();
+  if (name === 'admin_panel') adminInit();
 }
 
 function toggleMobileSidebar() {
@@ -5053,7 +6137,7 @@ function idRenderArchiveGrid(days) {
       '<div class="id-archive-card-meta">' + cat + date + '</div>' +
       '<div class="id-archive-card-footer">' +
         '<span>⚡ ' + actCount + ' تفعيل · ' + updated + '</span>' +
-        '<button class="id-archive-card-del" onclick="event.stopPropagation();idDeleteDay(' + day.id + ')" title="حذف">✕</button>' +
+        (authCanPerm('intldays', 'delete') ? '<button class="id-archive-card-del" onclick="event.stopPropagation();idDeleteDay(' + day.id + ')" title="حذف">✕</button>' : '') +
       '</div>' +
     '</div>';
   }).join('');
