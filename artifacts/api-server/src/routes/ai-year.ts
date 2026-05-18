@@ -240,20 +240,11 @@ router.put("/ai-year/activations/:id", async (req: Request, res: Response) => {
 });
 
 // ─── DELETE /api/ai-year/activations/:id ─────────────────────────
-// Admin-only: requires X-Admin-Key header matching ADMIN_KEY env var.
+// Admin-only: requires authenticated session with admin or super_admin role.
 router.delete("/ai-year/activations/:id", async (req: Request, res: Response) => {
-  const adminKey = process.env.ADMIN_KEY;
-  if (!adminKey) {
-    res.status(503).json({ error: "ADMIN_KEY env var not configured — set it in Replit Secrets" });
-    return;
-  }
-  const provided = String(req.headers["x-admin-key"] ?? "");
-  // Use timing-safe comparison to prevent timing-based key extraction attacks
-  const keysMatch =
-    provided.length === adminKey.length &&
-    timingSafeEqual(Buffer.from(provided), Buffer.from(adminKey));
-  if (!keysMatch) {
-    res.status(403).json({ error: "ممنوع: مفتاح المدير غير صحيح" });
+  const user = (req as any).user;
+  if (!user || (user.role !== "admin" && user.role !== "super_admin")) {
+    res.status(403).json({ error: "ممنوع: يتطلب صلاحية مدير" });
     return;
   }
 

@@ -6837,26 +6837,14 @@ function aiyLBCopyLink() {
 
 async function aiyLBDelete() {
   if (!aiyCurrentId) return;
-  var adminKey = sessionStorage.getItem('aiy-admin-key') || '';
-  if (!adminKey) {
-    adminKey = prompt('أدخل مفتاح المدير (ADMIN_KEY) لتأكيد الحذف:') || '';
-    if (!adminKey) return;
-    sessionStorage.setItem('aiy-admin-key', adminKey);
-  }
   if (!confirm('هل تريد حذف هذا التفعيل نهائياً؟')) return;
   try {
-    var res = await fetch('/api/ai-year/activations/' + aiyCurrentId, {
-      method: 'DELETE',
-      headers: { 'X-Admin-Key': adminKey }
+    var res = await authFetchWithToken('/api/ai-year/activations/' + aiyCurrentId, {
+      method: 'DELETE'
     });
     var body = await res.json();
     if (!res.ok) {
-      if (res.status === 403) {
-        sessionStorage.removeItem('aiy-admin-key');
-        alert('مفتاح المدير غير صحيح. حاول مرة أخرى.');
-      } else {
-        alert(body.error || 'فشل الحذف');
-      }
+      alert(body.error || 'فشل الحذف');
       return;
     }
     aiyCloseLB();
