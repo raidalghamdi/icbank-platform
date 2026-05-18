@@ -2754,14 +2754,11 @@ body {
       </select>
       <select id="aiy-filter-channel" onchange="aiyApplyFilters()">
         <option value="">كل القنوات</option>
-        <option value="تويتر / X">تويتر / X</option>
-        <option value="لينكدإن">لينكدإن</option>
-        <option value="إنستغرام">إنستغرام</option>
-        <option value="يوتيوب">يوتيوب</option>
-        <option value="شاشات داخلية">شاشات داخلية</option>
-        <option value="بريد إلكتروني">بريد إلكتروني</option>
-        <option value="تطبيق داخلي">تطبيق داخلي</option>
-        <option value="أخرى">أخرى</option>
+        <option value="البوابة الداخلية">البوابة الداخلية</option>
+        <option value="الشاشات الداخلية">الشاشات الداخلية</option>
+        <option value="البريد الالكتروني">البريد الالكتروني</option>
+        <option value="الواتساب">الواتساب</option>
+        <option value="بييم">بييم</option>
       </select>
       <div class="aiy-search-wrap">
         <span>🔍</span>
@@ -2821,14 +2818,11 @@ body {
         <div class="aiy-form-group">
           <label class="aiy-form-label">القناة <span style="color:var(--danger)">*</span></label>
           <select id="aiy-f-channel" class="aiy-form-select">
-            <option value="تويتر / X">تويتر / X</option>
-            <option value="لينكدإن">لينكدإن</option>
-            <option value="إنستغرام">إنستغرام</option>
-            <option value="يوتيوب">يوتيوب</option>
-            <option value="شاشات داخلية">شاشات داخلية</option>
-            <option value="بريد إلكتروني">بريد إلكتروني</option>
-            <option value="تطبيق داخلي">تطبيق داخلي</option>
-            <option value="أخرى">أخرى</option>
+            <option value="البوابة الداخلية">البوابة الداخلية</option>
+            <option value="الشاشات الداخلية">الشاشات الداخلية</option>
+            <option value="البريد الالكتروني">البريد الالكتروني</option>
+            <option value="الواتساب">الواتساب</option>
+            <option value="بييم">بييم</option>
           </select>
         </div>
         <div class="aiy-form-group">
@@ -5352,7 +5346,7 @@ function aiyOpenAdd(editData) {
   f('aiy-f-title', editData ? editData.title : '');
   f('aiy-f-month', editData ? String(editData.month) : '1');
   f('aiy-f-type', editData ? editData.type : 'حملة');
-  f('aiy-f-channel', editData ? editData.channel : 'تويتر / X');
+  f('aiy-f-channel', editData ? editData.channel : 'البوابة الداخلية');
   f('aiy-f-desc', editData ? (editData.description || '') : '');
   f('aiy-f-reach', editData ? (editData.reach != null ? String(editData.reach) : '') : '');
   f('aiy-f-engagement', editData ? (editData.engagement != null ? String(editData.engagement) : '') : '');
