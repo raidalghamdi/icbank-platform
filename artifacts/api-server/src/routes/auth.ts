@@ -9,11 +9,12 @@ import {
 } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { authenticate, requireAuth, getUserPermissions } from "../middleware/auth";
+import { getSettings } from "../services/settings";
 
 const router: IRouter = Router();
 
-const REFRESH_TOKEN_EXPIRY = 7 * 24 * 60 * 60 * 1000;
-const ACCESS_TOKEN_EXPIRY = "15m";
+const REFRESH_TOKEN_DAYS = 7;
+const REFRESH_TOKEN_EXPIRY_MS = REFRESH_TOKEN_DAYS * 24 * 60 * 60 * 1000;
 
 function getJwtSecret(): string {
   const secret = process.env["SESSION_SECRET"] || process.env["JWT_SECRET"];
@@ -21,9 +22,10 @@ function getJwtSecret(): string {
   return secret;
 }
 
-function generateAccessToken(userId: number, email: string, name: string): string {
+function generateAccessToken(userId: number, email: string, name: string, expiry = "60m"): string {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return jwt.sign({ sub: userId, email, name }, getJwtSecret(), {
-    expiresIn: ACCESS_TOKEN_EXPIRY,
+    expiresIn: expiry as any,
   });
 }
 
@@ -131,18 +133,19 @@ router.post("/auth/login", loginLimiter, async (req: Request, res: Response) => 
     .set({ failedAttempts: 0, lastLogin: new Date(), updatedAt: new Date() })
     .where(eq(usersTable.id, user.id));
 
-  const accessToken = generateAccessToken(user.id, user.email, user.name);
+  const settings = await getSettings();
+  const sessionMins = Math.max(5, parseInt(settings["session_duration_minutes"] || "60"));
+  const accessToken = generateAccessToken(user.id, user.email, user.name, `${sessionMins}m`);
   const refreshToken = generateRefreshToken(user.id);
 
-  // Refresh token is always 7 days per spec.
-  // The "remember me" flag only affects the session cookie behaviour of the
-  // access_token on the client side; the httpOnly refresh_token lifetime is fixed.
+  // Refresh token is always 7 days.
+  // session_duration_minutes controls the access token lifetime.
   res.cookie("refresh_token", refreshToken, {
     httpOnly: true,
     secure: process.env["NODE_ENV"] === "production",
     sameSite: "lax",
     path: "/api/auth",
-    maxAge: REFRESH_TOKEN_EXPIRY,
+    maxAge: REFRESH_TOKEN_EXPIRY_MS,
   });
 
   const { permissions, role } = await getUserPermissions(user.id);

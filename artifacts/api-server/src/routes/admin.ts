@@ -14,6 +14,7 @@ import {
 } from "@workspace/db";
 import { eq, desc, ilike, or, and, count, sql, asc } from "drizzle-orm";
 import { requireAdmin } from "../middleware/auth";
+import { getSettings, validatePassword, invalidateSettingsCache } from "../services/settings";
 
 const router = Router();
 
@@ -129,6 +130,13 @@ router.post("/admin/users", async (req: Request, res: Response) => {
   }
 
   const tempPassword = password || genTempPassword();
+
+  if (password) {
+    const settings = await getSettings();
+    const pwError = validatePassword(password, settings);
+    if (pwError) { res.status(400).json({ error: pwError }); return; }
+  }
+
   const hash = await bcryptjs.hash(tempPassword, 12);
 
   const [user] = await db
@@ -460,6 +468,79 @@ router.put("/admin/matrix/user-override", async (req: Request, res: Response) =>
   res.json({ ok: true });
 });
 
+router.get("/admin/matrix/export", async (_req: Request, res: Response) => {
+  const pages = await db
+    .select()
+    .from(pagesTable)
+    .where(eq(pagesTable.isActive, true))
+    .orderBy(asc(pagesTable.sortOrder));
+
+  const users = await db
+    .select({
+      id: usersTable.id,
+      name: usersTable.name,
+      email: usersTable.email,
+      roleId: userRolesTable.roleId,
+      roleNameAr: rolesTable.nameAr,
+    })
+    .from(usersTable)
+    .leftJoin(userRolesTable, eq(userRolesTable.userId, usersTable.id))
+    .leftJoin(rolesTable, eq(rolesTable.id, userRolesTable.roleId))
+    .orderBy(asc(usersTable.id));
+
+  const rpRows = await db
+    .select({ roleId: rolePermissionsTable.roleId, pageId: rolePermissionsTable.pageId, permName: permissionsTable.name })
+    .from(rolePermissionsTable)
+    .innerJoin(permissionsTable, eq(permissionsTable.id, rolePermissionsTable.permissionId));
+
+  const rolePermsMap: Record<number, Record<number, string[]>> = {};
+  for (const row of rpRows) {
+    if (!rolePermsMap[row.roleId]) rolePermsMap[row.roleId] = {};
+    if (!rolePermsMap[row.roleId]![row.pageId]) rolePermsMap[row.roleId]![row.pageId] = [];
+    rolePermsMap[row.roleId]![row.pageId]!.push(row.permName);
+  }
+
+  const overrides = await db
+    .select({ userId: userPageOverridesTable.userId, pageId: userPageOverridesTable.pageId, permName: permissionsTable.name, grantType: userPageOverridesTable.grantType })
+    .from(userPageOverridesTable)
+    .innerJoin(permissionsTable, eq(permissionsTable.id, userPageOverridesTable.permissionId));
+
+  const userOvsMap: Record<number, Record<number, { perm: string; type: string }[]>> = {};
+  for (const ov of overrides) {
+    if (!userOvsMap[ov.userId]) userOvsMap[ov.userId] = {};
+    if (!userOvsMap[ov.userId]![ov.pageId]) userOvsMap[ov.userId]![ov.pageId] = [];
+    userOvsMap[ov.userId]![ov.pageId]!.push({ perm: ov.permName, type: ov.grantType });
+  }
+
+  const header = ["المستخدم", "البريد", "الدور", ...pages.map((p) => p.nameAr || p.slug)];
+  const csvRows = [header];
+
+  for (const u of users) {
+    const rolePerms = u.roleId ? (rolePermsMap[u.roleId] || {}) : {};
+    const row: string[] = [u.name, u.email, u.roleNameAr || "—"];
+    for (const pg of pages) {
+      const base = new Set(rolePerms[pg.id] || []);
+      const ovs = (userOvsMap[u.id] || {})[pg.id] || [];
+      for (const ov of ovs) {
+        if (ov.type === "allow") base.add(ov.perm);
+        else if (ov.type === "deny") base.delete(ov.perm);
+      }
+      const perms = [...base];
+      let level = "✗";
+      if (perms.includes("delete") || perms.includes("export")) level = "★ كامل";
+      else if (perms.includes("create") || perms.includes("edit")) level = "✏ تعديل";
+      else if (perms.includes("view")) level = "✓ عرض";
+      row.push(level);
+    }
+    csvRows.push(row);
+  }
+
+  const csv = csvRows.map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
+  res.setHeader("Content-Type", "text/csv; charset=utf-8");
+  res.setHeader("Content-Disposition", 'attachment; filename="permissions-matrix.csv"');
+  res.send("\ufeff" + csv);
+});
+
 // ── Activity Logs ─────────────────────────────────────────────────────────────
 
 const buildLogConditions = (q: Record<string, string>) => {
@@ -481,6 +562,7 @@ router.get("/admin/activity", async (req: Request, res: Response) => {
   const logs = await db
     .select({
       id: activityLogsTable.id,
+      userId: activityLogsTable.userId,
       action: activityLogsTable.action,
       entityType: activityLogsTable.entityType,
       entityId: activityLogsTable.entityId,
@@ -512,6 +594,7 @@ router.get("/admin/activity/export", async (req: Request, res: Response) => {
   const logs = await db
     .select({
       id: activityLogsTable.id,
+      userId: activityLogsTable.userId,
       action: activityLogsTable.action,
       entityType: activityLogsTable.entityType,
       entityId: activityLogsTable.entityId,
@@ -579,6 +662,7 @@ router.put("/admin/settings", async (req: Request, res: Response) => {
       });
   }
 
+  invalidateSettingsCache();
   await logAdminAction(req, "settings_updated", "system", "settings", { keys: Object.keys(settings) });
   res.json({ ok: true });
 });

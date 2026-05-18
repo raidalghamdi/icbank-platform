@@ -3383,11 +3383,15 @@ function authUpdateUI() {
 
   // ai_year
   var aiyAdd = document.getElementById('aiy-btn-add');
-  if (aiyAdd) aiyAdd.style.display = hasP('ai_year', 'create') ? '' : 'none';
+  if (aiyAdd) aiyAdd.style.display = hasP('aiyear', 'create') ? '' : 'none';
   var aiyEdit = document.getElementById('aiy-lb-edit-btn');
-  if (aiyEdit) aiyEdit.style.display = hasP('ai_year', 'edit') ? '' : 'none';
+  if (aiyEdit) aiyEdit.style.display = hasP('aiyear', 'edit') ? '' : 'none';
   var aiyDel = document.getElementById('aiy-lb-del-btn');
-  if (aiyDel) aiyDel.style.display = hasP('ai_year', 'delete') ? '' : 'none';
+  if (aiyDel) aiyDel.style.display = hasP('aiyear', 'delete') ? '' : 'none';
+
+  // intl_days
+  var idSaveBtn = document.getElementById('id-save-btn');
+  if (idSaveBtn) idSaveBtn.style.display = hasP('intldays', 'create') ? '' : 'none';
 }
 
 function authCanPerm(page, perm) {
