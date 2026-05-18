@@ -70,6 +70,28 @@
   --topbar-h:  60px;
 }
 
+/* ═══ AUTH LOADING OVERLAY ═══ */
+#auth-loading-overlay {
+  position: fixed; inset: 0;
+  background: var(--bg);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 16px;
+  transition: opacity 0.2s;
+}
+#auth-loading-overlay.hidden { opacity: 0; pointer-events: none; }
+.auth-spinner {
+  width: 36px; height: 36px;
+  border: 3px solid var(--primary-100);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html { -webkit-font-smoothing: antialiased; }
 body {
@@ -1892,6 +1914,9 @@ body {
     <symbol id="i-menu"    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6"  x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></symbol>
     <symbol id="i-x"       viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></symbol>
     <symbol id="i-globe"   viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></symbol>
+    <symbol id="i-shield"  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></symbol>
+    <symbol id="i-log-out" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></symbol>
+    <symbol id="i-lock"    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
   </defs>
 </svg>
 
@@ -1902,6 +1927,11 @@ body {
 <div id="sidebar-quick" style="display:none"></div>
 <span id="stat-news-count" style="display:none"></span>
 <span id="stat-total" style="display:none"></span>
+
+<div id="auth-loading-overlay">
+  <div class="auth-spinner"></div>
+  <div style="font-size:13px;color:var(--text-3);font-family:var(--sans);">جارٍ التحقق من الجلسة...</div>
+</div>
 
 <div class="mob-overlay" id="mob-overlay" onclick="closeMobileSidebar()"></div>
 
@@ -1974,17 +2004,23 @@ body {
           <span class="ico"><svg><use href="#i-settings"/></svg></span>
           <span>الإعدادات</span>
         </a>
+        <a class="nav-item" id="nav-admin-panel" data-page="admin_panel" onclick="showSection('admin_panel')" style="display:none;">
+          <span class="ico"><svg><use href="#i-shield"/></svg></span>
+          <span>لوحة التحكم</span>
+        </a>
       </div>
     </div>
 
     <div class="sidebar-foot">
-      <div class="user-card">
-        <div class="user-avatar">إ</div>
+      <div class="user-card" id="auth-user-card">
+        <div class="user-avatar" id="auth-avatar">؟</div>
         <div class="user-info">
-          <div class="user-name">إدارة التواصل</div>
-          <div class="user-role">مدير البوابة الداخلية</div>
+          <div class="user-name" id="auth-name">جارٍ التحميل...</div>
+          <div class="user-role" id="auth-role">—</div>
         </div>
-        <span class="ico" style="width:14px;height:14px;color:var(--text-4);"><svg><use href="#i-chevron-up"/></svg></span>
+        <button class="icon-btn" id="btn-logout" onclick="authLogout()" title="تسجيل الخروج" style="width:28px;height:28px;border:none;background:transparent;cursor:pointer;color:var(--text-4);">
+          <span class="ico" style="width:14px;height:14px;"><svg><use href="#i-log-out"/></svg></span>
+        </button>
       </div>
     </div>
   </aside>
@@ -2902,11 +2938,165 @@ body {
     </div>
   </div>
 
+  <!-- ══ 403 Forbidden Section ══ -->
+  <div class="page-section" id="section-403" style="display:none;">
+    <div style="text-align:center;padding:80px 20px;">
+      <div style="font-size:72px;margin-bottom:16px;">🔒</div>
+      <div style="font-size:22px;font-weight:700;color:var(--text);margin-bottom:8px;">ليس لديك صلاحية</div>
+      <div style="font-size:14px;color:var(--text-3);margin-bottom:24px;">لا يمكنك الوصول إلى هذه الصفحة بالصلاحيات الحالية.</div>
+      <button class="btn btn-ghost" onclick="showSection('home')">
+        <span class="ico"><svg><use href="#i-home"/></svg></span>
+        العودة للرئيسية
+      </button>
+    </div>
+  </div>
+
   </div><!-- end main-inner -->
   </main>
 </div><!-- end .app -->
 
 <script>
+// ════════════════════════════════════════
+// AUTH GUARD
+// ════════════════════════════════════════
+
+var AUTH_USER = null;
+
+// Page slug ↔ permission key mapping
+var PAGE_PERM_MAP = {
+  'reports':    'dashboard',
+  'home':       'home',
+  'initiatives':'initiatives',
+  'news':       'world_news',
+  'weekend':    'weekend',
+  'weekstart':  'week_start',
+  'intldays':   'international_days',
+  'aiyear':     'ai_year',
+  'admin_panel':'admin_panel',
+};
+
+var ROLE_LABELS = {
+  'super_admin': 'مدير النظام',
+  'admin':       'مدير',
+  'editor':      'محرر',
+  'viewer':      'مشاهد',
+  'guest':       'ضيف',
+};
+
+function authGetToken() {
+  return localStorage.getItem('access_token');
+}
+function authSetToken(t) {
+  localStorage.setItem('access_token', t);
+}
+function authClear() {
+  localStorage.removeItem('access_token');
+  localStorage.removeItem('user_info');
+}
+
+async function authFetchWithToken(url, opts) {
+  opts = opts || {};
+  opts.credentials = 'include';
+  var token = authGetToken();
+  if (token) {
+    opts.headers = Object.assign({}, opts.headers || {}, { 'Authorization': 'Bearer ' + token });
+  }
+  return fetch(url, opts);
+}
+
+async function authRefresh() {
+  try {
+    var resp = await fetch('/api/auth/refresh', { method: 'POST', credentials: 'include' });
+    if (!resp.ok) return null;
+    var data = await resp.json();
+    authSetToken(data.accessToken);
+    return data;
+  } catch(e) {
+    return null;
+  }
+}
+
+async function authCheckSession() {
+  var token = authGetToken();
+  if (!token) {
+    var refreshed = await authRefresh();
+    if (!refreshed) { window.location.href = '/login'; return; }
+    token = refreshed.accessToken;
+    AUTH_USER = refreshed.user;
+  }
+
+  try {
+    var resp = await fetch('/api/auth/me', {
+      credentials: 'include',
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+
+    if (resp.status === 401) {
+      var refreshed = await authRefresh();
+      if (!refreshed) { authClear(); window.location.href = '/login'; return; }
+      AUTH_USER = refreshed.user;
+    } else if (!resp.ok) {
+      authClear(); window.location.href = '/login'; return;
+    } else {
+      AUTH_USER = await resp.json();
+    }
+  } catch(e) {
+    authClear(); window.location.href = '/login'; return;
+  }
+
+  authUpdateUI();
+  var overlay = document.getElementById('auth-loading-overlay');
+  if (overlay) {
+    overlay.classList.add('hidden');
+    setTimeout(function() { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); }, 300);
+  }
+}
+
+function authUpdateUI() {
+  if (!AUTH_USER) return;
+  var u = AUTH_USER;
+
+  var avatarEl = document.getElementById('auth-avatar');
+  var nameEl   = document.getElementById('auth-name');
+  var roleEl   = document.getElementById('auth-role');
+
+  if (avatarEl) avatarEl.textContent = u.name ? u.name.charAt(0) : '؟';
+  if (nameEl)   nameEl.textContent   = u.name || '';
+  if (roleEl)   roleEl.textContent   = ROLE_LABELS[u.role] || u.role || '';
+
+  var adminNavEl = document.getElementById('nav-admin-panel');
+  if (adminNavEl && (u.role === 'super_admin' || u.role === 'admin')) {
+    adminNavEl.style.display = '';
+  }
+
+  var perms = u.permissions || {};
+  document.querySelectorAll('.nav-item[data-page]').forEach(function(el) {
+    var page = el.getAttribute('data-page');
+    var permKey = PAGE_PERM_MAP[page] || page;
+    if (page === 'admin_panel') return;
+    if (u.isSuperAdmin) return;
+    if (page === 'home') return;
+    var allowed = perms[permKey] && perms[permKey].includes('view');
+    if (!allowed) el.style.display = 'none';
+  });
+}
+
+function authCanView(pageName) {
+  if (!AUTH_USER) return false;
+  if (AUTH_USER.isSuperAdmin) return true;
+  if (pageName === 'home') return true;
+  var permKey = PAGE_PERM_MAP[pageName] || pageName;
+  var pagePerms = (AUTH_USER.permissions || {})[permKey] || [];
+  return pagePerms.includes('view');
+}
+
+function authLogout() {
+  authFetchWithToken('/api/auth/logout', { method: 'POST' }).finally(function() {
+    authClear();
+    window.location.href = '/login';
+  });
+}
+
 // ════════════════════════════════════════
 // DATA
 // ════════════════════════════════════════
@@ -3200,7 +3390,20 @@ const PAGE_LABELS = {
 };
 
 function showSection(name) {
-  document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+  if (name !== '403' && !authCanView(name)) {
+    document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(a => a.classList.remove('active'));
+    const sec403 = document.getElementById('section-403');
+    if (sec403) sec403.style.display = 'block';
+    const bc = document.getElementById('bc-current');
+    if (bc) bc.textContent = 'غير مصرح';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    closeMobileSidebar();
+    return;
+  }
+  document.querySelectorAll('.page-section').forEach(s => { s.classList.remove('active'); s.style.display = ''; });
+  const sec403 = document.getElementById('section-403');
+  if (sec403) sec403.style.display = 'none';
   document.querySelectorAll('.nav-item').forEach(a => a.classList.remove('active'));
   const sec = document.getElementById('section-' + name);
   if (sec) sec.classList.add('active');
@@ -3232,7 +3435,8 @@ function closeMobileSidebar() {
 // ════════════════════════════════════════
 // INIT
 // ════════════════════════════════════════
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  await authCheckSession();
   renderHomeInitiatives();
   renderAllInitiatives(INITIATIVES);
   initWeekend();

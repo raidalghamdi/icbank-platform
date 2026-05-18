@@ -6,6 +6,7 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = process.env.PORT || 3000;
 const HTML_FILE = path.join(__dirname, 'index.html');
+const LOGIN_FILE = path.join(__dirname, 'login.html');
 
 const OPENAI_BASE_URL = process.env.AI_INTEGRATIONS_OPENAI_BASE_URL;
 const OPENAI_API_KEY = process.env.AI_INTEGRATIONS_OPENAI_API_KEY;
@@ -250,7 +251,17 @@ const server = http.createServer(async (req, res) => {
   }
 
 
-  // Static HTML
+  // Login page
+  if (req.url === '/login' || req.url === '/login.html') {
+    fs.readFile(LOGIN_FILE, (err, data) => {
+      if (err) { res.writeHead(500); res.end('Error loading login page'); return; }
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache' });
+      res.end(data);
+    });
+    return;
+  }
+
+  // Static HTML — auth guard runs client-side via /api/auth/me
   fs.readFile(HTML_FILE, (err, data) => {
     if (err) { res.writeHead(500); res.end('Error loading page'); return; }
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache' });
