@@ -2832,6 +2832,10 @@ body {
         </div>
         <div class="aiy-form-row">
           <div class="aiy-form-group">
+            <label class="aiy-form-label">تاريخ اليوم <span style="color:var(--danger)">*</span></label>
+            <input type="date" id="aiy-f-date" class="aiy-form-input">
+          </div>
+          <div class="aiy-form-group">
             <label class="aiy-form-label">الشهر <span style="color:var(--danger)">*</span></label>
             <select id="aiy-f-month" class="aiy-form-select">
               <option value="1">يناير</option><option value="2">فبراير</option>
@@ -2847,6 +2851,7 @@ body {
             <select id="aiy-f-type" class="aiy-form-select">
               <option value="حملة">حملة</option>
               <option value="فعالية">فعالية</option>
+              <option value="مبادرة">مبادرة</option>
               <option value="منشور">منشور</option>
               <option value="إنفوجرافيك">إنفوجرافيك</option>
               <option value="فيديو">فيديو</option>
@@ -2868,20 +2873,6 @@ body {
         <div class="aiy-form-group">
           <label class="aiy-form-label">الوصف</label>
           <textarea id="aiy-f-desc" class="aiy-form-textarea" placeholder="وصف مختصر للتفعيل..."></textarea>
-        </div>
-        <div class="aiy-form-row">
-          <div class="aiy-form-group">
-            <label class="aiy-form-label">الوصول (أشخاص)</label>
-            <input type="number" id="aiy-f-reach" class="aiy-form-input" placeholder="0">
-          </div>
-          <div class="aiy-form-group">
-            <label class="aiy-form-label">التفاعل</label>
-            <input type="number" id="aiy-f-engagement" class="aiy-form-input" placeholder="0">
-          </div>
-        </div>
-        <div class="aiy-form-group">
-          <label class="aiy-form-label">الوسوم (مفصولة بفاصلة)</label>
-          <input type="text" id="aiy-f-tags" class="aiy-form-input" placeholder="ذكاء اصطناعي، حملة، داخلية">
         </div>
         <div class="aiy-form-group">
           <label class="aiy-form-label">ملاحظات</label>
@@ -6868,14 +6859,13 @@ function aiyOpenAdd(editData) {
   // Reset / fill form
   var f = function(id, val) { var el = document.getElementById(id); if (el) el.value = val !== undefined ? val : ''; };
   f('aiy-f-title', editData ? editData.title : '');
-  f('aiy-f-month', editData ? String(editData.month) : '1');
+  var todayStr = new Date().toISOString().slice(0, 10);
+  f('aiy-f-date', editData ? (editData.activationDate || todayStr) : todayStr);
+  f('aiy-f-month', editData ? String(editData.month) : String(new Date().getMonth() + 1));
   f('aiy-f-type', editData ? editData.type : 'حملة');
   var activeChannels = editData ? (editData.channels || []) : ['البوابة الداخلية'];
   document.querySelectorAll('.aiy-ch-cb').forEach(function(cb) { cb.checked = activeChannels.includes(cb.value); });
   f('aiy-f-desc', editData ? (editData.description || '') : '');
-  f('aiy-f-reach', editData ? (editData.reach != null ? String(editData.reach) : '') : '');
-  f('aiy-f-engagement', editData ? (editData.engagement != null ? String(editData.engagement) : '') : '');
-  f('aiy-f-tags', editData ? ((editData.tags || []).join(', ')) : '');
   f('aiy-f-notes', editData ? (editData.notes || '') : '');
 
   aiyRenderFileList();
@@ -6936,15 +6926,12 @@ function aiyRemoveUploaded(idx) {
 
 async function aiySaveActivation() {
   var title = (document.getElementById('aiy-f-title') || {}).value || '';
+  var activationDate = (document.getElementById('aiy-f-date') || {}).value || '';
   var month = parseInt((document.getElementById('aiy-f-month') || {}).value || '1');
   var type  = (document.getElementById('aiy-f-type') || {}).value || 'حملة';
   var channels = Array.from(document.querySelectorAll('.aiy-ch-cb:checked')).map(function(el) { return el.value; });
   if (!channels.length) { alert('يرجى اختيار قناة واحدة على الأقل'); return; }
   var desc  = (document.getElementById('aiy-f-desc') || {}).value || '';
-  var reach = parseInt((document.getElementById('aiy-f-reach') || {}).value) || null;
-  var engagement = parseInt((document.getElementById('aiy-f-engagement') || {}).value) || null;
-  var tagsRaw = (document.getElementById('aiy-f-tags') || {}).value || '';
-  var tags  = tagsRaw ? tagsRaw.split(',').map(function(t) { return t.trim(); }).filter(Boolean) : [];
   var notes = (document.getElementById('aiy-f-notes') || {}).value || '';
 
   if (!title.trim()) { alert('العنوان مطلوب'); return; }
@@ -6956,8 +6943,9 @@ async function aiySaveActivation() {
 
   try {
     var activationPayload = {
-      title: title, month: month, year: 2026, type: type, channels: channels,
-      description: desc || undefined, tags: tags, reach: reach, engagement: engagement,
+      title: title, month: month, year: 2026, activationDate: activationDate || undefined,
+      type: type, channels: channels,
+      description: desc || undefined,
       notes: notes || undefined, status: 'published'
     };
 

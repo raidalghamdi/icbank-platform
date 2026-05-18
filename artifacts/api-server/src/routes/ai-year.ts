@@ -95,6 +95,7 @@ router.post("/ai-year/activations", async (req: Request, res: Response) => {
       title: string;
       month: number;
       year?: number;
+      activationDate?: string;
       type: string;
       channels: string[];
       description?: string;
@@ -123,6 +124,7 @@ router.post("/ai-year/activations", async (req: Request, res: Response) => {
         title: activation.title,
         month: activation.month,
         year: activation.year ?? 2026,
+        activationDate: activation.activationDate,
         type: activation.type,
         channels: activation.channels,
         description: activation.description,
@@ -189,6 +191,7 @@ router.put("/ai-year/activations/:id", async (req: Request, res: Response) => {
     activation?: Partial<{
       title: string;
       month: number;
+      activationDate: string;
       type: string;
       channels: string[];
       description: string;
