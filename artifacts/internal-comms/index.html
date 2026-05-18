@@ -1461,6 +1461,8 @@ body {
 .id-source-title{font-size:12px;font-weight:600;color:var(--primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
 .id-source-pub{font-size:11px;color:var(--text-4);margin-top:2px}
 .id-cached-banner{background:rgba(22,163,74,.07);border:1px solid rgba(22,163,74,.2);border-radius:8px;padding:10px 14px;font-size:13px;color:#15803d;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.id-inline-archive-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.id-inline-archive-title{font-size:15px;font-weight:700;color:var(--text)}
 .id-archive-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
 .id-archive-search-inp{flex:1;min-width:200px;padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg);font-family:var(--sans);font-size:13px;color:var(--text);direction:rtl}
 .id-archive-search-inp:focus{outline:none;border-color:var(--primary)}
@@ -2159,7 +2161,6 @@ body {
       </div>
       <div style="display:flex;gap:8px;align-items:center">
         <span class="badge b-blue" id="id-remaining-badge">10 عمليات</span>
-        <button class="btn btn-sm btn-ghost" onclick="idToggleArchive()">📚 الأرشيف</button>
       </div>
     </div>
 
@@ -2271,53 +2272,34 @@ body {
         </div>
       </div><!-- /results -->
 
-    </div><!-- /search-view -->
-
-    <!-- ── Archive View ── -->
-    <div id="id-archive-view" style="display:none">
-      <div class="id-archive-toolbar">
-        <button class="btn btn-sm btn-ghost" onclick="idToggleArchive()">← العودة للبحث</button>
-        <input id="id-archive-search-inp" class="id-archive-search-inp"
-          placeholder="ابحث في الأرشيف…" oninput="idSearchArchive(this.value)" />
-        <select id="id-archive-cat" class="id-archive-cat-select" onchange="idSearchArchive()">
-          <option value="">كل الفئات</option>
-          <option value="صحة">🏥 صحة</option>
-          <option value="تعليم">📚 تعليم</option>
-          <option value="بيئة">🌿 بيئة</option>
-          <option value="موارد بشرية">👥 موارد بشرية</option>
-          <option value="تقنية">💻 تقنية</option>
-          <option value="اجتماعي">🤝 اجتماعي</option>
-        </select>
-        <span class="badge b-blue" id="id-archive-count-badge">0 يوم</span>
+    <!-- ── Inline Archive ── -->
+    <div id="id-inline-archive" style="margin-top:28px">
+      <div class="id-inline-archive-header">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="id-inline-archive-title">📚 الأيام المحفوظة</span>
+          <span class="badge b-blue" id="id-archive-count-badge">0 يوم</span>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <input id="id-archive-search-inp" class="id-archive-search-inp"
+            style="min-width:150px;max-width:220px"
+            placeholder="ابحث في الأرشيف…" oninput="idSearchArchive(this.value)" />
+          <select id="id-archive-cat" class="id-archive-cat-select" onchange="idSearchArchive()">
+            <option value="">كل الفئات</option>
+            <option value="صحة">🏥 صحة</option>
+            <option value="تعليم">📚 تعليم</option>
+            <option value="بيئة">🌿 بيئة</option>
+            <option value="موارد بشرية">👥 موارد بشرية</option>
+            <option value="تقنية">💻 تقنية</option>
+            <option value="اجتماعي">🤝 اجتماعي</option>
+          </select>
+        </div>
       </div>
-
       <div id="id-archive-grid" class="id-archive-grid">
         <div class="ws-empty-state">لا يوجد أيام محفوظة بعد. ابحث وأرشف أول يوم عالمي.</div>
       </div>
+    </div><!-- /inline-archive -->
 
-      <!-- Themes comparison -->
-      <div class="id-compare-section" id="id-compare-section" style="display:none">
-        <div class="card">
-          <div class="card-body">
-            <div class="card-title-row"><span class="card-title">📊 مقارنة الشعارات بين سنتين</span></div>
-            <div class="id-compare-grid">
-              <div>
-                <select class="id-compare-select" id="id-cmp-year1" onchange="idCompare()">
-                  <option value="">اختر السنة الأولى</option>
-                </select>
-                <div class="id-compare-result" id="id-cmp-res1">—</div>
-              </div>
-              <div>
-                <select class="id-compare-select" id="id-cmp-year2" onchange="idCompare()">
-                  <option value="">اختر السنة الثانية</option>
-                </select>
-                <div class="id-compare-result" id="id-cmp-res2">—</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div><!-- /archive-view -->
+    </div><!-- /search-view -->
 
   </div><!-- /section-intldays -->
 
@@ -3725,13 +3707,12 @@ var idCurrentCategory = null;
 var idCurrentData = null;
 var idCurrentDayId = null;
 var idArchiveData = [];
-var idArchiveOpen = false;
 var idInitialized = false;
 
 function idInit() {
   if (!idInitialized) {
     idInitialized = true;
-    // nothing to preload
+    idLoadArchive();
   }
 }
 
@@ -4177,6 +4158,7 @@ async function idSave() {
       if (btn) { btn.disabled = false; btn.textContent = '✅ محفوظ — تحديث'; }
       var exportBtn = document.getElementById('id-export-btn');
       if (exportBtn) exportBtn.style.display = '';
+      idLoadArchive();
     }
   } catch(err) {
     if (btn) { btn.disabled = false; btn.textContent = '💾 حفظ في الأرشيف'; }
@@ -4212,15 +4194,8 @@ function idCopySuggestions() {
 
 // ── Archive toggle ───────────────────────────────────────────────
 function idToggleArchive() {
-  idArchiveOpen = !idArchiveOpen;
-  var sv = document.getElementById('id-search-view');
-  var av = document.getElementById('id-archive-view');
-  if (idArchiveOpen) {
-    sv.style.display = 'none'; av.style.display = '';
-    idLoadArchive();
-  } else {
-    sv.style.display = ''; av.style.display = 'none';
-  }
+  var arch = document.getElementById('id-inline-archive');
+  if (arch) arch.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 // ── Load archive ─────────────────────────────────────────────────
@@ -4292,10 +4267,9 @@ async function idOpenDay(id) {
     idCurrentDayId = id;
     var qEl = document.getElementById('id-query');
     if (qEl) qEl.value = day.dayNameAr || '';
-    idArchiveOpen = false;
-    document.getElementById('id-archive-view').style.display = 'none';
-    document.getElementById('id-search-view').style.display = '';
     idShowResults({ cached: true, data: idCurrentData, remaining_searches: undefined });
+    var searchSection = document.getElementById('id-search-view');
+    if (searchSection) searchSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch(err) {
     alert('خطأ في تحميل اليوم: ' + err.message);
   }
