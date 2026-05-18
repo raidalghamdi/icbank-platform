@@ -87,11 +87,13 @@ router.post("/auth/login", loginLimiter, async (req: Request, res: Response) => 
   }
 
   if (!user.isActive) {
+    await logActivity(user.id, "login_failed", { reason: "inactive_account" }, req);
     res.status(403).json({ error: "الحساب غير مفعل. تواصل مع المدير.", code: "INACTIVE_ACCOUNT" });
     return;
   }
 
   if (user.isLocked) {
+    await logActivity(user.id, "login_failed", { reason: "locked_account" }, req);
     res.status(403).json({ error: "الحساب مقفل بسبب محاولات فاشلة متعددة. تواصل مع المدير.", code: "LOCKED_ACCOUNT" });
     return;
   }

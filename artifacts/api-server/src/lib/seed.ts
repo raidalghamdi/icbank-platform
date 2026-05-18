@@ -92,24 +92,26 @@ const TEST_USERS = [
 
 export async function runSeedIfNeeded() {
   try {
-    const existingUsers = await db.select().from(usersTable).limit(1);
-    if (existingUsers.length > 0) {
-      logger.info("Seed already ran — skipping");
-      return;
-    }
+    logger.info("Running seed (idempotent)...");
 
-    logger.info("Running initial seed...");
+    // ── Roles ────────────────────────────────────────────────────────────────
+    // onConflictDoNothing ensures partial failures on prior runs are safe
+    await db.insert(rolesTable).values(ROLES.map(r => ({ ...r }))).onConflictDoNothing();
+    const allRoles = await db.select().from(rolesTable);
+    const roleMap = new Map(allRoles.map(r => [r.name, r.id]));
 
-    const insertedRoles = await db.insert(rolesTable).values(ROLES.map(r => ({ ...r }))).returning();
-    const roleMap = new Map(insertedRoles.map(r => [r.name, r.id]));
+    // ── Pages ─────────────────────────────────────────────────────────────────
+    await db.insert(pagesTable).values(PAGES.map(p => ({ ...p }))).onConflictDoNothing();
+    const allPages = await db.select().from(pagesTable);
+    const pageMap = new Map(allPages.map(p => [p.slug, p.id]));
 
-    const insertedPages = await db.insert(pagesTable).values(PAGES.map(p => ({ ...p }))).returning();
-    const pageMap = new Map(insertedPages.map(p => [p.slug, p.id]));
+    // ── Permissions ───────────────────────────────────────────────────────────
+    await db.insert(permissionsTable).values(PERMISSIONS.map(p => ({ ...p }))).onConflictDoNothing();
+    const allPerms = await db.select().from(permissionsTable);
+    const permMap = new Map(allPerms.map(p => [p.name, p.id]));
 
-    const insertedPerms = await db.insert(permissionsTable).values(PERMISSIONS.map(p => ({ ...p }))).returning();
-    const permMap = new Map(insertedPerms.map(p => [p.name, p.id]));
-
-    const allPageIds = insertedPages.map(p => p.id);
+    // ── Role ↔ Permission matrix ───────────────────────────────────────────────
+    const allPageIds = allPages.map(p => p.id);
     const rpRows: { roleId: number; pageId: number; permissionId: number }[] = [];
 
     for (const [roleName, grants] of Object.entries(ROLE_PERMISSIONS)) {
@@ -136,46 +138,75 @@ export async function runSeedIfNeeded() {
       await db.insert(rolePermissionsTable).values(rpRows).onConflictDoNothing();
     }
 
-    const superAdminHash = await bcryptjs.hash("Admin@2026", 12);
-    const [superAdmin] = await db
-      .insert(usersTable)
-      .values({
-        email: "admin@internal.sa",
-        name: "مدير النظام",
-        title: "مدير البوابة الداخلية",
-        department: "تقنية المعلومات",
-        passwordHash: superAdminHash,
-      })
-      .returning();
+    // ── Admin user ────────────────────────────────────────────────────────────
+    const existingAdmin = await db
+      .select()
+      .from(usersTable)
+      .where(eq(usersTable.email, "admin@internal.sa"))
+      .limit(1);
 
-    const superAdminRoleId = roleMap.get("super_admin");
-    if (superAdmin && superAdminRoleId) {
-      await db.insert(userRolesTable).values({
-        userId: superAdmin.id,
-        roleId: superAdminRoleId,
-      });
-    }
-
-    for (const u of TEST_USERS) {
-      const hash = await bcryptjs.hash(u.password, 12);
-      const [user] = await db
+    let superAdminId: number | undefined;
+    if (existingAdmin.length === 0) {
+      const superAdminHash = await bcryptjs.hash("Admin@2026", 12);
+      const [superAdmin] = await db
         .insert(usersTable)
         .values({
-          email: u.email,
-          name: u.name,
-          title: u.title,
-          department: u.department,
-          passwordHash: hash,
+          email: "admin@internal.sa",
+          name: "مدير النظام",
+          title: "مدير البوابة الداخلية",
+          department: "تقنية المعلومات",
+          passwordHash: superAdminHash,
         })
         .returning();
+      superAdminId = superAdmin?.id;
+    } else {
+      superAdminId = existingAdmin[0]!.id;
+    }
 
-      const roleId = roleMap.get(u.role);
-      if (user && roleId) {
-        await db.insert(userRolesTable).values({
-          userId: user.id,
-          roleId,
-          assignedBy: superAdmin?.id,
-        });
+    if (superAdminId !== undefined) {
+      const superAdminRoleId = roleMap.get("super_admin");
+      if (superAdminRoleId) {
+        await db
+          .insert(userRolesTable)
+          .values({ userId: superAdminId, roleId: superAdminRoleId })
+          .onConflictDoNothing();
+      }
+    }
+
+    // ── Test users ────────────────────────────────────────────────────────────
+    for (const u of TEST_USERS) {
+      const existing = await db
+        .select()
+        .from(usersTable)
+        .where(eq(usersTable.email, u.email))
+        .limit(1);
+
+      let userId: number | undefined;
+      if (existing.length === 0) {
+        const hash = await bcryptjs.hash(u.password, 12);
+        const [user] = await db
+          .insert(usersTable)
+          .values({
+            email: u.email,
+            name: u.name,
+            title: u.title,
+            department: u.department,
+            passwordHash: hash,
+          })
+          .returning();
+        userId = user?.id;
+      } else {
+        userId = existing[0]!.id;
+      }
+
+      if (userId !== undefined) {
+        const roleId = roleMap.get(u.role);
+        if (roleId) {
+          await db
+            .insert(userRolesTable)
+            .values({ userId, roleId, assignedBy: superAdminId })
+            .onConflictDoNothing();
+        }
       }
     }
 
