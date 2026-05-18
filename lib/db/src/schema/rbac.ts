@@ -20,6 +20,7 @@ export const usersTable = pgTable("users", {
   isLocked: boolean("is_locked").notNull().default(false),
   failedAttempts: integer("failed_attempts").notNull().default(0),
   lastLogin: timestamp("last_login"),
+  passwordChangedAt: timestamp("password_changed_at"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

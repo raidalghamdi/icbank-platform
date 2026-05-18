@@ -3244,6 +3244,24 @@ body {
 // ════════════════════════════════════════
 
 var AUTH_USER = null;
+var AUTH_IDLE_TIMER = null;
+var AUTH_IDLE_MINUTES = 30;
+
+function authResetIdleTimer() {
+  if (AUTH_IDLE_TIMER) clearTimeout(AUTH_IDLE_TIMER);
+  AUTH_IDLE_TIMER = setTimeout(function() {
+    authClear();
+    window.location.href = '/login?reason=idle';
+  }, AUTH_IDLE_MINUTES * 60 * 1000);
+}
+
+function authStartIdleWatcher(minutes) {
+  AUTH_IDLE_MINUTES = Math.max(5, minutes || 30);
+  ['mousemove','keydown','mousedown','touchstart','scroll'].forEach(function(ev) {
+    document.addEventListener(ev, authResetIdleTimer, { passive: true });
+  });
+  authResetIdleTimer();
+}
 
 // Page slug ↔ RBAC permission key mapping
 // Only the 8 spec-defined pages are permission-gated.
@@ -3304,6 +3322,9 @@ async function authRefresh() {
     if (!resp.ok) return null;
     var data = await resp.json();
     authSetToken(data.accessToken);
+    if (data.systemSettings && data.systemSettings.auto_logout_minutes) {
+      authStartIdleWatcher(data.systemSettings.auto_logout_minutes);
+    }
     return data;
   } catch(e) {
     return null;
@@ -3913,8 +3934,8 @@ window.adminShowUserModal = function(userId) {
     .forEach(function(id) { var el = document.getElementById(id); if (el) el.value = ''; });
 
   if (userId) {
-    admApi('/admin/users?page=1&limit=200').then(function(d) {
-      var u = (d.users||[]).find(function(x) { return x.id === userId; });
+    admApi('/admin/users/' + userId).then(function(d) {
+      var u = d.user;
       if (!u) return;
       document.getElementById('adm-user-id').value = u.id;
       document.getElementById('adm-user-name').value = u.name || '';

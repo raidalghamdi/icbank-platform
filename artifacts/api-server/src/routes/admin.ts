@@ -138,10 +138,11 @@ router.post("/admin/users", async (req: Request, res: Response) => {
   }
 
   const hash = await bcryptjs.hash(tempPassword, 12);
+  const now = new Date();
 
   const [user] = await db
     .insert(usersTable)
-    .values({ email: email.toLowerCase().trim(), name, title, department, passwordHash: hash })
+    .values({ email: email.toLowerCase().trim(), name, title, department, passwordHash: hash, passwordChangedAt: now })
     .returning();
 
   await db.insert(userRolesTable).values({
@@ -218,12 +219,41 @@ router.post("/admin/users/:id/reset-password", async (req: Request, res: Respons
   const id = parseInt(req.params["id"] as string);
   const tempPassword = genTempPassword();
   const hash = await bcryptjs.hash(tempPassword, 12);
+  const now = new Date();
   await db
     .update(usersTable)
-    .set({ passwordHash: hash, isLocked: false, failedAttempts: 0, updatedAt: new Date() })
+    .set({ passwordHash: hash, passwordChangedAt: now, isLocked: false, failedAttempts: 0, updatedAt: now })
     .where(eq(usersTable.id, id));
   await logAdminAction(req, "password_reset", "user", id);
   res.json({ ok: true, tempPassword });
+});
+
+router.get("/admin/users/:id", async (req: Request, res: Response) => {
+  const id = parseInt(req.params["id"] as string);
+  const [user] = await db
+    .select({
+      id: usersTable.id,
+      email: usersTable.email,
+      name: usersTable.name,
+      title: usersTable.title,
+      department: usersTable.department,
+      isActive: usersTable.isActive,
+      isLocked: usersTable.isLocked,
+      lastLogin: usersTable.lastLogin,
+      passwordChangedAt: usersTable.passwordChangedAt,
+      createdAt: usersTable.createdAt,
+      roleId: userRolesTable.roleId,
+      roleName: rolesTable.name,
+      roleNameAr: rolesTable.nameAr,
+    })
+    .from(usersTable)
+    .leftJoin(userRolesTable, eq(userRolesTable.userId, usersTable.id))
+    .leftJoin(rolesTable, eq(rolesTable.id, userRolesTable.roleId))
+    .where(eq(usersTable.id, id))
+    .limit(1);
+
+  if (!user) { res.status(404).json({ error: "المستخدم غير موجود" }); return; }
+  res.json({ user });
 });
 
 router.delete("/admin/users/:id", async (req: Request, res: Response) => {
@@ -468,7 +498,8 @@ router.put("/admin/matrix/user-override", async (req: Request, res: Response) =>
   res.json({ ok: true });
 });
 
-router.get("/admin/matrix/export", async (_req: Request, res: Response) => {
+router.get("/admin/matrix/export", async (req: Request, res: Response) => {
+  const format = (req.query["format"] as string | undefined) || "csv";
   const pages = await db
     .select()
     .from(pagesTable)
@@ -512,12 +543,12 @@ router.get("/admin/matrix/export", async (_req: Request, res: Response) => {
     userOvsMap[ov.userId]![ov.pageId]!.push({ perm: ov.permName, type: ov.grantType });
   }
 
-  const header = ["المستخدم", "البريد", "الدور", ...pages.map((p) => p.nameAr || p.slug)];
-  const csvRows = [header];
+  type MatrixRow = { userId: number; name: string; email: string; role: string; pages: Record<string, string[]> };
+  const matrixData: MatrixRow[] = [];
 
   for (const u of users) {
     const rolePerms = u.roleId ? (rolePermsMap[u.roleId] || {}) : {};
-    const row: string[] = [u.name, u.email, u.roleNameAr || "—"];
+    const pagePerms: Record<string, string[]> = {};
     for (const pg of pages) {
       const base = new Set(rolePerms[pg.id] || []);
       const ovs = (userOvsMap[u.id] || {})[pg.id] || [];
@@ -525,15 +556,29 @@ router.get("/admin/matrix/export", async (_req: Request, res: Response) => {
         if (ov.type === "allow") base.add(ov.perm);
         else if (ov.type === "deny") base.delete(ov.perm);
       }
-      const perms = [...base];
-      let level = "✗";
-      if (perms.includes("delete") || perms.includes("export")) level = "★ كامل";
-      else if (perms.includes("create") || perms.includes("edit")) level = "✏ تعديل";
-      else if (perms.includes("view")) level = "✓ عرض";
-      row.push(level);
+      pagePerms[pg.slug] = [...base];
     }
-    csvRows.push(row);
+    matrixData.push({ userId: u.id, name: u.name, email: u.email, role: u.roleNameAr || "—", pages: pagePerms });
   }
+
+  if (format === "json") {
+    res.json({ pages: pages.map((p) => ({ slug: p.slug, nameAr: p.nameAr })), matrix: matrixData });
+    return;
+  }
+
+  // Default: CSV (Excel-compatible with BOM)
+  const levelOf = (perms: string[]) => {
+    if (perms.includes("delete") || perms.includes("export")) return "★ كامل";
+    if (perms.includes("create") || perms.includes("edit")) return "✏ تعديل";
+    if (perms.includes("view")) return "✓ عرض";
+    return "✗";
+  };
+
+  const header = ["المستخدم", "البريد", "الدور", ...pages.map((p) => p.nameAr || p.slug)];
+  const csvRows = [header, ...matrixData.map((u) => [
+    u.name, u.email, u.role,
+    ...pages.map((pg) => levelOf(u.pages[pg.slug] || [])),
+  ])];
 
   const csv = csvRows.map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
   res.setHeader("Content-Type", "text/csv; charset=utf-8");

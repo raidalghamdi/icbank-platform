@@ -134,6 +134,20 @@ router.post("/auth/login", loginLimiter, async (req: Request, res: Response) => 
 
   const settings = await getSettings();
   const sessionMins = Math.max(5, parseInt(settings["session_duration_minutes"] || "60"));
+
+  // Enforce password expiry policy
+  const expiryDays = parseInt(settings["password_expiry_days"] || "0");
+  if (expiryDays > 0) {
+    const changedAt = user.passwordChangedAt || user.createdAt;
+    const ageMs = Date.now() - new Date(changedAt).getTime();
+    const ageDays = ageMs / (1000 * 60 * 60 * 24);
+    if (ageDays > expiryDays) {
+      await logActivity(user.id, "login_blocked_expired_password", { ageDays: Math.floor(ageDays), expiryDays }, req);
+      res.status(403).json({ error: "انتهت صلاحية كلمة المرور. تواصل مع المدير لإعادة تعيينها.", code: "PASSWORD_EXPIRED" });
+      return;
+    }
+  }
+
   const accessToken = generateAccessToken(user.id, user.email, user.name, sessionMins * 60);
   const refreshToken = generateRefreshToken(user.id);
 
@@ -161,6 +175,10 @@ router.post("/auth/login", loginLimiter, async (req: Request, res: Response) => 
       department: user.department,
       role,
       permissions,
+    },
+    systemSettings: {
+      auto_logout_minutes: parseInt(settings["auto_logout_minutes"] || "30"),
+      session_duration_minutes: sessionMins,
     },
   });
 });
@@ -205,6 +223,19 @@ router.post("/auth/refresh", async (req: Request, res: Response) => {
 
     const refreshSettings = await getSettings();
     const refreshSessionMins = Math.max(5, parseInt(refreshSettings["session_duration_minutes"] || "60"));
+
+    // Enforce password expiry on refresh too
+    const refreshExpiryDays = parseInt(refreshSettings["password_expiry_days"] || "0");
+    if (refreshExpiryDays > 0) {
+      const changedAt = user.passwordChangedAt || user.createdAt;
+      const ageMs = Date.now() - new Date(changedAt).getTime();
+      if (ageMs / (1000 * 60 * 60 * 24) > refreshExpiryDays) {
+        res.clearCookie("refresh_token", { path: "/api/auth" });
+        res.status(403).json({ error: "انتهت صلاحية كلمة المرور.", code: "PASSWORD_EXPIRED" });
+        return;
+      }
+    }
+
     const accessToken = generateAccessToken(user.id, user.email, user.name, refreshSessionMins * 60);
     const { permissions, role } = await getUserPermissions(user.id);
 
@@ -218,6 +249,10 @@ router.post("/auth/refresh", async (req: Request, res: Response) => {
         department: user.department,
         role,
         permissions,
+      },
+      systemSettings: {
+        auto_logout_minutes: parseInt(refreshSettings["auto_logout_minutes"] || "30"),
+        session_duration_minutes: refreshSessionMins,
       },
     });
   } catch {
