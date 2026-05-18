@@ -99,6 +99,12 @@ router.post("/auth/login", loginLimiter, async (req: Request, res: Response) => 
     return;
   }
 
+  if (!user.passwordHash) {
+    await logActivity(user.id, "login_failed", { reason: "no_password_sso_only" }, req);
+    res.status(401).json({ error: "هذا الحساب مرتبط بتسجيل الدخول عبر المؤسسة ولا يدعم كلمة المرور.", code: "SSO_ONLY" });
+    return;
+  }
+
   const passwordMatch = await bcryptjs.compare(password, user.passwordHash);
 
   if (!passwordMatch) {

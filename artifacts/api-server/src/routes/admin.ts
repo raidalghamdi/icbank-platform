@@ -695,13 +695,18 @@ router.get("/admin/settings", async (_req: Request, res: Response) => {
   res.json({ settings });
 });
 
-const SETTINGS_SCHEMA: Record<string, { type: "int" | "bool"; min?: number; max?: number }> = {
+const SETTINGS_SCHEMA: Record<string, { type: "int" | "bool" | "text"; min?: number; max?: number; maxLen?: number }> = {
   password_min_length:         { type: "int",  min: 4,   max: 100  },
   password_expiry_days:        { type: "int",  min: 0,   max: 365  },
   session_duration_minutes:    { type: "int",  min: 5,   max: 1440 },
   auto_logout_minutes:         { type: "int",  min: 1,   max: 480  },
   password_require_uppercase:  { type: "bool" },
   password_require_symbols:    { type: "bool" },
+  azure_ad_enabled:            { type: "bool" },
+  azure_ad_tenant_id:          { type: "text", maxLen: 200 },
+  azure_ad_client_id:          { type: "text", maxLen: 200 },
+  azure_ad_client_secret:      { type: "text", maxLen: 500 },
+  azure_ad_domain:             { type: "text", maxLen: 255 },
 };
 
 router.put("/admin/settings", async (req: Request, res: Response) => {
@@ -721,9 +726,13 @@ router.put("/admin/settings", async (req: Request, res: Response) => {
       if (schema.min !== undefined && num < schema.min) { errors.push(`${key}: الحد الأدنى ${schema.min}`); continue; }
       if (schema.max !== undefined && num > schema.max) { errors.push(`${key}: الحد الأقصى ${schema.max}`); continue; }
       validated[key] = String(num);
-    } else {
+    } else if (schema.type === "bool") {
       if (value !== "true" && value !== "false") { errors.push(`${key}: يجب أن تكون القيمة true أو false`); continue; }
       validated[key] = value;
+    } else {
+      const str = String(value);
+      if (schema.maxLen !== undefined && str.length > schema.maxLen) { errors.push(`${key}: الحد الأقصى للطول ${schema.maxLen} حرف`); continue; }
+      validated[key] = str;
     }
   }
 

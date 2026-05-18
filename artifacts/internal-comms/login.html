@@ -224,6 +224,47 @@ body {
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+.sso-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0;
+  color: var(--text-4);
+  font-size: 12px;
+}
+.sso-divider::before,
+.sso-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.btn-sso {
+  width: 100%;
+  height: 44px;
+  background: var(--surface);
+  color: var(--text-2);
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  text-decoration: none;
+}
+.btn-sso:hover { border-color: #0078D4; background: #F0F7FF; color: #0078D4; }
+.btn-sso:active { transform: scale(0.99); }
+.btn-sso:disabled { opacity: 0.6; cursor: not-allowed; }
+.btn-sso .sso-icon { width: 18px; height: 18px; flex-shrink: 0; }
+
+#sso-section { display: none; }
+
 .login-footer {
   text-align: center;
   margin-top: 20px;
@@ -301,6 +342,19 @@ body {
         <span id="btn-text">دخول</span>
       </button>
     </form>
+
+    <div id="sso-section">
+      <div class="sso-divider">أو</div>
+      <a href="/api/auth/sso/azure/start" class="btn-sso" id="sso-btn">
+        <svg class="sso-icon" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="1" y="1" width="9" height="9" fill="#F25022"/>
+          <rect x="11" y="1" width="9" height="9" fill="#7FBA00"/>
+          <rect x="1" y="11" width="9" height="9" fill="#00A4EF"/>
+          <rect x="11" y="11" width="9" height="9" fill="#FFB900"/>
+        </svg>
+        تسجيل الدخول بحساب المؤسسة
+      </a>
+    </div>
   </div>
 
   <div class="login-footer">
@@ -393,6 +447,26 @@ body {
   });
 
   if (emailInput) emailInput.focus();
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const ssoError = urlParams.get('sso_error');
+  if (ssoError) {
+    showError(decodeURIComponent(ssoError));
+  }
+
+  (async function loadSsoConfig() {
+    try {
+      const resp = await fetch('/api/auth/sso/config');
+      if (!resp.ok) return;
+      const data = await resp.json();
+      if (data.enabled) {
+        const ssoSection = document.getElementById('sso-section');
+        if (ssoSection) ssoSection.style.display = 'block';
+      }
+    } catch {
+      // SSO config not critical
+    }
+  })();
 })();
 </script>
 </body>

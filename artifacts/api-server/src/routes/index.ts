@@ -6,6 +6,7 @@ import intlDaysRouter from "./international-days";
 import aiYearRouter from "./ai-year";
 import storageRouter from "./storage";
 import authRouter from "./auth";
+import authSsoRouter from "./auth-sso";
 import adminRouter from "./admin";
 import { authenticate, requireAuth, requirePageAccess } from "../middleware/auth";
 
@@ -13,6 +14,7 @@ const router: IRouter = Router();
 
 // ─── Public routes (no auth required) ──────────────────────────────────────
 router.use(authRouter);
+router.use(authSsoRouter);
 router.use(healthRouter);
 
 // ─── Auth gate: populates req.user and enforces login ──────────────────────
