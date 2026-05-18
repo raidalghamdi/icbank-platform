@@ -10,7 +10,7 @@ export const aiYearActivationsTable = pgTable("ai_year_activations", {
   month: integer("month").notNull(),
   year: integer("year").notNull().default(2026),
   type: text("type").notNull(),
-  channel: text("channel").notNull(),
+  channels: text("channels").array().notNull().default([]),
   description: text("description"),
   tags: jsonb("tags").$type<string[]>().default([]),
   status: text("status").notNull().default("published"),

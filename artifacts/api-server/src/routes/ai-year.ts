@@ -7,7 +7,7 @@ import {
   aiYearMediaTable,
   aiYearMetricsTable,
 } from "@workspace/db";
-import { eq, desc, ilike, and, or } from "drizzle-orm";
+import { eq, desc, ilike, and, or, sql } from "drizzle-orm";
 import { ObjectStorageService, ObjectNotFoundError } from "../lib/objectStorage";
 import {
   Document, Paragraph, Table, TableRow, TableCell, TextRun,
@@ -56,7 +56,7 @@ router.get("/ai-year/activations", async (req: Request, res: Response) => {
   const conditions = [];
   if (month) conditions.push(eq(aiYearActivationsTable.month, parseInt(month)));
   if (type) conditions.push(eq(aiYearActivationsTable.type, type));
-  if (channel) conditions.push(eq(aiYearActivationsTable.channel, channel));
+  if (channel) conditions.push(sql`${aiYearActivationsTable.channels} @> ARRAY[${channel}]::text[]`);
   if (q) conditions.push(
     or(
       ilike(aiYearActivationsTable.title, `%${q}%`),
@@ -96,7 +96,7 @@ router.post("/ai-year/activations", async (req: Request, res: Response) => {
       month: number;
       year?: number;
       type: string;
-      channel: string;
+      channels: string[];
       description?: string;
       tags?: string[];
       status?: string;
@@ -108,8 +108,8 @@ router.post("/ai-year/activations", async (req: Request, res: Response) => {
     metrics?: { metricKey: string; metricValue?: string }[];
   };
 
-  if (!activation?.title || !activation?.month || !activation?.type || !activation?.channel) {
-    res.status(400).json({ error: "الحقول المطلوبة: title, month, type, channel" });
+  if (!activation?.title || !activation?.month || !activation?.type || !activation?.channels?.length) {
+    res.status(400).json({ error: "الحقول المطلوبة: title, month, type, channels" });
     return;
   }
 
@@ -124,7 +124,7 @@ router.post("/ai-year/activations", async (req: Request, res: Response) => {
         month: activation.month,
         year: activation.year ?? 2026,
         type: activation.type,
-        channel: activation.channel,
+        channels: activation.channels,
         description: activation.description,
         tags: activation.tags ?? [],
         status: activation.status ?? "published",
@@ -190,7 +190,7 @@ router.put("/ai-year/activations/:id", async (req: Request, res: Response) => {
       title: string;
       month: number;
       type: string;
-      channel: string;
+      channels: string[];
       description: string;
       tags: string[];
       status: string;
@@ -274,8 +274,9 @@ router.get("/ai-year/stats", async (req: Request, res: Response) => {
   const totalActivations = activations.length;
   const totalMedia = media.length;
 
-  const channels = new Set(activations.map((a) => a.channel));
-  const totalChannels = channels.size;
+  const channelSet = new Set<string>();
+  activations.forEach((a) => (a.channels ?? []).forEach((ch: string) => channelSet.add(ch)));
+  const totalChannels = channelSet.size;
 
   const lastUpdated = activations.length
     ? activations.reduce((max, a) => a.updatedAt > max ? a.updatedAt : max, activations[0].updatedAt)
@@ -289,7 +290,7 @@ router.get("/ai-year/stats", async (req: Request, res: Response) => {
   activations.forEach((a) => { byType[a.type] = (byType[a.type] ?? 0) + 1; });
 
   const byChannel: Record<string, number> = {};
-  activations.forEach((a) => { byChannel[a.channel] = (byChannel[a.channel] ?? 0) + 1; });
+  activations.forEach((a) => { (a.channels ?? []).forEach((ch: string) => { byChannel[ch] = (byChannel[ch] ?? 0) + 1; }); });
 
   res.json({
     totalActivations,
@@ -452,7 +453,8 @@ router.post("/ai-year/report", async (req: Request, res: Response) => {
 
   const totalActivations = activations.length;
   const totalMedia = media.length;
-  const channels = new Set(activations.map((a) => a.channel));
+  const channelSet = new Set<string>();
+  activations.forEach((a) => (a.channels ?? []).forEach((ch: string) => channelSet.add(ch)));
   const byType: Record<string, number> = {};
   activations.forEach((a) => { byType[a.type] = (byType[a.type] ?? 0) + 1; });
 
@@ -481,7 +483,7 @@ router.post("/ai-year/report", async (req: Request, res: Response) => {
           new TableCell({ children: [new Paragraph(a.title)] }),
           new TableCell({ children: [new Paragraph(MONTHS_AR[a.month - 1] ?? String(a.month))] }),
           new TableCell({ children: [new Paragraph(a.type)] }),
-          new TableCell({ children: [new Paragraph(a.channel)] }),
+          new TableCell({ children: [new Paragraph((a.channels ?? []).join(" / "))] }),
           new TableCell({ children: [new Paragraph(a.reach != null ? String(a.reach) : "—")] }),
         ],
       })
@@ -529,7 +531,7 @@ router.post("/ai-year/report", async (req: Request, res: Response) => {
           }),
           new Paragraph({ children: [new TextRun({ text: `إجمالي التفعيلات: ${totalActivations}`, bold: true })], alignment: AlignmentType.RIGHT }),
           new Paragraph({ children: [new TextRun({ text: `إجمالي الصور/الوسائط: ${totalMedia}`, bold: true })], alignment: AlignmentType.RIGHT }),
-          new Paragraph({ children: [new TextRun({ text: `عدد القنوات المستخدمة: ${channels.size}`, bold: true })], alignment: AlignmentType.RIGHT }),
+          new Paragraph({ children: [new TextRun({ text: `عدد القنوات المستخدمة: ${channelSet.size}`, bold: true })], alignment: AlignmentType.RIGHT }),
           new Paragraph({ children: [new TextRun({ text: `توزيع الأنواع: ${Object.entries(byType).map(([k, v]) => `${k} (${v})`).join(" — ")}`, bold: true })], alignment: AlignmentType.RIGHT }),
           new Paragraph(""),
           ...(top3.length
@@ -543,7 +545,7 @@ router.post("/ai-year/report", async (req: Request, res: Response) => {
                   new Paragraph({
                     children: [
                       new TextRun({ text: `${i + 1}. ${a.title} — `, bold: true }),
-                      new TextRun(`${MONTHS_AR[a.month - 1]} · ${a.channel} · وصول: ${a.reach ?? "—"}`),
+                      new TextRun(`${MONTHS_AR[a.month - 1]} · ${(a.channels ?? []).join(" / ")} · وصول: ${a.reach ?? "—"}`),
                     ],
                     alignment: AlignmentType.RIGHT,
                   })
