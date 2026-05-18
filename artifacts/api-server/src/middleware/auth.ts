@@ -167,10 +167,63 @@ export function requirePermission(pageSlug: string, permission: string) {
       res.status(401).json({ error: "غير مصرح", code: "UNAUTHORIZED" });
       return;
     }
-    if (req.user.isSuperAdmin) return next();
+    // super_admin and admin bypass all page-level permission checks
+    if (req.user.isSuperAdmin || req.user.role === "admin") return next();
     const pagePerms = req.user.permissions[pageSlug] || [];
     if (!pagePerms.includes(permission)) {
       res.status(403).json({ error: "ليس لديك صلاحية للوصول لهذه الصفحة", code: "FORBIDDEN" });
+      return;
+    }
+    next();
+  };
+}
+
+/**
+ * requirePageAccess(pageSlug) — method-aware permission middleware.
+ *
+ * Maps the HTTP method to the required permission automatically:
+ *   GET / HEAD        → "view"
+ *   POST              → "create"
+ *   PUT / PATCH       → "edit"
+ *   DELETE            → "delete"
+ *
+ * super_admin and admin always bypass these checks.
+ * Use this instead of requirePermission(<page>, "view") on route prefixes
+ * so that mutating endpoints (POST/PUT/PATCH/DELETE) require the appropriate
+ * elevated permission and a Viewer with only "view" cannot write.
+ */
+export function requirePageAccess(pageSlug: string) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      res.status(401).json({ error: "غير مصرح", code: "UNAUTHORIZED" });
+      return;
+    }
+    // super_admin and admin bypass all page-level permission checks
+    if (req.user.isSuperAdmin || req.user.role === "admin") return next();
+
+    const method = req.method.toUpperCase();
+    let required: string;
+    if (method === "GET" || method === "HEAD") {
+      required = "view";
+    } else if (method === "POST") {
+      required = "create";
+    } else if (method === "PUT" || method === "PATCH") {
+      required = "edit";
+    } else if (method === "DELETE") {
+      required = "delete";
+    } else {
+      // OPTIONS, etc. — only require view
+      required = "view";
+    }
+
+    const pagePerms = req.user.permissions[pageSlug] || [];
+    if (!pagePerms.includes(required)) {
+      res.status(403).json({
+        error: "ليس لديك صلاحية لتنفيذ هذه العملية",
+        code: "FORBIDDEN",
+        required,
+        page: pageSlug,
+      });
       return;
     }
     next();

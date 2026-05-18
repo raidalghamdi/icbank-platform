@@ -6,7 +6,7 @@ import intlDaysRouter from "./international-days";
 import aiYearRouter from "./ai-year";
 import storageRouter from "./storage";
 import authRouter from "./auth";
-import { authenticate, requireAuth, requirePermission } from "../middleware/auth";
+import { authenticate, requireAuth, requirePageAccess } from "../middleware/auth";
 
 const router: IRouter = Router();
 
@@ -20,18 +20,18 @@ router.use(healthRouter);
 router.use(authenticate);
 router.use(requireAuth);
 
-// ─── Page-level permission enforcement ─────────────────────────────────────
-// requirePermission checks that the authenticated user has at least "view"
-// access to the relevant page. super_admin / admin bypass all page checks.
-// These middleware run before the matching feature router handles the request.
+// ─── Page-level permission enforcement (method-aware) ──────────────────────
+// requirePageAccess maps HTTP method → required permission automatically:
+//   GET/HEAD → "view" | POST → "create" | PUT/PATCH → "edit" | DELETE → "delete"
+// super_admin and admin bypass all checks; Viewer cannot mutate.
 // Routes mapped to RBAC-controlled pages (spec: 8 pages)
-router.use(["/daily-report", "/report"], requirePermission("dashboard", "view"));
+router.use(["/daily-report", "/report"], requirePageAccess("dashboard"));
 // week-start maps to the "weekend" RBAC page (same content cycle per spec)
-router.use("/week-start", requirePermission("weekend", "view"));
-router.use("/intl-days", requirePermission("international_days", "view"));
-router.use("/ai-year", requirePermission("ai_year", "view"));
+router.use("/week-start", requirePageAccess("weekend"));
+router.use("/intl-days", requirePageAccess("international_days"));
+router.use("/ai-year", requirePageAccess("ai_year"));
 // Storage exclusively serves ai-year/2026/* assets
-router.use("/storage", requirePermission("ai_year", "view"));
+router.use("/storage", requirePageAccess("ai_year"));
 
 // ─── Feature routers ────────────────────────────────────────────────────────
 router.use(dailyReportRouter);
