@@ -251,12 +251,17 @@ const server = http.createServer(async (req, res) => {
     urlPath === '/login.html' ||
     urlPath === '/wk2-data';
 
-  // Server-side auth gate: redirect to /login if no access_token cookie.
-  // The JWT is verified by the API; here we only check presence to avoid
-  // serving the app shell to unauthenticated browsers (prevents flash).
+  // Server-side auth gate: redirect to /login only when the browser has no
+  // session at all.  We accept either:
+  //   • access_token  — short-lived JS cookie set by the client after login/refresh
+  //   • refresh_token — long-lived httpOnly cookie set by the API on login
+  // When only refresh_token is present (access token has expired), we still
+  // serve the HTML shell; the client-side auth guard calls /api/auth/refresh
+  // transparently so the user never needs to re-login within the 7-day window.
   if (!isPublicPath) {
     const cookies = parseCookies(req.headers['cookie']);
-    if (!cookies['access_token']) {
+    const hasSession = cookies['access_token'] || cookies['refresh_token'];
+    if (!hasSession) {
       res.writeHead(302, { 'Location': '/login', 'Cache-Control': 'no-store' });
       res.end();
       return;
