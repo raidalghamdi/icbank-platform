@@ -3350,10 +3350,12 @@ async function authCheckSession() {
       var refreshed = await authRefresh();
       if (!refreshed) { authClear(); window.location.href = '/login'; return; }
       AUTH_USER = refreshed.user;
+      if (refreshed.systemSettings) authStartIdleWatcher(refreshed.systemSettings.auto_logout_minutes);
     } else if (!resp.ok) {
       authClear(); window.location.href = '/login'; return;
     } else {
       AUTH_USER = await resp.json();
+      if (AUTH_USER && AUTH_USER.systemSettings) authStartIdleWatcher(AUTH_USER.systemSettings.auto_logout_minutes);
     }
   } catch(e) {
     authClear(); window.location.href = '/login'; return;

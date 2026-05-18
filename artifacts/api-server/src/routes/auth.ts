@@ -263,6 +263,7 @@ router.post("/auth/refresh", async (req: Request, res: Response) => {
 
 router.get("/auth/me", authenticate, requireAuth, async (req: Request, res: Response) => {
   const user = req.user!;
+  const meSettings = await getSettings();
   res.json({
     id: user.id,
     email: user.email,
@@ -270,6 +271,10 @@ router.get("/auth/me", authenticate, requireAuth, async (req: Request, res: Resp
     role: user.role,
     isSuperAdmin: user.isSuperAdmin,
     permissions: user.permissions,
+    systemSettings: {
+      auto_logout_minutes: parseInt(meSettings["auto_logout_minutes"] || "30"),
+      session_duration_minutes: Math.max(5, parseInt(meSettings["session_duration_minutes"] || "60")),
+    },
   });
 });
 
