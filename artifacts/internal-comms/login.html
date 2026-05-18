@@ -377,10 +377,14 @@ body {
 
       localStorage.setItem('access_token', data.accessToken);
       localStorage.setItem('user_info', JSON.stringify(data.user));
-      // Set a JS cookie so the frontend server can detect auth presence
-      // and avoid redirecting authenticated users back to /login.
+      // Set JS-readable cookies so the frontend server can detect auth state.
+      // access_token: mirrors the JWT (15 min) for immediate access-gating.
+      // has_session:  long-lived (7 days) indicator mirroring the httpOnly
+      //               refresh_token lifetime; survives access-token expiry so
+      //               the server never redirects users with a valid refresh session.
       document.cookie = 'access_token=' + encodeURIComponent(data.accessToken) +
         '; path=/; SameSite=Strict; max-age=900';
+      document.cookie = 'has_session=1; path=/; SameSite=Strict; max-age=604800';
       window.location.href = '/';
     } catch (err) {
       showError('خطأ في الاتصال بالخادم. حاول مجدداً.');

@@ -2988,16 +2988,18 @@ function authGetToken() {
 }
 function authSetToken(t) {
   localStorage.setItem('access_token', t);
-  // Mirror in a JS-readable cookie so server.mjs can detect auth state
-  // and redirect unauthenticated browsers to /login without a UI flash.
+  // Mirror in a JS-readable cookie (15 min) so server.mjs can gate access.
   document.cookie = 'access_token=' + encodeURIComponent(t) +
     '; path=/; SameSite=Strict; max-age=900';
+  // Refresh the long-lived session indicator on every token renewal.
+  document.cookie = 'has_session=1; path=/; SameSite=Strict; max-age=604800';
 }
 function authClear() {
   localStorage.removeItem('access_token');
   localStorage.removeItem('user_info');
-  // Expire the cookie
+  // Expire both session cookies so server.mjs redirects to /login
   document.cookie = 'access_token=; path=/; SameSite=Strict; max-age=0';
+  document.cookie = 'has_session=; path=/; SameSite=Strict; max-age=0';
 }
 
 async function authFetchWithToken(url, opts) {

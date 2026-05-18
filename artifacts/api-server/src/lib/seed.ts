@@ -19,16 +19,16 @@ const ROLES = [
   { name: "guest", nameAr: "ضيف", description: "وصول محدود", isSystem: false },
 ] as const;
 
-// Exactly 8 content pages matching the portal navigation
+// Exactly 8 RBAC-controlled pages as specified in the task contract
 const PAGES = [
-  { slug: "home",                nameAr: "الرئيسية",                icon: "i-home",      sortOrder: 1 },
-  { slug: "dashboard",           nameAr: "الأداء التنفيذي",         icon: "i-dashboard", sortOrder: 2 },
-  { slug: "weekend",             nameAr: "نهاية الأسبوع",           icon: "i-calendar",  sortOrder: 3 },
-  { slug: "world_news",          nameAr: "الأخبار العالمية",        icon: "i-news",      sortOrder: 4 },
-  { slug: "week_start",          nameAr: "بداية الأسبوع",           icon: "i-star",      sortOrder: 5 },
-  { slug: "initiatives",         nameAr: "المبادرات",               icon: "i-bulb",      sortOrder: 6 },
-  { slug: "international_days",  nameAr: "الأيام العالمية",         icon: "i-globe",     sortOrder: 7 },
-  { slug: "ai_year",             nameAr: "عام الذكاء الاصطناعي",   icon: "i-bot",       sortOrder: 8 },
+  { slug: "dashboard",          nameAr: "الأداء التنفيذي",       icon: "i-dashboard", sortOrder: 1 },
+  { slug: "weekend",            nameAr: "نهاية الأسبوع",         icon: "i-calendar",  sortOrder: 2 },
+  { slug: "world_news",         nameAr: "الأخبار العالمية",      icon: "i-news",      sortOrder: 3 },
+  { slug: "initiatives",        nameAr: "المبادرات",             icon: "i-bulb",      sortOrder: 4 },
+  { slug: "international_days", nameAr: "الأيام العالمية",       icon: "i-globe",     sortOrder: 5 },
+  { slug: "ai_year",            nameAr: "عام الذكاء الاصطناعي", icon: "i-bot",       sortOrder: 6 },
+  { slug: "smart_assistant",    nameAr: "المساعد الذكي",         icon: "i-sparkle",   sortOrder: 7 },
+  { slug: "settings",           nameAr: "الإعدادات",             icon: "i-settings",  sortOrder: 8 },
 ] as const;
 
 const PERMISSIONS = [
@@ -48,18 +48,18 @@ const ROLE_PERMISSIONS: Record<string, { pages: string[]; perms: string[] }[]> =
   ],
   editor: [
     {
-      pages: ["home", "dashboard", "weekend", "world_news", "week_start", "initiatives", "international_days", "ai_year"],
+      pages: ["dashboard", "weekend", "world_news", "initiatives", "international_days", "ai_year", "smart_assistant"],
       perms: ["view", "create", "edit", "export"],
     },
   ],
   viewer: [
     {
-      pages: ["home", "dashboard", "weekend", "world_news"],
+      pages: ["dashboard", "weekend", "world_news"],
       perms: ["view"],
     },
   ],
   guest: [
-    { pages: ["home", "dashboard"], perms: ["view"] },
+    { pages: ["dashboard"], perms: ["view"] },
   ],
 };
 

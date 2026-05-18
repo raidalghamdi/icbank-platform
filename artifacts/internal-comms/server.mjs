@@ -251,16 +251,17 @@ const server = http.createServer(async (req, res) => {
     urlPath === '/login.html' ||
     urlPath === '/wk2-data';
 
-  // Server-side auth gate: redirect to /login only when the browser has no
-  // session at all.  We accept either:
-  //   • access_token  — short-lived JS cookie set by the client after login/refresh
-  //   • refresh_token — long-lived httpOnly cookie set by the API on login
-  // When only refresh_token is present (access token has expired), we still
-  // serve the HTML shell; the client-side auth guard calls /api/auth/refresh
-  // transparently so the user never needs to re-login within the 7-day window.
+  // Server-side auth gate — redirect to /login only when the browser has no
+  // session indicator at all.  Two JS-accessible cookies signal presence:
+  //   • access_token  — short-lived (15 min); set client-side after login/refresh
+  //   • has_session   — long-lived (7 days); set client-side at login to mirror
+  //                     the httpOnly refresh_token lifetime.  Cleared on logout.
+  // Note: refresh_token is httpOnly + path:/api/auth so it is NOT visible here.
+  // When only has_session is present (access token expired), we still serve the
+  // HTML shell; the auth guard silently calls /api/auth/refresh and continues.
   if (!isPublicPath) {
     const cookies = parseCookies(req.headers['cookie']);
-    const hasSession = cookies['access_token'] || cookies['refresh_token'];
+    const hasSession = cookies['access_token'] || cookies['has_session'];
     if (!hasSession) {
       res.writeHead(302, { 'Location': '/login', 'Cache-Control': 'no-store' });
       res.end();
