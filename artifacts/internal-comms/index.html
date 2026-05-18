@@ -3057,6 +3057,81 @@ body {
   .adm-set-body{padding:18px;}
   .adm-set-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
   .adm-temp-pw{background:var(--success-bg);border:1px solid var(--success);padding:12px 16px;margin-top:12px;font-size:13px;font-weight:600;color:var(--success);display:none;}
+
+  /* ── Action dropdown (mobile) ─── */
+  .adm-action-wrap{position:relative;display:inline-block;}
+  .adm-action-toggle{padding:5px 12px;font-size:12px;font-weight:600;border:1px solid var(--border);background:var(--surface);cursor:pointer;font-family:var(--sans);color:var(--text-2);display:flex;align-items:center;gap:5px;}
+  .adm-action-toggle:hover{background:var(--surface-2);}
+  .adm-action-dropdown{display:none;position:absolute;left:0;top:100%;z-index:300;background:var(--surface);border:1px solid var(--border);box-shadow:var(--shadow-md);min-width:160px;}
+  .adm-action-dropdown.open{display:block;}
+  .adm-action-item{padding:9px 14px;font-size:12.5px;cursor:pointer;color:var(--text-2);white-space:nowrap;border-bottom:1px solid var(--border-subtle);}
+  .adm-action-item:last-child{border-bottom:none;}
+  .adm-action-item:hover{background:var(--surface-2);}
+  .adm-action-item.danger{color:var(--danger);}
+  .adm-action-item.warn{color:var(--warning);}
+
+  /* ── Mobile card view for users ─── */
+  .adm-user-cards{display:flex;flex-direction:column;gap:10px;}
+  .adm-user-card{background:var(--surface);border:1px solid var(--border);padding:14px;}
+  .adm-user-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px;}
+  .adm-user-card-info{flex:1;min-width:0;}
+  .adm-user-card-name{font-size:13.5px;font-weight:700;color:var(--text);margin-bottom:2px;}
+  .adm-user-card-sub{font-size:11.5px;color:var(--text-3);}
+  .adm-user-card-email{font-size:12px;color:var(--text-2);margin-bottom:8px;word-break:break-all;}
+  .adm-user-card-meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px;}
+  .adm-user-card-footer{border-top:1px solid var(--border-subtle);padding-top:10px;}
+
+  /* ── Mobile accordion for matrix ─── */
+  .adm-mx-accordion{display:flex;flex-direction:column;border:1px solid var(--border);}
+  .adm-mx-acc-row{border-bottom:1px solid var(--border-subtle);}
+  .adm-mx-acc-row:last-child{border-bottom:none;}
+  .adm-mx-acc-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;cursor:pointer;gap:10px;}
+  .adm-mx-acc-head:hover{background:var(--primary-50);}
+  .adm-mx-acc-head-info{flex:1;min-width:0;}
+  .adm-mx-acc-name{font-size:13px;font-weight:700;color:var(--text);}
+  .adm-mx-acc-role{font-size:11px;color:var(--text-4);}
+  .adm-mx-acc-arrow{font-size:12px;color:var(--text-4);transition:transform .2s;flex-shrink:0;}
+  .adm-mx-acc-row.open .adm-mx-acc-arrow{transform:rotate(180deg);}
+  .adm-mx-acc-body{display:none;padding:0 14px 12px;}
+  .adm-mx-acc-row.open .adm-mx-acc-body{display:block;}
+  .adm-mx-acc-page-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border-subtle);}
+  .adm-mx-acc-page-row:last-child{border-bottom:none;}
+  .adm-mx-acc-page-name{font-size:12.5px;font-weight:600;color:var(--text-2);}
+  .adm-mx-acc-cell{cursor:pointer;padding:4px 10px;display:inline-block;border:1px solid var(--border);font-size:13px;transition:background .1s;}
+  .adm-mx-acc-cell:hover{background:var(--primary-50);}
+
+  @media(max-width:800px){
+    /* Tabs: horizontal scroll */
+    .adm-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap;padding-bottom:0;}
+    .adm-tab{white-space:nowrap;flex-shrink:0;}
+
+    /* Modals: full screen on mobile */
+    .adm-modal-bg{align-items:flex-end;}
+    .adm-modal{max-width:100% !important;max-height:92vh;border-radius:0;}
+    .adm-modal-body{padding:16px;}
+    .adm-modal-foot{flex-direction:row;gap:8px;}
+
+    /* Settings row: single column */
+    .adm-set-row{grid-template-columns:1fr;}
+
+    /* Filters: vertical stack */
+    .adm-filters{flex-direction:column;align-items:stretch;}
+    .adm-input{min-width:0;width:100%;}
+    .adm-select{width:100%;}
+
+    /* Role grid: 1 column */
+    .adm-roles-grid{grid-template-columns:1fr;}
+
+    /* Log filters compact */
+    #adm-pane-logs .adm-filters input[type=date]{width:100%;}
+
+    /* Matrix tab toolbar */
+    #adm-pane-matrix > div:first-child{flex-wrap:wrap;}
+
+    /* Modal 2-col grids → 1 col */
+    #adm-user-modal .adm-modal-body > div[style*="grid-template-columns:1fr 1fr"],
+    #adm-role-modal .adm-modal-body > div[style*="grid-template-columns:1fr 1fr"]{display:flex;flex-direction:column;gap:0;}
+  }
   </style>
 
   <div class="page-section" id="section-admin_panel">
@@ -3870,6 +3945,61 @@ window.adminLoadUsers = function(page) {
     .catch(function(e) { if (wrap) wrap.innerHTML = '<p style="color:var(--danger);font-size:12.5px;">' + e.message + '</p>'; });
 };
 
+function admIsMobile() { return window.innerWidth <= 800; }
+
+function admBuildActionDropdown(uid, uname, isActive, isLocked) {
+  var safeName = admEsc(uname).replace(/'/g,'');
+  var suspLabel = isActive ? 'تعليق الحساب' : 'تفعيل الحساب';
+  var unlockItem = isLocked
+    ? '<div class="adm-action-item" onclick="admCloseDropdowns();adminUnlock(' + uid + ')">فتح القفل</div>'
+    : '';
+  return '<div class="adm-action-wrap">'
+    + '<button class="adm-action-toggle" onclick="admToggleDropdown(this,event)">إجراءات ▾</button>'
+    + '<div class="adm-action-dropdown">'
+    + '<div class="adm-action-item" onclick="admCloseDropdowns();adminShowUserModal(' + uid + ')">تعديل</div>'
+    + '<div class="adm-action-item warn" onclick="admCloseDropdowns();adminSuspend(' + uid + ')">' + suspLabel + '</div>'
+    + unlockItem
+    + '<div class="adm-action-item" onclick="admCloseDropdowns();adminResetPw(' + uid + ',\'' + safeName + '\')">إعادة كلمة مرور</div>'
+    + '<div class="adm-action-item danger" onclick="admCloseDropdowns();adminDeleteUser(' + uid + ',\'' + safeName + '\')">حذف</div>'
+    + '</div></div>';
+}
+
+window.admToggleDropdown = function(btn, e) {
+  e.stopPropagation();
+  admCloseDropdowns();
+  var dd = btn.nextElementSibling;
+  if (dd) dd.classList.toggle('open');
+};
+
+window.admCloseDropdowns = function() {
+  document.querySelectorAll('.adm-action-dropdown.open').forEach(function(el) { el.classList.remove('open'); });
+};
+
+document.addEventListener('click', window.admCloseDropdowns);
+
+// Re-render admin views when crossing the mobile breakpoint on resize
+(function() {
+  var ADM_LAST_MOBILE = window.innerWidth <= 800;
+  var ADM_RESIZE_TIMER = null;
+  window.addEventListener('resize', function() {
+    clearTimeout(ADM_RESIZE_TIMER);
+    ADM_RESIZE_TIMER = setTimeout(function() {
+      var isMobile = window.innerWidth <= 800;
+      if (isMobile !== ADM_LAST_MOBILE) {
+        ADM_LAST_MOBILE = isMobile;
+        var activeTab = document.querySelector('#adm-tab-nav .adm-tab.active');
+        if (!activeTab) return;
+        var section = document.getElementById('section-admin_panel');
+        if (!section || section.style.display === 'none') return;
+        var tabText = activeTab.textContent.trim();
+        if (tabText === 'المستخدمون') adminLoadUsers();
+        else if (tabText === 'الأدوار والصلاحيات') adminLoadRoles();
+        else if (tabText === 'مصفوفة الصلاحيات') adminLoadMatrix();
+      }
+    }, 200);
+  });
+})();
+
 function admRenderUsers(d) {
   var wrap = document.getElementById('adm-users-table-wrap');
   if (!wrap) return;
@@ -3878,34 +4008,64 @@ function admRenderUsers(d) {
     admRenderPager('adm-users-pager', d.page, d.pages, 'adminLoadUsers');
     return;
   }
-  var h = '<table class="adm-table"><thead><tr>'
-    + '<th>الاسم</th><th>البريد</th><th>الدور</th><th>الحالة</th><th>آخر دخول</th><th>إجراءات</th>'
-    + '</tr></thead><tbody>';
-  d.users.forEach(function(u) {
-    var status = u.isLocked
-      ? '<span class="adm-badge locked">مقفل</span>'
-      : (u.isActive ? '<span class="adm-badge active">نشط</span>' : '<span class="adm-badge inactive">معلق</span>');
-    var suspBtn = u.isActive
-      ? '<button class="adm-btn-sm warn" onclick="adminSuspend(' + u.id + ')">تعليق</button>'
-      : '<button class="adm-btn-sm" onclick="adminSuspend(' + u.id + ')">تفعيل</button>';
-    var unlockBtn = u.isLocked ? '<button class="adm-btn-sm" onclick="adminUnlock(' + u.id + ')">فتح</button>' : '';
-    h += '<tr>'
-      + '<td><b>' + admEsc(u.name) + '</b>'
-        + (u.title ? '<br><span style="font-size:11px;color:var(--text-3)">' + admEsc(u.title) + (u.department ? ' — ' + admEsc(u.department) : '') + '</span>' : '')
-        + '</td>'
-      + '<td dir="ltr" style="font-size:12px;color:var(--text-2)">' + admEsc(u.email) + '</td>'
-      + '<td>' + (u.roleNameAr ? admEsc(u.roleNameAr) : '<span style="color:var(--text-4)">—</span>') + '</td>'
-      + '<td>' + status + '</td>'
-      + '<td style="font-size:11.5px;color:var(--text-3)">' + admFmt(u.lastLogin) + '</td>'
-      + '<td><div class="adm-btn-actions">'
-        + '<button class="adm-btn-sm" onclick="adminShowUserModal(' + u.id + ')">تعديل</button>'
-        + suspBtn + unlockBtn
-        + '<button class="adm-btn-sm" onclick="adminResetPw(' + u.id + ',\'' + admEsc(u.name).replace(/'/g,'') + '\')">إعادة كلمة مرور</button>'
-        + '<button class="adm-btn-sm danger" onclick="adminDeleteUser(' + u.id + ',\'' + admEsc(u.name).replace(/'/g,'') + '\')">حذف</button>'
-        + '</div></td>'
-      + '</tr>';
-  });
-  h += '</tbody></table>';
+
+  var mobile = admIsMobile();
+  var h;
+
+  if (mobile) {
+    h = '<div class="adm-user-cards">';
+    d.users.forEach(function(u) {
+      var status = u.isLocked
+        ? '<span class="adm-badge locked">مقفل</span>'
+        : (u.isActive ? '<span class="adm-badge active">نشط</span>' : '<span class="adm-badge inactive">معلق</span>');
+      h += '<div class="adm-user-card">'
+        + '<div class="adm-user-card-top">'
+        +   '<div class="adm-user-card-info">'
+        +     '<div class="adm-user-card-name">' + admEsc(u.name) + '</div>'
+        +     (u.title ? '<div class="adm-user-card-sub">' + admEsc(u.title) + (u.department ? ' — ' + admEsc(u.department) : '') + '</div>' : '')
+        +   '</div>'
+        +   admBuildActionDropdown(u.id, u.name, u.isActive, u.isLocked)
+        + '</div>'
+        + '<div class="adm-user-card-email" dir="ltr">' + admEsc(u.email) + '</div>'
+        + '<div class="adm-user-card-meta">'
+        +   status
+        +   '<span class="adm-badge system">' + admEsc(u.roleNameAr || '—') + '</span>'
+        + '</div>'
+        + '<div style="font-size:11px;color:var(--text-3)">آخر دخول: ' + admFmt(u.lastLogin) + '</div>'
+        + '</div>';
+    });
+    h += '</div>';
+  } else {
+    h = '<table class="adm-table"><thead><tr>'
+      + '<th>الاسم</th><th>البريد</th><th>الدور</th><th>الحالة</th><th>آخر دخول</th><th>إجراءات</th>'
+      + '</tr></thead><tbody>';
+    d.users.forEach(function(u) {
+      var status = u.isLocked
+        ? '<span class="adm-badge locked">مقفل</span>'
+        : (u.isActive ? '<span class="adm-badge active">نشط</span>' : '<span class="adm-badge inactive">معلق</span>');
+      var suspBtn = u.isActive
+        ? '<button class="adm-btn-sm warn" onclick="adminSuspend(' + u.id + ')">تعليق</button>'
+        : '<button class="adm-btn-sm" onclick="adminSuspend(' + u.id + ')">تفعيل</button>';
+      var unlockBtn = u.isLocked ? '<button class="adm-btn-sm" onclick="adminUnlock(' + u.id + ')">فتح</button>' : '';
+      h += '<tr>'
+        + '<td><b>' + admEsc(u.name) + '</b>'
+          + (u.title ? '<br><span style="font-size:11px;color:var(--text-3)">' + admEsc(u.title) + (u.department ? ' — ' + admEsc(u.department) : '') + '</span>' : '')
+          + '</td>'
+        + '<td dir="ltr" style="font-size:12px;color:var(--text-2)">' + admEsc(u.email) + '</td>'
+        + '<td>' + (u.roleNameAr ? admEsc(u.roleNameAr) : '<span style="color:var(--text-4)">—</span>') + '</td>'
+        + '<td>' + status + '</td>'
+        + '<td style="font-size:11.5px;color:var(--text-3)">' + admFmt(u.lastLogin) + '</td>'
+        + '<td><div class="adm-btn-actions">'
+          + '<button class="adm-btn-sm" onclick="adminShowUserModal(' + u.id + ')">تعديل</button>'
+          + suspBtn + unlockBtn
+          + '<button class="adm-btn-sm" onclick="adminResetPw(' + u.id + ',\'' + admEsc(u.name).replace(/'/g,'') + '\')">إعادة كلمة مرور</button>'
+          + '<button class="adm-btn-sm danger" onclick="adminDeleteUser(' + u.id + ',\'' + admEsc(u.name).replace(/'/g,'') + '\')">حذف</button>'
+          + '</div></td>'
+        + '</tr>';
+    });
+    h += '</tbody></table>';
+  }
+
   wrap.innerHTML = h;
   admRenderPager('adm-users-pager', d.page, d.pages, 'adminLoadUsers');
 }
@@ -4022,20 +4182,35 @@ function admRenderRoles(roles) {
   var grid = document.getElementById('adm-roles-grid');
   if (!grid) return;
   if (!roles.length) { grid.innerHTML = '<p style="color:var(--text-3);font-size:12.5px;">لا يوجد أدوار.</p>'; return; }
+  var mobile = admIsMobile();
   grid.innerHTML = roles.map(function(r) {
-    var delBtn = r.isSystem ? '' : '<button class="adm-btn-sm danger" onclick="adminDeleteRole(' + r.id + ',\'' + admEsc(r.nameAr).replace(/'/g,'') + '\')">حذف</button>';
+    var safeName = admEsc(r.nameAr).replace(/'/g,'');
     var sysTag = r.isSystem ? '<span class="adm-badge system" style="margin-right:6px;">جوهري</span>' : '';
+    var actions;
+    if (mobile) {
+      var delItem = r.isSystem ? '' : '<div class="adm-action-item danger" onclick="admCloseDropdowns();adminDeleteRole(' + r.id + ',\'' + safeName + '\')">حذف</div>';
+      actions = '<div class="adm-action-wrap">'
+        + '<button class="adm-action-toggle" onclick="admToggleDropdown(this,event)">إجراءات ▾</button>'
+        + '<div class="adm-action-dropdown">'
+        + '<div class="adm-action-item" onclick="admCloseDropdowns();adminShowRolePermModal(' + r.id + ')">الصلاحيات</div>'
+        + '<div class="adm-action-item" onclick="admCloseDropdowns();adminShowEditRoleMeta(' + r.id + ')">تعديل</div>'
+        + delItem
+        + '</div></div>';
+    } else {
+      var delBtn = r.isSystem ? '' : '<button class="adm-btn-sm danger" onclick="adminDeleteRole(' + r.id + ',\'' + safeName + '\')">حذف</button>';
+      actions = '<div class="adm-btn-actions">'
+        + '<button class="adm-btn-sm primary" onclick="adminShowRolePermModal(' + r.id + ')">الصلاحيات</button>'
+        + '<button class="adm-btn-sm" onclick="adminShowEditRoleMeta(' + r.id + ')">تعديل</button>'
+        + delBtn
+        + '</div>';
+    }
     return '<div class="adm-role-card">'
       + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">'
         + '<span class="adm-role-name">' + admEsc(r.nameAr) + sysTag + '</span>'
         + '<span class="adm-role-count">' + r.userCount + ' مستخدم</span>'
         + '</div>'
       + '<div class="adm-role-meta" dir="ltr">' + admEsc(r.name) + (r.description ? ' — ' + admEsc(r.description) : '') + '</div>'
-      + '<div class="adm-btn-actions">'
-        + '<button class="adm-btn-sm primary" onclick="adminShowRolePermModal(' + r.id + ')">الصلاحيات</button>'
-        + '<button class="adm-btn-sm" onclick="adminShowEditRoleMeta(' + r.id + ')">تعديل</button>'
-        + delBtn
-        + '</div>'
+      + actions
       + '</div>';
   }).join('');
 }
@@ -4194,22 +4369,53 @@ function admRenderMatrix(d) {
   var users = d.users || [];
   if (!users.length) { wrap.innerHTML = '<p style="color:var(--text-3);font-size:12.5px;padding:16px 0;">لا يوجد مستخدمون.</p>'; return; }
 
-  var h = '<table class="adm-mx-table"><thead><tr><th class="row-head">المستخدم / الصفحة</th>';
-  pages.forEach(function(pg) { h += '<th>' + admEsc(pg.nameAr || pg.slug) + '</th>'; });
-  h += '</tr></thead><tbody>';
-
-  users.forEach(function(u) {
-    h += '<tr><td class="row-head">' + admEsc(u.name) + '<br><span style="font-size:10.5px;color:var(--text-4)">' + admEsc(u.roleNameAr||'—') + '</span></td>';
-    pages.forEach(function(pg) {
-      var perms = (u.permissions || {})[pg.slug] || [];
-      var level = admPermLevel(perms);
-      h += '<td><span class="adm-mx-cell" onclick="admMxCellClick(' + u.id + ',\'' + pg.slug + '\',this)" data-level="' + level + '" data-user="' + u.id + '" data-page="' + pg.slug + '">' + admLevelIcon(level) + '</span></td>';
+  var h;
+  if (admIsMobile()) {
+    h = '<div class="adm-mx-accordion">';
+    users.forEach(function(u) {
+      h += '<div class="adm-mx-acc-row">'
+        + '<div class="adm-mx-acc-head" onclick="admMxAccToggle(this)">'
+        +   '<div class="adm-mx-acc-head-info">'
+        +     '<div class="adm-mx-acc-name">' + admEsc(u.name) + '</div>'
+        +     '<div class="adm-mx-acc-role">' + admEsc(u.roleNameAr || '—') + '</div>'
+        +   '</div>'
+        +   '<span class="adm-mx-acc-arrow">▼</span>'
+        + '</div>'
+        + '<div class="adm-mx-acc-body">';
+      pages.forEach(function(pg) {
+        var perms = (u.permissions || {})[pg.slug] || [];
+        var level = admPermLevel(perms);
+        h += '<div class="adm-mx-acc-page-row">'
+          + '<span class="adm-mx-acc-page-name">' + admEsc(pg.nameAr || pg.slug) + '</span>'
+          + '<span class="adm-mx-acc-cell" onclick="admMxCellClick(' + u.id + ',\'' + pg.slug + '\',this)" data-level="' + level + '" data-user="' + u.id + '" data-page="' + pg.slug + '">' + admLevelIcon(level) + '</span>'
+          + '</div>';
+      });
+      h += '</div></div>';
     });
-    h += '</tr>';
-  });
-  h += '</tbody></table>';
-  wrap.innerHTML = h;
+    h += '</div>';
+    wrap.innerHTML = h;
+  } else {
+    h = '<table class="adm-mx-table"><thead><tr><th class="row-head">المستخدم / الصفحة</th>';
+    pages.forEach(function(pg) { h += '<th>' + admEsc(pg.nameAr || pg.slug) + '</th>'; });
+    h += '</tr></thead><tbody>';
+    users.forEach(function(u) {
+      h += '<tr><td class="row-head">' + admEsc(u.name) + '<br><span style="font-size:10.5px;color:var(--text-4)">' + admEsc(u.roleNameAr||'—') + '</span></td>';
+      pages.forEach(function(pg) {
+        var perms = (u.permissions || {})[pg.slug] || [];
+        var level = admPermLevel(perms);
+        h += '<td><span class="adm-mx-cell" onclick="admMxCellClick(' + u.id + ',\'' + pg.slug + '\',this)" data-level="' + level + '" data-user="' + u.id + '" data-page="' + pg.slug + '">' + admLevelIcon(level) + '</span></td>';
+      });
+      h += '</tr>';
+    });
+    h += '</tbody></table>';
+    wrap.innerHTML = h;
+  }
 }
+
+window.admMxAccToggle = function(head) {
+  var row = head.parentElement;
+  row.classList.toggle('open');
+};
 
 window.admMxCellClick = function(userId, pageSlug, el) {
   admClosePopup();
