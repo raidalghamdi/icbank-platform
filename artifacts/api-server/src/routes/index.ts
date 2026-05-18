@@ -24,13 +24,14 @@ router.use(requireAuth);
 // requirePermission checks that the authenticated user has at least "view"
 // access to the relevant page. super_admin / admin bypass all page checks.
 // These middleware run before the matching feature router handles the request.
-// Routes mapped to RBAC-controlled pages (8 pages in task spec)
+// Routes mapped to RBAC-controlled pages (spec: 8 pages)
 router.use(["/daily-report", "/report"], requirePermission("dashboard", "view"));
+// week-start maps to the "weekend" RBAC page (same content cycle per spec)
+router.use("/week-start", requirePermission("weekend", "view"));
 router.use("/intl-days", requirePermission("international_days", "view"));
 router.use("/ai-year", requirePermission("ai_year", "view"));
 // Storage exclusively serves ai-year/2026/* assets
 router.use("/storage", requirePermission("ai_year", "view"));
-// week-start is not in the 8-page RBAC spec; requireAuth (global above) is sufficient
 
 // ─── Feature routers ────────────────────────────────────────────────────────
 router.use(dailyReportRouter);

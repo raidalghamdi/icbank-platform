@@ -1996,11 +1996,11 @@ body {
     <div class="sidebar-section">
       <div class="sidebar-section-title en">Tools</div>
       <div class="sidebar-nav">
-        <a class="nav-item">
+        <a class="nav-item" data-page="smart_assistant" onclick="showSection('smart_assistant')">
           <span class="ico"><svg><use href="#i-bot"/></svg></span>
           <span>المساعد الذكي</span>
         </a>
-        <a class="nav-item">
+        <a class="nav-item" data-page="settings" onclick="showSection('settings')">
           <span class="ico"><svg><use href="#i-settings"/></svg></span>
           <span>الإعدادات</span>
         </a>
@@ -2962,17 +2962,20 @@ body {
 
 var AUTH_USER = null;
 
-// Page slug ↔ permission key mapping
+// Page slug ↔ RBAC permission key mapping
+// Only the 8 spec-defined pages are permission-gated.
+// 'home' is always accessible (no RBAC restriction).
+// 'weekstart' maps to 'weekend' (same RBAC page per spec).
 var PAGE_PERM_MAP = {
-  'reports':    'dashboard',
-  'home':       'home',
-  'initiatives':'initiatives',
-  'news':       'world_news',
-  'weekend':    'weekend',
-  'weekstart':  'week_start',
-  'intldays':   'international_days',
-  'aiyear':     'ai_year',
-  'admin_panel':'admin_panel',
+  'reports':        'dashboard',
+  'initiatives':    'initiatives',
+  'news':           'world_news',
+  'weekend':        'weekend',
+  'weekstart':      'weekend',
+  'intldays':       'international_days',
+  'aiyear':         'ai_year',
+  'smart_assistant':'smart_assistant',
+  'settings':       'settings',
 };
 
 var ROLE_LABELS = {

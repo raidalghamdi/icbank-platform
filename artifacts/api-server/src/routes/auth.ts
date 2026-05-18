@@ -132,13 +132,15 @@ router.post("/auth/login", loginLimiter, async (req: Request, res: Response) => 
   const accessToken = generateAccessToken(user.id, user.email, user.name);
   const refreshToken = generateRefreshToken(user.id);
 
-  const maxAge = rememberMe ? REFRESH_TOKEN_EXPIRY : undefined;
+  // Refresh token is always 7 days per spec.
+  // The "remember me" flag only affects the session cookie behaviour of the
+  // access_token on the client side; the httpOnly refresh_token lifetime is fixed.
   res.cookie("refresh_token", refreshToken, {
     httpOnly: true,
     secure: process.env["NODE_ENV"] === "production",
     sameSite: "lax",
     path: "/api/auth",
-    ...(maxAge ? { maxAge } : {}),
+    maxAge: REFRESH_TOKEN_EXPIRY,
   });
 
   const { permissions, role } = await getUserPermissions(user.id);
