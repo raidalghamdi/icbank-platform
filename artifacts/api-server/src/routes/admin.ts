@@ -1,4 +1,5 @@
 import { Router, type Request, type Response } from "express";
+import { randomBytes } from "crypto";
 import bcryptjs from "bcryptjs";
 import { db } from "@workspace/db";
 import {
@@ -25,8 +26,9 @@ router.use(requireAdmin);
 
 function genTempPassword(): string {
   const chars = "ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$";
+  const bytes = randomBytes(12);
   let pw = "";
-  for (let i = 0; i < 12; i++) pw += chars[Math.floor(Math.random() * chars.length)];
+  for (let i = 0; i < 12; i++) pw += chars[bytes[i]! % chars.length];
   return pw;
 }
 
