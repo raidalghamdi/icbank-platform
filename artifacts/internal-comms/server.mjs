@@ -224,8 +224,44 @@ async function generateWeekendData(dateStr, cacheKey) {
   return result;
 }
 
+/**
+ * Parse cookies from the Cookie request header.
+ */
+function parseCookies(cookieHeader) {
+  const cookies = {};
+  if (!cookieHeader) return cookies;
+  cookieHeader.split(';').forEach(part => {
+    const eqIdx = part.indexOf('=');
+    if (eqIdx === -1) return;
+    const name = part.slice(0, eqIdx).trim();
+    const value = part.slice(eqIdx + 1).trim();
+    if (name) cookies[name] = value;
+  });
+  return cookies;
+}
+
 const server = http.createServer(async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
+
+  const urlPath = (req.url || '/').split('?')[0];
+
+  // Public paths that don't require auth
+  const isPublicPath =
+    urlPath === '/login' ||
+    urlPath === '/login.html' ||
+    urlPath === '/wk2-data';
+
+  // Server-side auth gate: redirect to /login if no access_token cookie.
+  // The JWT is verified by the API; here we only check presence to avoid
+  // serving the app shell to unauthenticated browsers (prevents flash).
+  if (!isPublicPath) {
+    const cookies = parseCookies(req.headers['cookie']);
+    if (!cookies['access_token']) {
+      res.writeHead(302, { 'Location': '/login', 'Cache-Control': 'no-store' });
+      res.end();
+      return;
+    }
+  }
 
   if (req.url === '/wk2-data' && req.method === 'GET') {
     try {
