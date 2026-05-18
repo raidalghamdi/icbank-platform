@@ -648,11 +648,41 @@ router.get("/admin/settings", async (_req: Request, res: Response) => {
   res.json({ settings });
 });
 
+const SETTINGS_SCHEMA: Record<string, { type: "int" | "bool"; min?: number; max?: number }> = {
+  password_min_length:         { type: "int",  min: 4,   max: 100  },
+  password_expiry_days:        { type: "int",  min: 0,   max: 365  },
+  session_duration_minutes:    { type: "int",  min: 5,   max: 1440 },
+  auto_logout_minutes:         { type: "int",  min: 1,   max: 480  },
+  password_require_uppercase:  { type: "bool" },
+  password_require_symbols:    { type: "bool" },
+};
+
 router.put("/admin/settings", async (req: Request, res: Response) => {
   const { settings } = req.body as { settings?: Record<string, string> };
   if (!settings) { res.status(400).json({ error: "settings مطلوب" }); return; }
 
+  const errors: string[] = [];
+  const validated: Record<string, string> = {};
+
   for (const [key, value] of Object.entries(settings)) {
+    const schema = SETTINGS_SCHEMA[key];
+    if (!schema) { errors.push(`مفتاح غير مسموح: ${key}`); continue; }
+
+    if (schema.type === "int") {
+      const num = parseInt(String(value), 10);
+      if (isNaN(num)) { errors.push(`${key}: يجب أن يكون رقماً صحيحاً`); continue; }
+      if (schema.min !== undefined && num < schema.min) { errors.push(`${key}: الحد الأدنى ${schema.min}`); continue; }
+      if (schema.max !== undefined && num > schema.max) { errors.push(`${key}: الحد الأقصى ${schema.max}`); continue; }
+      validated[key] = String(num);
+    } else {
+      if (value !== "true" && value !== "false") { errors.push(`${key}: يجب أن تكون القيمة true أو false`); continue; }
+      validated[key] = value;
+    }
+  }
+
+  if (errors.length > 0) { res.status(400).json({ error: errors.join("; ") }); return; }
+
+  for (const [key, value] of Object.entries(validated)) {
     await db
       .insert(systemSettingsTable)
       .values({ key, value, updatedAt: new Date() })
@@ -663,7 +693,7 @@ router.put("/admin/settings", async (req: Request, res: Response) => {
   }
 
   invalidateSettingsCache();
-  await logAdminAction(req, "settings_updated", "system", "settings", { keys: Object.keys(settings) });
+  await logAdminAction(req, "settings_updated", "system", "settings", { keys: Object.keys(validated) });
   res.json({ ok: true });
 });
 

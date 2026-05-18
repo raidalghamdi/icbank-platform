@@ -22,10 +22,9 @@ function getJwtSecret(): string {
   return secret;
 }
 
-function generateAccessToken(userId: number, email: string, name: string, expiry = "60m"): string {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+function generateAccessToken(userId: number, email: string, name: string, expirySeconds = 3600): string {
   return jwt.sign({ sub: userId, email, name }, getJwtSecret(), {
-    expiresIn: expiry as any,
+    expiresIn: expirySeconds,
   });
 }
 
@@ -135,7 +134,7 @@ router.post("/auth/login", loginLimiter, async (req: Request, res: Response) => 
 
   const settings = await getSettings();
   const sessionMins = Math.max(5, parseInt(settings["session_duration_minutes"] || "60"));
-  const accessToken = generateAccessToken(user.id, user.email, user.name, `${sessionMins}m`);
+  const accessToken = generateAccessToken(user.id, user.email, user.name, sessionMins * 60);
   const refreshToken = generateRefreshToken(user.id);
 
   // Refresh token is always 7 days.
@@ -204,7 +203,9 @@ router.post("/auth/refresh", async (req: Request, res: Response) => {
       return;
     }
 
-    const accessToken = generateAccessToken(user.id, user.email, user.name);
+    const refreshSettings = await getSettings();
+    const refreshSessionMins = Math.max(5, parseInt(refreshSettings["session_duration_minutes"] || "60"));
+    const accessToken = generateAccessToken(user.id, user.email, user.name, refreshSessionMins * 60);
     const { permissions, role } = await getUserPermissions(user.id);
 
     res.json({
