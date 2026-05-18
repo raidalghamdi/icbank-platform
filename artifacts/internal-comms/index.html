@@ -1499,6 +1499,353 @@ body {
 .ws-progress-msg{font-size:12px;display:flex;align-items:center;gap:6px;margin-top:8px}
 @media(max-width:1100px){.ws-layout{grid-template-columns:1fr}.ws-output-grid{grid-template-columns:1fr}}
 @media(max-width:800px){.ws-form-row{grid-template-columns:1fr}}
+
+/* ══════════════════════════════════════════════
+   AI YEAR 2026 PAGE
+══════════════════════════════════════════════ */
+
+/* KPI Strip */
+.aiy-kpi-strip {
+  display: grid;
+  grid-template-columns: repeat(4,1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.aiy-kpi {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.aiy-kpi-icon {
+  width: 38px; height: 38px;
+  background: var(--primary-50);
+  color: var(--primary);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.aiy-kpi-body { flex: 1; min-width: 0; }
+.aiy-kpi-val  { font-size: 24px; font-weight: 700; color: var(--text); font-family: var(--mono); line-height: 1; }
+.aiy-kpi-lbl  { font-size: 11px; color: var(--text-3); font-weight: 600; margin-top: 3px; }
+
+/* Toolbar */
+.aiy-toolbar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+.aiy-toolbar select, .aiy-toolbar input[type=text] {
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 12.5px;
+  outline: none;
+  min-width: 120px;
+}
+.aiy-toolbar select:focus, .aiy-toolbar input[type=text]:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(30,64,175,0.08);
+}
+.aiy-search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  flex: 1;
+  min-width: 160px;
+  max-width: 280px;
+}
+.aiy-search-wrap input {
+  border: none; outline: none; background: none;
+  font-family: var(--sans); font-size: 12.5px; color: var(--text);
+  width: 100%;
+}
+.aiy-toolbar-sep { flex: 1; }
+.aiy-view-toggle {
+  display: flex;
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+.aiy-view-btn {
+  padding: 0 12px;
+  height: 34px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--surface);
+  border: none;
+  cursor: pointer;
+  font-family: var(--sans);
+  color: var(--text-3);
+  transition: all 0.12s;
+  border-left: 1px solid var(--border);
+}
+.aiy-view-btn:first-child { border-left: none; }
+.aiy-view-btn.active { background: var(--primary); color: white; }
+
+/* Gallery Grid */
+.aiy-grid {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 14px;
+}
+.aiy-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.aiy-card:hover { border-color: var(--primary-100); box-shadow: var(--shadow-md); transform: translateY(-1px); }
+.aiy-card-img {
+  width: 100%; height: 160px;
+  object-fit: cover;
+  background: var(--surface-2);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-4);
+  font-size: 32px;
+  overflow: hidden;
+}
+.aiy-card-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.aiy-card-body { padding: 12px 14px; }
+.aiy-card-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 4px; line-height: 1.4; }
+.aiy-card-meta { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
+.aiy-badge {
+  font-size: 10px; font-weight: 700;
+  padding: 2px 7px;
+  white-space: nowrap;
+}
+.aiy-badge-type   { background: var(--primary-50);  color: var(--primary); }
+.aiy-badge-channel{ background: var(--success-bg);  color: var(--success); }
+.aiy-badge-month  { background: var(--warning-bg);  color: var(--warning); }
+.aiy-card-desc { font-size: 11.5px; color: var(--text-3); line-height: 1.5;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.aiy-card-footer { padding: 8px 14px; border-top: 1px solid var(--border-subtle);
+  display: flex; align-items: center; justify-content: space-between; }
+.aiy-card-stats { font-size: 10.5px; color: var(--text-4); display: flex; gap: 10px; }
+
+/* Timeline view */
+.aiy-timeline { display: flex; flex-direction: column; gap: 28px; }
+.aiy-timeline-month { }
+.aiy-timeline-month-header {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--primary-100);
+}
+.aiy-timeline-month-label {
+  font-size: 16px; font-weight: 700; color: var(--primary);
+}
+.aiy-timeline-month-count {
+  font-size: 11px; color: var(--text-3); font-family: var(--mono);
+  background: var(--primary-50); padding: 2px 8px;
+}
+.aiy-timeline-cards {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 12px;
+}
+
+/* Lightbox */
+.aiy-lb-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.72);
+  z-index: 1000;
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.2s ease;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.aiy-lb-box {
+  background: var(--surface);
+  width: 100%; max-width: 860px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  animation: slideUp 0.25s ease;
+}
+@keyframes slideUp { from { transform: translateY(12px); opacity: 0; } to { transform: none; opacity: 1; } }
+.aiy-lb-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between; gap: 14px;
+  position: sticky; top: 0; background: var(--surface); z-index: 1;
+}
+.aiy-lb-title { font-size: 16px; font-weight: 700; color: var(--text); }
+.aiy-lb-close {
+  width: 32px; height: 32px;
+  background: var(--surface-2); border: 1px solid var(--border);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-size: 18px; color: var(--text-3); flex-shrink: 0;
+}
+.aiy-lb-close:hover { background: var(--danger-bg); color: var(--danger); border-color: var(--danger); }
+.aiy-lb-body { padding: 20px; }
+.aiy-lb-carousel {
+  width: 100%; aspect-ratio: 16/7;
+  background: var(--surface-2);
+  position: relative; overflow: hidden; margin-bottom: 20px;
+  display: flex; align-items: center; justify-content: center;
+}
+.aiy-lb-carousel-img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.aiy-lb-carousel-placeholder { font-size: 48px; color: var(--text-4); }
+.aiy-lb-carousel-nav {
+  position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
+  display: flex; gap: 6px;
+}
+.aiy-lb-carousel-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: rgba(255,255,255,0.5); border: none; cursor: pointer; padding: 0;
+  transition: background 0.15s;
+}
+.aiy-lb-carousel-dot.active { background: white; }
+.aiy-lb-carousel-arrow {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  width: 32px; height: 32px;
+  background: rgba(0,0,0,0.4); color: white; border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; font-size: 18px;
+}
+.aiy-lb-carousel-arrow.prev { right: 8px; }
+.aiy-lb-carousel-arrow.next { left: 8px; }
+.aiy-lb-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+.aiy-lb-field { }
+.aiy-lb-field-label { font-size: 10.5px; color: var(--text-4); font-weight: 600; margin-bottom: 4px; }
+.aiy-lb-field-value { font-size: 13px; color: var(--text-2); font-weight: 500; }
+.aiy-lb-desc { margin-bottom: 16px; }
+.aiy-lb-desc-text { font-size: 13px; color: var(--text-2); line-height: 1.7; }
+.aiy-lb-kpis { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+.aiy-lb-kpi {
+  padding: 10px 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  text-align: center; min-width: 100px;
+}
+.aiy-lb-kpi-val { font-size: 20px; font-weight: 700; color: var(--text); font-family: var(--mono); }
+.aiy-lb-kpi-lbl { font-size: 10.5px; color: var(--text-3); margin-top: 2px; }
+.aiy-lb-actions {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  padding: 16px 20px; border-top: 1px solid var(--border);
+  position: sticky; bottom: 0; background: var(--surface);
+}
+
+/* Charts */
+.aiy-charts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+.aiy-chart-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 16px 18px;
+}
+.aiy-chart-title {
+  font-size: 12px; font-weight: 700; color: var(--text-3);
+  margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.4px;
+}
+.aiy-chart-wrap { position: relative; height: 180px; }
+
+/* Add modal */
+.aiy-modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: 2000;
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+}
+.aiy-modal-box {
+  background: var(--surface);
+  width: 100%; max-width: 640px;
+  max-height: 90vh; overflow-y: auto;
+}
+.aiy-modal-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; background: var(--surface); z-index: 1;
+}
+.aiy-modal-title { font-size: 15px; font-weight: 700; }
+.aiy-modal-body { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+.aiy-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.aiy-form-group { display: flex; flex-direction: column; gap: 5px; }
+.aiy-form-label { font-size: 11.5px; font-weight: 600; color: var(--text-3); }
+.aiy-form-input, .aiy-form-select, .aiy-form-textarea {
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  font-family: var(--sans);
+  font-size: 13px;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.12s;
+  width: 100%;
+}
+.aiy-form-input:focus, .aiy-form-select:focus, .aiy-form-textarea:focus {
+  border-color: var(--primary);
+  background: var(--surface);
+  box-shadow: 0 0 0 2px rgba(30,64,175,0.08);
+}
+.aiy-form-textarea { min-height: 80px; resize: vertical; }
+.aiy-drop-zone {
+  border: 2px dashed var(--border);
+  padding: 24px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.aiy-drop-zone:hover, .aiy-drop-zone.drag-over {
+  border-color: var(--primary);
+  background: var(--primary-50);
+}
+.aiy-drop-icon { font-size: 28px; margin-bottom: 8px; }
+.aiy-drop-text { font-size: 13px; color: var(--text-3); }
+.aiy-drop-sub  { font-size: 11px; color: var(--text-4); margin-top: 4px; }
+.aiy-file-list { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+.aiy-file-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 10px;
+  background: var(--surface-2); border: 1px solid var(--border);
+  font-size: 12px;
+}
+.aiy-file-item-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.aiy-file-item-size { font-size: 10.5px; color: var(--text-4); font-family: var(--mono); flex-shrink: 0; }
+.aiy-file-item-progress { flex: 1; height: 4px; background: var(--surface-2); overflow: hidden; }
+.aiy-file-item-progress-fill { height: 100%; background: var(--primary); transition: width 0.3s; }
+.aiy-file-item-status { font-size: 11px; color: var(--text-3); flex-shrink: 0; }
+.aiy-file-item-del { cursor: pointer; color: var(--danger); background: none; border: none; font-size: 14px; padding: 0 4px; }
+.aiy-modal-footer {
+  padding: 14px 20px; border-top: 1px solid var(--border);
+  display: flex; gap: 8px; justify-content: flex-end;
+  position: sticky; bottom: 0; background: var(--surface);
+}
+.aiy-empty {
+  text-align: center; padding: 60px 20px;
+  color: var(--text-4); font-size: 13px;
+}
+.aiy-empty-icon { font-size: 40px; margin-bottom: 12px; }
+
+@media(max-width:900px) {
+  .aiy-kpi-strip { grid-template-columns: repeat(2,1fr); }
+  .aiy-grid { grid-template-columns: repeat(2,1fr); }
+  .aiy-timeline-cards { grid-template-columns: repeat(2,1fr); }
+  .aiy-charts-grid { grid-template-columns: 1fr; }
+  .aiy-lb-meta { grid-template-columns: 1fr; }
+}
+@media(max-width:600px) {
+  .aiy-grid { grid-template-columns: 1fr; }
+  .aiy-timeline-cards { grid-template-columns: 1fr; }
+  .aiy-form-row { grid-template-columns: 1fr; }
+}
 </style>
 </head>
 <body>
@@ -1603,6 +1950,11 @@ body {
         <a class="nav-item" data-page="intldays" onclick="showSection('intldays')">
           <span class="ico"><svg><use href="#i-globe"/></svg></span>
           <span>الأيام العالمية</span>
+        </a>
+        <a class="nav-item" data-page="aiyear" onclick="showSection('aiyear')">
+          <span class="ico"><svg><use href="#i-bot"/></svg></span>
+          <span>عام الذكاء الاصطناعي</span>
+          <span class="nav-item-count" id="aiy-nav-count">—</span>
         </a>
       </div>
     </div>
@@ -2303,6 +2655,255 @@ body {
 
   </div><!-- /section-intldays -->
 
+  <!-- ══════════════════════════════════════════════
+       AI YEAR 2026 PAGE — عام الذكاء الاصطناعي
+  ══════════════════════════════════════════════ -->
+  <div class="page-section" id="section-aiyear">
+
+    <div class="page-head">
+      <div>
+        <h1 class="page-title">عام الذكاء الاصطناعي ٢٠٢٦</h1>
+        <p class="page-sub">معرض توثيق كامل لتفعيلات وأنشطة الإدارة خلال عام الذكاء الاصطناعي — صور، إحصائيات، ورسوم بيانية</p>
+      </div>
+      <div class="page-actions">
+        <button class="btn btn-ghost" onclick="aiyGenerateReport()">
+          <span class="ico"><svg><use href="#i-download"/></svg></span>
+          <span>تقرير سنوي</span>
+        </button>
+        <button class="btn btn-primary" onclick="aiyOpenAdd()">
+          <span class="ico"><svg><use href="#i-plus"/></svg></span>
+          <span>إضافة تفعيل</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- KPI Strip -->
+    <div class="aiy-kpi-strip">
+      <div class="aiy-kpi">
+        <div class="aiy-kpi-icon">⚡</div>
+        <div class="aiy-kpi-body">
+          <div class="aiy-kpi-val" id="aiy-stat-total">—</div>
+          <div class="aiy-kpi-lbl">إجمالي التفعيلات</div>
+        </div>
+      </div>
+      <div class="aiy-kpi">
+        <div class="aiy-kpi-icon">🖼️</div>
+        <div class="aiy-kpi-body">
+          <div class="aiy-kpi-val" id="aiy-stat-media">—</div>
+          <div class="aiy-kpi-lbl">الصور والوسائط</div>
+        </div>
+      </div>
+      <div class="aiy-kpi">
+        <div class="aiy-kpi-icon">📢</div>
+        <div class="aiy-kpi-body">
+          <div class="aiy-kpi-val" id="aiy-stat-channels">—</div>
+          <div class="aiy-kpi-lbl">القنوات المستخدمة</div>
+        </div>
+      </div>
+      <div class="aiy-kpi">
+        <div class="aiy-kpi-icon">🕐</div>
+        <div class="aiy-kpi-body">
+          <div class="aiy-kpi-val" id="aiy-stat-updated" style="font-size:14px">—</div>
+          <div class="aiy-kpi-lbl">آخر تحديث</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="aiy-charts-grid" id="aiy-charts-area">
+      <div class="aiy-chart-card">
+        <div class="aiy-chart-title">التفعيلات الشهرية</div>
+        <div class="aiy-chart-wrap"><canvas id="aiy-chart-line"></canvas></div>
+      </div>
+      <div class="aiy-chart-card">
+        <div class="aiy-chart-title">توزيع الأنواع</div>
+        <div class="aiy-chart-wrap"><canvas id="aiy-chart-pie"></canvas></div>
+      </div>
+      <div class="aiy-chart-card">
+        <div class="aiy-chart-title">توزيع القنوات</div>
+        <div class="aiy-chart-wrap"><canvas id="aiy-chart-bar"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="aiy-toolbar">
+      <select id="aiy-filter-month" onchange="aiyApplyFilters()">
+        <option value="">كل الأشهر</option>
+        <option value="1">يناير</option>
+        <option value="2">فبراير</option>
+        <option value="3">مارس</option>
+        <option value="4">أبريل</option>
+        <option value="5">مايو</option>
+        <option value="6">يونيو</option>
+        <option value="7">يوليو</option>
+        <option value="8">أغسطس</option>
+        <option value="9">سبتمبر</option>
+        <option value="10">أكتوبر</option>
+        <option value="11">نوفمبر</option>
+        <option value="12">ديسمبر</option>
+      </select>
+      <select id="aiy-filter-type" onchange="aiyApplyFilters()">
+        <option value="">كل الأنواع</option>
+        <option value="حملة">حملة</option>
+        <option value="فعالية">فعالية</option>
+        <option value="منشور">منشور</option>
+        <option value="إنفوجرافيك">إنفوجرافيك</option>
+        <option value="فيديو">فيديو</option>
+        <option value="تقرير">تقرير</option>
+        <option value="أخرى">أخرى</option>
+      </select>
+      <select id="aiy-filter-channel" onchange="aiyApplyFilters()">
+        <option value="">كل القنوات</option>
+        <option value="تويتر / X">تويتر / X</option>
+        <option value="لينكدإن">لينكدإن</option>
+        <option value="إنستغرام">إنستغرام</option>
+        <option value="يوتيوب">يوتيوب</option>
+        <option value="شاشات داخلية">شاشات داخلية</option>
+        <option value="بريد إلكتروني">بريد إلكتروني</option>
+        <option value="تطبيق داخلي">تطبيق داخلي</option>
+        <option value="أخرى">أخرى</option>
+      </select>
+      <div class="aiy-search-wrap">
+        <span>🔍</span>
+        <input type="text" id="aiy-search-inp" placeholder="بحث..." oninput="aiyApplyFilters()">
+      </div>
+      <div class="aiy-toolbar-sep"></div>
+      <div class="aiy-view-toggle">
+        <button class="aiy-view-btn active" id="aiy-btn-grid" onclick="aiySetView('grid')">⊞ شبكة</button>
+        <button class="aiy-view-btn" id="aiy-btn-timeline" onclick="aiySetView('timeline')">⏱ محور زمني</button>
+      </div>
+    </div>
+
+    <!-- Gallery area -->
+    <div id="aiy-gallery">
+      <div class="aiy-empty"><div class="aiy-empty-icon">🤖</div><div>جارٍ تحميل التفعيلات...</div></div>
+    </div>
+
+  </div><!-- /section-aiyear -->
+
+  <!-- ══ AI Year Add Modal ══ -->
+  <div id="aiy-add-modal" class="aiy-modal-overlay" style="display:none" onclick="if(event.target===this)aiyCloseAdd()">
+    <div class="aiy-modal-box">
+      <div class="aiy-modal-header">
+        <div class="aiy-modal-title" id="aiy-modal-title-label">إضافة تفعيل جديد</div>
+        <button class="aiy-lb-close" onclick="aiyCloseAdd()">✕</button>
+      </div>
+      <div class="aiy-modal-body">
+        <div class="aiy-form-group">
+          <label class="aiy-form-label">العنوان <span style="color:var(--danger)">*</span></label>
+          <input type="text" id="aiy-f-title" class="aiy-form-input" placeholder="مثال: إطلاق حملة الذكاء الاصطناعي الداخلية">
+        </div>
+        <div class="aiy-form-row">
+          <div class="aiy-form-group">
+            <label class="aiy-form-label">الشهر <span style="color:var(--danger)">*</span></label>
+            <select id="aiy-f-month" class="aiy-form-select">
+              <option value="1">يناير</option><option value="2">فبراير</option>
+              <option value="3">مارس</option><option value="4">أبريل</option>
+              <option value="5">مايو</option><option value="6">يونيو</option>
+              <option value="7">يوليو</option><option value="8">أغسطس</option>
+              <option value="9">سبتمبر</option><option value="10">أكتوبر</option>
+              <option value="11">نوفمبر</option><option value="12">ديسمبر</option>
+            </select>
+          </div>
+          <div class="aiy-form-group">
+            <label class="aiy-form-label">النوع <span style="color:var(--danger)">*</span></label>
+            <select id="aiy-f-type" class="aiy-form-select">
+              <option value="حملة">حملة</option>
+              <option value="فعالية">فعالية</option>
+              <option value="منشور">منشور</option>
+              <option value="إنفوجرافيك">إنفوجرافيك</option>
+              <option value="فيديو">فيديو</option>
+              <option value="تقرير">تقرير</option>
+              <option value="أخرى">أخرى</option>
+            </select>
+          </div>
+        </div>
+        <div class="aiy-form-group">
+          <label class="aiy-form-label">القناة <span style="color:var(--danger)">*</span></label>
+          <select id="aiy-f-channel" class="aiy-form-select">
+            <option value="تويتر / X">تويتر / X</option>
+            <option value="لينكدإن">لينكدإن</option>
+            <option value="إنستغرام">إنستغرام</option>
+            <option value="يوتيوب">يوتيوب</option>
+            <option value="شاشات داخلية">شاشات داخلية</option>
+            <option value="بريد إلكتروني">بريد إلكتروني</option>
+            <option value="تطبيق داخلي">تطبيق داخلي</option>
+            <option value="أخرى">أخرى</option>
+          </select>
+        </div>
+        <div class="aiy-form-group">
+          <label class="aiy-form-label">الوصف</label>
+          <textarea id="aiy-f-desc" class="aiy-form-textarea" placeholder="وصف مختصر للتفعيل..."></textarea>
+        </div>
+        <div class="aiy-form-row">
+          <div class="aiy-form-group">
+            <label class="aiy-form-label">الوصول (أشخاص)</label>
+            <input type="number" id="aiy-f-reach" class="aiy-form-input" placeholder="0">
+          </div>
+          <div class="aiy-form-group">
+            <label class="aiy-form-label">التفاعل</label>
+            <input type="number" id="aiy-f-engagement" class="aiy-form-input" placeholder="0">
+          </div>
+        </div>
+        <div class="aiy-form-group">
+          <label class="aiy-form-label">الوسوم (مفصولة بفاصلة)</label>
+          <input type="text" id="aiy-f-tags" class="aiy-form-input" placeholder="ذكاء اصطناعي، حملة، داخلية">
+        </div>
+        <div class="aiy-form-group">
+          <label class="aiy-form-label">ملاحظات</label>
+          <input type="text" id="aiy-f-notes" class="aiy-form-input" placeholder="ملاحظة إضافية اختيارية">
+        </div>
+        <!-- Upload zone -->
+        <div class="aiy-form-group">
+          <label class="aiy-form-label">الصور / الوسائط (drag & drop)</label>
+          <div class="aiy-drop-zone" id="aiy-drop-zone"
+            onclick="document.getElementById('aiy-file-input').click()"
+            ondragover="aiyDragOver(event)" ondragleave="aiyDragLeave(event)" ondrop="aiyDrop(event)">
+            <div class="aiy-drop-icon">📎</div>
+            <div class="aiy-drop-text">اسحب الصور هنا أو انقر للاختيار</div>
+            <div class="aiy-drop-sub">JPG · PNG · GIF · WebP · MP4 — حتى 20MB لكل ملف</div>
+          </div>
+          <input type="file" id="aiy-file-input" multiple accept="image/*,video/*" style="display:none" onchange="aiyFilesSelected(this.files)">
+          <div class="aiy-file-list" id="aiy-file-list"></div>
+        </div>
+      </div>
+      <div class="aiy-modal-footer">
+        <button class="btn btn-ghost" onclick="aiyCloseAdd()">إلغاء</button>
+        <button class="btn btn-primary" id="aiy-save-btn" onclick="aiySaveActivation()">
+          <span>💾</span><span id="aiy-save-lbl">حفظ التفعيل</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ AI Year Lightbox ══ -->
+  <div id="aiy-lightbox" class="aiy-lb-overlay" style="display:none" onclick="if(event.target===this)aiyCloseLB()">
+    <div class="aiy-lb-box">
+      <div class="aiy-lb-header">
+        <div class="aiy-lb-title" id="aiy-lb-title">—</div>
+        <button class="aiy-lb-close" onclick="aiyCloseLB()">✕</button>
+      </div>
+      <div class="aiy-lb-body">
+        <!-- Carousel -->
+        <div class="aiy-lb-carousel" id="aiy-lb-carousel">
+          <div class="aiy-lb-carousel-placeholder">🤖</div>
+        </div>
+        <!-- Meta -->
+        <div class="aiy-lb-meta" id="aiy-lb-meta"></div>
+        <!-- Description -->
+        <div class="aiy-lb-desc" id="aiy-lb-desc"></div>
+        <!-- KPIs -->
+        <div class="aiy-lb-kpis" id="aiy-lb-kpis"></div>
+      </div>
+      <div class="aiy-lb-actions" id="aiy-lb-actions">
+        <button class="btn btn-ghost" id="aiy-lb-edit-btn" onclick="aiyLBEdit()">✏️ تعديل</button>
+        <button class="btn btn-ghost" id="aiy-lb-copy-btn" onclick="aiyLBCopyLink()">🔗 نسخ الرابط</button>
+        <button class="btn btn-ghost" id="aiy-lb-zip-btn" onclick="aiyLBDownloadZip()">📦 تنزيل ZIP الصور</button>
+        <button class="btn btn-ghost btn-danger-ghost" id="aiy-lb-del-btn" onclick="aiyLBDelete()">🗑 حذف</button>
+      </div>
+    </div>
+  </div>
+
   </div><!-- end main-inner -->
   </main>
 </div><!-- end .app -->
@@ -2596,7 +3197,8 @@ const STATIC_DATA = {
 const PAGE_LABELS = {
   reports:'الأداء التنفيذي', home:'الرئيسية',
   initiatives:'المبادرات', news:'الأخبار العالمية', weekend:'نهاية الأسبوع',
-  weekstart:'بداية الأسبوع', intldays:'الأيام العالمية'
+  weekstart:'بداية الأسبوع', intldays:'الأيام العالمية',
+  aiyear:'عام الذكاء الاصطناعي ٢٠٢٦'
 };
 
 function showSection(name) {
@@ -2610,6 +3212,7 @@ function showSection(name) {
   if (bc) bc.textContent = PAGE_LABELS[name] || name;
   window.scrollTo({ top: 0, behavior: 'smooth' });
   closeMobileSidebar();
+  if (name === 'aiyear') aiyInit();
 }
 
 function toggleMobileSidebar() {
@@ -4309,6 +4912,622 @@ function idCompare() {
     res.textContent = 'السنة: ' + year;
   });
 }
+
+// ════════════════════════════════════════════════════════════════
+// AI YEAR 2026 — عام الذكاء الاصطناعي
+// ════════════════════════════════════════════════════════════════
+
+var aiyActivations = [];
+var aiyFilteredActivations = [];
+var aiyView = 'grid';
+var aiyCurrentId = null;
+var aiyCurrentData = null;
+var aiyCarouselIndex = 0;
+var aiyPendingFiles = [];
+var aiyChartsLoaded = false;
+var aiyChartLine = null, aiyChartPie = null, aiyChartBar = null;
+
+var AIY_MONTHS = ['','يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+
+// ── Init / Load ──────────────────────────────────────────────────
+async function aiyInit() {
+  await Promise.all([aiyLoadActivations(), aiyLoadStats()]);
+  aiyLoadChartJs();
+}
+
+async function aiyLoadActivations() {
+  var params = new URLSearchParams();
+  var month = (document.getElementById('aiy-filter-month') || {}).value;
+  var type  = (document.getElementById('aiy-filter-type') || {}).value;
+  var chan  = (document.getElementById('aiy-filter-channel') || {}).value;
+  var q     = (document.getElementById('aiy-search-inp') || {}).value;
+  if (month) params.set('month', month);
+  if (type)  params.set('type', type);
+  if (chan)  params.set('channel', chan);
+  if (q)     params.set('q', q);
+  try {
+    var res = await fetch('/api/ai-year/activations?' + params.toString());
+    var data = await res.json();
+    aiyActivations = data.activations || [];
+    aiyFilteredActivations = aiyActivations;
+    aiyRenderGallery();
+    var navCount = document.getElementById('aiy-nav-count');
+    if (navCount) navCount.textContent = aiyActivations.length;
+  } catch(e) {
+    document.getElementById('aiy-gallery').innerHTML =
+      '<div class="aiy-empty"><div class="aiy-empty-icon">⚠️</div><div>فشل تحميل التفعيلات</div></div>';
+  }
+}
+
+async function aiyLoadStats() {
+  try {
+    var res = await fetch('/api/ai-year/stats');
+    var d = await res.json();
+    var set = function(id, val) { var el = document.getElementById(id); if (el) el.textContent = val; };
+    set('aiy-stat-total', d.totalActivations ?? '—');
+    set('aiy-stat-media', d.totalMedia ?? '—');
+    set('aiy-stat-channels', d.totalChannels ?? '—');
+    if (d.lastUpdated) {
+      var dt = new Date(d.lastUpdated);
+      set('aiy-stat-updated', dt.toLocaleDateString('ar-SA', { month:'short', day:'numeric' }));
+    }
+    if (aiyChartsLoaded) aiyDrawCharts(d);
+    else { aiy_pendingStats = d; }
+  } catch(e) {}
+}
+
+var aiy_pendingStats = null;
+
+function aiyLoadChartJs() {
+  if (window.Chart) { aiyChartsLoaded = true; if (aiy_pendingStats) aiyDrawCharts(aiy_pendingStats); return; }
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js';
+  s.onload = function() {
+    aiyChartsLoaded = true;
+    if (aiy_pendingStats) aiyDrawCharts(aiy_pendingStats);
+  };
+  document.head.appendChild(s);
+}
+
+function aiyDrawCharts(stats) {
+  var palette = ['#1E40AF','#16A34A','#D97706','#DC2626','#7C3AED','#0284C7','#DB2777','#059669','#B45309','#6366F1','#0891B2','#65A30D'];
+
+  // Line chart — monthly
+  var lineCtx = document.getElementById('aiy-chart-line');
+  if (lineCtx) {
+    if (aiyChartLine) aiyChartLine.destroy();
+    var monthVals = [];
+    for (var m = 1; m <= 12; m++) monthVals.push(stats.byMonth ? (stats.byMonth[m] || 0) : 0);
+    aiyChartLine = new Chart(lineCtx, {
+      type: 'line',
+      data: {
+        labels: ['ي','ف','م','أ','م','ي','ي','أ','س','أ','ن','د'],
+        datasets: [{ data: monthVals, borderColor: '#1E40AF', backgroundColor: 'rgba(30,64,175,0.08)',
+          fill: true, tension: 0.35, pointRadius: 3, pointBackgroundColor: '#1E40AF' }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+        scales: { x: { grid: { display: false } }, y: { grid: { color: '#F0F1F4' }, ticks: { stepSize: 1 } } } }
+    });
+  }
+
+  // Pie chart — by type
+  var pieCtx = document.getElementById('aiy-chart-pie');
+  if (pieCtx && stats.byType) {
+    if (aiyChartPie) aiyChartPie.destroy();
+    var typeKeys = Object.keys(stats.byType);
+    var typeVals = typeKeys.map(function(k) { return stats.byType[k]; });
+    aiyChartPie = new Chart(pieCtx, {
+      type: 'doughnut',
+      data: { labels: typeKeys, datasets: [{ data: typeVals, backgroundColor: palette.slice(0, typeKeys.length) }] },
+      options: { responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'right', labels: { font: { size: 10 }, boxWidth: 10 } } } }
+    });
+  }
+
+  // Bar chart — by channel
+  var barCtx = document.getElementById('aiy-chart-bar');
+  if (barCtx && stats.byChannel) {
+    if (aiyChartBar) aiyChartBar.destroy();
+    var chanKeys = Object.keys(stats.byChannel);
+    var chanVals = chanKeys.map(function(k) { return stats.byChannel[k]; });
+    aiyChartBar = new Chart(barCtx, {
+      type: 'bar',
+      data: { labels: chanKeys, datasets: [{ data: chanVals, backgroundColor: '#1E40AF99', borderColor: '#1E40AF', borderWidth: 1 }] },
+      options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+        plugins: { legend: { display: false } },
+        scales: { x: { grid: { color: '#F0F1F4' }, ticks: { stepSize: 1 } }, y: { grid: { display: false }, ticks: { font: { size: 10 } } } } }
+    });
+  }
+}
+
+// ── Filters & View ───────────────────────────────────────────────
+function aiyApplyFilters() {
+  aiyLoadActivations();
+}
+
+function aiySetView(v) {
+  aiyView = v;
+  document.getElementById('aiy-btn-grid').className = 'aiy-view-btn' + (v === 'grid' ? ' active' : '');
+  document.getElementById('aiy-btn-timeline').className = 'aiy-view-btn' + (v === 'timeline' ? ' active' : '');
+  aiyRenderGallery();
+}
+
+// ── Render Gallery ────────────────────────────────────────────────
+function aiyRenderGallery() {
+  var container = document.getElementById('aiy-gallery');
+  if (!container) return;
+  if (!aiyActivations.length) {
+    container.innerHTML = '<div class="aiy-empty"><div class="aiy-empty-icon">🤖</div><div>لا توجد تفعيلات بعد. أضف أول تفعيل للبدء.</div></div>';
+    return;
+  }
+
+  if (aiyView === 'grid') {
+    container.innerHTML = '<div class="aiy-grid">' + aiyActivations.map(aiyRenderCard).join('') + '</div>';
+  } else {
+    var byMonth = {};
+    aiyActivations.forEach(function(a) {
+      var m = a.month;
+      if (!byMonth[m]) byMonth[m] = [];
+      byMonth[m].push(a);
+    });
+    var months = Object.keys(byMonth).sort(function(a,b) { return b - a; });
+    var html = '<div class="aiy-timeline">';
+    months.forEach(function(m) {
+      var acts = byMonth[m];
+      html += '<div class="aiy-timeline-month">';
+      html += '<div class="aiy-timeline-month-header">';
+      html += '<div class="aiy-timeline-month-label">' + (AIY_MONTHS[parseInt(m)] || m) + '</div>';
+      html += '<div class="aiy-timeline-month-count">' + acts.length + ' تفعيل</div>';
+      html += '</div>';
+      html += '<div class="aiy-timeline-cards">' + acts.map(aiyRenderCard).join('') + '</div>';
+      html += '</div>';
+    });
+    html += '</div>';
+    container.innerHTML = html;
+  }
+}
+
+/**
+ * Sanitize an objectPath from the API before using it as an image src.
+ * Only paths matching the expected storage pattern are accepted; anything
+ * else returns empty string so the image falls back to the placeholder.
+ */
+var AIY_SAFE_PATH = /^\/objects\/ai-year\/2026\/(1[0-2]|[1-9])\/\d+\/[\w.\-]+$/;
+function aiyStorageSrc(objectPath) {
+  if (!objectPath || !AIY_SAFE_PATH.test(objectPath)) return '';
+  return '/api/storage/objects' + objectPath.replace('/objects', '');
+}
+
+function aiyRenderCard(a) {
+  var media = a.media || [];
+  var firstImg = media.find(function(m) { return m.contentType && m.contentType.startsWith('image/'); });
+  var imgHtml = firstImg && aiyStorageSrc(firstImg.objectPath)
+    ? '<div class="aiy-card-img"><img src="' + aiyStorageSrc(firstImg.objectPath) + '" alt="" loading="lazy" onerror="this.parentNode.innerHTML=\'<span>🤖</span>\'"></div>'
+    : '<div class="aiy-card-img">🤖</div>';
+
+  var tags = (a.tags || []);
+  return '<div class="aiy-card" onclick="aiyOpenLB(' + a.id + ')">' +
+    imgHtml +
+    '<div class="aiy-card-body">' +
+      '<div class="aiy-card-title">' + esc(a.title) + '</div>' +
+      '<div class="aiy-card-meta">' +
+        '<span class="aiy-badge aiy-badge-month">' + (AIY_MONTHS[a.month] || a.month) + '</span>' +
+        '<span class="aiy-badge aiy-badge-type">' + esc(a.type) + '</span>' +
+        '<span class="aiy-badge aiy-badge-channel">' + esc(a.channel) + '</span>' +
+      '</div>' +
+      (a.description ? '<div class="aiy-card-desc">' + esc(a.description) + '</div>' : '') +
+    '</div>' +
+    '<div class="aiy-card-footer">' +
+      '<div class="aiy-card-stats">' +
+        (a.reach    ? '<span>👥 ' + a.reach + '</span>' : '') +
+        (a.engagement ? '<span>💬 ' + a.engagement + '</span>' : '') +
+        (media.length ? '<span>🖼 ' + media.length + '</span>' : '') +
+      '</div>' +
+      (tags.length ? '<div style="font-size:10px;color:var(--text-4)">' + tags.slice(0,2).map(function(t){ return '#'+esc(t); }).join(' ') + '</div>' : '') +
+    '</div>' +
+  '</div>';
+}
+
+// ── Lightbox ─────────────────────────────────────────────────────
+function aiyOpenLB(id) {
+  var a = aiyActivations.find(function(x) { return x.id === id; });
+  if (!a) return;
+  aiyCurrentId = id;
+  aiyCurrentData = a;
+  aiyCarouselIndex = 0;
+
+  document.getElementById('aiy-lb-title').textContent = a.title;
+
+  // Carousel
+  var carousel = document.getElementById('aiy-lb-carousel');
+  var media = a.media || [];
+  if (media.length) {
+    aiyRenderCarousel(carousel, media, 0);
+  } else {
+    carousel.innerHTML = '<div class="aiy-lb-carousel-placeholder">🤖</div>';
+  }
+
+  // Meta
+  var meta = document.getElementById('aiy-lb-meta');
+  meta.innerHTML =
+    aiyLBField('الشهر', AIY_MONTHS[a.month] || a.month) +
+    aiyLBField('النوع', a.type) +
+    aiyLBField('القناة', a.channel) +
+    aiyLBField('الحالة', a.status || 'منشور') +
+    (a.reach != null ? aiyLBField('الوصول', a.reach.toLocaleString()) : '') +
+    (a.engagement != null ? aiyLBField('التفاعل', a.engagement.toLocaleString()) : '') +
+    ((a.tags || []).length ? aiyLBField('الوسوم', a.tags.join(' · ')) : '') +
+    (a.notes ? aiyLBField('ملاحظات', a.notes) : '');
+
+  // Description
+  var descEl = document.getElementById('aiy-lb-desc');
+  descEl.innerHTML = a.description
+    ? '<div class="aiy-lb-field-label">الوصف</div><div class="aiy-lb-desc-text">' + esc(a.description).replace(/\n/g,'<br>') + '</div>'
+    : '';
+
+  // KPIs
+  var kpisEl = document.getElementById('aiy-lb-kpis');
+  kpisEl.innerHTML = '';
+  if (a.reach != null) kpisEl.innerHTML += aiyLBKpi(a.reach.toLocaleString(), 'الوصول');
+  if (a.engagement != null) kpisEl.innerHTML += aiyLBKpi(a.engagement.toLocaleString(), 'التفاعل');
+  if (a.metrics && a.metrics.length) {
+    a.metrics.forEach(function(m) { kpisEl.innerHTML += aiyLBKpi(m.metricValue || '—', m.metricKey); });
+  }
+
+  document.getElementById('aiy-lightbox').style.display = 'flex';
+}
+
+function aiyLBField(label, value) {
+  return '<div class="aiy-lb-field"><div class="aiy-lb-field-label">' + esc(label) + '</div><div class="aiy-lb-field-value">' + esc(String(value)) + '</div></div>';
+}
+
+function aiyLBKpi(val, label) {
+  return '<div class="aiy-lb-kpi"><div class="aiy-lb-kpi-val">' + esc(String(val)) + '</div><div class="aiy-lb-kpi-lbl">' + esc(label) + '</div></div>';
+}
+
+async function aiyLBDownloadZip() {
+  if (!aiyCurrentId) return;
+  var btn = document.getElementById('aiy-lb-zip-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ جارٍ التحضير…'; }
+  try {
+    var res = await fetch('/api/ai-year/activations/' + aiyCurrentId + '/zip');
+    if (!res.ok) {
+      var err = await res.json().catch(function() { return {}; });
+      alert(err.error || 'فشل التنزيل');
+      return;
+    }
+    var blob = await res.blob();
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    var cd = res.headers.get('Content-Disposition') || '';
+    var m = cd.match(/filename="([^"]+)"/);
+    a.download = m ? m[1] : 'activation-' + aiyCurrentId + '.zip';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  } catch(e) {
+    alert('فشل التنزيل: ' + e.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '📦 تنزيل ZIP الصور'; }
+  }
+}
+
+function aiyRenderCarousel(carousel, media, idx) {
+  var imgMedia = media.filter(function(m) { return m.contentType && (m.contentType.startsWith('image/') || m.contentType.startsWith('video/')); });
+  carousel.innerHTML = '';
+  if (!imgMedia.length) {
+    var ph = document.createElement('div');
+    ph.className = 'aiy-lb-carousel-placeholder';
+    ph.textContent = '🤖';
+    carousel.appendChild(ph);
+    return;
+  }
+  var item = imgMedia[idx];
+  var src = aiyStorageSrc(item.objectPath);
+
+  // Build media element via DOM — never inject objectPath through innerHTML
+  var mediaEl;
+  if (item.contentType && item.contentType.startsWith('video/')) {
+    mediaEl = document.createElement('video');
+    mediaEl.className = 'aiy-lb-carousel-img';
+    mediaEl.controls = true;
+    if (src) mediaEl.src = src;
+  } else {
+    mediaEl = document.createElement('img');
+    mediaEl.className = 'aiy-lb-carousel-img';
+    mediaEl.alt = '';
+    if (src) {
+      mediaEl.src = src;
+    } else {
+      var fallback = document.createElement('div');
+      fallback.className = 'aiy-lb-carousel-placeholder';
+      fallback.textContent = '🤖';
+      carousel.appendChild(fallback);
+      return;
+    }
+    mediaEl.onerror = function() {
+      var fb = document.createElement('div');
+      fb.className = 'aiy-lb-carousel-placeholder';
+      fb.textContent = '🤖';
+      if (mediaEl.parentNode) mediaEl.parentNode.replaceChild(fb, mediaEl);
+    };
+  }
+  carousel.appendChild(mediaEl);
+
+  if (imgMedia.length > 1) {
+    var nav = document.createElement('div');
+    nav.className = 'aiy-lb-carousel-nav';
+    imgMedia.forEach(function(_, i) {
+      var dot = document.createElement('button');
+      dot.className = 'aiy-lb-carousel-dot' + (i === idx ? ' active' : '');
+      dot.onclick = function(e) { e.stopPropagation(); aiyCarouselGo(i); };
+      nav.appendChild(dot);
+    });
+    carousel.appendChild(nav);
+
+    var prev = document.createElement('button');
+    prev.className = 'aiy-lb-carousel-arrow prev';
+    prev.textContent = '›';
+    prev.onclick = function(e) { e.stopPropagation(); aiyCarouselGo(idx === 0 ? imgMedia.length - 1 : idx - 1); };
+
+    var next = document.createElement('button');
+    next.className = 'aiy-lb-carousel-arrow next';
+    next.textContent = '‹';
+    next.onclick = function(e) { e.stopPropagation(); aiyCarouselGo(idx === imgMedia.length - 1 ? 0 : idx + 1); };
+
+    carousel.appendChild(prev);
+    carousel.appendChild(next);
+  }
+}
+
+function aiyCarouselGo(idx) {
+  if (!aiyCurrentData) return;
+  aiyCarouselIndex = idx;
+  var carousel = document.getElementById('aiy-lb-carousel');
+  aiyRenderCarousel(carousel, aiyCurrentData.media || [], idx);
+}
+
+function aiyCloseLB() {
+  document.getElementById('aiy-lightbox').style.display = 'none';
+  aiyCurrentId = null; aiyCurrentData = null;
+}
+
+function aiyLBEdit() {
+  if (!aiyCurrentData) return;
+  aiyCloseLB();
+  aiyOpenAdd(aiyCurrentData);
+}
+
+function aiyLBCopyLink() {
+  if (!aiyCurrentId) return;
+  var url = window.location.origin + window.location.pathname + '#aiyear-' + aiyCurrentId;
+  navigator.clipboard && navigator.clipboard.writeText(url).catch(function(){});
+  var btn = document.getElementById('aiy-lb-copy-btn');
+  if (btn) { var t = btn.textContent; btn.textContent = '✓ تم النسخ'; setTimeout(function(){ btn.textContent = t; }, 1500); }
+}
+
+async function aiyLBDelete() {
+  if (!aiyCurrentId) return;
+  var adminKey = sessionStorage.getItem('aiy-admin-key') || '';
+  if (!adminKey) {
+    adminKey = prompt('أدخل مفتاح المدير (ADMIN_KEY) لتأكيد الحذف:') || '';
+    if (!adminKey) return;
+    sessionStorage.setItem('aiy-admin-key', adminKey);
+  }
+  if (!confirm('هل تريد حذف هذا التفعيل نهائياً؟')) return;
+  try {
+    var res = await fetch('/api/ai-year/activations/' + aiyCurrentId, {
+      method: 'DELETE',
+      headers: { 'X-Admin-Key': adminKey }
+    });
+    var body = await res.json();
+    if (!res.ok) {
+      if (res.status === 403) {
+        sessionStorage.removeItem('aiy-admin-key');
+        alert('مفتاح المدير غير صحيح. حاول مرة أخرى.');
+      } else {
+        alert(body.error || 'فشل الحذف');
+      }
+      return;
+    }
+    aiyCloseLB();
+    await aiyLoadActivations();
+    await aiyLoadStats();
+  } catch(e) { alert('فشل الحذف: ' + e.message); }
+}
+
+// ── Add / Edit Modal ─────────────────────────────────────────────
+var aiyEditId = null;
+var aiyUploadedMedia = [];
+
+function aiyOpenAdd(editData) {
+  aiyEditId = editData ? editData.id : null;
+  aiyUploadedMedia = editData ? (editData.media || []).map(function(m) { return { objectPath: m.objectPath, fileName: m.fileName, contentType: m.contentType, sortOrder: m.sortOrder, uploaded: true }; }) : [];
+  aiyPendingFiles = [];
+
+  var titleLbl = document.getElementById('aiy-modal-title-label');
+  if (titleLbl) titleLbl.textContent = editData ? 'تعديل التفعيل' : 'إضافة تفعيل جديد';
+
+  // Reset / fill form
+  var f = function(id, val) { var el = document.getElementById(id); if (el) el.value = val !== undefined ? val : ''; };
+  f('aiy-f-title', editData ? editData.title : '');
+  f('aiy-f-month', editData ? String(editData.month) : '1');
+  f('aiy-f-type', editData ? editData.type : 'حملة');
+  f('aiy-f-channel', editData ? editData.channel : 'تويتر / X');
+  f('aiy-f-desc', editData ? (editData.description || '') : '');
+  f('aiy-f-reach', editData ? (editData.reach != null ? String(editData.reach) : '') : '');
+  f('aiy-f-engagement', editData ? (editData.engagement != null ? String(editData.engagement) : '') : '');
+  f('aiy-f-tags', editData ? ((editData.tags || []).join(', ')) : '');
+  f('aiy-f-notes', editData ? (editData.notes || '') : '');
+
+  aiyRenderFileList();
+  document.getElementById('aiy-add-modal').style.display = 'flex';
+}
+
+function aiyCloseAdd() {
+  document.getElementById('aiy-add-modal').style.display = 'none';
+  aiyEditId = null; aiyPendingFiles = []; aiyUploadedMedia = [];
+}
+
+// Drag & drop
+function aiyDragOver(e) {
+  e.preventDefault();
+  document.getElementById('aiy-drop-zone').classList.add('drag-over');
+}
+function aiyDragLeave(e) {
+  document.getElementById('aiy-drop-zone').classList.remove('drag-over');
+}
+function aiyDrop(e) {
+  e.preventDefault();
+  document.getElementById('aiy-drop-zone').classList.remove('drag-over');
+  aiyFilesSelected(e.dataTransfer.files);
+}
+function aiyFilesSelected(files) {
+  for (var i = 0; i < files.length; i++) {
+    var f = files[i];
+    if (f.size > 20 * 1024 * 1024) { alert('الملف ' + f.name + ' أكبر من 20MB'); continue; }
+    aiyPendingFiles.push({ file: f, name: f.name, size: f.size, type: f.type, status: 'pending', objectPath: null });
+  }
+  aiyRenderFileList();
+}
+
+function aiyRenderFileList() {
+  var list = document.getElementById('aiy-file-list');
+  if (!list) return;
+  var all = aiyUploadedMedia.concat(aiyPendingFiles);
+  if (!all.length) { list.innerHTML = ''; return; }
+  list.innerHTML = all.map(function(item, i) {
+    var isUploaded = !!item.uploaded;
+    var name = item.fileName || item.name || '—';
+    var size = item.size ? (item.size / 1024 / 1024).toFixed(1) + ' MB' : '';
+    var status = isUploaded ? '✓ محفوظ' : (item.status === 'uploading' ? '⏳' : item.status === 'done' ? '✓' : '⏸');
+    return '<div class="aiy-file-item">' +
+      '<span style="font-size:14px">' + (item.type && item.type.startsWith('video/') ? '🎬' : '🖼') + '</span>' +
+      '<span class="aiy-file-item-name">' + esc(name) + '</span>' +
+      (size ? '<span class="aiy-file-item-size">' + size + '</span>' : '') +
+      '<span class="aiy-file-item-status">' + status + '</span>' +
+      (isUploaded ? '<button class="aiy-file-item-del" onclick="aiyRemoveUploaded(' + i + ')">✕</button>' : '') +
+    '</div>';
+  }).join('');
+}
+
+function aiyRemoveUploaded(idx) {
+  if (idx < aiyUploadedMedia.length) { aiyUploadedMedia.splice(idx, 1); }
+  aiyRenderFileList();
+}
+
+async function aiySaveActivation() {
+  var title = (document.getElementById('aiy-f-title') || {}).value || '';
+  var month = parseInt((document.getElementById('aiy-f-month') || {}).value || '1');
+  var type  = (document.getElementById('aiy-f-type') || {}).value || 'حملة';
+  var channel = (document.getElementById('aiy-f-channel') || {}).value || 'أخرى';
+  var desc  = (document.getElementById('aiy-f-desc') || {}).value || '';
+  var reach = parseInt((document.getElementById('aiy-f-reach') || {}).value) || null;
+  var engagement = parseInt((document.getElementById('aiy-f-engagement') || {}).value) || null;
+  var tagsRaw = (document.getElementById('aiy-f-tags') || {}).value || '';
+  var tags  = tagsRaw ? tagsRaw.split(',').map(function(t) { return t.trim(); }).filter(Boolean) : [];
+  var notes = (document.getElementById('aiy-f-notes') || {}).value || '';
+
+  if (!title.trim()) { alert('العنوان مطلوب'); return; }
+
+  var btn = document.getElementById('aiy-save-btn');
+  var lbl = document.getElementById('aiy-save-lbl');
+  if (btn) btn.disabled = true;
+  if (lbl) lbl.textContent = 'جارٍ الحفظ…';
+
+  try {
+    var activationPayload = {
+      title: title, month: month, year: 2026, type: type, channel: channel,
+      description: desc || undefined, tags: tags, reach: reach, engagement: engagement,
+      notes: notes || undefined, status: 'published'
+    };
+
+    var activationId = aiyEditId;
+
+    // For new activations: create first (without media) to get the ID,
+    // then upload files using activationId in the structured storage path.
+    if (!activationId) {
+      if (lbl) lbl.textContent = 'جارٍ إنشاء التفعيل…';
+      var createRes = await fetch('/api/ai-year/activations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ activation: activationPayload, media: [] })
+      });
+      var createData = await createRes.json();
+      if (!createData.ok) throw new Error(createData.error || JSON.stringify(createData));
+      activationId = createData.id;
+    }
+
+    // Upload pending files with structured path: ai-year/2026/{month}/{activationId}/
+    if (aiyPendingFiles.length) {
+      if (lbl) lbl.textContent = 'جارٍ رفع الملفات…';
+      for (var i = 0; i < aiyPendingFiles.length; i++) {
+        var pf = aiyPendingFiles[i];
+        if (pf.status === 'done') continue;
+        pf.status = 'uploading';
+        aiyRenderFileList();
+        try {
+          var urlRes = await fetch('/api/ai-year/upload-url', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: pf.name, contentType: pf.type, activationId: activationId, month: month })
+          });
+          var urlData = await urlRes.json();
+          if (urlData.error) throw new Error(urlData.error);
+          // Upload directly to GCS via presigned PUT URL
+          var putRes = await fetch(urlData.uploadURL, {
+            method: 'PUT',
+            headers: { 'Content-Type': pf.type },
+            body: pf.file
+          });
+          if (!putRes.ok) throw new Error('فشل رفع الملف: ' + putRes.status + ' ' + putRes.statusText);
+          pf.objectPath = urlData.objectPath;
+          pf.status = 'done';
+          aiyUploadedMedia.push({ objectPath: urlData.objectPath, fileName: pf.name, contentType: pf.type, sortOrder: aiyUploadedMedia.length, uploaded: true });
+          aiyRenderFileList();
+        } catch(uploadErr) {
+          pf.status = 'error';
+          console.error('Upload error', uploadErr);
+        }
+      }
+    }
+
+    // Update activation with media (and any field changes if editing)
+    if (lbl) lbl.textContent = 'جارٍ حفظ التفاصيل…';
+    var updateRes = await fetch('/api/ai-year/activations/' + activationId, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ activation: activationPayload, media: aiyUploadedMedia })
+    });
+    var updateData = await updateRes.json();
+    if (!updateData.ok) throw new Error(JSON.stringify(updateData));
+
+    aiyCloseAdd();
+    await aiyLoadActivations();
+    await aiyLoadStats();
+  } catch(err) {
+    alert('فشل الحفظ: ' + err.message);
+  } finally {
+    if (btn) btn.disabled = false;
+    if (lbl) lbl.textContent = 'حفظ التفعيل';
+  }
+}
+
+// ── Report ───────────────────────────────────────────────────────
+async function aiyGenerateReport() {
+  try {
+    var res = await fetch('/api/ai-year/report', { method: 'POST' });
+    if (!res.ok) throw new Error('Server error ' + res.status);
+    var blob = await res.blob();
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'AI-Year-2026-Report.docx';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  } catch(e) {
+    alert('فشل توليد التقرير: ' + e.message);
+  }
+}
+
 </script>
 </body>
 </html>
