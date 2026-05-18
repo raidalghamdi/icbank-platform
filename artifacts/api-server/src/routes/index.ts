@@ -28,6 +28,9 @@ router.use(["/daily-report", "/report"], requirePermission("dashboard", "view"))
 router.use("/week-start", requirePermission("week_start", "view"));
 router.use("/intl-days", requirePermission("international_days", "view"));
 router.use("/ai-year", requirePermission("ai_year", "view"));
+// Storage serves media objects from the ai_year activation workflow exclusively
+// (path prefix ai-year/2026/). Gate it behind the same page permission.
+router.use("/storage", requirePermission("ai_year", "view"));
 
 // ─── Feature routers ────────────────────────────────────────────────────────
 router.use(dailyReportRouter);
