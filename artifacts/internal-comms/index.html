@@ -3382,6 +3382,22 @@ async function authFetchWithToken(url, opts) {
   return fetch(url, opts);
 }
 
+// Smart API fetch: auto-refreshes the token on 401 and retries once.
+// Never use this for /auth/refresh or /auth/me — those handle their own flow.
+async function apiFetch(url, opts) {
+  var res = await authFetchWithToken(url, opts);
+  if (res.status !== 401) return res;
+  // Token expired — try to refresh silently
+  var refreshed = await authRefresh();
+  if (!refreshed) {
+    authClear();
+    window.location.href = '/login';
+    return res;
+  }
+  // Retry original request with new token
+  return authFetchWithToken(url, opts);
+}
+
 async function authRefresh() {
   try {
     var resp = await fetch('/api/auth/refresh', { method: 'POST', credentials: 'include' });
@@ -5332,7 +5348,7 @@ async function loadDailyReport() {
   if (content) { content.style.display = 'none'; content.innerHTML = ''; }
 
   try {
-    const res = await fetch('/api/daily-report/latest');
+    const res = await apiFetch('/api/daily-report/latest');
     if (res.status === 404) {
       if (loading) loading.style.display = 'none';
       if (empty)   empty.style.display   = 'block';
@@ -5545,14 +5561,14 @@ function wsFilterArchive(type, el) {
 async function wsDeleteArchive(id) {
   if (!confirm('هل تريد حذف هذا العنصر من الأرشيف؟')) return;
   try {
-    await fetch('/api/week-start/archive/' + id, { method: 'DELETE' });
+    await apiFetch('/api/week-start/archive/' + id, { method: 'DELETE' });
     await wsLoadArchive();
   } catch(e) { /* silent */ }
 }
 
 async function wsLoadArchive() {
   try {
-    const res = await fetch('/api/week-start/archive');
+    const res = await apiFetch('/api/week-start/archive');
     const data = await res.json();
     wsArchiveEntries = data.entries || [];
     var total = wsArchiveEntries.length;
@@ -5578,7 +5594,7 @@ async function wsLoadArchive() {
   } catch(e) { /* silent */ }
 
   try {
-    const res = await fetch('/api/week-start/style-profile');
+    const res = await apiFetch('/api/week-start/style-profile');
     const profile = await res.json();
     if (profile) {
       const card = document.getElementById('ws-profile-card');
@@ -5634,7 +5650,7 @@ async function wsUploadFiles() {
   wsFiles.forEach(function(f) { formData.append('files', f); });
 
   try {
-    const res = await fetch('/api/week-start/upload', { method: 'POST', body: formData });
+    const res = await apiFetch('/api/week-start/upload', { method: 'POST', body: formData });
     const data = await res.json();
     const ok = (data.results || []).filter(function(r) { return r.id; }).length;
     const errors = (data.results || []).filter(function(r) { return r.error; }).length;
@@ -5703,7 +5719,7 @@ async function wsGenerate() {
   if (outSection) outSection.scrollIntoView({ behavior:'smooth', block:'start' });
 
   try {
-    var response = await fetch('/api/week-start/generate', {
+    var response = await apiFetch('/api/week-start/generate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ topic: topic, tone: tone, length: length, occasion: occasion, audience: audience })
@@ -5771,7 +5787,7 @@ async function wsApprove(model) {
   var id = wsOutputIds[model];
   if (!id) return;
   try {
-    await fetch('/api/week-start/approve', {
+    await apiFetch('/api/week-start/approve', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id: id })
@@ -5886,7 +5902,7 @@ async function idDeepSearch(forceRefresh) {
 
   try {
     var body = JSON.stringify({ query: query, category: idCurrentCategory, force_refresh: !!forceRefresh });
-    var res = await fetch('/api/intl-days/search', {
+    var res = await apiFetch('/api/intl-days/search', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: body
@@ -6271,7 +6287,7 @@ async function idSave() {
   if (btn) { btn.disabled = true; btn.textContent = 'جاري الحفظ…'; }
   try {
     var currentYear = new Date().getFullYear();
-    var res = await fetch('/api/intl-days/save', {
+    var res = await apiFetch('/api/intl-days/save', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ data: Object.assign({ current_year: currentYear }, idCurrentData), category: idCurrentCategory })
@@ -6330,7 +6346,7 @@ async function idLoadArchive() {
   if (q) params.set('q', q);
   if (cat) params.set('category', cat);
   try {
-    var res = await fetch('/api/intl-days/archive?' + params.toString());
+    var res = await apiFetch('/api/intl-days/archive?' + params.toString());
     var data = await res.json();
     idArchiveData = data.days || [];
     var badge = document.getElementById('id-archive-count-badge');
@@ -6369,7 +6385,7 @@ function idRenderArchiveGrid(days) {
 
 async function idOpenDay(id) {
   try {
-    var res = await fetch('/api/intl-days/' + id);
+    var res = await apiFetch('/api/intl-days/' + id);
     var data = await res.json();
     var day = data.day || {};
     var theme = (data.themes || [])[0] || {};
@@ -6402,7 +6418,7 @@ async function idOpenDay(id) {
 async function idDeleteDay(id) {
   if (!confirm('هل تريد حذف هذا اليوم من الأرشيف؟')) return;
   try {
-    await fetch('/api/intl-days/' + id, { method: 'DELETE' });
+    await apiFetch('/api/intl-days/' + id, { method: 'DELETE' });
     await idLoadArchive();
   } catch(err) { /* silent */ }
 }
@@ -6467,7 +6483,7 @@ async function aiyLoadActivations() {
   if (chan)  params.set('channel', chan);
   if (q)     params.set('q', q);
   try {
-    var res = await fetch('/api/ai-year/activations?' + params.toString());
+    var res = await apiFetch('/api/ai-year/activations?' + params.toString());
     var data = await res.json();
     aiyActivations = data.activations || [];
     aiyFilteredActivations = aiyActivations;
@@ -6482,7 +6498,7 @@ async function aiyLoadActivations() {
 
 async function aiyLoadStats() {
   try {
-    var res = await fetch('/api/ai-year/stats');
+    var res = await apiFetch('/api/ai-year/stats');
     var d = await res.json();
     var set = function(id, val) { var el = document.getElementById(id); if (el) el.textContent = val; };
     set('aiy-stat-total', d.totalActivations ?? '—');
@@ -6711,7 +6727,7 @@ async function aiyLBDownloadZip() {
   var btn = document.getElementById('aiy-lb-zip-btn');
   if (btn) { btn.disabled = true; btn.textContent = '⏳ جارٍ التحضير…'; }
   try {
-    var res = await fetch('/api/ai-year/activations/' + aiyCurrentId + '/zip');
+    var res = await apiFetch('/api/ai-year/activations/' + aiyCurrentId + '/zip');
     if (!res.ok) {
       var err = await res.json().catch(function() { return {}; });
       alert(err.error || 'فشل التنزيل');
@@ -6955,7 +6971,7 @@ async function aiySaveActivation() {
     // then upload files using activationId in the structured storage path.
     if (!activationId) {
       if (lbl) lbl.textContent = 'جارٍ إنشاء التفعيل…';
-      var createRes = await fetch('/api/ai-year/activations', {
+      var createRes = await apiFetch('/api/ai-year/activations', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ activation: activationPayload, media: [] })
@@ -6974,7 +6990,7 @@ async function aiySaveActivation() {
         pf.status = 'uploading';
         aiyRenderFileList();
         try {
-          var urlRes = await fetch('/api/ai-year/upload-url', {
+          var urlRes = await apiFetch('/api/ai-year/upload-url', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name: pf.name, contentType: pf.type, activationId: activationId, month: month })
@@ -7001,7 +7017,7 @@ async function aiySaveActivation() {
 
     // Update activation with media (and any field changes if editing)
     if (lbl) lbl.textContent = 'جارٍ حفظ التفاصيل…';
-    var updateRes = await fetch('/api/ai-year/activations/' + activationId, {
+    var updateRes = await apiFetch('/api/ai-year/activations/' + activationId, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ activation: activationPayload, media: aiyUploadedMedia })
@@ -7023,7 +7039,7 @@ async function aiySaveActivation() {
 // ── Report ───────────────────────────────────────────────────────
 async function aiyGenerateReport() {
   try {
-    var res = await fetch('/api/ai-year/report', { method: 'POST' });
+    var res = await apiFetch('/api/ai-year/report', { method: 'POST' });
     if (!res.ok) throw new Error('Server error ' + res.status);
     var blob = await res.blob();
     var a = document.createElement('a');
