@@ -1876,7 +1876,6 @@ body {
 /* ═══ DASHBOARD (section-home) ═══ */
 .dash-hero {
   background: linear-gradient(135deg, #1E40AF 0%, #1E3A8A 60%, #312E81 100%);
-  border-radius: var(--radius-lg);
   padding: 28px 32px;
   margin-bottom: 20px;
   color: #fff;
@@ -1920,12 +1919,10 @@ body {
 .dash-kpi-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
   padding: 16px 18px;
-  box-shadow: var(--shadow-sm);
-  transition: box-shadow 0.15s;
+  transition: border-color 0.15s;
 }
-.dash-kpi-card:hover { box-shadow: var(--shadow-md); }
+.dash-kpi-card:hover { border-color: var(--border-strong); }
 .dash-kpi-val {
   font-size: 28px;
   font-weight: 700;
@@ -1962,17 +1959,15 @@ body {
 .dash-svc-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
   padding: 0;
   cursor: pointer;
-  transition: transform 0.18s, box-shadow 0.18s;
+  transition: border-color 0.15s;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  box-shadow: var(--shadow-sm);
   position: relative;
 }
-.dash-svc-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+.dash-svc-card:hover { border-color: var(--border-strong); }
 .dash-svc-top {
   height: 4px;
   background: var(--svc-color, var(--primary));
@@ -2013,9 +2008,7 @@ body {
 .dash-ai-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
   overflow: hidden;
-  box-shadow: var(--shadow-sm);
 }
 .dash-ai-header {
   display: flex;
@@ -2071,9 +2064,7 @@ body {
 .dash-col-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
   overflow: hidden;
-  box-shadow: var(--shadow-sm);
 }
 .dash-col-head {
   display: flex;
@@ -2144,7 +2135,6 @@ body {
   width: 36px; height: 36px;
   display: flex; align-items: center; justify-content: center;
   background: var(--surface-2);
-  border-radius: var(--radius-md);
   flex-shrink: 0;
 }
 .dash-act-info { flex: 1; min-width: 0; }
@@ -2180,7 +2170,6 @@ body {
   padding: 12px 16px;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
   font-size: 13px;
   font-weight: 600;
   color: var(--text-2);
