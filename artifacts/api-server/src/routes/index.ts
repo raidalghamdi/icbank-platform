@@ -8,6 +8,7 @@ import storageRouter from "./storage";
 import authRouter from "./auth";
 import authSsoRouter from "./auth-sso";
 import adminRouter from "./admin";
+import dashboardRouter from "./dashboard";
 import { authenticate, requireAuth, requirePageAccess } from "../middleware/auth";
 
 const router: IRouter = Router();
@@ -42,6 +43,7 @@ router.use("/ai-year", requirePageAccess("ai_year"));
 router.use("/storage", requirePageAccess("ai_year"));
 
 // ─── Feature routers ────────────────────────────────────────────────────────
+router.use(dashboardRouter);
 router.use(weekStartRouter);
 router.use(intlDaysRouter);
 router.use(aiYearRouter);

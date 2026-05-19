@@ -1872,6 +1872,338 @@ body {
   .aiy-timeline-cards { grid-template-columns: 1fr; }
   .aiy-form-row { grid-template-columns: 1fr; }
 }
+
+/* ═══ DASHBOARD (section-home) ═══ */
+.dash-hero {
+  background: linear-gradient(135deg, #1E40AF 0%, #1E3A8A 60%, #312E81 100%);
+  border-radius: var(--radius-lg);
+  padding: 28px 32px;
+  margin-bottom: 20px;
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+}
+.dash-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  pointer-events: none;
+}
+.dash-greeting {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  letter-spacing: -0.3px;
+}
+.dash-dates {
+  font-size: 12.5px;
+  opacity: 0.75;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dash-date-sep { opacity: 0.5; }
+.dash-context-msg {
+  font-size: 13px;
+  opacity: 0.85;
+  font-weight: 500;
+}
+
+.dash-kpi-strip {
+  display: grid;
+  grid-template-columns: repeat(4,1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.dash-kpi-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px 18px;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.15s;
+}
+.dash-kpi-card:hover { box-shadow: var(--shadow-md); }
+.dash-kpi-val {
+  font-size: 28px;
+  font-weight: 700;
+  font-family: var(--mono);
+  color: var(--primary);
+  line-height: 1;
+  margin-bottom: 6px;
+}
+.dash-kpi-label {
+  font-size: 11.5px;
+  color: var(--text-3);
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.dash-section { margin-bottom: 24px; }
+.dash-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.dash-section-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.dash-services-grid {
+  display: grid;
+  grid-template-columns: repeat(4,1fr);
+  gap: 14px;
+}
+.dash-svc-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 0;
+  cursor: pointer;
+  transition: transform 0.18s, box-shadow 0.18s;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+}
+.dash-svc-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+.dash-svc-top {
+  height: 4px;
+  background: var(--svc-color, var(--primary));
+}
+.dash-svc-body {
+  padding: 18px 18px 14px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.dash-svc-icon {
+  font-size: 28px;
+  margin: 18px 18px 8px;
+}
+.dash-svc-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 18px 6px;
+}
+.dash-svc-meta {
+  font-size: 12px;
+  color: var(--text-3);
+  line-height: 1.5;
+  margin: 0 18px;
+  flex: 1;
+}
+.dash-svc-btn {
+  margin: 14px 18px 18px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--svc-color, var(--primary));
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dash-ai-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+.dash-ai-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(to left, #f8f9ff, var(--surface));
+}
+.dash-ai-title {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+.dash-ai-subtitle { font-size: 12px; color: var(--text-4); }
+.dash-ai-body {
+  padding: 18px 20px;
+  min-height: 80px;
+}
+.dash-ai-body .dash-ai-point {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 0;
+  font-size: 13.5px;
+  color: var(--text-2);
+  line-height: 1.6;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.dash-ai-body .dash-ai-point:last-child { border-bottom: none; }
+.dash-ai-dot {
+  width: 6px; height: 6px;
+  background: var(--primary);
+  border-radius: 50%;
+  margin-top: 8px;
+  flex-shrink: 0;
+}
+.dash-ai-footer {
+  padding: 10px 20px;
+  font-size: 11.5px;
+  color: var(--text-4);
+  border-top: 1px solid var(--border);
+  background: var(--surface-2);
+}
+
+.dash-two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.dash-col-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+.dash-col-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+}
+.dash-col-title { font-size: 13.5px; font-weight: 700; color: var(--text); }
+
+.dash-intl-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--border-subtle);
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.dash-intl-item:last-child { border-bottom: none; }
+.dash-intl-item:hover { background: var(--surface-2); }
+.dash-intl-badge {
+  min-width: 42px;
+  text-align: center;
+  padding: 4px 8px;
+  background: var(--primary-50);
+  color: var(--primary);
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--mono);
+  white-space: nowrap;
+}
+.dash-intl-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  flex: 1;
+  line-height: 1.4;
+}
+.dash-intl-date { font-size: 11px; color: var(--text-4); margin-top: 1px; }
+.dash-intl-act-btn {
+  font-size: 11px;
+  color: var(--primary);
+  background: var(--primary-50);
+  border: none;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  white-space: nowrap;
+  font-weight: 600;
+}
+.dash-intl-act-btn:hover { background: var(--primary-100); }
+
+.dash-act-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 18px;
+  border-bottom: 1px solid var(--border-subtle);
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.dash-act-item:last-child { border-bottom: none; }
+.dash-act-item:hover { background: var(--surface-2); }
+.dash-act-type {
+  font-size: 18px;
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--surface-2);
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+}
+.dash-act-info { flex: 1; min-width: 0; }
+.dash-act-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
+}
+.dash-act-meta { font-size: 11px; color: var(--text-4); }
+
+.dash-news-grid {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 14px;
+}
+
+.dash-quick-bar {
+  display: flex;
+  gap: 10px;
+  padding: 16px 0 4px;
+  margin-bottom: 8px;
+}
+.dash-qa-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-2);
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+  font-family: var(--sans);
+}
+.dash-qa-btn:hover { background: var(--primary-50); border-color: var(--primary-100); color: var(--primary); }
+.dash-qa-icon { font-size: 16px; }
+
+@media(max-width:1100px) {
+  .dash-services-grid { grid-template-columns: repeat(2,1fr); }
+  .dash-kpi-strip { grid-template-columns: repeat(2,1fr); }
+}
+@media(max-width:768px) {
+  .dash-two-col { grid-template-columns: 1fr; }
+  .dash-news-grid { grid-template-columns: 1fr; }
+  .dash-services-grid { grid-template-columns: repeat(2,1fr); }
+  .dash-quick-bar { flex-wrap: wrap; }
+  .dash-qa-btn { flex: 1 1 calc(50% - 5px); }
+  .dash-hero { padding: 20px; }
+  .dash-greeting { font-size: 18px; }
+}
 </style>
 </head>
 <body>
@@ -2101,90 +2433,143 @@ body {
   ══════════════════════════════════ -->
   <div class="page-section active" id="section-home">
 
-    <div class="page-head">
-      <div>
-        <h1 class="page-title">الرئيسية</h1>
-        <p class="page-sub">مرجع تنفيذي شامل للممارسين والمختصين في مجال التواصل الداخلي المؤسسي.</p>
+    <!-- ── Hero Header ── -->
+    <div class="dash-hero">
+      <div class="dash-greeting">أهلاً، <span id="dash-user-name">—</span> 👋</div>
+      <div class="dash-dates">
+        <span id="dash-date-hijri">—</span>
+        <span class="dash-date-sep">·</span>
+        <span id="dash-date-gregorian">—</span>
       </div>
-      <div class="page-actions">
-        <button class="btn btn-ghost" onclick="showSection('news')">
-          <span class="ico"><svg><use href="#i-filter"/></svg></span>
-          <span>الأخبار</span>
-        </button>
-        <button class="btn btn-primary" onclick="showSection('initiatives')">
-          <span class="ico"><svg><use href="#i-plus"/></svg></span>
-          <span>المبادرات</span>
-        </button>
+      <div class="dash-context-msg" id="dash-context-msg">جارٍ التحميل...</div>
+    </div>
+
+    <!-- ── KPI Strip ── -->
+    <div class="dash-kpi-strip">
+      <div class="dash-kpi-card">
+        <div class="dash-kpi-val" id="dash-kpi-aiy">—</div>
+        <div class="dash-kpi-label">تفعيلات عام الذكاء الاصطناعي</div>
+      </div>
+      <div class="dash-kpi-card">
+        <div class="dash-kpi-val" id="dash-kpi-ws">—</div>
+        <div class="dash-kpi-label">محتوى بداية الأسبوع هذا الشهر</div>
+      </div>
+      <div class="dash-kpi-card">
+        <div class="dash-kpi-val" id="dash-kpi-intl">—</div>
+        <div class="dash-kpi-label">أيام عالمية قادمة خلال ٣٠ يوم</div>
+      </div>
+      <div class="dash-kpi-card">
+        <div class="dash-kpi-val" id="dash-kpi-news">—</div>
+        <div class="dash-kpi-label">أخبار التواصل الداخلي المتاحة</div>
       </div>
     </div>
 
-    <!-- Hero article -->
-    <div class="hero" id="hero-area">
-      <div class="hero-main">
-        <div class="hero-badges" id="hero-badges">
-          <span class="hero-eyebrow"><span class="ico"><svg><use href="#i-star"/></svg></span> أبرز خبر اليوم</span>
+    <!-- ── Quick Access Services ── -->
+    <div class="dash-section">
+      <div class="dash-section-head">
+        <h2 class="dash-section-title">خدماتنا الرئيسية</h2>
+      </div>
+      <div class="dash-services-grid">
+        <div class="dash-svc-card" onclick="showSection('reports')" style="--svc-color:#1E40AF">
+          <div class="dash-svc-top"></div>
+          <div class="dash-svc-icon">📊</div>
+          <div class="dash-svc-name">الأداء التنفيذي</div>
+          <div class="dash-svc-meta" id="dash-svc-reports">مؤشرات الأداء والتقارير التنفيذية</div>
+          <div class="dash-svc-btn">افتح الأداء →</div>
         </div>
-        <div class="hero-title-new" id="hero-title" style="opacity:0.4">جارٍ تحميل أبرز خبر...</div>
-        <div class="hero-en" id="hero-en"></div>
-        <div class="hero-desc-new" id="hero-desc"></div>
-        <div class="hero-actions">
-          <button class="btn btn-primary" id="hero-btn">قراءة التفاصيل <span class="ico"><svg><use href="#i-arrow-left"/></svg></span></button>
-          <span class="hero-link" id="hero-link" style="font-size:12px;color:var(--text-4);"></span>
+        <div class="dash-svc-card" onclick="showSection('weekstart')" style="--svc-color:#16A34A">
+          <div class="dash-svc-top"></div>
+          <div class="dash-svc-icon">🌅</div>
+          <div class="dash-svc-name">بداية الأسبوع</div>
+          <div class="dash-svc-meta" id="dash-svc-weekstart">جارٍ التحميل...</div>
+          <div class="dash-svc-btn">ابدأ إنتاج محتوى →</div>
+        </div>
+        <div class="dash-svc-card" onclick="showSection('weekend')" style="--svc-color:#7C3AED">
+          <div class="dash-svc-top"></div>
+          <div class="dash-svc-icon">🌙</div>
+          <div class="dash-svc-name">نهاية الأسبوع</div>
+          <div class="dash-svc-meta">رسائل نهاية الأسبوع للموظفين بأسلوب مؤسسي مميز</div>
+          <div class="dash-svc-btn">افتح الأرشيف →</div>
+        </div>
+        <div class="dash-svc-card" onclick="showSection('aiyear')" style="--svc-color:#D97706">
+          <div class="dash-svc-top"></div>
+          <div class="dash-svc-icon">🤖</div>
+          <div class="dash-svc-name">عام الذكاء الاصطناعي</div>
+          <div class="dash-svc-meta" id="dash-svc-aiyear">جارٍ التحميل...</div>
+          <div class="dash-svc-btn">افتح المعرض →</div>
         </div>
       </div>
-      <div class="hero-side">
-        <div class="hero-stats">
-          <div class="hero-stat">
-            <span class="hero-stat-label">المصدر</span>
-            <span class="hero-stat-val" id="hero-avatar">—</span>
+    </div>
+
+    <!-- ── AI Executive Summary ── -->
+    <div class="dash-section">
+      <div class="dash-ai-card">
+        <div class="dash-ai-header">
+          <div>
+            <div class="dash-ai-title">🤖 الملخص التنفيذي الذكي</div>
+            <div class="dash-ai-subtitle">تحليل فوري لنشاط التواصل الداخلي</div>
           </div>
-          <div class="hero-stat">
-            <span class="hero-stat-label">مجال الخبر</span>
-            <span class="hero-stat-val">التواصل الداخلي</span>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button class="btn btn-ghost" id="dash-ai-gen-btn" onclick="dashGenerateAISummary()">✨ توليد ملخص</button>
+            <button class="btn btn-ghost" id="dash-ai-copy-btn" onclick="dashCopyAISummary()" style="display:none">📋 نسخ</button>
           </div>
-          <div class="hero-stat">
-            <span class="hero-stat-label">التخصص</span>
-            <span class="hero-stat-val">مؤسسي · دولي</span>
-          </div>
+        </div>
+        <div class="dash-ai-body" id="dash-ai-body">
+          <div style="color:var(--text-4);font-size:13px;padding:4px 0">اضغط "توليد ملخص" للحصول على تحليل ذكي لنشاط الأسبوع.</div>
+        </div>
+        <div class="dash-ai-footer" id="dash-ai-footer" style="display:none">
+          تم التوليد في <span id="dash-ai-gentime">—</span>
         </div>
       </div>
     </div>
 
-    <!-- Featured Initiatives -->
-    <div class="section">
-      <div class="section-header">
-        <div class="section-title-row">
-          <h2 class="section-title">المبادرات المميزة</h2>
-          <span class="section-badge">من 42</span>
+    <!-- ── Two-Column: Intl Days + Recent Activations ── -->
+    <div class="dash-two-col">
+      <div class="dash-col-card">
+        <div class="dash-col-head">
+          <span class="dash-col-title">🗓️ الأيام العالمية القادمة</span>
+          <button class="link-action" onclick="showSection('intldays')">عرض الكل <span class="ico"><svg><use href="#i-arrow-left"/></svg></span></button>
         </div>
-        <div class="section-actions">
-          <button class="link-action" onclick="showSection('initiatives')">
-            <span>عرض الكل</span>
-            <span class="ico"><svg><use href="#i-arrow-left"/></svg></span>
-          </button>
+        <div id="dash-intl-days">
+          <div class="loading-wrap"><div class="spinner"></div></div>
         </div>
       </div>
-      <div class="init-grid" id="home-initiatives">
-        <!-- filled by JS -->
+      <div class="dash-col-card">
+        <div class="dash-col-head">
+          <span class="dash-col-title">⚡ آخر التفعيلات المضافة</span>
+          <button class="link-action" onclick="showSection('aiyear')">عرض الكل <span class="ico"><svg><use href="#i-arrow-left"/></svg></span></button>
+        </div>
+        <div id="dash-recent-act">
+          <div class="loading-wrap"><div class="spinner"></div></div>
+        </div>
       </div>
     </div>
 
-    <!-- Recent News -->
-    <div class="section">
-      <div class="section-header">
-        <div class="section-title-row">
-          <h2 class="section-title">أحدث الأخبار</h2>
-        </div>
-        <div class="section-actions">
-          <button class="link-action" onclick="showSection('news')">
-            <span>عرض الكل</span>
-            <span class="ico"><svg><use href="#i-arrow-left"/></svg></span>
-          </button>
-        </div>
+    <!-- ── News Pulse ── -->
+    <div class="dash-section">
+      <div class="dash-section-head">
+        <h2 class="dash-section-title">📡 نبض الأخبار العالمية</h2>
+        <button class="link-action" onclick="showSection('news')">كل الأخبار <span class="ico"><svg><use href="#i-arrow-left"/></svg></span></button>
       </div>
-      <div class="news-list" id="home-news">
+      <div class="dash-news-grid" id="home-news">
         <div class="loading-wrap"><div class="spinner"></div><div class="loading-text">جارٍ تحميل الأخبار...</div></div>
       </div>
+    </div>
+
+    <!-- ── Quick Actions Bar ── -->
+    <div class="dash-quick-bar">
+      <button class="dash-qa-btn" onclick="showSection('weekstart')">
+        <span class="dash-qa-icon">✨</span><span>إنتاج محتوى جديد</span>
+      </button>
+      <button class="dash-qa-btn" onclick="showSection('intldays')">
+        <span class="dash-qa-icon">📅</span><span>إضافة يوم عالمي</span>
+      </button>
+      <button class="dash-qa-btn" onclick="showSection('aiyear')">
+        <span class="dash-qa-icon">📸</span><span>رفع تفعيل</span>
+      </button>
+      <button class="dash-qa-btn" onclick="showSection('smart_assistant')">
+        <span class="dash-qa-icon">🤖</span><span>المساعد الذكي</span>
+      </button>
     </div>
 
   </div>
@@ -4768,11 +5153,170 @@ function closeMobileSidebar() {
 }
 
 // ════════════════════════════════════════
+// DASHBOARD
+// ════════════════════════════════════════
+var dashSummaryData = null;
+
+function dashSetGreeting() {
+  // User name
+  var nameEl = document.getElementById('dash-user-name');
+  if (nameEl && authUser && authUser.name) {
+    var firstName = authUser.name.split(' ')[0] || authUser.name;
+    nameEl.textContent = firstName;
+  }
+  // Gregorian date
+  var gregEl = document.getElementById('dash-date-gregorian');
+  if (gregEl) {
+    var now = new Date();
+    gregEl.textContent = now.toLocaleDateString('ar-SA-u-nu-latn', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  }
+  // Hijri date via Intl
+  var hijriEl = document.getElementById('dash-date-hijri');
+  if (hijriEl) {
+    try {
+      var hijri = new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura-nu-latn', { year:'numeric', month:'long', day:'numeric' }).format(new Date());
+      hijriEl.textContent = hijri;
+    } catch(e) { hijriEl.textContent = ''; }
+  }
+  // Context message based on day
+  var ctxEl = document.getElementById('dash-context-msg');
+  if (ctxEl) {
+    var day = new Date().getDay(); // 0=Sun,1=Mon,...,4=Thu,5=Fri,6=Sat
+    var msgs = { 5:'نتمنى لك إجازة سعيدة 🌴', 6:'نتمنى لك إجازة سعيدة 🌴', 4:'نهاية أسبوع موفقة ✨' };
+    ctxEl.textContent = msgs[day] || 'أسبوع منتج بانتظارك 🚀';
+  }
+}
+
+async function homeDashboardInit() {
+  dashSetGreeting();
+  try {
+    var res = await apiFetch('/api/dashboard/summary');
+    if (!res.ok) return;
+    var data = await res.json();
+    dashSummaryData = data;
+    dashRenderKPIs(data);
+    dashRenderServiceCards(data);
+    dashRenderIntlDays(data.intlDaysUpcoming || []);
+    dashRenderRecentActivations((data.aiYear && data.aiYear.recentActivations) || []);
+  } catch(e) { /* silent — page still functional */ }
+}
+
+function dashRenderKPIs(data) {
+  var set = function(id, val) { var el = document.getElementById(id); if (el) el.textContent = val; };
+  set('dash-kpi-aiy', data.kpi.aiYearActivations ?? '—');
+  set('dash-kpi-ws',  data.kpi.weekStartThisMonth ?? '—');
+  set('dash-kpi-intl', data.kpi.intlDaysUpcomingCount ?? '—');
+}
+
+function dashRenderServiceCards(data) {
+  var wsEl = document.getElementById('dash-svc-weekstart');
+  if (wsEl && data.weekStart) {
+    var count = data.weekStart.thisMonthCount || 0;
+    var last  = data.weekStart.lastTitle;
+    wsEl.innerHTML = count + ' رسالة هذا الشهر' + (last ? '<br><span style="font-size:11px;color:var(--text-4)">آخرها: ' + escHtml(last.slice(0,40)) + '</span>' : '');
+  }
+  var aiyEl = document.getElementById('dash-svc-aiyear');
+  if (aiyEl && data.aiYear) {
+    var total = data.aiYear.totalActivations || 0;
+    var recent = (data.aiYear.recentActivations || [])[0];
+    aiyEl.innerHTML = total + ' تفعيل مسجّل' + (recent ? '<br><span style="font-size:11px;color:var(--text-4)">آخره: ' + escHtml((recent.title || '').slice(0,35)) + '</span>' : '');
+  }
+}
+
+function dashRenderIntlDays(days) {
+  var el = document.getElementById('dash-intl-days');
+  if (!el) return;
+  if (!days.length) {
+    el.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-4);font-size:13px">لا توجد أيام عالمية خلال ٣٠ يوماً القادمة</div>';
+    return;
+  }
+  el.innerHTML = days.map(function(d) {
+    var dateStr = new Date(d.date).toLocaleDateString('ar-SA-u-nu-latn', { month:'long', day:'numeric' });
+    var badge = d.daysUntil === 0 ? 'اليوم' : 'بعد ' + d.daysUntil + ' يوم';
+    return '<div class="dash-intl-item" onclick="showSection(\'intldays\')">' +
+      '<div class="dash-intl-badge">' + escHtml(badge) + '</div>' +
+      '<div style="flex:1;min-width:0">' +
+        '<div class="dash-intl-name">' + escHtml(d.name) + '</div>' +
+        '<div class="dash-intl-date">' + dateStr + '</div>' +
+      '</div>' +
+      '<button class="dash-intl-act-btn" onclick="event.stopPropagation();showSection(\'intldays\')">جهّز →</button>' +
+    '</div>';
+  }).join('');
+}
+
+var AIY_TYPE_ICONS = { 'مبادرة':'💡', 'فعالية':'🎯', 'منشور':'📱', 'تصميم':'🎨', 'فيديو':'🎬', 'تدريب':'📚' };
+function dashRenderRecentActivations(acts) {
+  var el = document.getElementById('dash-recent-act');
+  if (!el) return;
+  if (!acts.length) {
+    el.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-4);font-size:13px">لا توجد تفعيلات مسجّلة بعد</div>';
+    return;
+  }
+  el.innerHTML = acts.map(function(a) {
+    var icon = AIY_TYPE_ICONS[a.type] || '⚡';
+    var dateStr = a.activationDate || (a.createdAt ? new Date(a.createdAt).toLocaleDateString('ar-SA-u-nu-latn', { month:'short', day:'numeric' }) : '');
+    var statusCls = a.status === 'published' ? 'b-green' : 'b-gray';
+    var statusTxt = a.status === 'published' ? 'منشور' : a.status || '';
+    return '<div class="dash-act-item" onclick="showSection(\'aiyear\')">' +
+      '<div class="dash-act-type">' + icon + '</div>' +
+      '<div class="dash-act-info">' +
+        '<div class="dash-act-title">' + escHtml(a.title) + '</div>' +
+        '<div class="dash-act-meta">' + escHtml(a.type || '') + (dateStr ? ' · ' + dateStr : '') + '</div>' +
+      '</div>' +
+      '<span class="badge ' + statusCls + '" style="font-size:10px">' + statusTxt + '</span>' +
+    '</div>';
+  }).join('');
+}
+
+var dashAISummaryText = '';
+async function dashGenerateAISummary() {
+  var btn = document.getElementById('dash-ai-gen-btn');
+  var body = document.getElementById('dash-ai-body');
+  var footer = document.getElementById('dash-ai-footer');
+  var copyBtn = document.getElementById('dash-ai-copy-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ جارٍ التوليد...'; }
+  if (body) body.innerHTML = '<div class="loading-wrap" style="padding:20px 0"><div class="spinner"></div><div class="loading-text">يحلّل الذكاء الاصطناعي بياناتك...</div></div>';
+  try {
+    var res = await apiFetch('/api/dashboard/ai-summary', { method:'POST' });
+    var data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'فشل التوليد');
+    dashAISummaryText = data.summary || '';
+    // Render summary points
+    var points = dashAISummaryText.split('\n').filter(function(l) { return l.trim(); });
+    if (body) {
+      body.innerHTML = points.map(function(p) {
+        var text = p.replace(/^[•\-\*]\s*/, '').trim();
+        return '<div class="dash-ai-point"><div class="dash-ai-dot"></div><span>' + escHtml(text) + '</span></div>';
+      }).join('');
+    }
+    // Show timestamp
+    if (footer) {
+      footer.style.display = '';
+      var gt = document.getElementById('dash-ai-gentime');
+      if (gt) gt.textContent = new Date(data.generatedAt || Date.now()).toLocaleString('ar-SA-u-nu-latn');
+    }
+    if (copyBtn) copyBtn.style.display = '';
+  } catch(err) {
+    if (body) body.innerHTML = '<div style="color:var(--danger);font-size:13px;padding:4px 0">⚠️ ' + escHtml(err.message || 'حدث خطأ') + '</div>';
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '✨ توليد ملخص'; }
+  }
+}
+
+function dashCopyAISummary() {
+  if (!dashAISummaryText) return;
+  navigator.clipboard.writeText(dashAISummaryText).then(function() {
+    var btn = document.getElementById('dash-ai-copy-btn');
+    if (btn) { btn.textContent = '✅ تم النسخ'; setTimeout(function() { btn.textContent = '📋 نسخ'; }, 2000); }
+  });
+}
+
+// ════════════════════════════════════════
 // INIT
 // ════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', async () => {
   await authCheckSession();
-  renderHomeInitiatives();
+  homeDashboardInit();
   renderAllInitiatives(INITIATIVES);
   initWeekend();
   fetchNews();
@@ -4801,10 +5345,13 @@ function showLoaders(ids) {
 
 function renderNewsToAll(articles) {
   renderHeroArticle(articles[0]);
-  renderHomeNews(articles.slice(0,4));
+  renderHomeNews(articles.slice(0,3));
   renderAllNews(articles);
   const sqEl = document.getElementById('sidebar-quick');
   if (sqEl) renderSidebarQuick(articles.slice(0,5));
+  // Update news KPI count on dashboard
+  var kpiNews = document.getElementById('dash-kpi-news');
+  if (kpiNews) kpiNews.textContent = articles.length;
 }
 
 function renderHeroArticle(article) {
