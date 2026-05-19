@@ -3840,6 +3840,9 @@ function authUpdateUI() {
   if (!AUTH_USER) return;
   var u = AUTH_USER;
 
+  // Update dashboard greeting if we're on the home page
+  if (typeof dashSetGreeting === 'function') { try { dashSetGreeting(); } catch(e){} }
+
   var avatarEl = document.getElementById('auth-avatar');
   var nameEl   = document.getElementById('auth-name');
   var roleEl   = document.getElementById('auth-role');
@@ -5160,8 +5163,9 @@ var dashSummaryData = null;
 function dashSetGreeting() {
   // User name
   var nameEl = document.getElementById('dash-user-name');
-  if (nameEl && authUser && authUser.name) {
-    var firstName = authUser.name.split(' ')[0] || authUser.name;
+  var u = AUTH_USER;
+  if (nameEl && u && u.name) {
+    var firstName = u.name.split(' ')[0] || u.name;
     nameEl.textContent = firstName;
   }
   // Gregorian date

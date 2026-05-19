@@ -12,6 +12,7 @@ const router: Router = Router();
 
 const anthropic = new Anthropic({
   baseURL: process.env.AI_INTEGRATIONS_ANTHROPIC_BASE_URL,
+  apiKey: process.env.AI_INTEGRATIONS_ANTHROPIC_API_KEY || "dummy",
 });
 
 // ─── GET /api/dashboard/summary ─────────────────────────────────────────────
