@@ -7370,8 +7370,9 @@ function aiyCloseLB() {
 
 function aiyLBEdit() {
   if (!aiyCurrentData) return;
+  var dataToEdit = aiyCurrentData;
   aiyCloseLB();
-  aiyOpenAdd(aiyCurrentData);
+  aiyOpenAdd(dataToEdit);
 }
 
 function aiyLBCopyLink() {
