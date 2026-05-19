@@ -17,6 +17,11 @@ router.use(authRouter);
 router.use(authSsoRouter);
 router.use(healthRouter);
 
+// ─── N8N report ingestion routes (API-key auth, no JWT required) ────────────
+// These routes use their own x-api-key header check (REPORT_API_KEY secret).
+// They must be registered BEFORE the JWT requireAuth gate.
+router.use(dailyReportRouter);
+
 // ─── Auth gate: populates req.user and enforces login ──────────────────────
 // authenticate() sets req.user from JWT (Bearer header or access_token cookie).
 // requireAuth() returns HTTP 401 if req.user is not set.
@@ -37,7 +42,6 @@ router.use("/ai-year", requirePageAccess("ai_year"));
 router.use("/storage", requirePageAccess("ai_year"));
 
 // ─── Feature routers ────────────────────────────────────────────────────────
-router.use(dailyReportRouter);
 router.use(weekStartRouter);
 router.use(intlDaysRouter);
 router.use(aiYearRouter);
