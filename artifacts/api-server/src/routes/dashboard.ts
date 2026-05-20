@@ -57,6 +57,33 @@ router.get("/dashboard/summary", async (req: Request, res: Response) => {
           .limit(300),
       ]);
 
+    // Arabic month names → month number
+    const AR_MONTHS: Record<string, number> = {
+      يناير: 1, فبراير: 2, مارس: 3, أبريل: 4, ابريل: 4,
+      مايو: 5, يونيو: 6, يوليو: 7, أغسطس: 8, اغسطس: 8,
+      سبتمبر: 9, أكتوبر: 10, اكتوبر: 10, نوفمبر: 11, ديسمبر: 12,
+    };
+
+    // Parse "DD MonthAr" (e.g. "17 مايو") OR "MM-DD" (e.g. "05-17")
+    function parseAnnualDate(raw: string): { mm: number; dd: number } | null {
+      const trimmed = raw.trim();
+      // Arabic format: "17 مايو"
+      const arMatch = trimmed.match(/^(\d{1,2})\s+(\S+)$/);
+      if (arMatch) {
+        const dd = parseInt(arMatch[1]!);
+        const mm = AR_MONTHS[arMatch[2]!.trim()] ?? NaN;
+        if (!isNaN(mm) && !isNaN(dd)) return { mm, dd };
+      }
+      // MM-DD format
+      const numMatch = trimmed.match(/^(\d{1,2})-(\d{1,2})$/);
+      if (numMatch) {
+        const mm = parseInt(numMatch[1]!);
+        const dd = parseInt(numMatch[2]!);
+        if (!isNaN(mm) && !isNaN(dd)) return { mm, dd };
+      }
+      return null;
+    }
+
     // Resolve upcoming international days within the next 30 days
     type UpcomingDay = { id: number; name: string; date: string; daysUntil: number; category: string | null };
     const upcomingDays: UpcomingDay[] = [];
@@ -65,10 +92,9 @@ router.get("/dashboard/summary", async (req: Request, res: Response) => {
 
     for (const day of intlDaysResult) {
       if (!day.annualDate) continue;
-      const parts = day.annualDate.split("-");
-      const mm = parseInt(parts[0] ?? "");
-      const dd = parseInt(parts[1] ?? "");
-      if (isNaN(mm) || isNaN(dd)) continue;
+      const parsed = parseAnnualDate(day.annualDate);
+      if (!parsed) continue;
+      const { mm, dd } = parsed;
 
       const thisYearDate = new Date(currentYear, mm - 1, dd);
       thisYearDate.setHours(0, 0, 0, 0);
