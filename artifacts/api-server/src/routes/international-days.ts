@@ -183,22 +183,26 @@ async function searchWithPerplexity(dayName: string, year: number): Promise<Sear
 
 // ─── Anthropic web search (supplementary) ────────────────────────
 async function searchWithAnthropic(dayName: string, year: number): Promise<SearchResult> {
-  const prompt = buildPrompt(dayName, year) +
-    "\n\nاستخدم أداة البحث للحصول على معلومات حديثة ودقيقة.";
+  const prompt = buildPrompt(dayName, year);
 
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 120_000);
-
-  const response = await anthropic.messages.create(
-    {
-      model: "claude-sonnet-4-5",
-      max_tokens: 8096,
-      tools: [{ type: "web_search_20250305" as const, name: "web_search" }],
-      messages: [{ role: "user", content: prompt }],
-    },
-    { signal: controller.signal }
+  // Hard wall-clock timeout — Promise.race guarantees we never hang longer than this
+  const TIMEOUT_MS = 55_000;
+  const timeoutPromise = new Promise<never>((_, reject) =>
+    setTimeout(() => reject(new Error(`Anthropic timeout after ${TIMEOUT_MS / 1000}s`)), TIMEOUT_MS)
   );
-  clearTimeout(timer);
+
+  const callPromise = anthropic.messages.create({
+    model: "claude-3-5-haiku-20241022",
+    max_tokens: 4096,
+    messages: [
+      {
+        role: "user",
+        content: "أرجع JSON صالحاً فقط بدون أي نص خارج الـ JSON.\n\n" + prompt,
+      },
+    ],
+  });
+
+  const response = await Promise.race([callPromise, timeoutPromise]);
 
   // Extract text from response blocks
   let text = "";
@@ -403,7 +407,18 @@ router.post("/intl-days/search", async (req: Request, res: Response) => {
     } catch { /* closed */ }
   }, 5000);
 
-  const cleanup = () => clearInterval(keepalive);
+  // Hard wall-clock timeout: force-close the SSE stream after 90s no matter what
+  const hardTimeout = setTimeout(() => {
+    try {
+      send("error", { message: "انتهت مهلة البحث. حاول مرة أخرى." });
+      res.end();
+    } catch { /* already closed */ }
+  }, 90_000);
+
+  const cleanup = () => {
+    clearInterval(keepalive);
+    clearTimeout(hardTimeout);
+  };
 
   try {
     const hasPerplexity = !!process.env.PERPLEXITY_API_KEY;
