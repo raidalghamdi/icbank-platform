@@ -192,8 +192,8 @@ async function searchWithAnthropic(dayName: string, year: number): Promise<Searc
   );
 
   const callPromise = anthropic.messages.create({
-    model: "claude-3-5-haiku-20241022",
-    max_tokens: 4096,
+    model: "claude-haiku-4-5",
+    max_tokens: 8192,
     messages: [
       {
         role: "user",
