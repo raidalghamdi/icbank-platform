@@ -406,31 +406,56 @@ router.post("/intl-days/search", async (req: Request, res: Response) => {
   const cleanup = () => clearInterval(keepalive);
 
   try {
-    send("status", { message: "جاري البحث عبر Anthropic Claude…", step: 1 });
+    const hasPerplexity = !!process.env.PERPLEXITY_API_KEY;
+    let primaryResult: SearchResult = {};
+    let secondaryResult: SearchResult = {};
 
-    // ── Anthropic-only mode (Perplexity key unavailable)
-    let anthropicResult: SearchResult = {};
+    if (hasPerplexity) {
+      // ── Fast path: Perplexity first (~40s), then Anthropic supplement in parallel
+      send("status", { message: "جاري البحث السريع…", step: 1 });
 
-    try {
-      send("status", { message: "الذكاء الاصطناعي يبحث في الإنترنت…", step: 2 });
-      anthropicResult = await searchWithAnthropic(query.trim(), currentYear);
-      send("status", { message: "اكتمل البحث ✓ جاري تنظيم النتائج…", step: 3 });
-    } catch (e) {
-      req.log.warn({ err: e }, "Anthropic failed");
-      send("error", { message: "تعذّر البحث. حاول مرة أخرى بعد لحظة." });
-      cleanup();
-      res.end();
-      return;
+      try {
+        send("status", { message: "يبحث في قواعد المعرفة…", step: 2 });
+        primaryResult = await searchWithPerplexity(query.trim(), currentYear);
+        send("status", { message: "اكتمل البحث ✓ جاري تنظيم النتائج…", step: 3 });
+      } catch (e) {
+        req.log.warn({ err: e }, "Perplexity failed, falling back to Anthropic");
+        send("status", { message: "جاري البحث عبر الذكاء الاصطناعي…", step: 2 });
+        try {
+          primaryResult = await searchWithAnthropic(query.trim(), currentYear);
+          send("status", { message: "اكتمل البحث ✓ جاري تنظيم النتائج…", step: 3 });
+        } catch (e2) {
+          req.log.warn({ err: e2 }, "Anthropic also failed");
+          send("error", { message: "تعذّر البحث. حاول مرة أخرى بعد لحظة." });
+          cleanup();
+          res.end();
+          return;
+        }
+      }
+    } else {
+      // ── Anthropic-only fallback
+      send("status", { message: "جاري البحث عبر Anthropic Claude…", step: 1 });
+      try {
+        send("status", { message: "الذكاء الاصطناعي يبحث في الإنترنت…", step: 2 });
+        primaryResult = await searchWithAnthropic(query.trim(), currentYear);
+        send("status", { message: "اكتمل البحث ✓ جاري تنظيم النتائج…", step: 3 });
+      } catch (e) {
+        req.log.warn({ err: e }, "Anthropic failed");
+        send("error", { message: "تعذّر البحث. حاول مرة أخرى بعد لحظة." });
+        cleanup();
+        res.end();
+        return;
+      }
     }
 
-    if (!anthropicResult.day_name_ar) {
+    if (!primaryResult.day_name_ar) {
       send("error", { message: "لم تُعثر على نتائج لهذا اليوم. جرب صياغة مختلفة." });
       cleanup();
       res.end();
       return;
     }
 
-    const merged = mergeResults(anthropicResult, {});
+    const merged = mergeResults(primaryResult, secondaryResult);
 
     send("result", {
       remaining_searches: getRemainingSearches(ip),
