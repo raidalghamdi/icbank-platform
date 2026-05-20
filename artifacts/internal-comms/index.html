@@ -6473,20 +6473,20 @@ async function idDeepSearch(forceRefresh) {
     var decoder = new TextDecoder();
     var buffer = '';
     var sseError = null;
+    var eventType = ''; // must be outside loop — event: and data: may arrive in different chunks
     outer: while (true) {
       var chunk = await reader.read();
       if (chunk.done) break;
       buffer += decoder.decode(chunk.value, { stream: true });
       var lines = buffer.split('\n');
       buffer = lines.pop();
-      var eventType = '';
       for (var line of lines) {
         if (line.startsWith('event: ')) {
           eventType = line.slice(7).trim();
         } else if (line.startsWith('data: ')) {
           var rawData = line.slice(6);
           var payload = null;
-          try { payload = JSON.parse(rawData); } catch(e) { continue; }
+          try { payload = JSON.parse(rawData); } catch(e) { eventType = ''; continue; }
           if (eventType === 'status') {
             idUpdateStep(payload);
           } else if (eventType === 'result') {
@@ -6495,6 +6495,10 @@ async function idDeepSearch(forceRefresh) {
             sseError = payload.message || 'خطأ غير معروف';
             break outer;
           }
+          eventType = ''; // reset after consuming data line
+        } else if (line === '') {
+          // blank line = end of SSE event block, reset eventType
+          eventType = '';
         }
       }
     }
