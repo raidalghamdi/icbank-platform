@@ -8092,22 +8092,10 @@ var DES = (function() {
     if (tpl) renderCanvas(tpl);
   }
 
-  // ── Canvas zoom helper ───────────────────────────────────────────
-  // Uses CSS zoom (affects layout flow, unlike transform:scale).
-  // No sizer tricks needed — zoom resizes the element's layout box directly.
-  function _applyZoom(outer, scaler, canvas, W, H, scale, zoomState, pctEl) {
-    var scaledH = Math.round(H * scale);
-
-    // Set canvas native size
-    canvas.style.width  = W + 'px';
-    canvas.style.height = H + 'px';
-
-    // zoom property: scales both visual AND layout box
-    scaler.style.zoom   = scale;
-    scaler.style.width  = W + 'px';
-    scaler.style.height = H + 'px';
-
-    // Outer height matches scaled canvas; allow scroll when zoomed in
+  // ── Canvas sizing helper ─────────────────────────────────────────
+  // Sets outer container height and pct badge.
+  // Layers are rendered at scaled coords directly — no CSS transform needed.
+  function _sizeOuter(outer, scaledW, scaledH, zoomState, pctEl, scale) {
     if (zoomState === 'fit') {
       outer.style.height   = scaledH + 'px';
       outer.style.overflow = 'hidden';
@@ -8116,9 +8104,11 @@ var DES = (function() {
       outer.style.height   = Math.min(scaledH, viewH) + 'px';
       outer.style.overflow = 'auto';
     }
-
     if (pctEl) pctEl.textContent = Math.round(scale * 100) + '%';
   }
+
+  // Shorthand: scale a px value
+  function _s(v, scale) { return Math.round(v * scale); }
 
   // ── Template zoom state ──────────────────────────────────────────
   var _tplZoom = 'fit';
@@ -8144,69 +8134,71 @@ var DES = (function() {
   function renderCanvas(tpl) {
     _tplCurrentTpl = tpl;
     var outer  = document.getElementById('des-canvas-outer');
-    var scaler = document.getElementById('des-canvas-scaler');
     var canvas = document.getElementById('des-canvas');
-    if (!outer || !scaler || !canvas) return;
+    if (!outer || !canvas) return;
 
     var W = tpl.canvasWidth  || 1920;
     var H = tpl.canvasHeight || 1080;
     var outerW = outer.clientWidth || outer.getBoundingClientRect().width;
     if (!outerW) { requestAnimationFrame(function() { renderCanvas(tpl); }); return; }
+
     var fitScale = outerW / W;
     var scale    = (_tplZoom === 'fit') ? fitScale : _tplZoom;
+    var sw = _s(W, scale);
+    var sh = _s(H, scale);
 
-    _applyZoom(outer, scaler, canvas, W, H, scale, _tplZoom,
-      document.getElementById('des-tpl-zoom-pct'));
+    // Size canvas element to scaled dimensions (no CSS transform used)
+    canvas.style.width  = sw + 'px';
+    canvas.style.height = sh + 'px';
+
+    _sizeOuter(outer, sw, sh, _tplZoom, document.getElementById('des-tpl-zoom-pct'), scale);
 
     var html = '';
 
-    // ── Layer 1: Background (gray placeholder) ──────────────────
+    // ── Layer 1: Background placeholder ────────────────────────
     html += '<div class="des-layer-bg" style="background:#7a8a9a;">' +
-      '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;opacity:.25;">' +
-      '<svg width="120" height="80" viewBox="0 0 120 80" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+      '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:.25;">' +
+      '<svg width="120" height="80" viewBox="0 0 120 80" fill="none">' +
       '<rect width="120" height="80" fill="#555"/>' +
       '<circle cx="40" cy="32" r="12" fill="#777"/>' +
       '<path d="M0 65 L35 40 L60 55 L85 30 L120 65Z" fill="#666"/>' +
-      '</svg>' +
-      '</div></div>';
+      '</svg></div></div>';
 
-    // ── Layer 2: Background panel ───────────────────────────────
+    // ── Layer 2: Background panel (coords × scale) ──────────────
     var bp = tpl.backgroundPanelConfig;
     if (bp) {
       var r = parseInt(bp.color.slice(1,3),16);
       var g = parseInt(bp.color.slice(3,5),16);
       var b = parseInt(bp.color.slice(5,7),16);
       html += '<div class="des-layer-panel" style="' +
-        'left:' + bp.x + 'px;top:' + bp.y + 'px;' +
-        'width:' + bp.width + 'px;height:' + bp.height + 'px;' +
-        'background:rgba(' + r + ',' + g + ',' + b + ',' + bp.opacity + ');">' +
-        '</div>';
+        'left:' + _s(bp.x,scale) + 'px;top:' + _s(bp.y,scale) + 'px;' +
+        'width:' + _s(bp.width,scale) + 'px;height:' + _s(bp.height,scale) + 'px;' +
+        'background:rgba(' + r + ',' + g + ',' + b + ',' + bp.opacity + ');"></div>';
     }
 
-    // ── Layer 3: Text slots (static test text) ──────────────────
+    // ── Layer 3: Text slots (coords × scale, font-size × scale) ─
     var TEST_TEXT = {
       title: 'العنوان الرئيسي للإعلان',
-      body:   'هذا نص تجريبي يُعرض في مساحة النص الكامل لضمان صحة موضع الطبقة وحجم الخط والاتجاه.',
+      body:  'هذا نص تجريبي يُعرض في مساحة النص الكامل لضمان صحة موضع الطبقة وحجم الخط والاتجاه.',
     };
     (tpl.textSlots || []).forEach(function(slot) {
       var textContent = TEST_TEXT[slot.key] || slot.label_ar || slot.key;
       html += '<div class="des-layer-text" style="' +
-        'left:' + slot.x + 'px;top:' + slot.y + 'px;' +
-        'width:' + slot.width + 'px;height:' + slot.height + 'px;' +
-        'font-size:' + slot.default_font_size + 'px;' +
+        'left:' + _s(slot.x,scale) + 'px;top:' + _s(slot.y,scale) + 'px;' +
+        'width:' + _s(slot.width,scale) + 'px;height:' + _s(slot.height,scale) + 'px;' +
+        'font-size:' + _s(slot.default_font_size,scale) + 'px;' +
         'color:' + slot.color + ';' +
         'text-align:' + (slot.alignment || 'right') + ';' +
-        'font-family:\'Segoe UI\',Tahoma,Arial,sans-serif;' +
-        '">' + textContent + '</div>';
+        'font-family:\'Segoe UI\',Tahoma,Arial,sans-serif;">' +
+        textContent + '</div>';
     });
 
-    // ── Layer 4: Logo slots (placeholder dashed boxes) ──────────
+    // ── Layer 4: Logo slots (coords × scale) ────────────────────
     (tpl.logoSlots || []).forEach(function(slot) {
       html += '<div class="des-layer-logo" style="' +
-        'left:' + slot.x + 'px;top:' + slot.y + 'px;' +
-        'width:' + slot.width + 'px;height:' + slot.height + 'px;">' +
-        '<div class="des-logo-placeholder">' + (slot.key || 'شعار') + '</div>' +
-        '</div>';
+        'left:' + _s(slot.x,scale) + 'px;top:' + _s(slot.y,scale) + 'px;' +
+        'width:' + _s(slot.width,scale) + 'px;height:' + _s(slot.height,scale) + 'px;">' +
+        '<div class="des-logo-placeholder">' + (slot.key || 'شعار') + '</div></div>';
     });
 
     canvas.innerHTML = html;
@@ -8432,19 +8424,24 @@ var DES = (function() {
     var tpl = _edTpl;
     if (!tpl) return;
     var outer  = document.getElementById('des-ed-canvas-outer');
-    var scaler = document.getElementById('des-ed-canvas-scaler');
     var canvas = document.getElementById('des-ed-canvas');
-    if (!outer || !scaler || !canvas) return;
+    if (!outer || !canvas) return;
 
     var W = tpl.canvasWidth  || 1920;
     var H = tpl.canvasHeight || 1080;
     var outerW = outer.clientWidth || outer.getBoundingClientRect().width;
     if (!outerW) { requestAnimationFrame(edRenderCanvas); return; }
+
     var fitScale = outerW / W;
     var scale    = (_edZoom === 'fit') ? fitScale : _edZoom;
+    var sw = _s(W, scale);
+    var sh = _s(H, scale);
 
-    _applyZoom(outer, scaler, canvas, W, H, scale, _edZoom,
-      document.getElementById('des-ed-zoom-pct'));
+    // Size canvas to scaled dimensions (no CSS transform used)
+    canvas.style.width  = sw + 'px';
+    canvas.style.height = sh + 'px';
+
+    _sizeOuter(outer, sw, sh, _edZoom, document.getElementById('des-ed-zoom-pct'), scale);
 
     var titleText  = (document.getElementById('des-ed-title') || {}).value || '';
     var bodyText   = (document.getElementById('des-ed-body')  || {}).value || '';
@@ -8467,18 +8464,20 @@ var DES = (function() {
       '<path d="M0 148 L75 96 L130 126 L185 66 L260 148Z" fill="#555"/></svg>' +
       '</div></div>';
 
-    // ── Layer 2: Background panel ───────────────────────────────
+    // ── Layer 2: Background panel (coords × scale) ──────────────
     var bp = tpl.backgroundPanelConfig;
     if (bp) {
       var rr = parseInt((bp.color || '#000').slice(1,3), 16) || 0;
       var gg = parseInt((bp.color || '#000').slice(3,5), 16) || 0;
       var bb = parseInt((bp.color || '#000').slice(5,7), 16) || 0;
-      html += '<div class="des-layer-panel" style="left:' + bp.x + 'px;top:' + bp.y + 'px;' +
-        'width:' + bp.width + 'px;height:' + bp.height + 'px;' +
+      html += '<div class="des-layer-panel" style="' +
+        'left:' + _s(bp.x,scale) + 'px;top:' + _s(bp.y,scale) + 'px;' +
+        'width:' + _s(bp.width,scale) + 'px;height:' + _s(bp.height,scale) + 'px;' +
         'background:rgba(' + rr + ',' + gg + ',' + bb + ',' + bp.opacity + ');"></div>';
     }
 
-    // ── Layer 3: Text slots ─────────────────────────────────────
+    // ── Layer 3: Text slots (coords × scale, font-size × scale) ─
+    // autoFit measures in original 1920-space, then we scale the result
     (tpl.textSlots || []).forEach(function(slot) {
       var text  = TEXT_MAP[slot.key] !== undefined ? TEXT_MAP[slot.key] : '';
       var fSize = SIZE_MAP[slot.key] || slot.default_font_size;
@@ -8488,22 +8487,24 @@ var DES = (function() {
         ? '<span style="opacity:.25;">' + slot.label_ar + '</span>'
         : text.replace(/\n/g, '<br>');
       html += '<div class="des-layer-text" style="' +
-        'left:' + slot.x + 'px;top:' + slot.y + 'px;' +
-        'width:' + slot.width + 'px;height:' + slot.height + 'px;' +
-        'font-size:' + fSize + 'px;color:' + slot.color + ';' +
+        'left:' + _s(slot.x,scale) + 'px;top:' + _s(slot.y,scale) + 'px;' +
+        'width:' + _s(slot.width,scale) + 'px;height:' + _s(slot.height,scale) + 'px;' +
+        'font-size:' + _s(fSize,scale) + 'px;color:' + slot.color + ';' +
         'text-align:' + (slot.alignment || 'right') + ';' +
         'font-family:' + fontStack + ';">' + content + '</div>';
     });
 
-    // ── Layer 4: Logo slots ─────────────────────────────────────
+    // ── Layer 4: Logo slots (coords × scale) ────────────────────
     (tpl.logoSlots || []).forEach(function(slot, idx) {
       var assignedId = _edSelectedLogoIds[idx] || null;
       var logo = assignedId ? _edLogos.find(function(l) { return l.id === assignedId; }) : null;
       var inner = logo
         ? '<img src="/api/storage' + logo.fileUrl + '" style="max-width:100%;max-height:100%;object-fit:contain;" alt="' + logo.logoName + '">'
         : '<div class="des-logo-placeholder">' + (slot.key || 'شعار') + '</div>';
-      html += '<div class="des-layer-logo" style="left:' + slot.x + 'px;top:' + slot.y + 'px;' +
-        'width:' + slot.width + 'px;height:' + slot.height + 'px;">' + inner + '</div>';
+      html += '<div class="des-layer-logo" style="' +
+        'left:' + _s(slot.x,scale) + 'px;top:' + _s(slot.y,scale) + 'px;' +
+        'width:' + _s(slot.width,scale) + 'px;height:' + _s(slot.height,scale) + 'px;">' +
+        inner + '</div>';
     });
 
     canvas.innerHTML = html;
