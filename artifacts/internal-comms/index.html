@@ -1232,24 +1232,37 @@ body {
 @keyframes spin { to { transform:rotate(360deg); } }
 
 /* Designs — Editor Layout */
-.des-editor-layout { display:grid; grid-template-columns:300px 1fr; gap:20px; align-items:start; }
-@media(max-width:820px){ .des-editor-layout { grid-template-columns:1fr; } }
-.des-editor-controls { display:flex; flex-direction:column; gap:14px; }
-.des-ed-section { display:flex; flex-direction:column; gap:6px; }
+.des-editor-layout { display:grid; grid-template-columns:400px 1fr; gap:24px; align-items:start; }
+@media(max-width:960px){ .des-editor-layout { grid-template-columns:320px 1fr; } }
+@media(max-width:720px){ .des-editor-layout { grid-template-columns:1fr; } }
+.des-editor-controls { display:flex; flex-direction:column; gap:16px; max-height:calc(100vh - 220px); overflow-y:auto; padding-left:4px; padding-bottom:16px; }
+.des-editor-controls::-webkit-scrollbar { width:4px; }
+.des-editor-controls::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+.des-ed-section { display:flex; flex-direction:column; gap:7px; }
 .des-ed-label { font-size:12px; font-weight:600; color:var(--text-2); display:flex; align-items:center; gap:6px; }
 .des-ed-counter { font-size:11px; font-weight:400; color:var(--text-3); margin-right:auto; }
 .des-ed-counter.over { color:var(--danger,#e53e3e); font-weight:600; }
 .des-ed-warn { font-size:11.5px; color:var(--danger,#e53e3e); padding:4px 0; }
-.des-ed-textarea { resize:vertical; min-height:64px; font-family:inherit; direction:rtl; font-size:13px; }
-.des-ed-textarea-lg { min-height:96px; }
-.des-ed-slider { width:100%; accent-color:var(--primary); }
+.des-ed-textarea { resize:vertical; min-height:72px; font-family:inherit; direction:rtl; font-size:14px; width:100%; box-sizing:border-box; }
+.des-ed-textarea-lg { min-height:108px; }
+.des-ed-slider { width:100%; accent-color:var(--primary); height:20px; cursor:pointer; }
+.des-ed-slider-row { display:flex; align-items:center; gap:10px; }
+.des-ed-slider-row input[type=range] { flex:1; }
+.des-ed-slider-row .des-ed-sz-badge { min-width:44px; text-align:center; font-size:12px; font-weight:700; color:var(--primary); background:var(--surface-2); border:1px solid var(--border); padding:2px 6px; }
 .des-ed-logos-grid { display:flex; flex-wrap:wrap; gap:8px; }
-.des-ed-logo-thumb { width:72px; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:4px; border:2px solid transparent; padding:4px; transition:border-color .15s; }
-.des-ed-logo-thumb img { width:64px; height:40px; object-fit:contain; }
+.des-ed-logo-thumb { width:80px; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:4px; border:2px solid transparent; padding:5px; transition:border-color .15s,background .15s; }
+.des-ed-logo-thumb img { width:70px; height:44px; object-fit:contain; }
 .des-ed-logo-name { font-size:9px; color:var(--text-3); text-align:center; line-height:1.2; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .des-ed-logo-thumb.selected { border-color:var(--primary); background:var(--primary-50,#eef2ff); }
 .des-ed-logo-thumb:hover:not(.selected) { border-color:var(--border); }
-.des-ed-sep { border:none; border-top:1px solid var(--border); margin:4px 0; }
+.des-ed-sep { border:none; border-top:1px solid var(--border); margin:2px 0; }
+/* Zoom toolbar */
+.des-ed-zoom-bar { display:flex; align-items:center; gap:6px; margin-bottom:8px; }
+.des-ed-zoom-btn { padding:3px 10px; font-size:13px; font-weight:600; border:1px solid var(--border); background:var(--surface-2); cursor:pointer; color:var(--text); line-height:1.4; }
+.des-ed-zoom-btn:hover { background:var(--surface-3,#e8eaf0); }
+.des-ed-zoom-pct { min-width:54px; text-align:center; font-size:12px; font-weight:700; color:var(--primary); border:1px solid var(--border); padding:3px 8px; background:var(--surface); }
+/* Canvas outer (editor) — scrollable when zoomed in */
+.des-ed-canvas-wrap { overflow:auto; background:#111; border:1px solid var(--border); position:relative; }
 
 /* Designs — Canvas Preview */
 .des-canvas-outer { width:100%; background:#111; overflow:hidden; position:relative; border:1px solid var(--border); }
@@ -3878,21 +3891,21 @@ body {
             <hr class="des-ed-sep">
 
             <div class="des-ed-section">
-              <div class="des-ed-label">
-                حجم خط العنوان
-                <strong id="des-ed-title-sz-val">72</strong>px
+              <div class="des-ed-label">حجم خط العنوان</div>
+              <div class="des-ed-slider-row">
+                <input type="range" id="des-ed-title-sz" class="des-ed-slider"
+                  min="24" max="120" value="72" oninput="DES.edUpdate()">
+                <span class="des-ed-sz-badge"><span id="des-ed-title-sz-val">72</span>px</span>
               </div>
-              <input type="range" id="des-ed-title-sz" class="des-ed-slider"
-                min="24" max="120" value="72" oninput="DES.edUpdate()">
             </div>
 
             <div class="des-ed-section">
-              <div class="des-ed-label">
-                حجم خط النص
-                <strong id="des-ed-body-sz-val">40</strong>px
+              <div class="des-ed-label">حجم خط النص</div>
+              <div class="des-ed-slider-row">
+                <input type="range" id="des-ed-body-sz" class="des-ed-slider"
+                  min="12" max="80" value="40" oninput="DES.edUpdate()">
+                <span class="des-ed-sz-badge"><span id="des-ed-body-sz-val">40</span>px</span>
               </div>
-              <input type="range" id="des-ed-body-sz" class="des-ed-slider"
-                min="12" max="80" value="40" oninput="DES.edUpdate()">
             </div>
 
             <div class="des-ed-section">
@@ -3926,11 +3939,14 @@ body {
 
           <!-- Left col: Live preview -->
           <div>
-            <div style="font-size:11px;color:var(--text-3);font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:8px;">
-              <span>معاينة حية — 1920×1080</span>
-              <span id="des-ed-scale-badge" style="background:var(--surface-2);padding:2px 8px;border:1px solid var(--border);font-size:10px;"></span>
+            <div class="des-ed-zoom-bar">
+              <span style="font-size:11px;font-weight:600;color:var(--text-2);margin-left:4px;">معاينة حية — 1920×1080</span>
+              <button class="des-ed-zoom-btn" onclick="DES.edZoom('fit')" title="ملاءمة الشاشة">ملاءمة</button>
+              <button class="des-ed-zoom-btn" onclick="DES.edZoom('-')" title="تصغير">−</button>
+              <span id="des-ed-zoom-pct" class="des-ed-zoom-pct">—</span>
+              <button class="des-ed-zoom-btn" onclick="DES.edZoom('+')" title="تكبير">+</button>
             </div>
-            <div id="des-ed-canvas-outer" class="des-canvas-outer">
+            <div id="des-ed-canvas-outer" class="des-ed-canvas-wrap">
               <div id="des-ed-canvas-scaler" class="des-canvas-scaler">
                 <div id="des-ed-canvas" class="des-canvas"></div>
               </div>
@@ -8155,6 +8171,7 @@ var DES = (function() {
   var _edFonts = [];
   var _edLogos = [];
   var _edSelectedLogoIds = [];
+  var _edZoom = 'fit'; // 'fit' | number (scale factor)
 
   function edOpen(tplId) {
     var tpl = _templates.find(function(t) { return t.id === tplId; });
@@ -8215,7 +8232,7 @@ var DES = (function() {
     if (bTA) bTA.value = '';
     if (af)  af.checked = false;
 
-    // Font select + load @font-face
+    // Font select + load fonts via FontFace API for instant application
     var sel = document.getElementById('des-ed-font');
     if (sel) {
       sel.innerHTML = '<option value="">الخط الافتراضي (النظام)</option>' +
@@ -8224,12 +8241,22 @@ var DES = (function() {
         }).join('');
     }
     _edFonts.forEach(function(font) {
-      var id = 'face-' + font.id;
-      if (!document.getElementById(id)) {
+      var src = "url('/api/storage" + font.fontFileUrl + "')";
+      // Inject @font-face for CSS fallback
+      var styleId = 'face-' + font.id;
+      if (!document.getElementById(styleId)) {
         var s = document.createElement('style');
-        s.id = id;
-        s.textContent = "@font-face{font-family:'" + font.fontName + "';src:url('/api/storage" + font.fontFileUrl + "');}";
+        s.id = styleId;
+        s.textContent = "@font-face{font-family:'" + font.fontName + "';src:" + src + ";}";
         document.head.appendChild(s);
+      }
+      // Also load via FontFace API so the font is immediately available
+      if (typeof FontFace !== 'undefined' && !document.fonts.check('12px ' + font.fontName)) {
+        var ff = new FontFace(font.fontName, src);
+        ff.load().then(function(loaded) {
+          document.fonts.add(loaded);
+          edRenderCanvas(); // re-render once font is ready
+        }).catch(function() {});
       }
     });
 
@@ -8307,24 +8334,42 @@ var DES = (function() {
     edRenderCanvas();
   }
 
-  function _edAutoFit(text, slot, maxFontSize) {
+  function _edAutoFit(text, slot, maxFontSize, fontStack) {
     if (!text || !slot) return maxFontSize;
     var m = document.getElementById('des-ed-measurer');
     if (!m) {
       m = document.createElement('div');
       m.id = 'des-ed-measurer';
-      m.style.cssText = 'position:fixed;visibility:hidden;pointer-events:none;left:-9999px;top:0;direction:rtl;word-break:break-word;line-height:1.35;white-space:normal;';
+      m.style.cssText = 'position:fixed;visibility:hidden;pointer-events:none;left:-9999px;top:0;direction:rtl;word-break:break-word;line-height:1.35;white-space:normal;overflow:visible;';
       document.body.appendChild(m);
     }
-    m.style.width = slot.width + 'px';
+    m.style.width      = slot.width + 'px';
+    m.style.fontFamily = fontStack || "Tahoma,'Segoe UI',Arial,sans-serif";
     var lo = 12, hi = maxFontSize, best = lo;
     while (lo <= hi) {
       var mid = Math.round((lo + hi) / 2);
       m.style.fontSize = mid + 'px';
-      m.textContent = text;
+      m.textContent    = text;
       if (m.scrollHeight <= slot.height) { best = mid; lo = mid + 1; } else { hi = mid - 1; }
     }
     return best;
+  }
+
+  function edZoom(action) {
+    var outer = document.getElementById('des-ed-canvas-outer');
+    if (!outer || !_edTpl) return;
+    var W = _edTpl.canvasWidth || 1920;
+    var fitScale = outer.clientWidth / W;
+    var cur = (_edZoom === 'fit') ? fitScale : _edZoom;
+    if (action === 'fit') {
+      _edZoom = 'fit';
+    } else if (action === '+') {
+      _edZoom = Math.min(cur * 1.25, 4);
+    } else if (action === '-') {
+      var next = cur * 0.8;
+      _edZoom = (next <= fitScale * 1.05) ? 'fit' : Math.max(next, 0.1);
+    }
+    edRenderCanvas();
   }
 
   function edRenderCanvas() {
@@ -8339,13 +8384,32 @@ var DES = (function() {
     var H = tpl.canvasHeight || 1080;
     canvas.style.width  = W + 'px';
     canvas.style.height = H + 'px';
-    var scale = outer.clientWidth / W;
-    scaler.style.transform = 'scale(' + scale + ')';
-    scaler.style.width  = W + 'px';
-    scaler.style.height = H + 'px';
-    outer.style.height  = Math.round(H * scale) + 'px';
-    var badge = document.getElementById('des-ed-scale-badge');
-    if (badge) badge.textContent = Math.round(scale * 100) + '% تكبير';
+
+    var fitScale = outer.clientWidth / W;
+    var scale = (_edZoom === 'fit') ? fitScale : _edZoom;
+
+    scaler.style.transform       = 'scale(' + scale + ')';
+    scaler.style.transformOrigin = 'top left';
+    scaler.style.width           = W + 'px';
+    scaler.style.height          = H + 'px';
+
+    // When fit: size outer to exactly canvas height; when zoomed: allow scroll
+    if (_edZoom === 'fit') {
+      outer.style.height   = Math.round(H * scale) + 'px';
+      outer.style.overflow = 'hidden';
+    } else {
+      var scaledH = Math.round(H * scale);
+      var maxH    = Math.round(window.innerHeight * 0.75);
+      outer.style.height   = Math.min(scaledH, maxH) + 'px';
+      outer.style.overflow = 'auto';
+    }
+    // Keep scaler's space correct inside the scrollable outer
+    scaler.style.display     = 'block';
+    scaler.style.minWidth    = Math.round(W * scale) + 'px';
+    scaler.style.minHeight   = Math.round(H * scale) + 'px';
+
+    var pctEl = document.getElementById('des-ed-zoom-pct');
+    if (pctEl) pctEl.textContent = Math.round(scale * 100) + '%';
 
     var titleText  = (document.getElementById('des-ed-title') || {}).value || '';
     var bodyText   = (document.getElementById('des-ed-body')  || {}).value || '';
@@ -8384,7 +8448,7 @@ var DES = (function() {
       var text  = TEXT_MAP[slot.key] !== undefined ? TEXT_MAP[slot.key] : '';
       var fSize = SIZE_MAP[slot.key] || slot.default_font_size;
       var empty = !text.trim();
-      if (autoFit && !empty) fSize = _edAutoFit(text, slot, fSize);
+      if (autoFit && !empty) fSize = _edAutoFit(text, slot, fSize, fontStack);
       var content = empty
         ? '<span style="opacity:.25;">' + slot.label_ar + '</span>'
         : text.replace(/\n/g, '<br>');
@@ -8415,7 +8479,7 @@ var DES = (function() {
     uploadLogo: uploadLogo, deleteLogo: deleteLogo,
     uploadFont: uploadFont, setDefaultFont: setDefaultFont, deleteFont: deleteFont,
     selectTemplate: selectTemplate, seedTestTemplate: seedTestTemplate,
-    edOpen: edOpen, edUpdate: edUpdate, edToggleLogo: edToggleLogo,
+    edOpen: edOpen, edUpdate: edUpdate, edToggleLogo: edToggleLogo, edZoom: edZoom,
   };
 })();
 
