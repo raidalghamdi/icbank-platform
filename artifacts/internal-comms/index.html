@@ -1264,9 +1264,8 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
 .des-ed-zoom-btn:hover { background:var(--surface-3,#e8eaf0); }
 .des-ed-zoom-pct { min-width:54px; text-align:center; font-size:12px; font-weight:700; color:var(--primary); border:1px solid var(--border); padding:3px 8px; background:var(--surface); }
 /* Canvas containers */
-.des-canvas-outer  { overflow:auto; background:#111; border:1px solid var(--border); position:relative; width:100%; }
-.des-canvas-sizer  { position:relative; flex-shrink:0; }
-.des-canvas-scaler { position:absolute; top:0; left:0; transform-origin:top left; }
+.des-canvas-outer  { width:100%; background:#111; border:1px solid var(--border); overflow:hidden; box-sizing:border-box; }
+.des-canvas-scaler { display:block; transform-origin:top left; }
 
 /* Designs — Canvas Preview (legacy override removed — see .des-canvas-outer above) */
 .des-canvas { position:relative; width:1920px; height:1080px; overflow:hidden; }
@@ -8093,33 +8092,28 @@ var DES = (function() {
     if (tpl) renderCanvas(tpl);
   }
 
-  // ── Shared zoom helper ──────────────────────────────────────────
-  // Sizes the sizer to scaled dimensions (creates scroll area),
-  // positions scaler absolute inside it, applies CSS transform.
-  function _applyZoom(outer, sizer, scaler, canvas, W, H, scale, zoomState, pctEl) {
-    var scaledW = Math.round(W * scale);
+  // ── Canvas zoom helper ───────────────────────────────────────────
+  // Uses CSS zoom (affects layout flow, unlike transform:scale).
+  // No sizer tricks needed — zoom resizes the element's layout box directly.
+  function _applyZoom(outer, scaler, canvas, W, H, scale, zoomState, pctEl) {
     var scaledH = Math.round(H * scale);
 
+    // Set canvas native size
     canvas.style.width  = W + 'px';
     canvas.style.height = H + 'px';
 
-    // Sizer occupies the full scaled dimensions → correct scroll area
-    sizer.style.width  = scaledW + 'px';
-    sizer.style.height = scaledH + 'px';
+    // zoom property: scales both visual AND layout box
+    scaler.style.zoom   = scale;
+    scaler.style.width  = W + 'px';
+    scaler.style.height = H + 'px';
 
-    // Scaler applies the transform (CSS class already sets position:absolute top:0 left:0)
-    scaler.style.width           = W + 'px';
-    scaler.style.height          = H + 'px';
-    scaler.style.transform       = 'scale(' + scale + ')';
-    scaler.style.transformOrigin = 'top left';
-
-    // Outer viewport
+    // Outer height matches scaled canvas; allow scroll when zoomed in
     if (zoomState === 'fit') {
       outer.style.height   = scaledH + 'px';
       outer.style.overflow = 'hidden';
     } else {
-      var maxH = Math.round(window.innerHeight * 0.72);
-      outer.style.height   = Math.min(scaledH, maxH) + 'px';
+      var viewH = Math.round(window.innerHeight * 0.72);
+      outer.style.height   = Math.min(scaledH, viewH) + 'px';
       outer.style.overflow = 'auto';
     }
 
@@ -8150,17 +8144,18 @@ var DES = (function() {
   function renderCanvas(tpl) {
     _tplCurrentTpl = tpl;
     var outer  = document.getElementById('des-canvas-outer');
-    var sizer  = document.getElementById('des-canvas-sizer');
     var scaler = document.getElementById('des-canvas-scaler');
     var canvas = document.getElementById('des-canvas');
-    if (!outer || !sizer || !scaler || !canvas) return;
+    if (!outer || !scaler || !canvas) return;
 
     var W = tpl.canvasWidth  || 1920;
     var H = tpl.canvasHeight || 1080;
-    var fitScale = outer.clientWidth / W;
+    var outerW = outer.clientWidth || outer.getBoundingClientRect().width;
+    if (!outerW) { requestAnimationFrame(function() { renderCanvas(tpl); }); return; }
+    var fitScale = outerW / W;
     var scale    = (_tplZoom === 'fit') ? fitScale : _tplZoom;
 
-    _applyZoom(outer, sizer, scaler, canvas, W, H, scale, _tplZoom,
+    _applyZoom(outer, scaler, canvas, W, H, scale, _tplZoom,
       document.getElementById('des-tpl-zoom-pct'));
 
     var html = '';
@@ -8437,17 +8432,18 @@ var DES = (function() {
     var tpl = _edTpl;
     if (!tpl) return;
     var outer  = document.getElementById('des-ed-canvas-outer');
-    var sizer  = document.getElementById('des-ed-canvas-sizer');
     var scaler = document.getElementById('des-ed-canvas-scaler');
     var canvas = document.getElementById('des-ed-canvas');
-    if (!outer || !sizer || !scaler || !canvas) return;
+    if (!outer || !scaler || !canvas) return;
 
     var W = tpl.canvasWidth  || 1920;
     var H = tpl.canvasHeight || 1080;
-    var fitScale = outer.clientWidth / W;
+    var outerW = outer.clientWidth || outer.getBoundingClientRect().width;
+    if (!outerW) { requestAnimationFrame(edRenderCanvas); return; }
+    var fitScale = outerW / W;
     var scale    = (_edZoom === 'fit') ? fitScale : _edZoom;
 
-    _applyZoom(outer, sizer, scaler, canvas, W, H, scale, _edZoom,
+    _applyZoom(outer, scaler, canvas, W, H, scale, _edZoom,
       document.getElementById('des-ed-zoom-pct'));
 
     var titleText  = (document.getElementById('des-ed-title') || {}).value || '';
@@ -8513,18 +8509,36 @@ var DES = (function() {
     canvas.innerHTML = html;
   }
 
+  function rerenderCanvases() {
+    if (_tplCurrentTpl) renderCanvas(_tplCurrentTpl);
+    if (_edTpl) edRenderCanvas();
+  }
+
   return {
     init: init, switchTab: switchTab,
     uploadLogo: uploadLogo, deleteLogo: deleteLogo,
     uploadFont: uploadFont, setDefaultFont: setDefaultFont, deleteFont: deleteFont,
     selectTemplate: selectTemplate, seedTestTemplate: seedTestTemplate,
     edOpen: edOpen, edUpdate: edUpdate, edToggleLogo: edToggleLogo, edZoom: edZoom,
-    tplZoom: tplZoom,
+    tplZoom: tplZoom, rerenderCanvases: rerenderCanvases,
   };
 })();
 
 function designsInit() { DES.init(); }
 function desSwitchTab(tab) { DES.switchTab(tab); }
+
+// Re-render canvases on window resize (fixes fit-mode after resize)
+(function() {
+  var _resizeTimer;
+  window.addEventListener('resize', function() {
+    clearTimeout(_resizeTimer);
+    _resizeTimer = setTimeout(function() {
+      if (document.body.classList.contains('designs-mode')) {
+        DES.rerenderCanvases();
+      }
+    }, 120);
+  });
+})();
 
 // ── Report ───────────────────────────────────────────────────────
 async function aiyGenerateReport() {
