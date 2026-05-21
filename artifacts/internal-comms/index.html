@@ -1231,6 +1231,26 @@ body {
 .des-upload-spinner { font-size:28px; animation:spin 1s linear infinite; display:block; margin-bottom:12px; }
 @keyframes spin { to { transform:rotate(360deg); } }
 
+/* Designs — Editor Layout */
+.des-editor-layout { display:grid; grid-template-columns:300px 1fr; gap:20px; align-items:start; }
+@media(max-width:820px){ .des-editor-layout { grid-template-columns:1fr; } }
+.des-editor-controls { display:flex; flex-direction:column; gap:14px; }
+.des-ed-section { display:flex; flex-direction:column; gap:6px; }
+.des-ed-label { font-size:12px; font-weight:600; color:var(--text-2); display:flex; align-items:center; gap:6px; }
+.des-ed-counter { font-size:11px; font-weight:400; color:var(--text-3); margin-right:auto; }
+.des-ed-counter.over { color:var(--danger,#e53e3e); font-weight:600; }
+.des-ed-warn { font-size:11.5px; color:var(--danger,#e53e3e); padding:4px 0; }
+.des-ed-textarea { resize:vertical; min-height:64px; font-family:inherit; direction:rtl; font-size:13px; }
+.des-ed-textarea-lg { min-height:96px; }
+.des-ed-slider { width:100%; accent-color:var(--primary); }
+.des-ed-logos-grid { display:flex; flex-wrap:wrap; gap:8px; }
+.des-ed-logo-thumb { width:72px; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:4px; border:2px solid transparent; padding:4px; transition:border-color .15s; }
+.des-ed-logo-thumb img { width:64px; height:40px; object-fit:contain; }
+.des-ed-logo-name { font-size:9px; color:var(--text-3); text-align:center; line-height:1.2; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.des-ed-logo-thumb.selected { border-color:var(--primary); background:var(--primary-50,#eef2ff); }
+.des-ed-logo-thumb:hover:not(.selected) { border-color:var(--border); }
+.des-ed-sep { border:none; border-top:1px solid var(--border); margin:4px 0; }
+
 /* Designs — Canvas Preview */
 .des-canvas-outer { width:100%; background:#111; overflow:hidden; position:relative; border:1px solid var(--border); }
 .des-canvas-scaler { transform-origin:top left; }
@@ -3726,6 +3746,7 @@ body {
     <div class="adm-tabs" id="des-tab-nav">
       <button class="adm-tab active" data-tab="assets" onclick="desSwitchTab('assets')">إدارة الأصول</button>
       <button class="adm-tab" data-tab="templates" onclick="desSwitchTab('templates')">القوالب</button>
+      <button class="adm-tab" data-tab="editor" onclick="desSwitchTab('editor')">المحرّر</button>
     </div>
 
     <!-- ── Tab: Assets ─────────────────────────────────────────── -->
@@ -3823,6 +3844,102 @@ body {
         لا توجد قوالب. اضغط "زرع قالب تجريبي" لإنشاء القالب الأول.
       </div>
     </div><!-- /des-pane-templates -->
+
+    <!-- ── Tab: Editor ─────────────────────────────────────────── -->
+    <div class="adm-pane" id="des-pane-editor">
+      <div id="des-editor-no-tpl" style="color:var(--text-3);font-size:13px;padding:20px 0;">
+        اختر قالباً من تبويب "القوالب" ثم اضغط "فتح المحرّر".
+      </div>
+      <div id="des-editor-wrap" style="display:none;">
+        <div class="des-editor-layout">
+
+          <!-- Right col: Controls -->
+          <div class="des-editor-controls">
+            <div class="des-ed-section">
+              <div class="des-ed-label">
+                العنوان
+                <span id="des-ed-title-counter" class="des-ed-counter"></span>
+              </div>
+              <textarea id="des-ed-title" class="adm-input des-ed-textarea"
+                placeholder="اكتب العنوان هنا…" oninput="DES.edUpdate()"></textarea>
+              <div id="des-ed-title-warn" class="des-ed-warn" style="display:none;"></div>
+            </div>
+
+            <div class="des-ed-section">
+              <div class="des-ed-label">
+                النص الكامل
+                <span id="des-ed-body-counter" class="des-ed-counter"></span>
+              </div>
+              <textarea id="des-ed-body" class="adm-input des-ed-textarea des-ed-textarea-lg"
+                placeholder="اكتب النص التفصيلي هنا…" oninput="DES.edUpdate()"></textarea>
+              <div id="des-ed-body-warn" class="des-ed-warn" style="display:none;"></div>
+            </div>
+
+            <hr class="des-ed-sep">
+
+            <div class="des-ed-section">
+              <div class="des-ed-label">
+                حجم خط العنوان
+                <strong id="des-ed-title-sz-val">72</strong>px
+              </div>
+              <input type="range" id="des-ed-title-sz" class="des-ed-slider"
+                min="24" max="120" value="72" oninput="DES.edUpdate()">
+            </div>
+
+            <div class="des-ed-section">
+              <div class="des-ed-label">
+                حجم خط النص
+                <strong id="des-ed-body-sz-val">40</strong>px
+              </div>
+              <input type="range" id="des-ed-body-sz" class="des-ed-slider"
+                min="12" max="80" value="40" oninput="DES.edUpdate()">
+            </div>
+
+            <div class="des-ed-section">
+              <label class="des-check-label">
+                <input type="checkbox" id="des-ed-autofit" onchange="DES.edUpdate()">
+                <span>احتواء تلقائي (auto-fit)</span>
+              </label>
+              <div style="font-size:11px;color:var(--text-3);">يُصغِّر الخط تلقائياً إذا تجاوز النص حدود الخانة.</div>
+            </div>
+
+            <hr class="des-ed-sep">
+
+            <div class="des-ed-section">
+              <div class="des-ed-label">الخط</div>
+              <select id="des-ed-font" class="adm-select" onchange="DES.edUpdate()">
+                <option value="">الخط الافتراضي (النظام)</option>
+              </select>
+            </div>
+
+            <hr class="des-ed-sep">
+
+            <div class="des-ed-section">
+              <div class="des-ed-label">مكتبة الشعارات</div>
+              <div style="font-size:11px;color:var(--text-3);margin-bottom:6px;">انقر لإضافة شعار أو إزالته من التصميم.</div>
+              <div id="des-ed-logos" class="des-ed-logos-grid"></div>
+              <div id="des-ed-logos-empty" style="display:none;font-size:12px;color:var(--text-3);padding:8px 0;">
+                لا توجد شعارات — ارفع شعاراً من تبويب إدارة الأصول.
+              </div>
+            </div>
+          </div><!-- /controls -->
+
+          <!-- Left col: Live preview -->
+          <div>
+            <div style="font-size:11px;color:var(--text-3);font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:8px;">
+              <span>معاينة حية — 1920×1080</span>
+              <span id="des-ed-scale-badge" style="background:var(--surface-2);padding:2px 8px;border:1px solid var(--border);font-size:10px;"></span>
+            </div>
+            <div id="des-ed-canvas-outer" class="des-canvas-outer">
+              <div id="des-ed-canvas-scaler" class="des-canvas-scaler">
+                <div id="des-ed-canvas" class="des-canvas"></div>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /des-editor-layout -->
+      </div><!-- /des-editor-wrap -->
+    </div><!-- /des-pane-editor -->
 
   </div><!-- /section-designs -->
 
@@ -7932,8 +8049,9 @@ var DES = (function() {
       var listEl = document.getElementById('des-tpl-list');
       listEl.innerHTML = list.map(function(t) {
         return '<div class="des-tpl-item" data-id="' + t.id + '" onclick="DES.selectTemplate(' + t.id + ')">' +
-          t.templateNameAr +
+          '<div style="font-size:13px;">' + t.templateNameAr + '</div>' +
           '<div style="font-size:11px;color:var(--text-3);margin-top:2px;">' + t.category + ' · ' + t.canvasWidth + '×' + t.canvasHeight + '</div>' +
+          '<button class="btn btn-primary" style="margin-top:8px;font-size:12px;padding:4px 12px;" onclick="event.stopPropagation();DES.edOpen(' + t.id + ')">فتح المحرّر</button>' +
           '</div>';
       }).join('');
       selectTemplate(list[0].id);
@@ -8032,11 +8150,272 @@ var DES = (function() {
       }).catch(function(e) { alert('خطأ: ' + e.message); });
   }
 
+  // ── Editor ───────────────────────────────────────────────────────
+  var _edTpl = null;
+  var _edFonts = [];
+  var _edLogos = [];
+  var _edSelectedLogoIds = [];
+
+  function edOpen(tplId) {
+    var tpl = _templates.find(function(t) { return t.id === tplId; });
+    if (!tpl) {
+      // templates not loaded yet — fetch individually
+      apiFetch('/api/designs/templates/' + tplId).then(function(r) { return r.json(); }).then(function(t) {
+        _edTpl = t;
+        _edBootstrap();
+      });
+    } else {
+      _edTpl = tpl;
+      _edBootstrap();
+    }
+  }
+
+  function _edBootstrap() {
+    _edSelectedLogoIds = [];
+    switchTab('editor');
+    var wrap   = document.getElementById('des-editor-wrap');
+    var noTpl  = document.getElementById('des-editor-no-tpl');
+    if (wrap) wrap.style.display = 'none';
+    if (noTpl) noTpl.style.display = '';
+    Promise.all([
+      apiFetch('/api/designs/fonts').then(function(r) { return r.json(); }),
+      apiFetch('/api/designs/logos').then(function(r) { return r.json(); }),
+    ]).then(function(results) {
+      _edFonts = results[0];
+      _edLogos = results[1];
+      _edBuildUI();
+      if (noTpl) noTpl.style.display = 'none';
+      if (wrap)  wrap.style.display  = '';
+      edRenderCanvas();
+    }).catch(function(e) { alert('خطأ في تحميل المحرّر: ' + e.message); });
+  }
+
+  function _edBuildUI() {
+    var tpl = _edTpl;
+    var titleSlot = (tpl.textSlots || []).find(function(s) { return s.key === 'title'; });
+    var bodySlot  = (tpl.textSlots || []).find(function(s) { return s.key === 'body';  });
+
+    // Sliders
+    var tSz = titleSlot ? titleSlot.default_font_size : 72;
+    var bSz = bodySlot  ? bodySlot.default_font_size  : 40;
+    var tEl = document.getElementById('des-ed-title-sz');
+    var bEl = document.getElementById('des-ed-body-sz');
+    if (tEl) { tEl.min = Math.max(16, Math.round(tSz * 0.35)); tEl.max = Math.round(tSz * 1.6); tEl.value = tSz; }
+    if (bEl) { bEl.min = Math.max(12, Math.round(bSz * 0.35)); bEl.max = Math.round(bSz * 1.6); bEl.value = bSz; }
+    var tsv = document.getElementById('des-ed-title-sz-val');
+    var bsv = document.getElementById('des-ed-body-sz-val');
+    if (tsv) tsv.textContent = tSz;
+    if (bsv) bsv.textContent = bSz;
+
+    // Clear text fields
+    var tTA = document.getElementById('des-ed-title');
+    var bTA = document.getElementById('des-ed-body');
+    var af  = document.getElementById('des-ed-autofit');
+    if (tTA) tTA.value = '';
+    if (bTA) bTA.value = '';
+    if (af)  af.checked = false;
+
+    // Font select + load @font-face
+    var sel = document.getElementById('des-ed-font');
+    if (sel) {
+      sel.innerHTML = '<option value="">الخط الافتراضي (النظام)</option>' +
+        _edFonts.map(function(f) {
+          return '<option value="' + f.fontName + '"' + (f.isDefault ? ' selected' : '') + '>' + f.fontName + '</option>';
+        }).join('');
+    }
+    _edFonts.forEach(function(font) {
+      var id = 'face-' + font.id;
+      if (!document.getElementById(id)) {
+        var s = document.createElement('style');
+        s.id = id;
+        s.textContent = "@font-face{font-family:'" + font.fontName + "';src:url('/api/storage" + font.fontFileUrl + "');}";
+        document.head.appendChild(s);
+      }
+    });
+
+    // Logo library
+    var logosEl    = document.getElementById('des-ed-logos');
+    var logosEmpty = document.getElementById('des-ed-logos-empty');
+    if (!_edLogos.length) {
+      if (logosEl) logosEl.innerHTML = '';
+      if (logosEmpty) logosEmpty.style.display = '';
+    } else {
+      if (logosEmpty) logosEmpty.style.display = 'none';
+      if (logosEl) {
+        logosEl.innerHTML = _edLogos.map(function(logo) {
+          var checker = logo.transparent
+            ? 'repeating-conic-gradient(#ddd 0% 25%,#fff 0% 50%) 0 0/12px 12px'
+            : 'var(--surface-2)';
+          return '<div class="des-ed-logo-thumb" id="des-ed-logo-' + logo.id + '" data-id="' + logo.id + '"' +
+            ' onclick="DES.edToggleLogo(' + logo.id + ')" style="background:' + checker + ';">' +
+            '<img src="/api/storage' + logo.fileUrl + '" alt="' + logo.logoName + '">' +
+            '<div class="des-ed-logo-name">' + logo.logoName + '</div>' +
+            '</div>';
+        }).join('');
+      }
+    }
+    _edUpdateCounters();
+  }
+
+  function _edUpdateCounters() {
+    var tpl = _edTpl;
+    if (!tpl) return;
+    var titleSlot = (tpl.textSlots || []).find(function(s) { return s.key === 'title'; });
+    var bodySlot  = (tpl.textSlots || []).find(function(s) { return s.key === 'body';  });
+
+    var tTA = document.getElementById('des-ed-title');
+    var bTA = document.getElementById('des-ed-body');
+    var titleText = tTA ? tTA.value : '';
+    var bodyText  = bTA ? bTA.value : '';
+
+    function countWords(txt) { return txt.trim() ? txt.trim().split(/\s+/).length : 0; }
+
+    var tw = countWords(titleText);
+    var bw = countWords(bodyText);
+    var tMax = titleSlot ? titleSlot.max_words : null;
+    var bMax = bodySlot  ? bodySlot.max_words  : null;
+
+    var tc = document.getElementById('des-ed-title-counter');
+    var tw2= document.getElementById('des-ed-title-warn');
+    if (tc) { tc.textContent = tMax ? tw + '/' + tMax + ' كلمة' : tw + ' كلمة'; tc.classList.toggle('over', !!tMax && tw > tMax); }
+    if (tw2) { if (tMax && tw > tMax) { tw2.style.display = ''; tw2.textContent = '⚠ تجاوزت الحد المسموح (' + tMax + ' كلمة)'; } else { tw2.style.display = 'none'; } }
+
+    var bc = document.getElementById('des-ed-body-counter');
+    var bw2= document.getElementById('des-ed-body-warn');
+    if (bc) { bc.textContent = bMax ? bw + '/' + bMax + ' كلمة' : bw + ' كلمة'; bc.classList.toggle('over', !!bMax && bw > bMax); }
+    if (bw2) { if (bMax && bw > bMax) { bw2.style.display = ''; bw2.textContent = '⚠ تجاوزت الحد المسموح (' + bMax + ' كلمة)'; } else { bw2.style.display = 'none'; } }
+  }
+
+  function edUpdate() {
+    var tSzEl = document.getElementById('des-ed-title-sz');
+    var bSzEl = document.getElementById('des-ed-body-sz');
+    var tsv   = document.getElementById('des-ed-title-sz-val');
+    var bsv   = document.getElementById('des-ed-body-sz-val');
+    if (tSzEl && tsv) tsv.textContent = tSzEl.value;
+    if (bSzEl && bsv) bsv.textContent = bSzEl.value;
+    _edUpdateCounters();
+    edRenderCanvas();
+  }
+
+  function edToggleLogo(id) {
+    var idx = _edSelectedLogoIds.indexOf(id);
+    if (idx >= 0) { _edSelectedLogoIds.splice(idx, 1); } else { _edSelectedLogoIds.push(id); }
+    _edLogos.forEach(function(logo) {
+      var el = document.getElementById('des-ed-logo-' + logo.id);
+      if (el) el.classList.toggle('selected', _edSelectedLogoIds.indexOf(logo.id) >= 0);
+    });
+    edRenderCanvas();
+  }
+
+  function _edAutoFit(text, slot, maxFontSize) {
+    if (!text || !slot) return maxFontSize;
+    var m = document.getElementById('des-ed-measurer');
+    if (!m) {
+      m = document.createElement('div');
+      m.id = 'des-ed-measurer';
+      m.style.cssText = 'position:fixed;visibility:hidden;pointer-events:none;left:-9999px;top:0;direction:rtl;word-break:break-word;line-height:1.35;white-space:normal;';
+      document.body.appendChild(m);
+    }
+    m.style.width = slot.width + 'px';
+    var lo = 12, hi = maxFontSize, best = lo;
+    while (lo <= hi) {
+      var mid = Math.round((lo + hi) / 2);
+      m.style.fontSize = mid + 'px';
+      m.textContent = text;
+      if (m.scrollHeight <= slot.height) { best = mid; lo = mid + 1; } else { hi = mid - 1; }
+    }
+    return best;
+  }
+
+  function edRenderCanvas() {
+    var tpl = _edTpl;
+    if (!tpl) return;
+    var outer  = document.getElementById('des-ed-canvas-outer');
+    var scaler = document.getElementById('des-ed-canvas-scaler');
+    var canvas = document.getElementById('des-ed-canvas');
+    if (!outer || !scaler || !canvas) return;
+
+    var W = tpl.canvasWidth  || 1920;
+    var H = tpl.canvasHeight || 1080;
+    canvas.style.width  = W + 'px';
+    canvas.style.height = H + 'px';
+    var scale = outer.clientWidth / W;
+    scaler.style.transform = 'scale(' + scale + ')';
+    scaler.style.width  = W + 'px';
+    scaler.style.height = H + 'px';
+    outer.style.height  = Math.round(H * scale) + 'px';
+    var badge = document.getElementById('des-ed-scale-badge');
+    if (badge) badge.textContent = Math.round(scale * 100) + '% تكبير';
+
+    var titleText  = (document.getElementById('des-ed-title') || {}).value || '';
+    var bodyText   = (document.getElementById('des-ed-body')  || {}).value || '';
+    var autoFit    = !!(document.getElementById('des-ed-autofit') || {}).checked;
+    var fontFamily = (document.getElementById('des-ed-font')  || {}).value || '';
+    var titleSz    = parseInt((document.getElementById('des-ed-title-sz') || {}).value) || 72;
+    var bodySz     = parseInt((document.getElementById('des-ed-body-sz')  || {}).value) || 40;
+    var fontStack  = fontFamily ? "'" + fontFamily + "',Tahoma,Arial,sans-serif" : "Tahoma,'Segoe UI',Arial,sans-serif";
+
+    var TEXT_MAP = { title: titleText, body: bodyText };
+    var SIZE_MAP = { title: titleSz,   body: bodySz  };
+
+    var html = '';
+
+    // ── Layer 1: Background placeholder ────────────────────────
+    html += '<div class="des-layer-bg" style="background:#6e7e8e;">' +
+      '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:.15;">' +
+      '<svg width="260" height="180" viewBox="0 0 260 180" fill="none"><rect width="260" height="180" fill="#444"/>' +
+      '<circle cx="80" cy="72" r="28" fill="#666"/>' +
+      '<path d="M0 148 L75 96 L130 126 L185 66 L260 148Z" fill="#555"/></svg>' +
+      '</div></div>';
+
+    // ── Layer 2: Background panel ───────────────────────────────
+    var bp = tpl.backgroundPanelConfig;
+    if (bp) {
+      var rr = parseInt((bp.color || '#000').slice(1,3), 16) || 0;
+      var gg = parseInt((bp.color || '#000').slice(3,5), 16) || 0;
+      var bb = parseInt((bp.color || '#000').slice(5,7), 16) || 0;
+      html += '<div class="des-layer-panel" style="left:' + bp.x + 'px;top:' + bp.y + 'px;' +
+        'width:' + bp.width + 'px;height:' + bp.height + 'px;' +
+        'background:rgba(' + rr + ',' + gg + ',' + bb + ',' + bp.opacity + ');"></div>';
+    }
+
+    // ── Layer 3: Text slots ─────────────────────────────────────
+    (tpl.textSlots || []).forEach(function(slot) {
+      var text  = TEXT_MAP[slot.key] !== undefined ? TEXT_MAP[slot.key] : '';
+      var fSize = SIZE_MAP[slot.key] || slot.default_font_size;
+      var empty = !text.trim();
+      if (autoFit && !empty) fSize = _edAutoFit(text, slot, fSize);
+      var content = empty
+        ? '<span style="opacity:.25;">' + slot.label_ar + '</span>'
+        : text.replace(/\n/g, '<br>');
+      html += '<div class="des-layer-text" style="' +
+        'left:' + slot.x + 'px;top:' + slot.y + 'px;' +
+        'width:' + slot.width + 'px;height:' + slot.height + 'px;' +
+        'font-size:' + fSize + 'px;color:' + slot.color + ';' +
+        'text-align:' + (slot.alignment || 'right') + ';' +
+        'font-family:' + fontStack + ';">' + content + '</div>';
+    });
+
+    // ── Layer 4: Logo slots ─────────────────────────────────────
+    (tpl.logoSlots || []).forEach(function(slot, idx) {
+      var assignedId = _edSelectedLogoIds[idx] || null;
+      var logo = assignedId ? _edLogos.find(function(l) { return l.id === assignedId; }) : null;
+      var inner = logo
+        ? '<img src="/api/storage' + logo.fileUrl + '" style="max-width:100%;max-height:100%;object-fit:contain;" alt="' + logo.logoName + '">'
+        : '<div class="des-logo-placeholder">' + (slot.key || 'شعار') + '</div>';
+      html += '<div class="des-layer-logo" style="left:' + slot.x + 'px;top:' + slot.y + 'px;' +
+        'width:' + slot.width + 'px;height:' + slot.height + 'px;">' + inner + '</div>';
+    });
+
+    canvas.innerHTML = html;
+  }
+
   return {
     init: init, switchTab: switchTab,
     uploadLogo: uploadLogo, deleteLogo: deleteLogo,
     uploadFont: uploadFont, setDefaultFont: setDefaultFont, deleteFont: deleteFont,
     selectTemplate: selectTemplate, seedTestTemplate: seedTestTemplate,
+    edOpen: edOpen, edUpdate: edUpdate, edToggleLogo: edToggleLogo,
   };
 })();
 
