@@ -144,13 +144,10 @@ router.delete("/designs/fonts/:id", async (req: Request, res: Response) => {
   res.json({ ok: true });
 });
 
-// ─── AI Background Generation (Gemini Imagen 3) ──────────────────────────────
+// ─── AI Background Generation (Pollinations.ai — free, no API key) ───────────
 router.post("/designs/generate-backgrounds", async (req: Request, res: Response) => {
   const { prompt, templateId } = req.body as { prompt?: string; templateId?: number };
   if (!prompt?.trim()) { res.status(400).json({ error: "prompt مطلوب" }); return; }
-
-  const googleKey = process.env["GOOGLE_AI_API_KEY"];
-  if (!googleKey) { res.status(503).json({ error: "GOOGLE_AI_API_KEY غير مضبوط على الخادم" }); return; }
 
   // Build a template-aware spatial hint so the model leaves room for the text panel
   let templateHint = "";
@@ -164,13 +161,13 @@ router.post("/designs/generate-backgrounds", async (req: Request, res: Response)
       const H = tpl.canvasHeight || 1080;
       if (bp.y > H * 0.55) {
         templateHint =
-          "Leave the bottom third of the image visually calm, low-contrast, and uncluttered — a semi-transparent text-overlay panel will cover that region.";
+          "Leave the bottom third visually calm and low-contrast, a text panel will cover it.";
       } else if (bp.y < H * 0.3 && bp.height < H * 0.4) {
         templateHint =
-          "Leave the top third of the image visually calm and uncluttered — a semi-transparent text-overlay panel will cover that region.";
+          "Leave the top third visually calm and uncluttered, a text panel will cover it.";
       } else {
         templateHint =
-          "Leave a calm, low-contrast visual zone in the lower portion for a text overlay panel.";
+          "Leave a calm low-contrast zone in the lower portion for a text overlay.";
       }
     }
   }
@@ -178,60 +175,36 @@ router.post("/designs/generate-backgrounds", async (req: Request, res: Response)
   const fullPrompt = [
     prompt.trim(),
     templateHint,
-    "Professional high-quality photo, 16:9 widescreen aspect ratio, no text or watermarks.",
+    "professional high-quality photo, 16:9 widescreen, no text no watermarks",
   ]
     .filter(Boolean)
-    .join(" ");
+    .join(", ");
 
-  req.log.info({ fullPrompt }, "Calling gemini-2.5-flash-image for background generation (4 parallel)");
+  req.log.info({ fullPrompt }, "Calling Pollinations.ai for 2 background images");
 
-  // Generate 4 images in parallel — one request per image (Gemini generateContent)
-  const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${googleKey}`;
-
-  type GeminiPart =
-    | { text: string }
-    | { inlineData: { mimeType: string; data: string } };
-
+  // Pollinations.ai: GET /prompt/{encodedPrompt}?width=1280&height=720&seed=N&model=flux&nologo=true
+  // Free, no API key required. Returns raw JPEG bytes.
   const generateOne = async (seed: number): Promise<{ url: string; source: string }> => {
-    const variation = seed === 0 ? "" : ` (variation ${seed + 1})`;
-    const r = await fetch(GEMINI_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: fullPrompt + variation }] }],
-        generationConfig: { responseModalities: ["IMAGE", "TEXT"] },
-      }),
-      signal: AbortSignal.timeout(120_000),
-    });
+    const encoded = encodeURIComponent(fullPrompt);
+    const apiUrl =
+      `https://image.pollinations.ai/prompt/${encoded}` +
+      `?width=1280&height=720&seed=${seed}&model=flux&nologo=true&enhance=false`;
+
+    const r = await fetch(apiUrl, { signal: AbortSignal.timeout(90_000) });
 
     if (!r.ok) {
-      const errText = await r.text();
-      throw new Error(`Gemini API ${r.status}: ${errText.slice(0, 200)}`);
+      throw new Error(`Pollinations ${r.status}: ${(await r.text()).slice(0, 120)}`);
     }
 
-    const data = (await r.json()) as {
-      candidates?: Array<{ content: { parts: GeminiPart[] } }>;
-    };
-
-    const parts = data.candidates?.[0]?.content?.parts ?? [];
-    const imgPart = parts.find((p): p is { inlineData: { mimeType: string; data: string } } =>
-      "inlineData" in p
-    );
-
-    if (!imgPart) {
-      throw new Error(`No image in Gemini response (seed ${seed})`);
-    }
-
-    const buf = Buffer.from(imgPart.inlineData.data, "base64");
-    const objectPath = await objectStorage.saveGeneratedBackground(
-      buf,
-      imgPart.inlineData.mimeType || "image/png"
-    );
-    return { url: objectPath, source: "gemini" };
+    const contentType = r.headers.get("content-type") || "image/jpeg";
+    const buf = Buffer.from(await r.arrayBuffer());
+    const objectPath = await objectStorage.saveGeneratedBackground(buf, contentType);
+    return { url: objectPath, source: "pollinations" };
   };
 
-  // Run all 4 in parallel; collect successes, fail fast only if all fail
-  const results = await Promise.allSettled([0, 1, 2, 3].map(generateOne));
+  // Generate 2 images in parallel — Pollinations handles 2 concurrent fine
+  const makeSeeds = (n: number) => Array.from({ length: n }, () => Math.floor(Math.random() * 999999));
+  const results = await Promise.allSettled(makeSeeds(2).map(generateOne));
 
   const saved = results
     .filter((r): r is PromiseFulfilledResult<{ url: string; source: string }> => r.status === "fulfilled")
@@ -239,8 +212,8 @@ router.post("/designs/generate-backgrounds", async (req: Request, res: Response)
 
   if (saved.length === 0) {
     const firstErr = (results[0] as PromiseRejectedResult).reason?.message ?? "unknown";
-    req.log.error({ firstErr }, "All Gemini image generations failed");
-    res.status(502).json({ error: "فشل التوليد من Gemini", detail: firstErr });
+    req.log.error({ firstErr }, "All Pollinations generations failed");
+    res.status(502).json({ error: "فشل التوليد من Pollinations", detail: firstErr });
     return;
   }
 
