@@ -3943,7 +3943,9 @@ function authUpdateUI() {
     adminNavEl.style.display = '';
   }
   var designsNavEl = document.getElementById('nav-designs');
-  if (designsNavEl) { designsNavEl.style.display = ''; }
+  if (designsNavEl && (u.role === 'super_admin' || u.role === 'admin')) {
+    designsNavEl.style.display = '';
+  }
 
   var perms = u.permissions || {};
   document.querySelectorAll('.nav-item[data-page]').forEach(function(el) {
@@ -3988,7 +3990,7 @@ function authCanView(pageName) {
   if (AUTH_USER.isSuperAdmin) return true;
   if (pageName === 'home') return true;
   if (pageName === 'admin_panel') return AUTH_USER.role === 'admin' || AUTH_USER.role === 'super_admin';
-  if (pageName === 'designs') return !!AUTH_USER;
+  if (pageName === 'designs') return AUTH_USER.role === 'admin' || AUTH_USER.role === 'super_admin';
   if (pageName === 'smart_assistant' || pageName === 'settings') return !!AUTH_USER;
   var permKey = PAGE_PERM_MAP[pageName] || pageName;
   var pagePerms = (AUTH_USER.permissions || {})[permKey] || [];
