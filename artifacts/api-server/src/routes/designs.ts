@@ -3,8 +3,10 @@ import { db } from "@workspace/db";
 import {
   brandLogosTable,
   brandFontsTable,
+  designTemplatesTable,
   insertBrandLogoSchema,
   insertBrandFontSchema,
+  insertDesignTemplateSchema,
 } from "@workspace/db";
 import { eq, desc } from "drizzle-orm";
 import { requireAdmin } from "../middleware/auth";
@@ -15,6 +17,58 @@ const objectStorage = new ObjectStorageService();
 
 // All /designs/* routes require admin role
 router.use(requireAdmin);
+
+// ─── Templates CRUD ───────────────────────────────────────────────────────────
+router.get("/designs/templates", async (_req: Request, res: Response) => {
+  const templates = await db.select().from(designTemplatesTable).orderBy(desc(designTemplatesTable.createdAt));
+  res.json(templates);
+});
+
+router.get("/designs/templates/:id", async (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+  const [row] = await db.select().from(designTemplatesTable).where(eq(designTemplatesTable.id, id));
+  if (!row) { res.status(404).json({ error: "القالب غير موجود" }); return; }
+  res.json(row);
+});
+
+router.post("/designs/templates", async (req: Request, res: Response) => {
+  const body = insertDesignTemplateSchema.parse(req.body);
+  const [row] = await db.insert(designTemplatesTable).values(body).returning();
+  res.status(201).json(row);
+});
+
+// ─── Seed one test template ────────────────────────────────────────────────────
+router.post("/designs/templates/seed-test", async (_req: Request, res: Response) => {
+  const existing = await db.select().from(designTemplatesTable).limit(1);
+  if (existing.length > 0) {
+    res.json({ ok: true, skipped: true, template: existing[0] }); return;
+  }
+  const [row] = await db.insert(designTemplatesTable).values({
+    templateNameAr: "قالب تجريبي — إعلان عام",
+    category: "general",
+    canvasWidth: 1920,
+    canvasHeight: 1080,
+    backgroundPanelConfig: {
+      x: 0, y: 700, width: 1920, height: 380, color: "#1a3a6b", opacity: 0.88,
+    },
+    textSlots: [
+      {
+        key: "title", label_ar: "العنوان الرئيسي",
+        x: 80, y: 740, width: 1760, height: 120,
+        default_font_size: 72, max_words: 10, alignment: "right", color: "#ffffff",
+      },
+      {
+        key: "body", label_ar: "النص التفصيلي",
+        x: 80, y: 880, width: 1760, height: 160,
+        default_font_size: 40, max_words: 30, alignment: "right", color: "#d0dcff",
+      },
+    ],
+    logoSlots: [
+      { key: "logo_main", x: 80, y: 30, width: 210, height: 130 },
+    ],
+  }).returning();
+  res.status(201).json({ ok: true, skipped: false, template: row });
+});
 
 // ─── Logo Upload URL ──────────────────────────────────────────────────────────
 router.post("/designs/logos/upload-url", async (req: Request, res: Response) => {
