@@ -160,6 +160,54 @@ export class ObjectStorageService {
     return { uploadURL, objectPath: `/objects/${relPath}` };
   }
 
+  // ─── Designs storage helpers ──────────────────────────────────────────────
+
+  /**
+   * Generate a presigned upload URL for a design asset.
+   * Files are stored under:
+   *   {PRIVATE_OBJECT_DIR}/designs/{folder}/{uuid}.{ext}
+   * Returns the signed upload URL and the logical objectPath.
+   */
+  async getDesignsUploadURL(opts: {
+    folder: "logos" | "fonts" | "backgrounds" | "final";
+    fileName: string;
+    contentType?: string;
+  }): Promise<{ uploadURL: string; objectPath: string }> {
+    const privateObjectDir = this.getPrivateObjectDir();
+    const ext = opts.fileName.includes(".")
+      ? opts.fileName.split(".").pop()!
+      : "bin";
+    const uuid = randomUUID();
+    const relPath = `designs/${opts.folder}/${uuid}.${ext}`;
+    const fullPath = `${privateObjectDir}/${relPath}`;
+    const { bucketName, objectName } = parseObjectPath(fullPath);
+
+    const uploadURL = await signObjectURL({
+      bucketName,
+      objectName,
+      method: "PUT",
+      ttlSec: 900,
+    });
+
+    return { uploadURL, objectPath: `/objects/${relPath}` };
+  }
+
+  /**
+   * Delete a design asset by its logical objectPath (/objects/designs/...).
+   */
+  async deleteDesignObject(objectPath: string): Promise<void> {
+    if (!objectPath.startsWith("/objects/designs/")) {
+      throw new Error("deleteDesignObject: path must start with /objects/designs/");
+    }
+    const entityId = objectPath.slice("/objects/".length);
+    let entityDir = this.getPrivateObjectDir();
+    if (!entityDir.endsWith("/")) entityDir = `${entityDir}/`;
+    const fullPath = `${entityDir}${entityId}`;
+    const { bucketName, objectName } = parseObjectPath(fullPath);
+    const bucket = objectStorageClient.bucket(bucketName);
+    await bucket.file(objectName).delete({ ignoreNotFound: true });
+  }
+
   async getObjectEntityFile(objectPath: string): Promise<File> {
     if (!objectPath.startsWith("/objects/")) {
       throw new ObjectNotFoundError();
