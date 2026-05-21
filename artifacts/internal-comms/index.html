@@ -1204,6 +1204,33 @@ body {
 .wk2-pod-btns     { display: flex; gap: 8px; margin-top: 4px; }
 #opts-podcast { grid-template-columns: repeat(3,1fr); }
 
+/* Designs Page */
+.des-card-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+.des-card-title { margin:0; font-size:15px; font-weight:600; }
+.des-upload-btn { cursor:pointer; display:flex; align-items:center; gap:6px; }
+.des-upload-meta { display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-bottom:10px; }
+.des-check-label { display:flex; align-items:center; gap:6px; font-size:13px; color:var(--text-2); cursor:pointer; }
+.des-hint { font-size:11.5px; color:var(--text-3); margin:0 0 14px; }
+.des-loading { font-size:13px; color:var(--text-3); padding:12px 0; }
+.des-logos-grid { display:flex; flex-wrap:wrap; gap:12px; }
+.des-logo-card { display:flex; align-items:center; gap:10px; padding:10px 12px; border:1px solid var(--border); background:var(--bg); min-width:220px; max-width:320px; flex:1 1 220px; }
+.des-logo-thumb { width:48px; height:48px; flex-shrink:0; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+.des-logo-thumb img { max-width:100%; max-height:100%; object-fit:contain; }
+.des-logo-info { flex:1; min-width:0; }
+.des-logo-name { font-size:13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.des-logo-meta { font-size:11px; color:var(--text-3); margin-top:2px; }
+.des-font-row { display:flex; align-items:center; justify-content:space-between; padding:10px 14px; border:1px solid var(--border); background:var(--bg); margin-bottom:6px; gap:12px; }
+.des-font-info { flex:1; min-width:0; }
+.des-font-name { font-size:13px; font-weight:600; }
+.des-font-path { font-size:11px; color:var(--text-3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.des-font-actions { display:flex; align-items:center; gap:6px; flex-shrink:0; }
+.des-btn-default { font-size:12px; padding:4px 10px; }
+.des-btn-default.is-default { color:var(--primary); font-weight:700; }
+.des-upload-overlay { position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:900; display:flex; align-items:center; justify-content:center; }
+.des-upload-box { background:var(--surface); padding:32px 40px; text-align:center; min-width:260px; }
+.des-upload-spinner { font-size:28px; animation:spin 1s linear infinite; display:block; margin-bottom:12px; }
+@keyframes spin { to { transform:rotate(360deg); } }
+
 /* AI Tools */
 .wk2-ai-card { padding: 14px; }
 .wk2-ai-header { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid; margin-bottom: 12px; }
@@ -2238,6 +2265,7 @@ body {
     <symbol id="i-shield"  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></symbol>
     <symbol id="i-log-out" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></symbol>
     <symbol id="i-lock"    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+    <symbol id="i-image"   viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></symbol>
   </defs>
 </svg>
 
@@ -2324,6 +2352,10 @@ body {
         <a class="nav-item" data-page="settings" onclick="showSection('settings')">
           <span class="ico"><svg><use href="#i-settings"/></svg></span>
           <span>الإعدادات</span>
+        </a>
+        <a class="nav-item" id="nav-designs" data-page="designs" onclick="showSection('designs')" style="display:none;">
+          <span class="ico"><svg><use href="#i-image"/></svg></span>
+          <span>إنشاء التصاميم</span>
         </a>
         <a class="nav-item" id="nav-admin-panel" data-page="admin_panel" onclick="showSection('admin_panel')" style="display:none;">
           <span class="ico"><svg><use href="#i-shield"/></svg></span>
@@ -3661,6 +3693,72 @@ body {
     </div>
   </div>
 
+  <!-- ══ Designs Section ══ -->
+  <div class="page-section" id="section-designs">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title">إنشاء التصاميم</h1>
+        <p class="page-sub">إدارة أصول العلامة التجارية وإنشاء تصاميم احترافية.</p>
+      </div>
+    </div>
+
+    <div class="adm-tabs" id="des-tab-nav">
+      <button class="adm-tab active" data-tab="assets" onclick="desSwitchTab('assets')">إدارة الأصول</button>
+    </div>
+
+    <!-- ── Tab: Assets ─────────────────────────────────────────── -->
+    <div class="adm-pane active" id="des-pane-assets">
+
+      <!-- Logos card -->
+      <div class="card" style="margin-bottom:20px;">
+        <div class="des-card-head">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span class="ico" style="color:var(--primary)"><svg><use href="#i-image"/></svg></span>
+            <h3 class="des-card-title">الشعارات الرسمية</h3>
+          </div>
+          <label class="btn btn-primary des-upload-btn">
+            <span class="ico"><svg><use href="#i-plus"/></svg></span>
+            رفع شعار
+            <input type="file" id="des-logo-file" accept=".png,image/png" style="display:none;" onchange="DES.uploadLogo(this)">
+          </label>
+        </div>
+        <div class="des-upload-meta">
+          <input type="text" id="des-logo-name" class="adm-input" placeholder="اسم الشعار (اختياري — يُستخدم اسم الملف افتراضياً)">
+          <input type="number" id="des-logo-width" class="adm-input" placeholder="العرض الافتراضي (px)" style="width:180px;">
+          <label class="des-check-label">
+            <input type="checkbox" id="des-logo-transparent">
+            <span>خلفية شفافة</span>
+          </label>
+        </div>
+        <p class="des-hint">PNG فقط · يُوصى بأبعاد 400×400 أو أكبر</p>
+        <div id="des-logos-loading" class="des-loading">جاري التحميل…</div>
+        <div id="des-logos-grid" class="des-logos-grid" style="display:none;"></div>
+      </div>
+
+      <!-- Fonts card -->
+      <div class="card">
+        <div class="des-card-head">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span class="ico" style="color:var(--primary)"><svg><use href="#i-bookmark"/></svg></span>
+            <h3 class="des-card-title">الخطوط</h3>
+          </div>
+          <label class="btn btn-primary des-upload-btn">
+            <span class="ico"><svg><use href="#i-plus"/></svg></span>
+            رفع خط
+            <input type="file" id="des-font-file" accept=".woff2,.ttf" style="display:none;" onchange="DES.uploadFont(this)">
+          </label>
+        </div>
+        <div class="des-upload-meta">
+          <input type="text" id="des-font-name" class="adm-input" placeholder="اسم الخط (اختياري — يُستخدم اسم الملف افتراضياً)">
+        </div>
+        <p class="des-hint">woff2 أو ttf فقط · الخط المُعيَّن افتراضياً يُستخدم في التصاميم الجديدة</p>
+        <div id="des-fonts-loading" class="des-loading">جاري التحميل…</div>
+        <div id="des-fonts-list" style="display:none;"></div>
+      </div>
+
+    </div><!-- /des-pane-assets -->
+  </div><!-- /section-designs -->
+
   <!-- ══ 403 Forbidden Section ══ -->
   <div class="page-section" id="section-403" style="display:none;">
     <div style="text-align:center;padding:80px 20px;">
@@ -3844,6 +3942,10 @@ function authUpdateUI() {
   if (adminNavEl && (u.role === 'super_admin' || u.role === 'admin')) {
     adminNavEl.style.display = '';
   }
+  var designsNavEl = document.getElementById('nav-designs');
+  if (designsNavEl && (u.role === 'super_admin' || u.role === 'admin')) {
+    designsNavEl.style.display = '';
+  }
 
   var perms = u.permissions || {};
   document.querySelectorAll('.nav-item[data-page]').forEach(function(el) {
@@ -3888,6 +3990,7 @@ function authCanView(pageName) {
   if (AUTH_USER.isSuperAdmin) return true;
   if (pageName === 'home') return true;
   if (pageName === 'admin_panel') return AUTH_USER.role === 'admin' || AUTH_USER.role === 'super_admin';
+  if (pageName === 'designs') return AUTH_USER.role === 'admin' || AUTH_USER.role === 'super_admin';
   if (pageName === 'smart_assistant' || pageName === 'settings') return !!AUTH_USER;
   var permKey = PAGE_PERM_MAP[pageName] || pageName;
   var pagePerms = (AUTH_USER.permissions || {})[permKey] || [];
@@ -5098,6 +5201,7 @@ const PAGE_LABELS = {
   aiyear:'عام الذكاء الاصطناعي ٢٠٢٦',
   smart_assistant:'المساعد الذكي', settings:'الإعدادات',
   admin_panel:'لوحة التحكم',
+  designs:'إنشاء التصاميم',
 };
 
 function showSection(name) {
@@ -5126,6 +5230,7 @@ function showSection(name) {
   closeMobileSidebar();
   if (name === 'aiyear') aiyInit();
   if (name === 'admin_panel') adminInit();
+  if (name === 'designs') designsInit();
 }
 
 function toggleMobileSidebar() {
@@ -7580,6 +7685,176 @@ async function aiySaveActivation() {
     if (lbl) lbl.textContent = 'حفظ التفعيل';
   }
 }
+
+// ════════════════════════════════════════
+// DESIGNS PAGE
+// ════════════════════════════════════════
+var DES = (function() {
+
+  // ── Upload progress overlay ─────────────────────────────────────
+  function showOverlay(msg) {
+    var existing = document.getElementById('des-upload-overlay');
+    if (existing) { existing.querySelector('.des-upload-msg').textContent = msg || 'جاري الرفع…'; return; }
+    var el = document.createElement('div');
+    el.className = 'des-upload-overlay'; el.id = 'des-upload-overlay';
+    el.innerHTML = '<div class="des-upload-box"><span class="des-upload-spinner">⏳</span><div class="des-upload-msg">' + (msg||'جاري الرفع…') + '</div></div>';
+    document.body.appendChild(el);
+  }
+  function hideOverlay() {
+    var el = document.getElementById('des-upload-overlay');
+    if (el) el.remove();
+  }
+
+  // ── Init ────────────────────────────────────────────────────────
+  function init() { loadLogos(); loadFonts(); }
+
+  function switchTab(tab) {
+    document.querySelectorAll('#des-tab-nav .adm-tab').forEach(function(b) { b.classList.remove('active'); });
+    document.querySelectorAll('[id^="des-pane-"]').forEach(function(p) { p.classList.remove('active'); });
+    var btn = document.querySelector('#des-tab-nav .adm-tab[data-tab="' + tab + '"]');
+    if (btn) btn.classList.add('active');
+    var pane = document.getElementById('des-pane-' + tab);
+    if (pane) pane.classList.add('active');
+  }
+
+  // ── Logos ───────────────────────────────────────────────────────
+  function loadLogos() {
+    var grid = document.getElementById('des-logos-grid');
+    var loading = document.getElementById('des-logos-loading');
+    if (!grid) return;
+    loading.style.display = ''; grid.style.display = 'none'; loading.textContent = 'جاري التحميل…';
+    apiFetch('/api/designs/logos').then(function(r) { return r.json(); }).then(function(logos) {
+      loading.style.display = 'none'; grid.style.display = '';
+      if (!logos.length) {
+        grid.innerHTML = '<div class="des-loading">لا توجد شعارات مرفوعة بعد.</div>'; return;
+      }
+      grid.innerHTML = logos.map(function(logo) {
+        var src = '/api/storage' + logo.fileUrl;
+        var checker = logo.transparent
+          ? 'background:repeating-conic-gradient(#ccc 0% 25%,#fff 0% 50%) 0 0/14px 14px'
+          : 'background:var(--surface-2)';
+        return '<div class="des-logo-card" data-id="' + logo.id + '">' +
+          '<div class="des-logo-thumb" style="' + checker + '">' +
+          '<img src="' + src + '" alt="' + (logo.logoName||'') + '" onerror="this.style.display=\'none\'">' +
+          '</div>' +
+          '<div class="des-logo-info">' +
+          '<div class="des-logo-name">' + (logo.logoName||'—') + '</div>' +
+          '<div class="des-logo-meta">' + (logo.transparent ? 'شفاف' : 'غير شفاف') + (logo.defaultWidth ? ' · ' + logo.defaultWidth + 'px' : '') + '</div>' +
+          '</div>' +
+          '<button class="btn btn-ghost" style="color:var(--danger);padding:6px;flex-shrink:0;" onclick="DES.deleteLogo(' + logo.id + ')" title="حذف">' +
+          '<span class="ico"><svg><use href="#i-x"/></svg></span></button>' +
+          '</div>';
+      }).join('');
+    }).catch(function() { loading.textContent = 'خطأ في تحميل الشعارات.'; loading.style.display = ''; grid.style.display = 'none'; });
+  }
+
+  function uploadLogo(input) {
+    var file = input.files[0]; if (!file) return;
+    if (file.type !== 'image/png') { alert('يُقبل PNG فقط للشعارات.'); input.value = ''; return; }
+    var name = (document.getElementById('des-logo-name').value || '').trim() || file.name.replace(/\.[^.]+$/, '');
+    var width = parseInt(document.getElementById('des-logo-width').value) || null;
+    var transparent = document.getElementById('des-logo-transparent').checked;
+    showOverlay('جاري رفع الشعار…');
+    apiFetch('/api/designs/logos/upload-url', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fileName: file.name, contentType: file.type })
+    }).then(function(r) { return r.json(); }).then(function(data) {
+      return fetch(data.uploadURL, { method: 'PUT', headers: { 'Content-Type': file.type }, body: file })
+        .then(function(r) { if (!r.ok) throw new Error('فشل رفع الملف إلى التخزين'); return data.objectPath; });
+    }).then(function(objectPath) {
+      return apiFetch('/api/designs/logos', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ logoName: name, fileUrl: objectPath, transparent: transparent, defaultWidth: width })
+      });
+    }).then(function(r) { if (!r.ok) return r.json().then(function(e) { throw new Error(e.error||'خطأ'); }); })
+    .then(function() {
+      input.value = '';
+      document.getElementById('des-logo-name').value = '';
+      document.getElementById('des-logo-width').value = '';
+      document.getElementById('des-logo-transparent').checked = false;
+      loadLogos();
+    }).catch(function(e) { alert('خطأ: ' + e.message); })
+    .finally(function() { hideOverlay(); });
+  }
+
+  function deleteLogo(id) {
+    if (!confirm('هل تريد حذف هذا الشعار؟')) return;
+    apiFetch('/api/designs/logos/' + id, { method: 'DELETE' })
+      .then(function() { loadLogos(); }).catch(function(e) { alert('خطأ: ' + e.message); });
+  }
+
+  // ── Fonts ───────────────────────────────────────────────────────
+  function loadFonts() {
+    var list = document.getElementById('des-fonts-list');
+    var loading = document.getElementById('des-fonts-loading');
+    if (!list) return;
+    loading.style.display = ''; list.style.display = 'none'; loading.textContent = 'جاري التحميل…';
+    apiFetch('/api/designs/fonts').then(function(r) { return r.json(); }).then(function(fonts) {
+      loading.style.display = 'none'; list.style.display = '';
+      if (!fonts.length) {
+        list.innerHTML = '<div class="des-loading">لا توجد خطوط مرفوعة بعد.</div>'; return;
+      }
+      list.innerHTML = fonts.map(function(font) {
+        return '<div class="des-font-row" data-id="' + font.id + '">' +
+          '<div class="des-font-info">' +
+          '<div class="des-font-name">' + (font.fontName||'—') + (font.isDefault ? ' <span style="font-size:10px;color:var(--primary);font-weight:700;margin-right:6px;">★ افتراضي</span>' : '') + '</div>' +
+          '<div class="des-font-path">' + (font.fontFileUrl||'') + '</div>' +
+          '</div>' +
+          '<div class="des-font-actions">' +
+          (font.isDefault ? '' : '<button class="btn btn-ghost des-btn-default" onclick="DES.setDefaultFont(' + font.id + ')">تعيين كافتراضي</button>') +
+          '<button class="btn btn-ghost" style="color:var(--danger);padding:6px;" onclick="DES.deleteFont(' + font.id + ')" title="حذف">' +
+          '<span class="ico"><svg><use href="#i-x"/></svg></span></button>' +
+          '</div></div>';
+      }).join('');
+    }).catch(function() { loading.textContent = 'خطأ في تحميل الخطوط.'; loading.style.display = ''; list.style.display = 'none'; });
+  }
+
+  function uploadFont(input) {
+    var file = input.files[0]; if (!file) return;
+    var ext = file.name.split('.').pop().toLowerCase();
+    if (ext !== 'woff2' && ext !== 'ttf') { alert('يُقبل woff2 وttf فقط.'); input.value = ''; return; }
+    var name = (document.getElementById('des-font-name').value || '').trim() || file.name.replace(/\.[^.]+$/, '');
+    var ct = ext === 'woff2' ? 'font/woff2' : 'font/ttf';
+    showOverlay('جاري رفع الخط…');
+    apiFetch('/api/designs/fonts/upload-url', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fileName: file.name, contentType: ct })
+    }).then(function(r) { return r.json(); }).then(function(data) {
+      return fetch(data.uploadURL, { method: 'PUT', headers: { 'Content-Type': ct }, body: file })
+        .then(function(r) { if (!r.ok) throw new Error('فشل رفع الملف إلى التخزين'); return data.objectPath; });
+    }).then(function(objectPath) {
+      return apiFetch('/api/designs/fonts', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fontName: name, fontFileUrl: objectPath, isDefault: false })
+      });
+    }).then(function(r) { if (!r.ok) return r.json().then(function(e) { throw new Error(e.error||'خطأ'); }); })
+    .then(function() {
+      input.value = ''; document.getElementById('des-font-name').value = '';
+      loadFonts();
+    }).catch(function(e) { alert('خطأ: ' + e.message); })
+    .finally(function() { hideOverlay(); });
+  }
+
+  function setDefaultFont(id) {
+    apiFetch('/api/designs/fonts/' + id + '/default', { method: 'PATCH' })
+      .then(function() { loadFonts(); }).catch(function(e) { alert('خطأ: ' + e.message); });
+  }
+
+  function deleteFont(id) {
+    if (!confirm('هل تريد حذف هذا الخط؟')) return;
+    apiFetch('/api/designs/fonts/' + id, { method: 'DELETE' })
+      .then(function() { loadFonts(); }).catch(function(e) { alert('خطأ: ' + e.message); });
+  }
+
+  return {
+    init: init, switchTab: switchTab,
+    uploadLogo: uploadLogo, deleteLogo: deleteLogo,
+    uploadFont: uploadFont, setDefaultFont: setDefaultFont, deleteFont: deleteFont
+  };
+})();
+
+function designsInit() { DES.init(); }
+function desSwitchTab(tab) { DES.switchTab(tab); }
 
 // ── Report ───────────────────────────────────────────────────────
 async function aiyGenerateReport() {

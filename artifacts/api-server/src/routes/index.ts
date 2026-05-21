@@ -9,6 +9,7 @@ import authRouter from "./auth";
 import authSsoRouter from "./auth-sso";
 import adminRouter from "./admin";
 import dashboardRouter from "./dashboard";
+import designsRouter from "./designs";
 import { authenticate, requireAuth, requirePageAccess } from "../middleware/auth";
 
 const router: IRouter = Router();
@@ -49,5 +50,6 @@ router.use(intlDaysRouter);
 router.use(aiYearRouter);
 router.use(storageRouter);
 router.use(adminRouter);
+router.use(designsRouter);
 
 export default router;
