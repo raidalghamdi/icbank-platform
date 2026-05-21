@@ -144,4 +144,108 @@ router.delete("/designs/fonts/:id", async (req: Request, res: Response) => {
   res.json({ ok: true });
 });
 
+// ─── AI Background Generation (Gemini Imagen 3) ──────────────────────────────
+router.post("/designs/generate-backgrounds", async (req: Request, res: Response) => {
+  const { prompt, templateId } = req.body as { prompt?: string; templateId?: number };
+  if (!prompt?.trim()) { res.status(400).json({ error: "prompt مطلوب" }); return; }
+
+  const googleKey = process.env["GOOGLE_AI_API_KEY"];
+  if (!googleKey) { res.status(503).json({ error: "GOOGLE_AI_API_KEY غير مضبوط على الخادم" }); return; }
+
+  // Build a template-aware spatial hint so the model leaves room for the text panel
+  let templateHint = "";
+  if (templateId) {
+    const [tpl] = await db
+      .select()
+      .from(designTemplatesTable)
+      .where(eq(designTemplatesTable.id, templateId));
+    if (tpl?.backgroundPanelConfig) {
+      const bp = tpl.backgroundPanelConfig as { x: number; y: number; width: number; height: number };
+      const H = tpl.canvasHeight || 1080;
+      if (bp.y > H * 0.55) {
+        templateHint =
+          "Leave the bottom third of the image visually calm, low-contrast, and uncluttered — a semi-transparent text-overlay panel will cover that region.";
+      } else if (bp.y < H * 0.3 && bp.height < H * 0.4) {
+        templateHint =
+          "Leave the top third of the image visually calm and uncluttered — a semi-transparent text-overlay panel will cover that region.";
+      } else {
+        templateHint =
+          "Leave a calm, low-contrast visual zone in the lower portion for a text overlay panel.";
+      }
+    }
+  }
+
+  const fullPrompt = [
+    prompt.trim(),
+    templateHint,
+    "Professional high-quality photo, 16:9 widescreen aspect ratio, no text or watermarks.",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  req.log.info({ fullPrompt }, "Calling gemini-2.5-flash-image for background generation (4 parallel)");
+
+  // Generate 4 images in parallel — one request per image (Gemini generateContent)
+  const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${googleKey}`;
+
+  type GeminiPart =
+    | { text: string }
+    | { inlineData: { mimeType: string; data: string } };
+
+  const generateOne = async (seed: number): Promise<{ url: string; source: string }> => {
+    const variation = seed === 0 ? "" : ` (variation ${seed + 1})`;
+    const r = await fetch(GEMINI_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: fullPrompt + variation }] }],
+        generationConfig: { responseModalities: ["IMAGE", "TEXT"] },
+      }),
+      signal: AbortSignal.timeout(120_000),
+    });
+
+    if (!r.ok) {
+      const errText = await r.text();
+      throw new Error(`Gemini API ${r.status}: ${errText.slice(0, 200)}`);
+    }
+
+    const data = (await r.json()) as {
+      candidates?: Array<{ content: { parts: GeminiPart[] } }>;
+    };
+
+    const parts = data.candidates?.[0]?.content?.parts ?? [];
+    const imgPart = parts.find((p): p is { inlineData: { mimeType: string; data: string } } =>
+      "inlineData" in p
+    );
+
+    if (!imgPart) {
+      throw new Error(`No image in Gemini response (seed ${seed})`);
+    }
+
+    const buf = Buffer.from(imgPart.inlineData.data, "base64");
+    const objectPath = await objectStorage.saveGeneratedBackground(
+      buf,
+      imgPart.inlineData.mimeType || "image/png"
+    );
+    return { url: objectPath, source: "gemini" };
+  };
+
+  // Run all 4 in parallel; collect successes, fail fast only if all fail
+  const results = await Promise.allSettled([0, 1, 2, 3].map(generateOne));
+
+  const saved = results
+    .filter((r): r is PromiseFulfilledResult<{ url: string; source: string }> => r.status === "fulfilled")
+    .map((r) => r.value);
+
+  if (saved.length === 0) {
+    const firstErr = (results[0] as PromiseRejectedResult).reason?.message ?? "unknown";
+    req.log.error({ firstErr }, "All Gemini image generations failed");
+    res.status(502).json({ error: "فشل التوليد من Gemini", detail: firstErr });
+    return;
+  }
+
+  req.log.info({ count: saved.length }, "Backgrounds saved to storage");
+  res.json({ images: saved });
+});
+
 export default router;

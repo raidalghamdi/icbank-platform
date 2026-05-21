@@ -193,6 +193,23 @@ export class ObjectStorageService {
   }
 
   /**
+   * Save a generated image Buffer directly to object storage.
+   * Returns the logical objectPath: /objects/designs/backgrounds/uuid.ext
+   */
+  async saveGeneratedBackground(buffer: Buffer, contentType: string): Promise<string> {
+    const privateObjectDir = this.getPrivateObjectDir();
+    const ext = contentType.includes("png") ? "png" : "jpg";
+    const uuid = randomUUID();
+    const relPath = `designs/backgrounds/${uuid}.${ext}`;
+    const fullPath = `${privateObjectDir}/${relPath}`;
+    const { bucketName, objectName } = parseObjectPath(fullPath);
+    const bucket = objectStorageClient.bucket(bucketName);
+    const file = bucket.file(objectName);
+    await file.save(buffer, { contentType, resumable: false });
+    return `/objects/${relPath}`;
+  }
+
+  /**
    * Delete a design asset by its logical objectPath (/objects/designs/...).
    */
   async deleteDesignObject(objectPath: string): Promise<void> {
