@@ -8618,9 +8618,14 @@ var DES = (function() {
     })
     .catch(function(err) {
       if (spinnerEl) spinnerEl.style.display = 'none';
-      // On any error: cancel cooldown so user can see button is active again
+      // On any error: cancel cooldown so user can retry immediately
       _cancelCooldown();
-      alert(err.message || 'خطأ في التوليد');
+      var msg = err.message || '';
+      if (!msg || msg === 'Failed to fetch' || msg === 'NetworkError when attempting to fetch resource.') {
+        alert('تعذّر الوصول للخادم، تحقق من اتصالك وأعد المحاولة.');
+      } else {
+        alert(msg);
+      }
     });
   }
 
