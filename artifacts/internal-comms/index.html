@@ -3947,7 +3947,7 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
               <textarea id="des-ed-bg-prompt" class="adm-input" rows="3"
                 style="resize:vertical;font-size:13px;direction:rtl;"
                 placeholder="صِف الخلفية المطلوبة… مثلاً: مبنى حكومي أنيق في ضوء الفجر"></textarea>
-              <button class="btn btn-primary" style="width:100%;margin-top:6px;font-size:13px;"
+              <button id="des-ed-bg-btn" class="btn btn-primary" style="width:100%;margin-top:6px;font-size:13px;"
                 onclick="DES.edGenerateBg()">
                 <span id="des-ed-bg-btn-label">⬡ توليد ٤ خلفيات</span>
               </button>
@@ -8547,10 +8547,13 @@ var DES = (function() {
   }
 
   // ── AI Background Generation ─────────────────────────────────────
+  var _edBgCooldownTimer = null; // 20-second cooldown between generation requests
+
   function edGenerateBg() {
     var promptEl  = document.getElementById('des-ed-bg-prompt');
     var spinnerEl = document.getElementById('des-ed-bg-spinner');
     var resultsEl = document.getElementById('des-ed-bg-results');
+    var btnEl     = document.getElementById('des-ed-bg-btn');
     var btnLabel  = document.getElementById('des-ed-bg-btn-label');
     if (!promptEl || !_edTpl) return;
     var prompt = (promptEl.value || '').trim();
@@ -8560,6 +8563,25 @@ var DES = (function() {
     if (spinnerEl) spinnerEl.style.display = '';
     if (resultsEl) { resultsEl.style.display = 'none'; resultsEl.innerHTML = ''; }
     if (btnLabel)  btnLabel.textContent = 'جاري التوليد…';
+
+    // ── Cooldown: disable button for 20 s after each press ──────────
+    if (btnEl) btnEl.disabled = true;
+    if (_edBgCooldownTimer) clearTimeout(_edBgCooldownTimer);
+    var _cooldownSec = 20;
+    var _cooldownInterval = setInterval(function() {
+      _cooldownSec--;
+      if (btnLabel && btnEl && btnEl.disabled) btnLabel.textContent = 'انتظر ' + _cooldownSec + ' ث…';
+      if (_cooldownSec <= 0) clearInterval(_cooldownInterval);
+    }, 1000);
+    _edBgCooldownTimer = setTimeout(function() {
+      clearInterval(_cooldownInterval);
+      if (btnEl) btnEl.disabled = false;
+      // Restore label only if not still loading
+      if (btnLabel && spinnerEl && spinnerEl.style.display === 'none') {
+        btnLabel.textContent = '⬡ توليد ٤ خلفيات';
+      }
+    }, 20000);
+    // ─────────────────────────────────────────────────────────────────
 
     apiFetch('/api/designs/generate-backgrounds', {
       method: 'POST',
@@ -8573,7 +8595,7 @@ var DES = (function() {
     .then(function(data) {
       _edBgResults = data.images || [];
       if (spinnerEl) spinnerEl.style.display = 'none';
-      if (btnLabel)  btnLabel.textContent = '⬡ توليد ٤ خلفيات';
+      if (btnLabel && btnEl && !btnEl.disabled) btnLabel.textContent = '⬡ توليد ٤ خلفيات';
       if (!_edBgResults.length) { alert('لم يُرجع النموذج أي صور.'); return; }
       // Render thumbnails
       if (resultsEl) {
@@ -8590,8 +8612,8 @@ var DES = (function() {
     })
     .catch(function(err) {
       if (spinnerEl) spinnerEl.style.display = 'none';
-      if (btnLabel)  btnLabel.textContent = '⬡ توليد ٤ خلفيات';
-      alert('خطأ في التوليد: ' + (err.message || err));
+      if (btnLabel && btnEl && !btnEl.disabled) btnLabel.textContent = '⬡ توليد ٤ خلفيات';
+      alert(err.message || 'خطأ في التوليد');
     });
   }
 

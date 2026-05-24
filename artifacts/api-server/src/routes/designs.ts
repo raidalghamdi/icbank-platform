@@ -144,8 +144,19 @@ router.delete("/designs/fonts/:id", async (req: Request, res: Response) => {
   res.json({ ok: true });
 });
 
-// ─── AI Background Generation (Nano Banana — gemini-2.5-flash-image) ─────────
+// ─── AI Background Generation ────────────────────────────────────────────────
+//
+// TRIAL MODE — Nano Banana only (gemini-2.5-flash-image × 4)
+// ─────────────────────────────────────────────────────────────
+// After the free trial, re-enable OpenAI (gpt-image-1) by setting:
+//   const USE_OPENAI = true;
+// and wiring up OPENAI_API_KEY below the Google key check.
+// ─────────────────────────────────────────────────────────────
+const USE_OPENAI = false; // ← flip to true after trial to re-enable gpt-image-1
+
 router.post("/designs/generate-backgrounds", async (req: Request, res: Response) => {
+  void USE_OPENAI; // referenced above — will be used when re-enabled
+
   const { prompt, templateId } = req.body as { prompt?: string; templateId?: number };
   if (!prompt?.trim()) { res.status(400).json({ error: "prompt مطلوب" }); return; }
 
@@ -205,6 +216,10 @@ router.post("/designs/generate-backgrounds", async (req: Request, res: Response)
 
     if (!r.ok) {
       const errText = await r.text();
+      // Detect quota / rate-limit errors and surface a user-friendly Arabic message
+      if (r.status === 429 || errText.includes("quota") || errText.includes("RESOURCE_EXHAUSTED")) {
+        throw new Error("QUOTA_EXCEEDED");
+      }
       throw new Error(`Gemini API ${r.status}: ${errText.slice(0, 200)}`);
     }
 
@@ -234,6 +249,16 @@ router.post("/designs/generate-backgrounds", async (req: Request, res: Response)
   if (saved.length === 0) {
     const firstErr = (results[0] as PromiseRejectedResult).reason?.message ?? "unknown";
     req.log.error({ firstErr }, "All Gemini image generations failed");
+
+    // Friendly Arabic message for quota / rate-limit errors
+    if (firstErr === "QUOTA_EXCEEDED") {
+      res.status(429).json({
+        error: "تم تجاوز حد التوليد المؤقت، انتظر دقيقة وحاول مجدداً.",
+        code: "QUOTA_EXCEEDED",
+      });
+      return;
+    }
+
     res.status(502).json({ error: "فشل التوليد من Nano Banana", detail: firstErr });
     return;
   }
