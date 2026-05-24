@@ -1235,12 +1235,10 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
 
 /* Designs — Editor Layout */
 .des-editor-layout { display:grid; grid-template-columns:400px 1fr; gap:24px; align-items:start; }
-.des-editor-layout > div { min-width:0; overflow:hidden; }
+.des-editor-layout > div { min-width:0; }
 @media(max-width:960px){ .des-editor-layout { grid-template-columns:320px 1fr; } }
 @media(max-width:720px){ .des-editor-layout { grid-template-columns:1fr; } }
-.des-editor-controls { display:flex; flex-direction:column; gap:16px; max-height:calc(100vh - 220px); overflow-y:auto; padding-left:4px; padding-bottom:16px; }
-.des-editor-controls::-webkit-scrollbar { width:4px; }
-.des-editor-controls::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+.des-editor-controls { display:flex; flex-direction:column; gap:16px; padding-bottom:40px; }
 .des-ed-section { display:flex; flex-direction:column; gap:7px; }
 .des-ed-label { font-size:12px; font-weight:600; color:var(--text-2); display:flex; align-items:center; gap:6px; }
 .des-ed-counter { font-size:11px; font-weight:400; color:var(--text-3); margin-right:auto; }
