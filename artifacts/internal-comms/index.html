@@ -8564,23 +8564,30 @@ var DES = (function() {
     if (resultsEl) { resultsEl.style.display = 'none'; resultsEl.innerHTML = ''; }
     if (btnLabel)  btnLabel.textContent = 'جاري التوليد…';
 
-    // ── Cooldown: disable button for 20 s after each press ──────────
-    if (btnEl) btnEl.disabled = true;
-    if (_edBgCooldownTimer) clearTimeout(_edBgCooldownTimer);
-    var _cooldownSec = 20;
-    var _cooldownInterval = setInterval(function() {
-      _cooldownSec--;
-      if (btnLabel && btnEl && btnEl.disabled) btnLabel.textContent = 'انتظر ' + _cooldownSec + ' ث…';
-      if (_cooldownSec <= 0) clearInterval(_cooldownInterval);
-    }, 1000);
-    _edBgCooldownTimer = setTimeout(function() {
-      clearInterval(_cooldownInterval);
-      if (btnEl) btnEl.disabled = false;
-      // Restore label only if not still loading
-      if (btnLabel && spinnerEl && spinnerEl.style.display === 'none') {
-        btnLabel.textContent = '⬡ توليد ٤ خلفيات';
-      }
-    }, 20000);
+    // ── Cooldown helpers ─────────────────────────────────────────────
+    var _cooldownInterval = null;
+    function _startCooldown() {
+      if (btnEl) btnEl.disabled = true;
+      if (_edBgCooldownTimer) clearTimeout(_edBgCooldownTimer);
+      var _cooldownSec = 20;
+      _cooldownInterval = setInterval(function() {
+        _cooldownSec--;
+        if (btnLabel && btnEl && btnEl.disabled) btnLabel.textContent = 'انتظر ' + _cooldownSec + ' ث…';
+        if (_cooldownSec <= 0) clearInterval(_cooldownInterval);
+      }, 1000);
+      _edBgCooldownTimer = setTimeout(function() {
+        clearInterval(_cooldownInterval);
+        if (btnEl) btnEl.disabled = false;
+        if (btnLabel) btnLabel.textContent = '⬡ توليد ٤ خلفيات';
+      }, 20000);
+    }
+    function _cancelCooldown() {
+      if (_edBgCooldownTimer) { clearTimeout(_edBgCooldownTimer); _edBgCooldownTimer = null; }
+      if (_cooldownInterval)  { clearInterval(_cooldownInterval);  _cooldownInterval  = null; }
+      if (btnEl)    btnEl.disabled = false;
+      if (btnLabel) btnLabel.textContent = '⬡ توليد ٤ خلفيات';
+    }
+    _startCooldown();
     // ─────────────────────────────────────────────────────────────────
 
     apiFetch('/api/designs/generate-backgrounds', {
@@ -8595,7 +8602,6 @@ var DES = (function() {
     .then(function(data) {
       _edBgResults = data.images || [];
       if (spinnerEl) spinnerEl.style.display = 'none';
-      if (btnLabel && btnEl && !btnEl.disabled) btnLabel.textContent = '⬡ توليد ٤ خلفيات';
       if (!_edBgResults.length) { alert('لم يُرجع النموذج أي صور.'); return; }
       // Render thumbnails
       if (resultsEl) {
@@ -8612,7 +8618,8 @@ var DES = (function() {
     })
     .catch(function(err) {
       if (spinnerEl) spinnerEl.style.display = 'none';
-      if (btnLabel && btnEl && !btnEl.disabled) btnLabel.textContent = '⬡ توليد ٤ خلفيات';
+      // On any error: cancel cooldown so user can see button is active again
+      _cancelCooldown();
       alert(err.message || 'خطأ في التوليد');
     });
   }
