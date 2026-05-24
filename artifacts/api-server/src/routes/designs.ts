@@ -194,7 +194,9 @@ router.post("/designs/generate-backgrounds", async (req: Request, res: Response)
     .filter(Boolean)
     .join(" ");
 
-  req.log.info({ fullPrompt }, "Calling Nano Banana (gemini-2.5-flash-image) for 4 backgrounds");
+  // TESTING MODE: 1 image to save quota. Change GEN_COUNT back to 4 for production.
+  const GEN_COUNT = 1; // ← change to 4 when done testing
+  req.log.info({ fullPrompt, GEN_COUNT }, "Calling Nano Banana (gemini-2.5-flash-image)");
 
   const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${googleKey}`;
 
@@ -239,8 +241,8 @@ router.post("/designs/generate-backgrounds", async (req: Request, res: Response)
     return { url: objectPath, source: "gemini" };
   };
 
-  // Run 4 in parallel; return whatever succeeds (Promise.allSettled)
-  const results = await Promise.allSettled([0, 1, 2, 3].map(generateOne));
+  // Run GEN_COUNT in parallel; return whatever succeeds (Promise.allSettled)
+  const results = await Promise.allSettled(Array.from({ length: GEN_COUNT }, (_, i) => generateOne(i)));
 
   const saved = results
     .filter((r): r is PromiseFulfilledResult<{ url: string; source: string }> => r.status === "fulfilled")
