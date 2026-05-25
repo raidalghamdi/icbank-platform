@@ -18,3 +18,9 @@ id = "Cd3oV-9JT-eMyj3pjpJkf"
 uri = "file://artifacts/internal-comms/static/images/place-park.jpg"
 type = "image"
 title = "green park with walking paths"
+
+[[outputs]]
+id = "N02naG8Jhk5QQ67CWeoQy"
+uri = "file://executive-report.pdf"
+type = "pdf"
+title = "بنك التواصل الداخلي — التقرير التنفيذي"
