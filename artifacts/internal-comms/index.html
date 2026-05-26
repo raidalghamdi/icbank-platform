@@ -8585,28 +8585,10 @@ var DES = (function() {
     edRenderCanvas();
   }
 
-  function edRenderCanvas() {
+  // ── Build canvas HTML at any scale (1 = full 1920×1080) ─────────
+  function _buildCanvasHtml(scale) {
     var tpl = _edTpl;
-    if (!tpl) return;
-    var outer  = document.getElementById('des-ed-canvas-outer');
-    var canvas = document.getElementById('des-ed-canvas');
-    if (!outer || !canvas) return;
-
-    var W = tpl.canvasWidth  || 1920;
-    var H = tpl.canvasHeight || 1080;
-    var outerW = outer.clientWidth || outer.getBoundingClientRect().width;
-    if (!outerW) { requestAnimationFrame(edRenderCanvas); return; }
-
-    var fitScale = outerW / W;
-    var scale    = (_edZoom === 'fit') ? fitScale : _edZoom;
-    var sw = _s(W, scale);
-    var sh = _s(H, scale);
-
-    // Size canvas to scaled dimensions (no CSS transform used)
-    canvas.style.width  = sw + 'px';
-    canvas.style.height = sh + 'px';
-
-    _sizeOuter(outer, sw, sh, _edZoom, document.getElementById('des-ed-zoom-pct'), scale);
+    if (!tpl) return '';
 
     var titleText  = (document.getElementById('des-ed-title') || {}).value || '';
     var bodyText   = (document.getElementById('des-ed-body')  || {}).value || '';
@@ -8621,7 +8603,7 @@ var DES = (function() {
 
     var html = '';
 
-    // ── Layer 1: Background (generated image or placeholder) ────
+    // ── Layer 1: Background ──────────────────────────────────────
     if (_edBgUrl) {
       html += '<div class="des-layer-bg">' +
         '<img src="/api/storage' + _edBgUrl + '" style="width:100%;height:100%;object-fit:cover;display:block;" alt="خلفية">' +
@@ -8648,7 +8630,6 @@ var DES = (function() {
     }
 
     // ── Layer 3: Text slots (coords × scale, font-size × scale) ─
-    // autoFit measures in original 1920-space, then we scale the result
     (tpl.textSlots || []).forEach(function(slot) {
       var text  = TEXT_MAP[slot.key] !== undefined ? TEXT_MAP[slot.key] : '';
       var fSize = SIZE_MAP[slot.key] || slot.default_font_size;
@@ -8678,7 +8659,31 @@ var DES = (function() {
         inner + '</div>';
     });
 
-    canvas.innerHTML = html;
+    return html;
+  }
+
+  function edRenderCanvas() {
+    var tpl = _edTpl;
+    if (!tpl) return;
+    var outer  = document.getElementById('des-ed-canvas-outer');
+    var canvas = document.getElementById('des-ed-canvas');
+    if (!outer || !canvas) return;
+
+    var W = tpl.canvasWidth  || 1920;
+    var H = tpl.canvasHeight || 1080;
+    var outerW = outer.clientWidth || outer.getBoundingClientRect().width;
+    if (!outerW) { requestAnimationFrame(edRenderCanvas); return; }
+
+    var fitScale = outerW / W;
+    var scale    = (_edZoom === 'fit') ? fitScale : _edZoom;
+    var sw = _s(W, scale);
+    var sh = _s(H, scale);
+
+    canvas.style.width  = sw + 'px';
+    canvas.style.height = sh + 'px';
+    _sizeOuter(outer, sw, sh, _edZoom, document.getElementById('des-ed-zoom-pct'), scale);
+
+    canvas.innerHTML = _buildCanvasHtml(scale);
   }
 
   // ── AI Background Generation ─────────────────────────────────────
@@ -8785,10 +8790,11 @@ var DES = (function() {
   function edFullPreview() {
     var modal   = document.getElementById('des-full-preview-modal');
     var content = document.getElementById('des-full-preview-content');
-    if (!modal || !content) return;
-    var canvas  = document.getElementById('des-ed-canvas');
-    if (!canvas) return;
-    content.innerHTML = canvas.innerHTML;
+    if (!modal || !content || !_edTpl) return;
+    // Render at scale=1 so positions match the real 1920×1080 layout
+    content.style.width  = (_edTpl.canvasWidth  || 1920) + 'px';
+    content.style.height = (_edTpl.canvasHeight || 1080) + 'px';
+    content.innerHTML = _buildCanvasHtml(1);
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
   }
@@ -8809,13 +8815,16 @@ var DES = (function() {
     var btn = document.getElementById('des-ed-dl-btn');
     if (btn) { btn.disabled = true; btn.textContent = 'جاري التحميل…'; }
 
-    // Off-screen clone — no transforms, full size
+    // Off-screen element at full 1920×1080 — rendered at scale=1
+    // (never clones the scaled preview innerHTML)
+    var W = (_edTpl && _edTpl.canvasWidth)  || 1920;
+    var H = (_edTpl && _edTpl.canvasHeight) || 1080;
     var captureEl = document.createElement('div');
     captureEl.style.cssText =
-      'position:fixed;top:-1200px;left:0;' +
-      'width:1920px;height:1080px;overflow:hidden;' +
+      'position:fixed;top:-' + (H + 50) + 'px;left:0;' +
+      'width:' + W + 'px;height:' + H + 'px;overflow:hidden;' +
       'pointer-events:none;z-index:-1;';
-    captureEl.innerHTML = sourceCanvas.innerHTML;
+    captureEl.innerHTML = _buildCanvasHtml(1);
     document.body.appendChild(captureEl);
 
     function doCapture() {
