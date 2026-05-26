@@ -211,11 +211,7 @@ router.post("/designs/generate-backgrounds", async (req: Request, res: Response)
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         contents: [{ parts: [{ text: fullPrompt + variation }] }],
-        generationConfig: {
-          responseModalities: ["IMAGE", "TEXT"],
-          // Request 16:9 so the generated image matches the 1920×1080 canvas ratio
-          imageGenerationConfig: { aspectRatio: "ASPECT_16_9" },
-        },
+        generationConfig: { responseModalities: ["IMAGE", "TEXT"] },
       }),
       signal: AbortSignal.timeout(120_000),
     });
