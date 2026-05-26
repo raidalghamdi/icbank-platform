@@ -1158,6 +1158,25 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
 .wk2-place-card { padding: 0 !important; overflow: hidden; }
 .wk2-place-body { display: flex; flex-direction: column; gap: 10px; padding: 14px; }
 .wk2-place-meta { display: flex; gap: 8px; flex-wrap: wrap; }
+.wk2-place-img { width:100%; aspect-ratio:16/9; overflow:hidden; background:#dde; flex-shrink:0; }
+.wk2-place-img img { width:100%; height:100%; object-fit:cover; display:block; }
+
+/* Places Admin */
+.plcs-grid { display:flex; flex-direction:column; gap:10px; }
+.plcs-row { display:flex; align-items:center; gap:12px; padding:12px 14px; border:1px solid var(--border); background:var(--bg); }
+.plcs-thumb { width:80px; height:50px; flex-shrink:0; overflow:hidden; background:var(--surface-2); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:20px; }
+.plcs-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+.plcs-info { flex:1; min-width:0; }
+.plcs-name { font-size:13px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.plcs-desc { font-size:11px; color:var(--text-3); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; }
+.plcs-meta { font-size:10px; color:var(--text-4); margin-top:2px; }
+.plcs-actions { display:flex; align-items:center; gap:6px; flex-shrink:0; }
+.plcs-badge-active { background:var(--success-bg,#d1fae5); color:var(--success,#059669); font-size:10px; font-weight:700; padding:2px 7px; }
+.plcs-badge-inactive { background:var(--surface-2); color:var(--text-3); font-size:10px; font-weight:700; padding:2px 7px; }
+.plcs-form-card { background:var(--surface); border:2px solid var(--primary); padding:20px; margin-bottom:16px; }
+.plcs-form-title { font-size:14px; font-weight:700; margin-bottom:14px; }
+.plcs-img-preview { width:140px; height:90px; object-fit:cover; border:1px solid var(--border); display:block; margin-top:6px; }
+.plcs-loading { font-size:13px; color:var(--text-3); padding:12px 0; }
 
 /* Deals */
 .wk2-deals-card { background: white; padding: 0 !important; overflow: hidden; border: 1px solid var(--border) !important; }
@@ -2415,6 +2434,10 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
         <a class="nav-item" data-page="settings" onclick="showSection('settings')">
           <span class="ico"><svg><use href="#i-settings"/></svg></span>
           <span>الإعدادات</span>
+        </a>
+        <a class="nav-item" id="nav-places" data-page="places" onclick="showSection('places')" style="display:none;">
+          <span class="ico"><svg><use href="#i-bookmark"/></svg></span>
+          <span>مكتبة الأماكن</span>
         </a>
         <a class="nav-item" id="nav-designs" data-page="designs" onclick="showSection('designs')" style="display:none;">
           <span class="ico"><svg><use href="#i-image"/></svg></span>
@@ -3993,6 +4016,78 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
 
   </div><!-- /section-designs -->
 
+  <!-- ══ Places Library Section ══ -->
+  <div class="page-section" id="section-places">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title">مكتبة الأماكن المقترحة</h1>
+        <p class="page-sub">أماكن تُعرض في قسم "وين نروح؟" ضمن مبادرة نهاية أسبوع سعيدة.</p>
+      </div>
+      <button class="btn btn-primary" onclick="PLCS.openForm(null)">
+        <span class="ico"><svg><use href="#i-plus"/></svg></span>
+        إضافة مكان
+      </button>
+    </div>
+
+    <div id="plcs-form-wrap" style="display:none;">
+      <div class="plcs-form-card">
+        <div class="plcs-form-title" id="plcs-form-title">إضافة مكان جديد</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div>
+            <label style="font-size:12px;font-weight:600;color:var(--text-2);display:block;margin-bottom:4px;">اسم المكان *</label>
+            <input type="text" id="plcs-f-name" class="adm-input" placeholder="مثال: بوليفار سيتي" style="width:100%;box-sizing:border-box;">
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:600;color:var(--text-2);display:block;margin-bottom:4px;">المدينة</label>
+            <input type="text" id="plcs-f-city" class="adm-input" placeholder="الرياض" value="الرياض" style="width:100%;box-sizing:border-box;">
+          </div>
+        </div>
+        <div style="margin-top:12px;">
+          <label style="font-size:12px;font-weight:600;color:var(--text-2);display:block;margin-bottom:4px;">الوصف *</label>
+          <textarea id="plcs-f-desc" class="adm-input" rows="3" placeholder="وصف مختصر يظهر في البطاقة…" style="resize:vertical;width:100%;box-sizing:border-box;font-family:inherit;direction:rtl;font-size:14px;"></textarea>
+        </div>
+        <div style="margin-top:12px;">
+          <label style="font-size:12px;font-weight:600;color:var(--text-2);display:block;margin-bottom:4px;">استعلام الخريطة (اختياري)</label>
+          <input type="text" id="plcs-f-maps" class="adm-input" placeholder="مثال: Boulevard Riyadh City" style="width:100%;box-sizing:border-box;">
+          <div style="font-size:11px;color:var(--text-3);margin-top:3px;">يُستخدم لفتح الموقع على خرائط Google — إذا تُرك فارغاً يُستخدم اسم المكان.</div>
+        </div>
+        <div style="margin-top:12px;">
+          <label style="font-size:12px;font-weight:600;color:var(--text-2);display:block;margin-bottom:4px;">صورة المكان</label>
+          <label class="btn btn-ghost" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;">
+            <span class="ico"><svg><use href="#i-image"/></svg></span>
+            اختر صورة (JPG/PNG)
+            <input type="file" id="plcs-f-img-file" accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="PLCS.previewImg(this)">
+          </label>
+          <div id="plcs-f-img-preview-wrap" style="display:none;margin-top:8px;">
+            <img id="plcs-f-img-preview" class="plcs-img-preview" src="" alt="معاينة الصورة">
+            <div id="plcs-f-img-status" style="font-size:11px;color:var(--text-3);margin-top:4px;"></div>
+          </div>
+          <input type="hidden" id="plcs-f-img-url">
+        </div>
+        <div style="margin-top:12px;">
+          <label class="des-check-label">
+            <input type="checkbox" id="plcs-f-active" checked>
+            <span style="font-size:13px;font-weight:600;">مفعّل (يظهر في نهاية الأسبوع)</span>
+          </label>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:16px;">
+          <button class="btn btn-primary" onclick="PLCS.saveForm()">
+            <span class="ico"><svg><use href="#i-check"/></svg></span>
+            حفظ
+          </button>
+          <button class="btn btn-ghost" onclick="PLCS.closeForm()">إلغاء</button>
+        </div>
+        <input type="hidden" id="plcs-f-edit-id">
+      </div>
+    </div>
+
+    <div id="plcs-loading" class="plcs-loading">جاري التحميل…</div>
+    <div id="plcs-empty" style="display:none;font-size:13px;color:var(--text-3);padding:20px 0;">
+      لا توجد أماكن في المكتبة بعد. اضغط "إضافة مكان" لإضافة أول مكان.
+    </div>
+    <div id="plcs-grid" class="plcs-grid" style="display:none;"></div>
+  </div><!-- /section-places -->
+
   <!-- ══ 403 Forbidden Section ══ -->
   <div class="page-section" id="section-403" style="display:none;">
     <div style="text-align:center;padding:80px 20px;">
@@ -4176,6 +4271,10 @@ function authUpdateUI() {
   if (adminNavEl && (u.role === 'super_admin' || u.role === 'admin')) {
     adminNavEl.style.display = '';
   }
+  var placesNavEl = document.getElementById('nav-places');
+  if (placesNavEl && (u.role === 'super_admin' || u.role === 'admin')) {
+    placesNavEl.style.display = '';
+  }
   var designsNavEl = document.getElementById('nav-designs');
   if (designsNavEl && (u.role === 'super_admin' || u.role === 'admin')) {
     designsNavEl.style.display = '';
@@ -4225,6 +4324,7 @@ function authCanView(pageName) {
   if (pageName === 'home') return true;
   if (pageName === 'admin_panel') return AUTH_USER.role === 'admin' || AUTH_USER.role === 'super_admin';
   if (pageName === 'designs') return AUTH_USER.role === 'admin' || AUTH_USER.role === 'super_admin';
+  if (pageName === 'places') return AUTH_USER.role === 'admin' || AUTH_USER.role === 'super_admin';
   if (pageName === 'smart_assistant' || pageName === 'settings') return !!AUTH_USER;
   var permKey = PAGE_PERM_MAP[pageName] || pageName;
   var pagePerms = (AUTH_USER.permissions || {})[permKey] || [];
@@ -5466,6 +5566,7 @@ function showSection(name) {
   if (name === 'aiyear') aiyInit();
   if (name === 'admin_panel') adminInit();
   if (name === 'designs') designsInit();
+  if (name === 'places') PLCS.init();
 }
 
 function toggleMobileSidebar() {
@@ -6004,7 +6105,7 @@ function showSectionLoading(secKey) {
 
 async function loadAllWeekendSections() {
   try {
-    const res = await fetch('/wk2-data');
+    const res = await apiFetch('/api/wk2-data');
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     if (data.places?.length) { const s=[...data.places].sort(()=>Math.random()-0.5).slice(0,6); renderOptions('place',s); } else generateSection('place');
@@ -6047,7 +6148,12 @@ function renderOptions(secKey, options) {
 function renderOptionCard(secKey, opt, i) {
   if (secKey === 'place') {
     const mapsUrl = `https://www.google.com/maps/search/${encodeURIComponent(opt.maps_query||opt.title)}`;
-    return `<div class="wk2-option-card wk2-place-card wk2-place-text-card" id="opt-${secKey}-${i}">
+    const hasImg = opt.imageUrl || opt.image_url;
+    const imgHtml = hasImg
+      ? `<div class="wk2-place-img"><img src="/api/storage${hasImg}" alt="${opt.title}" loading="lazy" onerror="this.parentElement.remove()"></div>`
+      : '';
+    return `<div class="wk2-option-card wk2-place-card" id="opt-${secKey}-${i}">
+      ${imgHtml}
       <div class="wk2-place-body">
         <div class="wk2-opt-title">📍 ${opt.title}</div>
         <div class="wk2-opt-body">${opt.body}</div>
@@ -8659,6 +8765,229 @@ var DES = (function() {
 
 function designsInit() { DES.init(); }
 function desSwitchTab(tab) { DES.switchTab(tab); }
+
+// ════════════════════════════════════════
+// PLACES LIBRARY — مكتبة الأماكن
+// ════════════════════════════════════════
+var PLCS = (function() {
+
+  var _places = [];
+  var _editId = null;
+  var _pendingImageUrl = null;
+
+  // ── Upload overlay ───────────────────────────────────────────────
+  function _showOverlay(msg) {
+    var existing = document.getElementById('plcs-overlay');
+    if (existing) { existing.querySelector('.des-upload-msg').textContent = msg || 'جاري الرفع…'; return; }
+    var el = document.createElement('div');
+    el.className = 'des-upload-overlay'; el.id = 'plcs-overlay';
+    el.innerHTML = '<div class="des-upload-box"><span class="des-upload-spinner">⏳</span><div class="des-upload-msg">' + (msg||'جاري الرفع…') + '</div></div>';
+    document.body.appendChild(el);
+  }
+  function _hideOverlay() {
+    var el = document.getElementById('plcs-overlay');
+    if (el) el.remove();
+  }
+
+  // ── Init ────────────────────────────────────────────────────────
+  function init() { loadPlaces(); }
+
+  // ── Load ────────────────────────────────────────────────────────
+  function loadPlaces() {
+    var grid    = document.getElementById('plcs-grid');
+    var loading = document.getElementById('plcs-loading');
+    var empty   = document.getElementById('plcs-empty');
+    if (!grid) return;
+    if (loading) loading.style.display = '';
+    grid.style.display = 'none';
+    if (empty) empty.style.display = 'none';
+
+    apiFetch('/api/weekend-places').then(function(r) { return r.json(); }).then(function(list) {
+      _places = list;
+      if (loading) loading.style.display = 'none';
+      if (!list.length) {
+        if (empty) empty.style.display = '';
+        return;
+      }
+      grid.style.display = '';
+      grid.innerHTML = list.map(function(p) {
+        var thumb = p.imageUrl
+          ? '<img src="/api/storage' + p.imageUrl + '" alt="' + p.name + '" onerror="this.parentElement.innerHTML=\'📍\'">'
+          : '📍';
+        var badge = p.isActive
+          ? '<span class="plcs-badge-active">مفعّل</span>'
+          : '<span class="plcs-badge-inactive">معطّل</span>';
+        return '<div class="plcs-row" data-id="' + p.id + '">' +
+          '<div class="plcs-thumb">' + thumb + '</div>' +
+          '<div class="plcs-info">' +
+            '<div class="plcs-name">' + p.name + ' ' + badge + '</div>' +
+            '<div class="plcs-desc">' + p.description + '</div>' +
+            '<div class="plcs-meta">' + p.city + (p.mapsQuery ? ' · 📌 ' + p.mapsQuery : '') + '</div>' +
+          '</div>' +
+          '<div class="plcs-actions">' +
+            '<button class="btn btn-ghost" style="font-size:12px;padding:4px 10px;" onclick="PLCS.openForm(' + p.id + ')">تعديل</button>' +
+            '<button class="btn btn-ghost" style="color:var(--danger);padding:6px;" onclick="PLCS.deletePlace(' + p.id + ')" title="حذف">' +
+            '<span class="ico"><svg><use href="#i-x"/></svg></span></button>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+    }).catch(function(e) {
+      if (loading) { loading.style.display = ''; loading.textContent = 'خطأ في تحميل الأماكن: ' + e.message; }
+    });
+  }
+
+  // ── Form open/close ─────────────────────────────────────────────
+  function openForm(id) {
+    _editId = id;
+    _pendingImageUrl = null;
+    var wrap = document.getElementById('plcs-form-wrap');
+    var title = document.getElementById('plcs-form-title');
+    if (!wrap) return;
+
+    // Reset form
+    document.getElementById('plcs-f-name').value    = '';
+    document.getElementById('plcs-f-city').value    = 'الرياض';
+    document.getElementById('plcs-f-desc').value    = '';
+    document.getElementById('plcs-f-maps').value    = '';
+    document.getElementById('plcs-f-active').checked = true;
+    document.getElementById('plcs-f-img-url').value = '';
+    document.getElementById('plcs-f-img-file').value = '';
+    document.getElementById('plcs-f-img-preview-wrap').style.display = 'none';
+    document.getElementById('plcs-f-edit-id').value = '';
+
+    if (id !== null) {
+      // Edit existing
+      var p = _places.find(function(x) { return x.id === id; });
+      if (!p) { alert('المكان غير موجود — أعد التحميل.'); return; }
+      if (title) title.textContent = 'تعديل المكان';
+      document.getElementById('plcs-f-name').value    = p.name;
+      document.getElementById('plcs-f-city').value    = p.city || 'الرياض';
+      document.getElementById('plcs-f-desc').value    = p.description;
+      document.getElementById('plcs-f-maps').value    = p.mapsQuery || '';
+      document.getElementById('plcs-f-active').checked = !!p.isActive;
+      document.getElementById('plcs-f-edit-id').value = p.id;
+      if (p.imageUrl) {
+        _pendingImageUrl = p.imageUrl;
+        document.getElementById('plcs-f-img-url').value = p.imageUrl;
+        document.getElementById('plcs-f-img-preview').src = '/api/storage' + p.imageUrl;
+        document.getElementById('plcs-f-img-preview-wrap').style.display = '';
+        document.getElementById('plcs-f-img-status').textContent = 'الصورة الحالية';
+      }
+    } else {
+      if (title) title.textContent = 'إضافة مكان جديد';
+    }
+
+    wrap.style.display = '';
+    document.getElementById('plcs-f-name').focus();
+    wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function closeForm() {
+    var wrap = document.getElementById('plcs-form-wrap');
+    if (wrap) wrap.style.display = 'none';
+    _editId = null;
+    _pendingImageUrl = null;
+  }
+
+  // ── Image preview (client-side only — upload happens on save) ────
+  function previewImg(input) {
+    var file = input.files[0];
+    if (!file) return;
+    var prevWrap = document.getElementById('plcs-f-img-preview-wrap');
+    var prev     = document.getElementById('plcs-f-img-preview');
+    var status   = document.getElementById('plcs-f-img-status');
+    var reader   = new FileReader();
+    reader.onload = function(e) {
+      prev.src = e.target.result;
+      prevWrap.style.display = '';
+      if (status) status.textContent = 'جاهزة للرفع عند الحفظ';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // ── Save (create or update) ─────────────────────────────────────
+  function saveForm() {
+    var name    = (document.getElementById('plcs-f-name').value || '').trim();
+    var desc    = (document.getElementById('plcs-f-desc').value || '').trim();
+    var city    = (document.getElementById('plcs-f-city').value || '').trim() || 'الرياض';
+    var maps    = (document.getElementById('plcs-f-maps').value || '').trim() || null;
+    var active  = document.getElementById('plcs-f-active').checked;
+    var editId  = parseInt(document.getElementById('plcs-f-edit-id').value) || null;
+    var imgFile = document.getElementById('plcs-f-img-file').files[0] || null;
+
+    if (!name) { alert('اسم المكان مطلوب.'); document.getElementById('plcs-f-name').focus(); return; }
+    if (!desc) { alert('الوصف مطلوب.'); document.getElementById('plcs-f-desc').focus(); return; }
+
+    _showOverlay(imgFile ? 'جاري رفع الصورة…' : 'جاري الحفظ…');
+
+    var imgUploadPromise = Promise.resolve(_pendingImageUrl);
+    if (imgFile) {
+      imgUploadPromise = apiFetch('/api/weekend-places/upload-url', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fileName: imgFile.name, contentType: imgFile.type })
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        return fetch(data.uploadURL, {
+          method: 'PUT',
+          headers: { 'Content-Type': imgFile.type },
+          body: imgFile
+        }).then(function(r) {
+          if (!r.ok) throw new Error('فشل رفع الصورة');
+          return data.objectPath;
+        });
+      });
+    }
+
+    imgUploadPromise.then(function(imageUrl) {
+      var payload = {
+        name: name,
+        description: desc,
+        city: city,
+        mapsQuery: maps,
+        isActive: active,
+        imageUrl: imageUrl || null
+      };
+
+      var method = editId ? 'PATCH' : 'POST';
+      var url    = editId ? '/api/weekend-places/' + editId : '/api/weekend-places';
+
+      return apiFetch(url, {
+        method: method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      }).then(function(r) {
+        if (!r.ok) return r.json().then(function(e) { throw new Error(e.error || 'خطأ'); });
+      });
+    }).then(function() {
+      closeForm();
+      loadPlaces();
+    }).catch(function(e) {
+      alert('خطأ: ' + e.message);
+    }).finally(function() {
+      _hideOverlay();
+    });
+  }
+
+  // ── Delete ──────────────────────────────────────────────────────
+  function deletePlace(id) {
+    var p = _places.find(function(x) { return x.id === id; });
+    if (!confirm('هل تريد حذف "' + (p ? p.name : id) + '"؟ لا يمكن التراجع.')) return;
+    apiFetch('/api/weekend-places/' + id, { method: 'DELETE' })
+      .then(function() { loadPlaces(); })
+      .catch(function(e) { alert('خطأ: ' + e.message); });
+  }
+
+  return {
+    init: init,
+    openForm: openForm,
+    closeForm: closeForm,
+    previewImg: previewImg,
+    saveForm: saveForm,
+    deletePlace: deletePlace,
+  };
+})();
 
 // Re-render canvases on window resize (fixes fit-mode after resize)
 (function() {

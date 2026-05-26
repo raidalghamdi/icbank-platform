@@ -209,6 +209,51 @@ export class ObjectStorageService {
     return `/objects/${relPath}`;
   }
 
+  // ─── Weekend Places storage helpers ──────────────────────────────────────────
+
+  /**
+   * Generate a presigned upload URL for a weekend place image.
+   * Files stored under: {PRIVATE_OBJECT_DIR}/weekend/places/{uuid}.{ext}
+   */
+  async getWeekendPlacesUploadURL(opts: {
+    fileName: string;
+    contentType?: string;
+  }): Promise<{ uploadURL: string; objectPath: string }> {
+    const privateObjectDir = this.getPrivateObjectDir();
+    const ext = opts.fileName.includes(".")
+      ? opts.fileName.split(".").pop()!
+      : "jpg";
+    const uuid = randomUUID();
+    const relPath = `weekend/places/${uuid}.${ext}`;
+    const fullPath = `${privateObjectDir}/${relPath}`;
+    const { bucketName, objectName } = parseObjectPath(fullPath);
+
+    const uploadURL = await signObjectURL({
+      bucketName,
+      objectName,
+      method: "PUT",
+      ttlSec: 900,
+    });
+
+    return { uploadURL, objectPath: `/objects/${relPath}` };
+  }
+
+  /**
+   * Delete a weekend place image by its logical objectPath (/objects/weekend/places/...).
+   */
+  async deleteWeekendPlaceObject(objectPath: string): Promise<void> {
+    if (!objectPath.startsWith("/objects/weekend/")) {
+      throw new Error("deleteWeekendPlaceObject: path must start with /objects/weekend/");
+    }
+    const entityId = objectPath.slice("/objects/".length);
+    let entityDir = this.getPrivateObjectDir();
+    if (!entityDir.endsWith("/")) entityDir = `${entityDir}/`;
+    const fullPath = `${entityDir}${entityId}`;
+    const { bucketName, objectName } = parseObjectPath(fullPath);
+    const bucket = objectStorageClient.bucket(bucketName);
+    await bucket.file(objectName).delete({ ignoreNotFound: true });
+  }
+
   /**
    * Delete a design asset by its logical objectPath (/objects/designs/...).
    */
