@@ -24,3 +24,9 @@ id = "N02naG8Jhk5QQ67CWeoQy"
 uri = "file://executive-report.pdf"
 type = "pdf"
 title = "بنك التواصل الداخلي — التقرير التنفيذي"
+
+[[outputs]]
+id = "oWYPjzHdzbsDq-gIelUok"
+uri = "file://designs-page.zip"
+type = "unspecified"
+title = "صفحة إنشاء التصاميم — كود كامل"
