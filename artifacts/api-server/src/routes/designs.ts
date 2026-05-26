@@ -1,4 +1,5 @@
 import { Router, type Request, type Response } from "express";
+import sharp from "sharp";
 import { db } from "@workspace/db";
 import {
   brandLogosTable,
@@ -236,8 +237,15 @@ router.post("/designs/generate-backgrounds", async (req: Request, res: Response)
 
     if (!imgPart) throw new Error(`No image in Gemini response (seed ${seed})`);
 
-    const buf = Buffer.from(imgPart.inlineData.data, "base64");
-    const objectPath = await objectStorage.saveGeneratedBackground(buf, imgPart.inlineData.mimeType || "image/png");
+    const rawBuf = Buffer.from(imgPart.inlineData.data, "base64");
+
+    // Resize to exactly 1920×1080 (cover crop, centre anchor) so the canvas always fills perfectly
+    const buf = await sharp(rawBuf)
+      .resize(1920, 1080, { fit: "cover", position: "centre" })
+      .jpeg({ quality: 92 })
+      .toBuffer();
+
+    const objectPath = await objectStorage.saveGeneratedBackground(buf, "image/jpeg");
     return { url: objectPath, source: "gemini" };
   };
 
