@@ -8800,26 +8800,39 @@ var DES = (function() {
   }
 
   // ── Download as PNG (html2canvas) ────────────────────────────────
+  // We clone the canvas into an off-screen element at full 1920×1080
+  // with no CSS transforms so html2canvas captures the real resolution.
   function edDownload() {
-    var canvas = document.getElementById('des-ed-canvas');
-    if (!canvas) return;
+    var sourceCanvas = document.getElementById('des-ed-canvas');
+    if (!sourceCanvas) return;
+
+    var btn = document.getElementById('des-ed-dl-btn');
+    if (btn) { btn.disabled = true; btn.textContent = 'جاري التحميل…'; }
+
+    // Off-screen clone — no transforms, full size
+    var captureEl = document.createElement('div');
+    captureEl.style.cssText =
+      'position:fixed;top:-1200px;left:0;' +
+      'width:1920px;height:1080px;overflow:hidden;' +
+      'pointer-events:none;z-index:-1;';
+    captureEl.innerHTML = sourceCanvas.innerHTML;
+    document.body.appendChild(captureEl);
 
     function doCapture() {
-      var btn = document.getElementById('des-ed-dl-btn');
-      if (btn) { btn.disabled = true; btn.textContent = 'جاري التحميل…'; }
-
-      html2canvas(canvas, {
+      html2canvas(captureEl, {
         width: 1920, height: 1080, scale: 1,
         useCORS: true, allowTaint: true, logging: false,
         backgroundColor: '#ffffff',
+        x: 0, y: 0,
       }).then(function(c) {
-        var link     = document.createElement('a');
+        var link      = document.createElement('a');
         link.download = 'design-' + new Date().toISOString().slice(0,10) + '.png';
-        link.href    = c.toDataURL('image/png');
+        link.href     = c.toDataURL('image/png');
         link.click();
       }).catch(function(e) {
         alert('تعذّر تحميل التصميم: ' + (e.message || 'خطأ غير معروف'));
       }).finally(function() {
+        document.body.removeChild(captureEl);
         if (btn) { btn.disabled = false; btn.textContent = '⬇ تحميل'; }
       });
     }
@@ -8828,7 +8841,11 @@ var DES = (function() {
       var s    = document.createElement('script');
       s.src    = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
       s.onload = doCapture;
-      s.onerror = function() { alert('تعذّر تحميل مكتبة التصدير، تحقق من الاتصال وأعد المحاولة.'); };
+      s.onerror = function() {
+        document.body.removeChild(captureEl);
+        if (btn) { btn.disabled = false; btn.textContent = '⬇ تحميل'; }
+        alert('تعذّر تحميل مكتبة التصدير، تحقق من الاتصال وأعد المحاولة.');
+      };
       document.head.appendChild(s);
     } else {
       doCapture();
