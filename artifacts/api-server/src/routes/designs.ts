@@ -1,5 +1,4 @@
 import { Router, type Request, type Response } from "express";
-import sharp from "sharp";
 import { db } from "@workspace/db";
 import {
   brandLogosTable,
@@ -212,7 +211,11 @@ router.post("/designs/generate-backgrounds", async (req: Request, res: Response)
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         contents: [{ parts: [{ text: fullPrompt + variation }] }],
-        generationConfig: { responseModalities: ["IMAGE", "TEXT"] },
+        generationConfig: {
+          responseModalities: ["IMAGE", "TEXT"],
+          // Request 16:9 so the generated image matches the 1920×1080 canvas ratio
+          imageGenerationConfig: { aspectRatio: "ASPECT_16_9" },
+        },
       }),
       signal: AbortSignal.timeout(120_000),
     });
@@ -237,15 +240,9 @@ router.post("/designs/generate-backgrounds", async (req: Request, res: Response)
 
     if (!imgPart) throw new Error(`No image in Gemini response (seed ${seed})`);
 
-    const rawBuf = Buffer.from(imgPart.inlineData.data, "base64");
-
-    // Resize to exactly 1920×1080 (cover crop, centre anchor) so the canvas always fills perfectly
-    const buf = await sharp(rawBuf)
-      .resize(1920, 1080, { fit: "cover", position: "centre" })
-      .jpeg({ quality: 92 })
-      .toBuffer();
-
-    const objectPath = await objectStorage.saveGeneratedBackground(buf, "image/jpeg");
+    // Save the raw bytes exactly as Gemini returns them — no resize/crop
+    const buf = Buffer.from(imgPart.inlineData.data, "base64");
+    const objectPath = await objectStorage.saveGeneratedBackground(buf, imgPart.inlineData.mimeType || "image/png");
     return { url: objectPath, source: "gemini" };
   };
 
