@@ -25,6 +25,13 @@ router.use(healthRouter);
 // They must be registered BEFORE the JWT requireAuth gate.
 router.use(dailyReportRouter);
 
+// ─── Storage (public read, path-allowlisted) ────────────────────────────────
+// Must be before requireAuth so <img> tags and direct browser requests can load
+// media objects without needing to send a Bearer token.
+// Access is restricted inside the handler via ALLOWED_PREFIXES (path allowlist)
+// and the optional INTERNAL_STORAGE_TOKEN secret for tighter production control.
+router.use(storageRouter);
+
 // ─── Auth gate: populates req.user and enforces login ──────────────────────
 // authenticate() sets req.user from JWT (Bearer header or access_token cookie).
 // requireAuth() returns HTTP 401 if req.user is not set.
@@ -41,8 +48,6 @@ router.use(["/daily-report", "/report"], requirePageAccess("dashboard"));
 router.use("/week-start", requirePageAccess("weekend"));
 router.use("/intl-days", requirePageAccess("international_days"));
 router.use("/ai-year", requirePageAccess("ai_year"));
-// Storage exclusively serves ai-year/2026/* assets
-router.use("/storage", requirePageAccess("ai_year"));
 
 // ─── Feature routers ────────────────────────────────────────────────────────
 router.use(dashboardRouter);
