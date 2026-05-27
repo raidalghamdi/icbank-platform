@@ -8,9 +8,11 @@ import {
   insertBrandFontSchema,
   insertDesignTemplateSchema,
 } from "@workspace/db";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, inArray } from "drizzle-orm";
 import { requireAdmin } from "../middleware/auth";
 import { ObjectStorageService } from "../lib/objectStorage";
+import { composeDesign } from "../composer/composer";
+import { SEED_PRESENTATION_TEMPLATES } from "../composer/seed-presentation";
 
 const router = Router();
 const objectStorage = new ObjectStorageService();
@@ -38,6 +40,9 @@ router.post("/designs/templates", async (req: Request, res: Response) => {
 });
 
 // ─── Seed one test template ────────────────────────────────────────────────────
+// Legacy schema: pixel-based positioning (kept for back-compat with old UI).
+// New templates (presentation/v2) use percentage positioning so they remain
+// resolution-independent.
 router.post("/designs/templates/seed-test", async (_req: Request, res: Response) => {
   const existing = await db.select().from(designTemplatesTable).limit(1);
   if (existing.length > 0) {
@@ -68,6 +73,133 @@ router.post("/designs/templates/seed-test", async (_req: Request, res: Response)
     ],
   }).returning();
   res.status(201).json({ ok: true, skipped: false, template: row });
+});
+
+// ─── Seed presentation templates (paragraphs + 2×2 icons) ─────────────────────
+// Idempotent: if a template with the same template_name_ar exists, it is
+// skipped (so calling this multiple times never duplicates).
+router.post("/designs/templates/reseed-presentation", async (_req: Request, res: Response) => {
+  const inserted: unknown[] = [];
+  const skipped: string[] = [];
+  for (const tpl of SEED_PRESENTATION_TEMPLATES) {
+    const existing = await db
+      .select()
+      .from(designTemplatesTable)
+      .where(eq(designTemplatesTable.templateNameAr, tpl.templateNameAr))
+      .limit(1);
+    if (existing.length > 0) {
+      // Always overwrite extras/textSlots/logoSlots so RTL fixes propagate.
+      const [updated] = await db
+        .update(designTemplatesTable)
+        .set({
+          category: tpl.category,
+          canvasWidth: tpl.canvasWidth,
+          canvasHeight: tpl.canvasHeight,
+          backgroundPanelConfig: tpl.backgroundPanelConfig,
+          textSlots: tpl.textSlots,
+          logoSlots: tpl.logoSlots,
+          extras: tpl.extras,
+          promptHint: tpl.promptHint,
+        })
+        .where(eq(designTemplatesTable.id, existing[0].id))
+        .returning();
+      inserted.push(updated);
+      skipped.push(`updated: ${tpl.templateNameAr}`);
+    } else {
+      const [row] = await db.insert(designTemplatesTable).values(tpl).returning();
+      inserted.push(row);
+    }
+  }
+  res.json({ ok: true, count: inserted.length, templates: inserted, notes: skipped });
+});
+
+// ─── Delete a template (admin only) ───────────────────────────────────────────
+router.delete("/designs/templates/:id", async (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+  const [row] = await db.select().from(designTemplatesTable).where(eq(designTemplatesTable.id, id));
+  if (!row) { res.status(404).json({ error: "القالب غير موجود" }); return; }
+  await db.delete(designTemplatesTable).where(eq(designTemplatesTable.id, id));
+  res.json({ ok: true });
+});
+
+// ─── Render a design server-side (sharp + Pango composer) ─────────────────────
+// Body: { templateId, titleText, bodyText, backgroundUrl, selectedLogoIds[],
+//         titleFontSize?, bodyFontSize?, department?, fontFamily? }
+// Returns: { url } — objectPath to the saved PNG that the UI can download.
+router.post("/designs/render", async (req: Request, res: Response) => {
+  try {
+    const {
+      templateId,
+      titleText,
+      bodyText,
+      backgroundUrl,
+      selectedLogoIds,
+      titleFontSize,
+      bodyFontSize,
+      department,
+      fontFamily,
+    } = req.body as {
+      templateId?: number;
+      titleText?: string;
+      bodyText?: string;
+      backgroundUrl?: string | null;
+      selectedLogoIds?: number[];
+      titleFontSize?: number;
+      bodyFontSize?: number;
+      department?: string | null;
+      fontFamily?: string;
+    };
+
+    if (!templateId) { res.status(400).json({ error: "templateId مطلوب" }); return; }
+
+    const [template] = await db
+      .select()
+      .from(designTemplatesTable)
+      .where(eq(designTemplatesTable.id, templateId));
+    if (!template) { res.status(404).json({ error: "القالب غير موجود" }); return; }
+
+    // download background (optional for presentation layouts)
+    let backgroundBuffer: Buffer = Buffer.alloc(0);
+    if (backgroundUrl) {
+      const dl = await objectStorage.downloadByObjectPath(backgroundUrl);
+      if (dl) backgroundBuffer = dl;
+    }
+
+    // load logos
+    const logoBuffers: { buffer: Buffer; logo: any }[] = [];
+    if (selectedLogoIds && selectedLogoIds.length > 0) {
+      const rows = await db
+        .select()
+        .from(brandLogosTable)
+        .where(inArray(brandLogosTable.id, selectedLogoIds));
+      // keep selection order
+      const byId = new Map(rows.map((r) => [r.id, r]));
+      for (const id of selectedLogoIds) {
+        const logo = byId.get(id);
+        if (!logo) continue;
+        const buf = await objectStorage.downloadByObjectPath(logo.fileUrl);
+        if (buf) logoBuffers.push({ buffer: buf, logo });
+      }
+    }
+
+    const composed = await composeDesign({
+      template: template as any,
+      backgroundBuffer,
+      titleText: titleText || "",
+      bodyText: bodyText || "",
+      titleFontSize,
+      bodyFontSize,
+      fontFamily,
+      selectedLogoBuffers: logoBuffers,
+      department: department || null,
+    });
+
+    const url = await objectStorage.saveComposedDesign(composed);
+    res.json({ url, ok: true });
+  } catch (e: any) {
+    req.log.error({ err: e?.message, stack: e?.stack }, "compose failed");
+    res.status(500).json({ error: "فشل تركيب التصميم على الخادم", detail: e?.message });
+  }
 });
 
 // ─── Logo Upload URL ──────────────────────────────────────────────────────────

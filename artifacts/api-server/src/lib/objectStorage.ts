@@ -269,6 +269,40 @@ export class ObjectStorageService {
     return `/objects/${relPath}`;
   }
 
+  /**
+   * Save a fully composed PNG (from the server composer) to the designs/renders
+   * folder and return its objectPath.
+   */
+  async saveComposedDesign(buffer: Buffer): Promise<string> {
+    const supabase = getSupabase();
+    const uuid = randomUUID();
+    const relPath = `designs/renders/${uuid}.png`;
+    const key = relPathToKey(relPath);
+    const { error } = await supabase.storage
+      .from(SUPABASE_STORAGE_BUCKET)
+      .upload(key, buffer, { contentType: "image/png", upsert: false });
+    if (error) {
+      throw new Error(`Supabase upload failed: ${error.message}`);
+    }
+    return `/objects/${relPath}`;
+  }
+
+  /**
+   * Fetch raw bytes for an objectPath (e.g. /objects/designs/...) — useful so
+   * the server composer can read both backgrounds and logos by URL.
+   */
+  async downloadByObjectPath(objectPath: string): Promise<Buffer | null> {
+    const supabase = getSupabase();
+    const rel = objectPath.replace(/^\/?objects\//, "");
+    const key = relPathToKey(rel);
+    const { data, error } = await supabase.storage
+      .from(SUPABASE_STORAGE_BUCKET)
+      .download(key);
+    if (error || !data) return null;
+    const ab = await data.arrayBuffer();
+    return Buffer.from(ab);
+  }
+
   // ─── Weekend Places storage helpers ──────────────────────────────────────
 
   async getWeekendPlacesUploadURL(opts: {

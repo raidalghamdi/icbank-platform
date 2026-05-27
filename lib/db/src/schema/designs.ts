@@ -8,6 +8,7 @@ import {
   jsonb,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
+import { z } from "zod";
 
 // ─── Background panel config shape ───────────────────────────────
 export type BackgroundPanelConfig = {
@@ -17,12 +18,14 @@ export type BackgroundPanelConfig = {
   height: number;
   color: string;
   opacity: number;
+  borderRadius?: number;
 };
 
 // ─── Text slot shape ──────────────────────────────────────────────
 export type TextSlot = {
   key: string;
   label_ar: string;
+  role?: "title" | "body";
   x: number;
   y: number;
   width: number;
@@ -31,15 +34,123 @@ export type TextSlot = {
   max_words: number;
   alignment: "right" | "center" | "left";
   color: string;
+  // — Optional advanced fields from design-studio composer —
+  minFontSize?: number;
+  maxFontSize?: number;
+  fontWeight?: string | number;
+  lineHeight?: number;
 };
 
 // ─── Logo slot shape ──────────────────────────────────────────────
+// `width`/`height` are kept for backwards compatibility with the legacy
+// `seed-test` template. Advanced templates (presentation/v2) use
+// `maxWidth`/`maxHeight`/`align`/`tintColor`.
 export type LogoSlot = {
   key: string;
   x: number;
   y: number;
+  width?: number;
+  height?: number;
+  maxWidth?: number;
+  maxHeight?: number;
+  align?: "left" | "center" | "right";
+  // When set, opaque pixels are re-tinted to this color (e.g. "#FFFFFF" for a
+  // white logo over a dark header).
+  tintColor?: string;
+};
+
+/* ============================================================
+ *  Extras — قوالب العروض التقديمية الداخلية
+ *  Header gradient + Image placeholder + Icon grid + Department badge
+ * ============================================================ */
+
+export type GradientHeader = {
+  heightPct: number;
+  colorStart: string;
+  colorEnd: string;
+  direction?: "horizontal" | "vertical" | "diagonal";
+};
+
+export type DepartmentBadge = {
+  x: number;
+  y: number;
   width: number;
   height: number;
+  bgColor: string;
+  textColor: string;
+  fontSize: number;
+  borderRadius?: number;
+  textAlign?: "right" | "center" | "left";
+};
+
+export type ImagePlaceholder = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  label?: string;
+  bgColor?: string;
+  labelColor?: string;
+  labelFontSize?: number;
+  borderRadius?: number;
+};
+
+export type IconSlot = {
+  x: number;
+  y: number;
+  size: number;
+  lucideName: string;
+  color?: string;
+  strokeWidth?: number;
+  titleText?: string;
+  titleColor?: string;
+  titleFontSize?: number;
+  bodyText?: string;
+  bodyColor?: string;
+  bodyFontSize?: number;
+  textWidth?: number;
+  textAlign?: "right" | "center" | "left";
+};
+
+export type VerticalSeparator = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  color?: string;
+};
+
+export type ContentPanel = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  color: string;
+  opacity?: number;
+  borderRadius?: number;
+};
+
+export type SubHeading = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  color?: string;
+  fontSize?: number;
+  fontWeight?: string | number;
+  textAlign?: "right" | "center" | "left";
+  text?: string;
+};
+
+export type TemplateExtras = {
+  layoutKind: "social" | "presentation-paragraphs" | "presentation-icons-2x2";
+  gradientHeader?: GradientHeader;
+  departmentBadge?: DepartmentBadge;
+  imagePlaceholder?: ImagePlaceholder;
+  verticalSeparator?: VerticalSeparator;
+  contentPanel?: ContentPanel;
+  iconSlots?: IconSlot[];
+  subHeading?: SubHeading;
 };
 
 // ─── Tables ───────────────────────────────────────────────────────
@@ -54,6 +165,10 @@ export const designTemplatesTable = pgTable("design_templates", {
   textSlots: jsonb("text_slots").$type<TextSlot[]>().notNull().default([]),
   logoSlots: jsonb("logo_slots").$type<LogoSlot[]>().notNull().default([]),
   thumbnailUrl: text("thumbnail_url"),
+  // Optional prompt hint that gets appended to the AI background prompt
+  promptHint: text("prompt_hint"),
+  // Extended configuration for presentation / v2 social templates
+  extras: jsonb("extras").$type<TemplateExtras>(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -82,6 +197,7 @@ export const generatedDesignsTable = pgTable("generated_designs", {
   backgroundImageUrl: text("background_image_url"),
   selectedLogos: jsonb("selected_logos").$type<number[]>().notNull().default([]),
   finalImageUrl: text("final_image_url"),
+  department: text("department"),
   createdBy: integer("created_by"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
@@ -97,3 +213,18 @@ export type DesignTemplate = typeof designTemplatesTable.$inferSelect;
 export type BrandLogo = typeof brandLogosTable.$inferSelect;
 export type BrandFont = typeof brandFontsTable.$inferSelect;
 export type GeneratedDesign = typeof generatedDesignsTable.$inferSelect;
+
+/* ============================================================
+ *  الإدارات التنفيذية الافتراضية (للقائمة المنسدلة)
+ * ============================================================ */
+export const EXECUTIVE_DEPARTMENTS = [
+  "المحافظ",
+  "نائب المحافظ",
+  "الشؤون القانونية",
+  "مكافحة الممارسات الاحتكارية",
+  "الشؤون الاقتصادية والدراسات",
+  "الشؤون الإدارية والمالية",
+  "الاتصال المؤسسي",
+  "التحول الرقمي",
+] as const;
+export type ExecutiveDepartment = (typeof EXECUTIVE_DEPARTMENTS)[number];

@@ -3876,9 +3876,14 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
     <div class="adm-pane" id="des-pane-templates">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
         <h3 style="margin:0;font-size:15px;font-weight:600;">معاينة القوالب</h3>
-        <button class="btn btn-ghost" style="font-size:13px;" onclick="DES.seedTestTemplate()">
-          <span class="ico"><svg><use href="#i-plus"/></svg></span> زرع قالب تجريبي
-        </button>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-ghost" style="font-size:13px;" onclick="DES.seedTestTemplate()">
+            <span class="ico"><svg><use href="#i-plus"/></svg></span> زرع قالب تجريبي
+          </button>
+          <button class="btn btn-primary" style="font-size:13px;" onclick="DES.seedPresentationTemplates()">
+            <span class="ico"><svg><use href="#i-plus"/></svg></span> زرع قوالب العرض (PPTX)
+          </button>
+        </div>
       </div>
 
       <div id="des-tpl-loading" class="des-loading">جاري التحميل…</div>
@@ -8374,6 +8379,21 @@ var DES = (function() {
       }).catch(function(e) { alert('خطأ: ' + e.message); });
   }
 
+  // ── Seed presentation templates (server-rendered with sharp+Pango) ──
+  function seedPresentationTemplates() {
+    if (!confirm('سيتم إضافة أو تحديث قوالب العرض التقديمي (فقرات + أيقونات 2×2). متابعة؟')) return;
+    apiFetch('/api/designs/templates/reseed-presentation', { method: 'POST' })
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        if (d && d.ok) {
+          alert('تم بنجاح: ' + (d.count || 0) + ' قالب، تحديث العرض…');
+          loadTemplates();
+        } else {
+          alert('تعذّر زرع القوالب: ' + JSON.stringify(d));
+        }
+      }).catch(function(e) { alert('خطأ: ' + e.message); });
+  }
+
   // ── Editor ───────────────────────────────────────────────────────
   var _edTpl = null;
   var _edFonts = [];
@@ -8808,7 +8828,58 @@ var DES = (function() {
   // ── Download as PNG (html2canvas) ────────────────────────────────
   // We clone the canvas into an off-screen element at full 1920×1080
   // with no CSS transforms so html2canvas captures the real resolution.
+  // ── Server-side render via composer (sharp + Pango) for templates with extras ──
+  function edDownloadServer() {
+    var btn = document.getElementById('des-ed-dl-btn');
+    if (btn) { btn.disabled = true; btn.textContent = 'التركيب على الخادم…'; }
+    var tEl = document.getElementById('des-ed-title');
+    var bEl = document.getElementById('des-ed-body');
+    var tSz = document.getElementById('des-ed-title-sz');
+    var bSz = document.getElementById('des-ed-body-sz');
+    var fnt = document.getElementById('des-ed-font');
+    var payload = {
+      templateId: _edTpl.id,
+      titleText: tEl ? tEl.value : '',
+      bodyText: bEl ? bEl.value : '',
+      backgroundUrl: _edBgUrl || null,
+      selectedLogoIds: _edSelectedLogoIds.slice(),
+      titleFontSize: tEl ? Number(tSz.value) : undefined,
+      bodyFontSize: bEl ? Number(bSz.value) : undefined,
+      fontFamily: fnt && fnt.value ? fnt.value : undefined,
+      department: null,
+    };
+    apiFetch('/api/designs/render', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }).then(function(r) { return r.json(); }).then(function(d) {
+      if (!d || !d.url) throw new Error(d && d.error ? d.error : 'فشل التركيب');
+      // d.url is an objectPath like /objects/designs/renders/<uuid>.png
+      // Fetch via storage endpoint which streams the PNG bytes.
+      var fetchUrl = '/api/storage' + d.url;
+      return apiFetch(fetchUrl).then(function(r) { return r.blob(); }).then(function(blob) {
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'design-' + new Date().toISOString().slice(0,10) + '.png';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+      });
+    }).catch(function(e) {
+      alert('تعذّر التحميل: ' + (e.message || 'خطأ غير معروف'));
+    }).finally(function() {
+      if (btn) { btn.disabled = false; btn.textContent = '⬇ تحميل'; }
+    });
+  }
+
   function edDownload() {
+    // For templates with extras (gradient header / icon slots / image placeholder),
+    // always render server-side — html2canvas can't reproduce the PPTX layout faithfully.
+    if (_edTpl && _edTpl.extras) {
+      return edDownloadServer();
+    }
     var sourceCanvas = document.getElementById('des-ed-canvas');
     if (!sourceCanvas) return;
 
@@ -8871,6 +8942,7 @@ var DES = (function() {
     uploadLogo: uploadLogo, deleteLogo: deleteLogo,
     uploadFont: uploadFont, setDefaultFont: setDefaultFont, deleteFont: deleteFont,
     selectTemplate: selectTemplate, seedTestTemplate: seedTestTemplate,
+    seedPresentationTemplates: seedPresentationTemplates,
     edOpen: edOpen, edUpdate: edUpdate, edToggleLogo: edToggleLogo, edZoom: edZoom,
     edGenerateBg: edGenerateBg, edSelectBg: edSelectBg,
     edFullPreview: edFullPreview, edCloseFullPreview: edCloseFullPreview, edDownload: edDownload,

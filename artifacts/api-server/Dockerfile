@@ -35,6 +35,17 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
 
+# Arabic + Latin fonts for the sharp/Pango composer (server-side design render).
+# Without these, Arabic text in /api/designs/render renders as boxes.
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+      fontconfig \
+      fonts-noto-core \
+      fonts-noto-color-emoji \
+      fonts-dejavu-core \
+ && fc-cache -f \
+ && rm -rf /var/lib/apt/lists/*
+
 COPY --from=builder /prod/api-server ./
 EXPOSE 3000
 
