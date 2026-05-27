@@ -9,6 +9,10 @@ WORKDIR /app
 # pnpm via corepack (matches monorepo lockfile)
 RUN corepack enable && corepack prepare pnpm@9 --activate
 
+# Skip puppeteer Chromium download (not needed in API container)
+ENV PUPPETEER_SKIP_DOWNLOAD=true
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+
 # Copy workspace manifests first for layer-caching
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 COPY tsconfig.base.json tsconfig.json ./
