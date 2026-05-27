@@ -1,7 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "version": 2,
-  "buildCommand": null,
+  "buildCommand": "echo 'Static site — no build needed'",
+  "installCommand": "echo 'No install needed — serverless function uses native fetch only'",
   "outputDirectory": ".",
   "framework": null,
   "rewrites": [
