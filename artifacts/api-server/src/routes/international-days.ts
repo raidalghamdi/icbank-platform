@@ -1,5 +1,5 @@
 import { Router, type Request, type Response } from "express";
-import Anthropic from "@anthropic-ai/sdk";
+import { anthropicAdapter as anthropic, hasPerplexity } from "../lib/aiProviders";
 import { db } from "@workspace/db";
 import {
   internationalDaysTable,
@@ -12,10 +12,7 @@ import { eq, desc, ilike, and, or } from "drizzle-orm";
 
 const router: Router = Router();
 
-const anthropic = new Anthropic({
-  baseURL: process.env.AI_INTEGRATIONS_ANTHROPIC_BASE_URL,
-  apiKey: process.env.AI_INTEGRATIONS_ANTHROPIC_API_KEY ?? "dummy",
-});
+// AI calls are routed through the unified provider (Gemini-backed).
 
 // ─── Rate limiting ───────────────────────────────────────────────
 const rateLimitMap = new Map<string, { count: number; reset: number }>();

@@ -1,21 +1,25 @@
-import { File } from "@google-cloud/storage";
+/**
+ * ACL layer for object storage.
+ *
+ * Originally the ACL policy was persisted as GCS custom metadata
+ * ("custom:aclPolicy" -> JSON). Supabase Storage does not expose per-object
+ * custom metadata in the same way, so we persist policies in a small Postgres
+ * table `object_acl(key text primary key, policy jsonb)` accessed via the
+ * Supabase service-role client.
+ *
+ * The exported function signatures are identical to the previous module so
+ * route code does not need to change.
+ */
+import type { StorageObject } from "./objectStorage";
+import { getSupabase } from "./objectStorage";
 
-const ACL_POLICY_METADATA_KEY = "custom:aclPolicy";
+const ACL_TABLE = "object_acl";
 
-// Can be flexibly defined according to the use case.
-//
-// Examples:
-// - USER_LIST: the users from a list stored in the database;
-// - EMAIL_DOMAIN: the users whose email is in a specific domain;
-// - GROUP_MEMBER: the users who are members of a specific group;
-// - SUBSCRIBER: the users who are subscribers of a specific service / content
-//   creator.
+// Access-group taxonomy (extension point — none implemented out of the box).
 export enum ObjectAccessGroupType {}
 
 export interface ObjectAccessGroup {
   type: ObjectAccessGroupType;
-  // The logic id that identifies qualified group members. Format depends on the
-  // ObjectAccessGroupType — e.g. a user-list DB id, an email domain, a group id.
   id: string;
 }
 
@@ -29,7 +33,6 @@ export interface ObjectAclRule {
   permission: ObjectPermission;
 }
 
-// Stored as object custom metadata under "custom:aclPolicy" (JSON string).
 export interface ObjectAclPolicy {
   owner: string;
   visibility: "public" | "private";
@@ -38,7 +41,7 @@ export interface ObjectAclPolicy {
 
 function isPermissionAllowed(
   requested: ObjectPermission,
-  granted: ObjectPermission,
+  granted: ObjectPermission
 ): boolean {
   if (requested === ObjectPermission.READ) {
     return [ObjectPermission.READ, ObjectPermission.WRITE].includes(granted);
@@ -49,49 +52,46 @@ function isPermissionAllowed(
 abstract class BaseObjectAccessGroup implements ObjectAccessGroup {
   constructor(
     public readonly type: ObjectAccessGroupType,
-    public readonly id: string,
+    public readonly id: string
   ) {}
 
   public abstract hasMember(userId: string): Promise<boolean>;
 }
 
-function createObjectAccessGroup(
-  group: ObjectAccessGroup,
-): BaseObjectAccessGroup {
+function createObjectAccessGroup(group: ObjectAccessGroup): BaseObjectAccessGroup {
   switch (group.type) {
-    // Implement per access group type, e.g.:
-    // case "USER_LIST":
-    //   return new UserListAccessGroup(group.id);
     default:
       throw new Error(`Unknown access group type: ${group.type}`);
   }
 }
 
 export async function setObjectAclPolicy(
-  objectFile: File,
-  aclPolicy: ObjectAclPolicy,
+  objectFile: StorageObject,
+  aclPolicy: ObjectAclPolicy
 ): Promise<void> {
-  const [exists] = await objectFile.exists();
-  if (!exists) {
-    throw new Error(`Object not found: ${objectFile.name}`);
+  const supabase = getSupabase();
+  const { error } = await supabase
+    .from(ACL_TABLE)
+    .upsert({ key: objectFile.key, policy: aclPolicy }, { onConflict: "key" });
+  if (error) {
+    throw new Error(`Failed to persist ACL policy: ${error.message}`);
   }
-
-  await objectFile.setMetadata({
-    metadata: {
-      [ACL_POLICY_METADATA_KEY]: JSON.stringify(aclPolicy),
-    },
-  });
 }
 
 export async function getObjectAclPolicy(
-  objectFile: File,
+  objectFile: StorageObject
 ): Promise<ObjectAclPolicy | null> {
-  const [metadata] = await objectFile.getMetadata();
-  const aclPolicy = metadata?.metadata?.[ACL_POLICY_METADATA_KEY];
-  if (!aclPolicy) {
+  const supabase = getSupabase();
+  const { data, error } = await supabase
+    .from(ACL_TABLE)
+    .select("policy")
+    .eq("key", objectFile.key)
+    .maybeSingle();
+  if (error) {
+    // Table may not exist yet in fresh environments — treat as "no policy".
     return null;
   }
-  return JSON.parse(aclPolicy as string);
+  return (data?.policy as ObjectAclPolicy | null) ?? null;
 }
 
 export async function canAccessObject({
@@ -100,7 +100,7 @@ export async function canAccessObject({
   requestedPermission,
 }: {
   userId?: string;
-  objectFile: File;
+  objectFile: StorageObject;
   requestedPermission: ObjectPermission;
 }): Promise<boolean> {
   const aclPolicy = await getObjectAclPolicy(objectFile);

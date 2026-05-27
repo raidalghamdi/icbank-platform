@@ -2,9 +2,11 @@ import { Router, type Request, type Response } from "express";
 import multer from "multer";
 import pdfParse from "pdf-parse";
 import mammoth from "mammoth";
-import Anthropic from "@anthropic-ai/sdk";
-import OpenAI from "openai";
-import { GoogleGenAI } from "@google/genai";
+import {
+  anthropicAdapter as anthropic,
+  openaiAdapter as openai,
+  gemini as geminiAI,
+} from "../lib/aiProviders";
 import { db } from "@workspace/db";
 import {
   archiveEntriesTable,
@@ -20,23 +22,7 @@ const upload = multer({
   limits: { fileSize: 25 * 1024 * 1024, files: 100 },
 });
 
-const anthropic = new Anthropic({
-  baseURL: process.env.AI_INTEGRATIONS_ANTHROPIC_BASE_URL,
-  apiKey: process.env.AI_INTEGRATIONS_ANTHROPIC_API_KEY ?? "dummy",
-});
-
-const openai = new OpenAI({
-  baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
-  apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY ?? "dummy",
-});
-
-const geminiAI = new GoogleGenAI({
-  apiKey: process.env.AI_INTEGRATIONS_GEMINI_API_KEY ?? "dummy",
-  httpOptions: {
-    apiVersion: "",
-    baseUrl: process.env.AI_INTEGRATIONS_GEMINI_BASE_URL,
-  },
-});
+// All AI calls (Anthropic/OpenAI/Gemini) are routed through unified Gemini-backed adapters.
 
 function cosineSimilarity(a: number[], b: number[]): number {
   if (!a || !b || a.length !== b.length) return 0;

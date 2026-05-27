@@ -160,8 +160,11 @@ router.post("/designs/generate-backgrounds", async (req: Request, res: Response)
   const { prompt, templateId } = req.body as { prompt?: string; templateId?: number };
   if (!prompt?.trim()) { res.status(400).json({ error: "prompt مطلوب" }); return; }
 
-  const googleKey = process.env["GOOGLE_AI_API_KEY"];
-  if (!googleKey) { res.status(503).json({ error: "GOOGLE_AI_API_KEY غير مضبوط على الخادم" }); return; }
+  const googleKey =
+    process.env["GEMINI_API_KEY"] ??
+    process.env["GOOGLE_AI_API_KEY"] ??
+    process.env["AI_INTEGRATIONS_GEMINI_API_KEY"];
+  if (!googleKey) { res.status(503).json({ error: "GEMINI_API_KEY غير مضبوط على الخادم" }); return; }
 
   // Build a template-aware spatial hint so the model leaves room for the text panel
   let templateHint = "";

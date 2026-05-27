@@ -11,36 +11,25 @@ import {
   aiYearMediaTable,
 } from "@workspace/db";
 import { sql } from "drizzle-orm";
-import { Storage } from "@google-cloud/storage";
+import { createClient } from "@supabase/supabase-js";
 
-// ─── GCS client (same Replit sidecar auth as objectStorage.ts) ────────────────
-const SIDECAR = "http://127.0.0.1:1106";
-const gcs = new Storage({
-  credentials: {
-    audience: "replit",
-    subject_token_type: "access_token",
-    token_url: `${SIDECAR}/token`,
-    type: "external_account",
-    credential_source: {
-      url: `${SIDECAR}/credential`,
-      format: { type: "json", subject_token_field_name: "access_token" },
-    },
-    universe_domain: "googleapis.com",
-  },
-  projectId: "",
-} as ConstructorParameters<typeof Storage>[0]);
+// ─── Supabase Storage client ──────────────────────────────────────────
+const SUPABASE_URL = process.env.SUPABASE_URL ?? "";
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY ?? "";
+const BUCKET = process.env.SUPABASE_STORAGE_BUCKET ?? "icbank";
 
-function getPrivateObjectDir(): string {
-  const dir = process.env.PRIVATE_OBJECT_DIR ?? "";
-  if (!dir) throw new Error("PRIVATE_OBJECT_DIR not set — run on Replit with Object Storage configured");
-  return dir.replace(/\/$/, "");
+function getSupabase() {
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
+    throw new Error("SUPABASE_URL and SUPABASE_SERVICE_KEY must be set");
+  }
+  return createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
 }
 
-/** Parse "gs://bucket/..." or "/bucket/path" → { bucketName, objectName } */
-function parsePath(fullPath: string): { bucketName: string; objectName: string } {
-  const p = fullPath.startsWith("/") ? fullPath : `/${fullPath}`;
-  const parts = p.split("/").filter(Boolean);
-  return { bucketName: parts[0]!, objectName: parts.slice(1).join("/") };
+function keyFor(relPath: string): string {
+  const privateDir = (process.env.PRIVATE_OBJECT_DIR ?? "").replace(/^\/+|\/+$/g, "");
+  return privateDir ? `${privateDir}/${relPath}` : relPath;
 }
 
 /**
@@ -63,13 +52,15 @@ const TINY_PNGS: Buffer[] = [
   Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADklEQVQI12P4z8CgBwAEhgGAavzO0QAAAABJRU5ErkJggg==", "base64"),
 ];
 
-/** Upload a buffer to GCS and return the logical /objects/... path. */
-async function uploadToGcs(relPath: string, buffer: Buffer, contentType: string): Promise<string> {
-  const dir = getPrivateObjectDir();
-  const fullPath = `${dir}/${relPath}`;
-  const { bucketName, objectName } = parsePath(fullPath);
-  const file = gcs.bucket(bucketName).file(objectName);
-  await file.save(buffer, { contentType, resumable: false });
+/** Upload a buffer to Supabase Storage and return the logical /objects/... path. */
+async function uploadToStorage(relPath: string, buffer: Buffer, contentType: string): Promise<string> {
+  const supabase = getSupabase();
+  const key = keyFor(relPath);
+  const { error } = await supabase.storage.from(BUCKET).upload(key, buffer, {
+    contentType,
+    upsert: true,
+  });
+  if (error) throw new Error(`Supabase upload failed: ${error.message}`);
   return `/objects/${relPath}`;
 }
 
@@ -238,12 +229,12 @@ async function main() {
       const relPath = `ai-year/2026/${month}/${activationId}/${s.pathSuffix}`;
       let objectPath: string;
       try {
-        objectPath = await uploadToGcs(relPath, pngBuf, s.contentType);
+        objectPath = await uploadToStorage(relPath, pngBuf, s.contentType);
         console.log(`  ✓ [act ${activationId}] ${s.fileName} → uploaded`);
       } catch (uploadErr) {
-        // Fall back to placeholder path if GCS is unavailable (e.g. outside Replit)
+        // Fall back to placeholder path if Supabase Storage is unavailable
         objectPath = `/objects/${relPath}`;
-        console.warn(`  ⚠ [act ${activationId}] ${s.fileName} — GCS upload skipped (${(uploadErr as Error).message}), using placeholder path`);
+        console.warn(`  ⚠ [act ${activationId}] ${s.fileName} — storage upload skipped (${(uploadErr as Error).message}), using placeholder path`);
       }
       await db.insert(aiYearMediaTable).values({
         activationId,

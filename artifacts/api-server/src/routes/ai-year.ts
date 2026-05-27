@@ -411,15 +411,15 @@ router.get("/ai-year/activations/:id/zip", async (req: Request, res: Response) =
   for (const media of mediaRows) {
     try {
       const file = await objectStorage.getObjectEntityFile(media.objectPath);
-      const [metadata] = await file.getMetadata();
+      const { stream, contentType } = await objectStorage.createReadStream(file);
       const ext = (media.fileName?.split(".").pop()) ||
-        (String(metadata.contentType ?? "").split("/")[1]) || "bin";
+        (String(contentType ?? "").split("/")[1]) || "bin";
       const rawName = media.fileName || `file-${media.id}.${ext}`;
       // Sanitize entry name: take only the basename and strip unsafe path chars
       const entryName = basename(rawName).replace(/[^\w.\-]/g, "_") || `file-${media.id}.bin`;
-      // Stream directly from GCS — archiver.file() needs a local FS path,
-      // so we use append() with the GCS read stream instead.
-      archive.append(file.createReadStream(), { name: entryName });
+      // Stream directly from Supabase Storage — archiver.file() needs a local FS
+      // path, so we use append() with the Readable stream instead.
+      archive.append(stream, { name: entryName });
     } catch (err) {
       if (err instanceof ObjectNotFoundError) {
         req.log.info({ mediaId: media.id }, "Skipping missing media in zip");

@@ -8,30 +8,32 @@ const PORT = process.env.PORT || 3000;
 const HTML_FILE = path.join(__dirname, 'index.html');
 const LOGIN_FILE = path.join(__dirname, 'login.html');
 
-const OPENAI_BASE_URL = process.env.AI_INTEGRATIONS_OPENAI_BASE_URL;
-const OPENAI_API_KEY = process.env.AI_INTEGRATIONS_OPENAI_API_KEY;
+// AI calls — Gemini (free) is used as the primary engine after Replit migration.
+const GEMINI_API_KEY =
+  process.env.GEMINI_API_KEY ||
+  process.env.GOOGLE_AI_API_KEY ||
+  process.env.AI_INTEGRATIONS_GEMINI_API_KEY;
+const GEMINI_MODEL = process.env.GEMINI_TEXT_MODEL || 'gemini-2.5-flash';
 
 async function aiCall(prompt) {
-  const response = await fetch(`${OPENAI_BASE_URL}/chat/completions`, {
+  if (!GEMINI_API_KEY) throw new Error('GEMINI_API_KEY is not configured');
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+  const response = await fetch(url, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${OPENAI_API_KEY}`,
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      model: 'gpt-5-mini',
-      max_completion_tokens: 3000,
-      messages: [
-        { role: 'system', content: 'أنت مساعد يجيب بـ JSON فقط بدون أي نص إضافي أو markdown.' },
-        { role: 'user', content: prompt },
-      ],
+      systemInstruction: { parts: [{ text: 'أنت مساعد يجيب بـ JSON فقط بدون أي نص إضافي أو markdown.' }] },
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      generationConfig: { temperature: 0.7, maxOutputTokens: 3000 },
     }),
   });
-  if (!response.ok) throw new Error(`OpenAI error: ${response.status}`);
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(`Gemini error: ${response.status} — ${errText.slice(0, 200)}`);
+  }
   const data = await response.json();
-  const content = data.choices?.[0]?.message?.content?.trim();
-  if (!content) throw new Error('Empty response');
-  // strip markdown code fences if present
+  const content = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+  if (!content) throw new Error('Empty response from Gemini');
   const stripped = content.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
   const startIdx = stripped.search(/[\[{]/);
   if (startIdx === -1) {
