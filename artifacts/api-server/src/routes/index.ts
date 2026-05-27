@@ -11,6 +11,7 @@ import adminRouter from "./admin";
 import dashboardRouter from "./dashboard";
 import designsRouter from "./designs";
 import weekendPlacesRouter from "./weekend-places";
+import weekendDraftsRouter from "./weekend-drafts";
 import gacRouter from "./gac";
 import { authenticate, requireAuth, requirePageAccess } from "../middleware/auth";
 
@@ -66,5 +67,6 @@ router.use(storageRouter);
 router.use(adminRouter);
 router.use(designsRouter);
 router.use(weekendPlacesRouter);
+router.use(weekendDraftsRouter);
 
 export default router;

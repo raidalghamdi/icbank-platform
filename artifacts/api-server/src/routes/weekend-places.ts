@@ -3,24 +3,26 @@ import { db } from "@workspace/db";
 import {
   weekendPlacesTable,
   insertWeekendPlaceSchema,
+  weekendDraftsTable,
 } from "@workspace/db";
-import { eq, asc } from "drizzle-orm";
+import { eq, asc, desc } from "drizzle-orm";
 import { requireAdmin } from "../middleware/auth";
 import { ObjectStorageService } from "../lib/objectStorage";
 
 const router = Router();
 const objectStorage = new ObjectStorageService();
 
-// ─── Public (auth-gated) endpoint: weekend page data ──────────────────────────
-// Returns active places formatted for the frontend "وين نروح؟" section.
+// ─── Public (auth-gated) endpoint: weekend page data ─────────────────────────
+// Returns places (curated by admin) merged with the latest published AI draft
+// (deals, podcasts, aiTools, matches, movies, summary). Riyadh-focused.
 router.get("/wk2-data", async (_req: Request, res: Response) => {
-  const places = await db
+  const placesRows = await db
     .select()
     .from(weekendPlacesTable)
     .where(eq(weekendPlacesTable.isActive, true))
     .orderBy(asc(weekendPlacesTable.sortOrder), asc(weekendPlacesTable.createdAt));
 
-  const formatted = places.map((p) => ({
+  const formatted = placesRows.map((p) => ({
     title: p.name,
     body: p.description,
     maps_query: p.mapsQuery || p.name,
@@ -29,7 +31,32 @@ router.get("/wk2-data", async (_req: Request, res: Response) => {
     id: p.id,
   }));
 
-  res.json({ places: formatted });
+  // Latest published AI draft (if any) supplies deals/podcasts/aiTools/etc.
+  const [latestDraft] = await db
+    .select()
+    .from(weekendDraftsTable)
+    .where(eq(weekendDraftsTable.status, "published"))
+    .orderBy(desc(weekendDraftsTable.publishedAt))
+    .limit(1);
+
+  const c = (latestDraft?.content || {}) as Record<string, any>;
+
+  res.json({
+    places: formatted.length
+      ? formatted
+      : Array.isArray(c.places)
+        ? c.places
+        : [],
+    deals: Array.isArray(c.deals) ? c.deals : [],
+    podcasts: Array.isArray(c.podcasts) ? c.podcasts : [],
+    aiTools: Array.isArray(c.aiTools) ? c.aiTools : [],
+    matches: Array.isArray(c.matches) ? c.matches : [],
+    movies: Array.isArray(c.movies) ? c.movies : [],
+    summary: c.summary || null,
+    publishedAt: latestDraft?.publishedAt ?? null,
+    weekendDate: latestDraft?.weekendDate ?? null,
+    city: "الرياض",
+  });
 });
 
 // ─── Admin-only routes ────────────────────────────────────────────────────────
