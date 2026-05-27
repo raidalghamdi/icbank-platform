@@ -3164,6 +3164,40 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
       </div>
 
     </div>
+
+    <!-- Admin: Weekend AI Drafts (الرياض) -->
+    <div id="wk2-admin-block" style="margin-top:24px;display:none">
+      <div class="card" style="padding:18px;border-top:4px solid #7C3AED">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:14px">
+          <div>
+            <div style="font-size:16px;font-weight:800;color:#111827">🤖 توليد واعتماد مسودات نهاية الأسبوع</div>
+            <div style="font-size:12px;color:#6b7280;margin-top:4px">توليد أسبوعي تلقائي (الرياض) عبر Gemini مع workflow اعتماد إداري قبل النشر</div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <input type="date" id="wk2-admin-date" class="input" style="max-width:170px" />
+            <button class="btn btn-primary" id="wk2-admin-gen-btn" onclick="wk2AdminGenerate()">
+              <span class="ico"><svg><use href="#i-bot"/></svg></span>
+              <span>توليد مسودة جديدة</span>
+            </button>
+            <button class="btn btn-ghost" onclick="wk2AdminLoadDrafts()">
+              <span class="ico"><svg><use href="#i-refresh"/></svg></span>
+              <span>تحديث</span>
+            </button>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+          <button class="filter-tab active" data-wk2-filter="all" onclick="wk2AdminFilter('all',this)">📄 الكل</button>
+          <button class="filter-tab" data-wk2-filter="pending_review" onclick="wk2AdminFilter('pending_review',this)">⏳ بحاجة مراجعة</button>
+          <button class="filter-tab" data-wk2-filter="approved" onclick="wk2AdminFilter('approved',this)">✅ معتمدة</button>
+          <button class="filter-tab" data-wk2-filter="published" onclick="wk2AdminFilter('published',this)">📢 منشورة</button>
+          <button class="filter-tab" data-wk2-filter="rejected" onclick="wk2AdminFilter('rejected',this)">❌ مرفوضة</button>
+        </div>
+        <div id="wk2-admin-drafts-list">
+          <div class="loading-wrap"><div class="spinner"></div><div class="loading-text">جارٍ تحميل المسودات...</div></div>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <!-- ══════════════════════════════════════
@@ -5930,6 +5964,7 @@ function showSection(name) {
   if (name === 'admin_panel') adminInit();
   if (name === 'designs') designsInit();
   if (name === 'places') PLCS.init();
+  if (name === 'weekend') wk2AdminInit();
 }
 
 function toggleMobileSidebar() {
@@ -6689,6 +6724,210 @@ function renderOptionCard(secKey, opt, i) {
     </div>`;
   }
   return `<div class="wk2-option-card" id="opt-${secKey}-${i}"><div class="wk2-opt-title">${opt.title||''}</div><div class="wk2-opt-body">${opt.body||''}</div></div>`;
+}
+
+// ════════════════════════════════════════
+// WK2 ADMIN — AI WEEKLY GENERATOR + APPROVAL WORKFLOW (الرياض)
+// ════════════════════════════════════════
+var wk2AdminFilterStatus = 'all';
+var wk2AdminDrafts = [];
+
+function wk2AdminInit() {
+  var block = document.getElementById('wk2-admin-block');
+  if (!block) return;
+  // Only admin/super_admin can manage drafts
+  if (!AUTH_USER || (AUTH_USER.role !== 'admin' && AUTH_USER.role !== 'super_admin')) {
+    block.style.display = 'none';
+    return;
+  }
+  block.style.display = '';
+
+  // Default date = next Thursday
+  var dateInput = document.getElementById('wk2-admin-date');
+  if (dateInput && !dateInput.value) {
+    var today = new Date();
+    var diff = (4 - today.getDay() + 7) % 7 || 7;
+    var thu = new Date(today.getTime() + diff*86400000);
+    dateInput.value = thu.toISOString().slice(0,10);
+  }
+  wk2AdminLoadDrafts();
+}
+
+function wk2AdminFilter(status, el) {
+  wk2AdminFilterStatus = status;
+  document.querySelectorAll('[data-wk2-filter]').forEach(function(b){ b.classList.remove('active'); });
+  if (el) el.classList.add('active');
+  wk2AdminRenderList();
+}
+
+async function wk2AdminLoadDrafts() {
+  var listEl = document.getElementById('wk2-admin-drafts-list');
+  if (!listEl) return;
+  listEl.innerHTML = '<div class="loading-wrap"><div class="spinner"></div><div class="loading-text">جارٍ التحميل...</div></div>';
+  try {
+    var res = await apiFetch('/api/weekend/drafts');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    var data = await res.json();
+    wk2AdminDrafts = data.drafts || [];
+    wk2AdminRenderList();
+  } catch (e) {
+    listEl.innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">تعذر تحميل المسودات</div><div class="empty-sub">' + escHtml(String(e.message||e)) + '</div></div>';
+  }
+}
+
+function wk2AdminRenderList() {
+  var listEl = document.getElementById('wk2-admin-drafts-list');
+  if (!listEl) return;
+  var drafts = wk2AdminFilterStatus === 'all'
+    ? wk2AdminDrafts
+    : wk2AdminDrafts.filter(function(d){ return d.status === wk2AdminFilterStatus; });
+  if (drafts.length === 0) {
+    listEl.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-title">لا توجد مسودات في هذا التصنيف</div><div class="empty-sub">اضغط "توليد مسودة جديدة" لإنشاء محتوى أسبوع جديد بالذكاء الاصطناعي</div></div>';
+    return;
+  }
+  var STATUS_META = {
+    pending_review: { label:'⏳ بحاجة مراجعة', bg:'#FEF3C7', color:'#92400E' },
+    approved:       { label:'✅ معتمدة',       bg:'#D1FAE5', color:'#065F46' },
+    published:      { label:'📢 منشورة',       bg:'#DBEAFE', color:'#1E40AF' },
+    rejected:       { label:'❌ مرفوضة',       bg:'#FEE2E2', color:'#991B1B' },
+  };
+  listEl.innerHTML = drafts.map(function(d) {
+    var meta = STATUS_META[d.status] || { label:d.status, bg:'#F3F4F6', color:'#374151' };
+    var c = d.content || {};
+    var counts = {
+      places:   (c.places||[]).length,
+      deals:    (c.deals||[]).length,
+      podcasts: (c.podcasts||[]).length,
+      aiTools:  (c.aiTools||[]).length,
+      matches:  (c.matches||[]).length,
+      movies:   (c.movies||[]).length,
+    };
+    var actions = [];
+    if (d.status === 'pending_review') {
+      actions.push('<button class="btn btn-primary" onclick="wk2AdminApprove(' + d.id + ')" style="font-size:12px;padding:6px 14px">✅ اعتماد</button>');
+      actions.push('<button class="btn btn-ghost" onclick="wk2AdminReject(' + d.id + ')" style="font-size:12px;padding:6px 14px">❌ رفض</button>');
+    } else if (d.status === 'approved') {
+      actions.push('<button class="btn btn-primary" onclick="wk2AdminPublish(' + d.id + ')" style="font-size:12px;padding:6px 14px">📢 نشر</button>');
+    }
+    actions.push('<button class="btn btn-ghost" onclick="wk2AdminPreview(' + d.id + ')" style="font-size:12px;padding:6px 14px">👁️ معاينة</button>');
+    if (d.status !== 'published') {
+      actions.push('<button class="btn btn-ghost" onclick="wk2AdminDelete(' + d.id + ')" style="font-size:12px;padding:6px 14px;color:#DC2626">🗑️</button>');
+    }
+    var createdAt = d.createdAt ? new Date(d.createdAt).toLocaleString('ar-SA') : '';
+    var summary = (c.summary || '').slice(0, 200);
+    return '<div class="card" style="padding:14px;margin-bottom:10px;border-right:4px solid ' + meta.color + '">' +
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:10px">' +
+        '<div style="flex:1">' +
+          '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">' +
+            '<span style="display:inline-block;padding:3px 10px;border-radius:999px;background:' + meta.bg + ';color:' + meta.color + ';font-size:11px;font-weight:700">' + meta.label + '</span>' +
+            '<span style="font-size:12px;color:#6b7280">📅 ' + escHtml(d.weekendDate) + '</span>' +
+            '<span style="font-size:12px;color:#6b7280">📍 ' + escHtml(d.city || 'الرياض') + '</span>' +
+            '<span style="font-size:11px;color:#9ca3af">' + escHtml(d.modelName || '') + '</span>' +
+          '</div>' +
+          (summary ? '<div style="font-size:13px;color:#374151;margin-bottom:8px;line-height:1.6">' + escHtml(summary) + (c.summary && c.summary.length > 200 ? '...' : '') + '</div>' : '') +
+          '<div style="display:flex;gap:14px;font-size:11px;color:#6b7280;flex-wrap:wrap">' +
+            '<span>📍 ' + counts.places   + ' أماكن</span>' +
+            '<span>🎯 ' + counts.deals    + ' فئات عروض</span>' +
+            '<span>🎙️ ' + counts.podcasts + ' بودكاست</span>' +
+            '<span>🤖 ' + counts.aiTools  + ' أدوات AI</span>' +
+            '<span>⚽ ' + counts.matches  + ' مباريات</span>' +
+            '<span>🎬 ' + counts.movies   + ' أفلام</span>' +
+          '</div>' +
+          (createdAt ? '<div style="font-size:11px;color:#9ca3af;margin-top:6px">أُنشئت في: ' + createdAt + '</div>' : '') +
+          (d.rejectedReason ? '<div style="font-size:11px;color:#991B1B;margin-top:6px">سبب الرفض: ' + escHtml(d.rejectedReason) + '</div>' : '') +
+        '</div>' +
+        '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:flex-start">' + actions.join('') + '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+async function wk2AdminGenerate() {
+  var btn = document.getElementById('wk2-admin-gen-btn');
+  var dateInput = document.getElementById('wk2-admin-date');
+  var weekend_date = dateInput ? dateInput.value : '';
+  if (!weekend_date) {
+    alert('يرجى اختيار تاريخ الخميس للوينكد');
+    return;
+  }
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner" style="width:14px;height:14px"></span> جارٍ التوليد بـ Gemini...'; }
+  try {
+    var res = await apiFetch('/api/weekend/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ weekend_date: weekend_date }),
+    });
+    if (!res.ok) {
+      var err = await res.json().catch(function(){ return {}; });
+      throw new Error(err.error || err.detail || ('HTTP ' + res.status));
+    }
+    var data = await res.json();
+    alert('تم توليد المسودة بنجاح. الآن يمكنك مراجعتها واعتمادها.');
+    await wk2AdminLoadDrafts();
+  } catch (e) {
+    alert('فشل التوليد: ' + (e.message || e));
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<span class="ico"><svg><use href="#i-bot"/></svg></span><span>توليد مسودة جديدة</span>';
+    }
+  }
+}
+
+async function wk2AdminApprove(id) {
+  if (!confirm('اعتماد هذه المسودة؟')) return;
+  try {
+    var res = await apiFetch('/api/weekend/drafts/' + id + '/approve', { method:'POST' });
+    if (!res.ok) { var e = await res.json(); throw new Error(e.error || res.status); }
+    await wk2AdminLoadDrafts();
+  } catch (e) { alert('فشل الاعتماد: ' + e.message); }
+}
+
+async function wk2AdminPublish(id) {
+  if (!confirm('نشر هذه المسودة على صفحة نهاية الأسبوع؟ سيستبدل المحتوى الحالي.')) return;
+  try {
+    var res = await apiFetch('/api/weekend/drafts/' + id + '/publish', { method:'POST' });
+    if (!res.ok) { var e = await res.json(); throw new Error(e.error || res.status); }
+    alert('تم النشر. حدّث الصفحة لعرض المحتوى الجديد للموظفين.');
+    await wk2AdminLoadDrafts();
+  } catch (e) { alert('فشل النشر: ' + e.message); }
+}
+
+async function wk2AdminReject(id) {
+  var reason = prompt('سبب الرفض (اختياري):', '') || '';
+  try {
+    var res = await apiFetch('/api/weekend/drafts/' + id + '/reject', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ reason: reason }),
+    });
+    if (!res.ok) { var e = await res.json(); throw new Error(e.error || res.status); }
+    await wk2AdminLoadDrafts();
+  } catch (e) { alert('فشل الرفض: ' + e.message); }
+}
+
+async function wk2AdminDelete(id) {
+  if (!confirm('حذف هذه المسودة نهائياً؟')) return;
+  try {
+    var res = await apiFetch('/api/weekend/drafts/' + id, { method:'DELETE' });
+    if (!res.ok) { var e = await res.json(); throw new Error(e.error || res.status); }
+    await wk2AdminLoadDrafts();
+  } catch (e) { alert('فشل الحذف: ' + e.message); }
+}
+
+function wk2AdminPreview(id) {
+  var d = wk2AdminDrafts.find(function(x){ return x.id === id; });
+  if (!d) return;
+  var c = d.content || {};
+  var w = window.open('', '_blank', 'width=900,height=700');
+  w.document.write('<html dir="rtl" lang="ar"><head><meta charset="utf-8"><title>معاينة مسودة ' + d.id + '</title>' +
+    '<style>body{font-family:"Tajawal",sans-serif;padding:24px;background:#f9fafb;color:#111827;line-height:1.7}h2{color:#7C3AED;border-bottom:2px solid #7C3AED;padding-bottom:6px;margin-top:24px}pre{background:#fff;padding:14px;border-radius:8px;border:1px solid #e5e7eb;overflow:auto;font-size:12px}</style></head><body>' +
+    '<h1>معاينة مسودة نهاية الأسبوع — ' + escHtml(d.weekendDate) + '</h1>' +
+    '<p><b>الحالة:</b> ' + escHtml(d.status) + ' · <b>المدينة:</b> ' + escHtml(d.city) + ' · <b>النموذج:</b> ' + escHtml(d.modelName || '') + '</p>' +
+    (c.summary ? '<h2>الملخص</h2><p>' + escHtml(c.summary) + '</p>' : '') +
+    '<h2>المحتوى الكامل (JSON)</h2>' +
+    '<pre>' + escHtml(JSON.stringify(c, null, 2)) + '</pre>' +
+  '</body></html>');
+  w.document.close();
 }
 
 // ════════════════════════════════════════
