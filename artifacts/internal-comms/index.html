@@ -291,6 +291,223 @@ body {
   background: var(--danger);
   border: 1.5px solid white;
 }
+.icon-btn .badge-count {
+  position: absolute;
+  top: -4px; left: -4px;
+  min-width: 18px; height: 18px;
+  padding: 0 5px;
+  background: var(--danger);
+  color: #fff;
+  font-size: 10px; font-weight: 700;
+  border-radius: 9px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1.5px solid var(--surface);
+  font-family: var(--sans);
+}
+
+/* ═══ HIJRI DATE PILL ═══ */
+.hijri-pill {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 12px;
+  background: linear-gradient(135deg, rgba(30,64,175,0.06), rgba(16,185,129,0.06));
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 11.5px;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+.hijri-pill .ico { width: 13px; height: 13px; color: var(--primary); }
+.hijri-pill .hijri-greg-sep { color: var(--text-5); margin: 0 3px; }
+.hijri-pill .hijri-greg { color: var(--text-4); font-size: 10.5px; }
+@media (max-width: 1024px) { .hijri-pill .hijri-greg, .hijri-pill .hijri-greg-sep { display: none; } }
+@media (max-width: 768px)  { .hijri-pill { display: none; } }
+
+/* ═══ GLOBAL SEARCH DROPDOWN ═══ */
+.search-wrap { position: relative; }
+.search-results {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0; left: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 12px 32px rgba(15,23,42,0.12);
+  max-height: 420px; overflow-y: auto;
+  z-index: 100;
+  display: none;
+}
+.search-results.open { display: block; }
+.search-results-empty {
+  padding: 24px; text-align: center; font-size: 12.5px; color: var(--text-4);
+}
+.search-result-group { padding: 8px 0; }
+.search-result-group + .search-result-group { border-top: 1px solid var(--border); }
+.search-result-label {
+  padding: 6px 14px;
+  font-size: 10.5px; font-weight: 700;
+  color: var(--text-4);
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+.search-result-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 14px;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.search-result-item:hover { background: var(--bg); }
+.search-result-item .sr-ico {
+  width: 28px; height: 28px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--primary);
+  flex-shrink: 0;
+}
+.search-result-item .sr-ico .ico { width: 13px; height: 13px; }
+.search-result-item .sr-text { flex: 1; min-width: 0; }
+.search-result-item .sr-title {
+  font-size: 12.5px; font-weight: 600; color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.search-result-item .sr-sub {
+  font-size: 11px; color: var(--text-4); margin-top: 1px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* ═══ NOTIFICATIONS DROPDOWN ═══ */
+.notif-wrap { position: relative; }
+.notif-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 360px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 12px 32px rgba(15,23,42,0.14);
+  z-index: 100;
+  display: none;
+}
+.notif-panel.open { display: block; }
+.notif-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.notif-head-title { font-size: 13px; font-weight: 700; color: var(--text); }
+.notif-head-action { font-size: 11px; color: var(--primary); cursor: pointer; background: none; border: none; }
+.notif-list { max-height: 380px; overflow-y: auto; }
+.notif-item {
+  display: flex; gap: 10px;
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.notif-item:last-child { border-bottom: none; }
+.notif-item:hover { background: var(--bg); }
+.notif-item.unread { background: rgba(30,64,175,0.025); }
+.notif-icon {
+  width: 32px; height: 32px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  display: inline-flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  color: var(--primary);
+}
+.notif-icon .ico { width: 14px; height: 14px; }
+.notif-icon.success { color: var(--success); }
+.notif-icon.warn { color: var(--warning); }
+.notif-icon.danger { color: var(--danger); }
+.notif-body { flex: 1; min-width: 0; }
+.notif-title { font-size: 12.5px; font-weight: 600; color: var(--text); line-height: 1.35; }
+.notif-desc { font-size: 11.5px; color: var(--text-3); margin-top: 2px; line-height: 1.45; }
+.notif-time { font-size: 10.5px; color: var(--text-5); margin-top: 4px; }
+.notif-empty { padding: 28px; text-align: center; font-size: 12px; color: var(--text-4); }
+
+/* ═══ WELCOME BANNER ═══ */
+.welcome-banner {
+  display: flex; align-items: center; gap: 16px;
+  padding: 18px 22px;
+  background: linear-gradient(135deg, #1E40AF 0%, #0EA5A6 100%);
+  color: #fff;
+  border-radius: 10px;
+  margin-bottom: 22px;
+  box-shadow: 0 6px 18px rgba(30,64,175,0.18);
+  overflow: hidden;
+  position: relative;
+}
+.welcome-banner::after {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(circle at 90% 0%, rgba(255,255,255,0.16), transparent 55%),
+              radial-gradient(circle at 10% 100%, rgba(255,255,255,0.10), transparent 55%);
+  pointer-events: none;
+}
+.welcome-banner-text { flex: 1; position: relative; z-index: 1; }
+.welcome-banner-greeting { font-size: 19px; font-weight: 700; letter-spacing: -0.3px; }
+.welcome-banner-name { color: #FBBF24; }
+.welcome-banner-sub { font-size: 12.5px; color: rgba(255,255,255,0.85); margin-top: 4px; }
+.welcome-banner-meta {
+  display: flex; gap: 14px; flex-wrap: wrap;
+  position: relative; z-index: 1;
+}
+.wb-stat { text-align: center; }
+.wb-stat-val { font-size: 22px; font-weight: 700; line-height: 1; }
+.wb-stat-lbl { font-size: 10.5px; color: rgba(255,255,255,0.78); margin-top: 4px; }
+@media (max-width: 700px) {
+  .welcome-banner { flex-direction: column; align-items: flex-start; }
+  .welcome-banner-meta { width: 100%; justify-content: space-between; }
+}
+
+/* ═══ QUICK ACTIONS FAB ═══ */
+.fab-wrap {
+  position: fixed;
+  bottom: 24px; left: 24px;
+  z-index: 90;
+}
+.fab-main {
+  width: 54px; height: 54px;
+  background: linear-gradient(135deg, var(--primary), #0EA5A6);
+  border: none;
+  color: #fff;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(30,64,175,0.34);
+  transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.2s;
+}
+.fab-main:hover { transform: scale(1.06); box-shadow: 0 14px 30px rgba(30,64,175,0.42); }
+.fab-main .ico { width: 22px; height: 22px; transition: transform 0.25s; }
+.fab-wrap.open .fab-main .ico { transform: rotate(45deg); }
+.fab-menu {
+  position: absolute;
+  bottom: 64px; left: 0;
+  display: flex; flex-direction: column-reverse; gap: 10px;
+  opacity: 0; transform: translateY(8px); pointer-events: none;
+  transition: opacity 0.18s, transform 0.18s;
+}
+.fab-wrap.open .fab-menu { opacity: 1; transform: translateY(0); pointer-events: auto; }
+.fab-action {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 14px 9px 9px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text);
+  font-size: 12px; font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(15,23,42,0.08);
+  white-space: nowrap;
+  transition: all 0.14s;
+}
+.fab-action:hover { background: var(--bg); transform: translateX(-3px); border-color: var(--primary); color: var(--primary); }
+.fab-action .fab-icon {
+  width: 30px; height: 30px;
+  background: var(--bg);
+  border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  color: var(--primary);
+}
+.fab-action .fab-icon .ico { width: 14px; height: 14px; }
+@media print { .fab-wrap { display: none; } }
 
 /* ═══ MAIN ═══ */
 .main {
@@ -2507,16 +2724,35 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
       <span class="breadcrumb-current" id="bc-current">الرئيسية</span>
     </nav>
 
+    <div class="hijri-pill" id="hijri-pill" title="التاريخ الهجري والميلادي">
+      <span class="ico"><svg><use href="#i-calendar"/></svg></span>
+      <span class="hijri-h" id="hijri-h">ـ</span>
+      <span class="hijri-greg-sep">·</span>
+      <span class="hijri-greg" id="hijri-g">—</span>
+    </div>
+
     <div class="topbar-right">
-      <div class="search-bar">
-        <span class="ico"><svg><use href="#i-search"/></svg></span>
-        <input type="text" id="search-input" placeholder="بحث في كل البيانات..." oninput="handleSearch(this.value)">
+      <div class="search-wrap">
+        <div class="search-bar">
+          <span class="ico"><svg><use href="#i-search"/></svg></span>
+          <input type="text" id="search-input" placeholder="بحث عالمي في كل الصفحات..." oninput="globalSearch(this.value)" onfocus="if(this.value) globalSearch(this.value)">
+        </div>
+        <div class="search-results" id="search-results-dd"></div>
       </div>
-      <button class="icon-btn" title="الإشعارات">
-        <span class="ico"><svg><use href="#i-bell"/></svg></span>
-        <span class="dot"></span>
-      </button>
-      <button class="icon-btn" title="المساعدة">
+      <div class="notif-wrap">
+        <button class="icon-btn" id="notif-btn" title="الإشعارات" onclick="toggleNotifications(event)">
+          <span class="ico"><svg><use href="#i-bell"/></svg></span>
+          <span class="badge-count" id="notif-count">3</span>
+        </button>
+        <div class="notif-panel" id="notif-panel">
+          <div class="notif-head">
+            <div class="notif-head-title">الإشعارات</div>
+            <button class="notif-head-action" onclick="markAllNotifRead()">تعليم الكل كمقروء</button>
+          </div>
+          <div class="notif-list" id="notif-list"></div>
+        </div>
+      </div>
+      <button class="icon-btn" title="المساعدة" onclick="showSection('settings')">
         <span class="ico"><svg><use href="#i-help"/></svg></span>
       </button>
     </div>
@@ -9575,6 +9811,226 @@ async function aiyGenerateReport() {
 
 <!-- X / Twitter widgets (renders <a class="twitter-timeline"> elements on the dashboard) -->
 <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+<!-- ═══ QUICK ACTIONS FAB ═══ -->
+<div class="fab-wrap" id="fab-wrap">
+  <div class="fab-menu">
+    <button class="fab-action" onclick="fabGo('weekstart')">
+      <span class="fab-icon"><span class="ico"><svg><use href="#i-bulb"/></svg></span></span>
+      <span>توليد محتوى بداية أسبوع</span>
+    </button>
+    <button class="fab-action" onclick="fabGo('intldays')">
+      <span class="fab-icon"><span class="ico"><svg><use href="#i-globe"/></svg></span></span>
+      <span>بحث يوم عالمي</span>
+    </button>
+    <button class="fab-action" onclick="fabGo('aiyear')">
+      <span class="fab-icon"><span class="ico"><svg><use href="#i-bot"/></svg></span></span>
+      <span>تفعيل جديد لعام AI</span>
+    </button>
+    <button class="fab-action" onclick="fabGo('reports')">
+      <span class="fab-icon"><span class="ico"><svg><use href="#i-trending-up"/></svg></span></span>
+      <span>عرض تقرير الأداء</span>
+    </button>
+    <button class="fab-action" onclick="fabGo('weekend')">
+      <span class="fab-icon"><span class="ico"><svg><use href="#i-calendar"/></svg></span></span>
+      <span>تجهيز نهاية الأسبوع</span>
+    </button>
+  </div>
+  <button class="fab-main" onclick="toggleFab(event)" title="إجراءات سريعة">
+    <span class="ico"><svg><use href="#i-plus"/></svg></span>
+  </button>
+</div>
+
+<script>
+// ═══ HIJRI DATE ═══
+function updateHijriPill() {
+  const now = new Date();
+  try {
+    const hijri = new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura', {
+      day: 'numeric', month: 'long', year: 'numeric'
+    }).format(now);
+    const greg = now.toLocaleDateString('ar-SA-u-nu-latn', {
+      weekday: 'short', day: 'numeric', month: 'short', year: 'numeric'
+    });
+    const hEl = document.getElementById('hijri-h');
+    const gEl = document.getElementById('hijri-g');
+    if (hEl) hEl.textContent = hijri.replace(/\s+هـ?$/, 'هـ');
+    if (gEl) gEl.textContent = greg;
+  } catch (e) { /* fallback silently */ }
+}
+
+// ═══ GLOBAL SEARCH ═══
+const SEARCH_INDEX = [
+  // Pages
+  { kind:'page', title:'الرئيسية', sub:'لوحة التحكم وملخص الأداء', section:'home', icon:'i-home' },
+  { kind:'page', title:'تقرير الأداء التنفيذي', sub:'KPIs والمشاريع المتأخرة', section:'reports', icon:'i-trending-up' },
+  { kind:'page', title:'المبادرات', sub:'مبادرات الهيئة + تقييم AI', section:'initiatives', icon:'i-bot' },
+  { kind:'page', title:'أخبار التواصل الداخلي', sub:'آخر الأخبار والتحديثات', section:'news', icon:'i-news' },
+  { kind:'page', title:'نهاية الأسبوع', sub:'أماكن وعروض وبودكاست', section:'weekend', icon:'i-calendar' },
+  { kind:'page', title:'بداية الأسبوع', sub:'مولّد المحتوى الأسبوعي', section:'weekstart', icon:'i-bulb' },
+  { kind:'page', title:'الأيام العالمية', sub:'بحث عالمي + أرشيف', section:'intldays', icon:'i-globe' },
+  { kind:'page', title:'عام الذكاء الاصطناعي 2026', sub:'جميع التفعيلات + الرسوم', section:'aiyear', icon:'i-brain' },
+  { kind:'page', title:'المساعد الذكي', sub:'دردشة مع AI', section:'smart_assistant', icon:'i-bot' },
+  { kind:'page', title:'مكتبة هيئة المنافسة', sub:'إصدارات ووثائق', section:'gac_library', icon:'i-book' },
+  { kind:'page', title:'التصاميم', sub:'استوديو التصاميم', section:'designs', icon:'i-image' },
+  { kind:'page', title:'لوحة التحكم (Admin)', sub:'إدارة الأدوار والصلاحيات', section:'admin_panel', icon:'i-shield' },
+  { kind:'page', title:'الإعدادات', sub:'تفضيلات المستخدم', section:'settings', icon:'i-settings' },
+  // Actions
+  { kind:'action', title:'توليد محتوى بداية الأسبوع', sub:'بـ 3 مخرجات Claude/OpenAI/Gemini', section:'weekstart', icon:'i-bulb' },
+  { kind:'action', title:'إنشاء تفعيل جديد', sub:'عام الذكاء الاصطناعي 2026', section:'aiyear', icon:'i-plus' },
+  { kind:'action', title:'بحث يوم عالمي (AI)', sub:'بحث بالذكاء الاصطناعي', section:'intldays', icon:'i-search' },
+  { kind:'action', title:'عرض تقرير الأداء', sub:'تقرير تنفيذي يومي', section:'reports', icon:'i-trending-up' },
+  { kind:'action', title:'تحديث الصلاحيات', sub:'لوحة تحكم الأدوار', section:'admin_panel', icon:'i-shield' },
+];
+
+function globalSearch(val) {
+  const dd = document.getElementById('search-results-dd');
+  if (!dd) return;
+  const q = (val || '').trim();
+  if (!q) { dd.classList.remove('open'); dd.innerHTML=''; return; }
+  const ql = q.toLowerCase();
+  const matches = SEARCH_INDEX.filter(item =>
+    item.title.toLowerCase().includes(ql) || (item.sub||'').toLowerCase().includes(ql)
+  );
+  // Also search news data if available
+  let newsMatches = [];
+  try {
+    if (typeof NEWS_DATA !== 'undefined' && Array.isArray(NEWS_DATA)) {
+      newsMatches = NEWS_DATA.filter(n => (n.title||'').toLowerCase().includes(ql) || (n.description||'').toLowerCase().includes(ql)).slice(0, 5);
+    }
+  } catch(e) {}
+  if (!matches.length && !newsMatches.length) {
+    dd.innerHTML = '<div class="search-results-empty">لا توجد نتائج لـ «' + q.replace(/[<>]/g,'') + '»</div>';
+    dd.classList.add('open');
+    return;
+  }
+  let html = '';
+  const pages = matches.filter(m => m.kind === 'page');
+  const actions = matches.filter(m => m.kind === 'action');
+  if (pages.length) {
+    html += '<div class="search-result-group"><div class="search-result-label">الصفحات</div>';
+    pages.forEach(p => {
+      html += `<div class="search-result-item" onclick="navFromSearch('${p.section}')">
+        <span class="sr-ico"><span class="ico"><svg><use href="#${p.icon}"/></svg></span></span>
+        <div class="sr-text"><div class="sr-title">${p.title}</div><div class="sr-sub">${p.sub}</div></div>
+      </div>`;
+    });
+    html += '</div>';
+  }
+  if (actions.length) {
+    html += '<div class="search-result-group"><div class="search-result-label">إجراءات سريعة</div>';
+    actions.forEach(a => {
+      html += `<div class="search-result-item" onclick="navFromSearch('${a.section}')">
+        <span class="sr-ico"><span class="ico"><svg><use href="#${a.icon}"/></svg></span></span>
+        <div class="sr-text"><div class="sr-title">${a.title}</div><div class="sr-sub">${a.sub}</div></div>
+      </div>`;
+    });
+    html += '</div>';
+  }
+  if (newsMatches.length) {
+    html += '<div class="search-result-group"><div class="search-result-label">أخبار</div>';
+    newsMatches.forEach(n => {
+      const t = String(n.title||'').replace(/[<>]/g,'').slice(0,80);
+      const d = String(n.description||'').replace(/[<>]/g,'').slice(0,100);
+      html += `<div class="search-result-item" onclick="navFromSearch('news')">
+        <span class="sr-ico"><span class="ico"><svg><use href="#i-news"/></svg></span></span>
+        <div class="sr-text"><div class="sr-title">${t}</div><div class="sr-sub">${d}</div></div>
+      </div>`;
+    });
+    html += '</div>';
+  }
+  dd.innerHTML = html;
+  dd.classList.add('open');
+}
+function navFromSearch(section) {
+  const dd = document.getElementById('search-results-dd');
+  const inp = document.getElementById('search-input');
+  if (dd) { dd.classList.remove('open'); dd.innerHTML=''; }
+  if (inp) inp.value = '';
+  if (typeof showSection === 'function') showSection(section);
+}
+document.addEventListener('click', (e) => {
+  const sw = document.querySelector('.search-wrap');
+  const dd = document.getElementById('search-results-dd');
+  if (sw && dd && !sw.contains(e.target)) dd.classList.remove('open');
+});
+
+// ═══ NOTIFICATIONS ═══
+const NOTIFICATIONS = [
+  { id:1, icon:'i-trending-up', title:'تقرير الأداء التنفيذي لليوم جاهز', desc:'تم توليد التقرير تلقائياً — 78% إنجاز، مستوى المخاطر: منخفض', time:'منذ 30 دقيقة', unread:true, kind:'success', section:'reports' },
+  { id:2, icon:'i-alert-triangle', title:'مشروعان متأخران يحتاجان متابعة', desc:'حملة نزاهة الأسعار وتقرير المنافسة الربع الأول', time:'منذ ساعتين', unread:true, kind:'warn', section:'reports' },
+  { id:3, icon:'i-globe', title:'10 منشورات جديدة على لينكدإن', desc:'تم تحديث منشورات صفحة هيئة المنافسة تلقائياً', time:'منذ 3 ساعات', unread:true, kind:'', section:'home' },
+  { id:4, icon:'i-brain', title:'تم إضافة 3 تفعيلات جديدة', desc:'عام الذكاء الاصطناعي 2026', time:'أمس', unread:false, kind:'success', section:'aiyear' },
+  { id:5, icon:'i-shield', title:'التزام كامل باللوائح', desc:'لا فجوات امتثال في DGA · NCA · SADAIA', time:'أمس', unread:false, kind:'success', section:'reports' },
+];
+function renderNotifications() {
+  const list = document.getElementById('notif-list');
+  const count = document.getElementById('notif-count');
+  if (!list) return;
+  const unreadCount = NOTIFICATIONS.filter(n => n.unread).length;
+  if (count) {
+    if (unreadCount > 0) { count.textContent = unreadCount; count.style.display = 'inline-flex'; }
+    else { count.style.display = 'none'; }
+  }
+  if (!NOTIFICATIONS.length) {
+    list.innerHTML = '<div class="notif-empty">لا توجد إشعارات</div>';
+    return;
+  }
+  list.innerHTML = NOTIFICATIONS.map(n => `
+    <div class="notif-item${n.unread?' unread':''}" onclick="clickNotif(${n.id})">
+      <div class="notif-icon ${n.kind||''}"><span class="ico"><svg><use href="#${n.icon}"/></svg></span></div>
+      <div class="notif-body">
+        <div class="notif-title">${n.title}</div>
+        <div class="notif-desc">${n.desc}</div>
+        <div class="notif-time">${n.time}</div>
+      </div>
+    </div>`).join('');
+}
+function toggleNotifications(e) {
+  e && e.stopPropagation();
+  const p = document.getElementById('notif-panel');
+  if (!p) return;
+  p.classList.toggle('open');
+}
+function clickNotif(id) {
+  const n = NOTIFICATIONS.find(x => x.id === id);
+  if (!n) return;
+  n.unread = false;
+  renderNotifications();
+  document.getElementById('notif-panel').classList.remove('open');
+  if (n.section && typeof showSection === 'function') showSection(n.section);
+}
+function markAllNotifRead() {
+  NOTIFICATIONS.forEach(n => n.unread = false);
+  renderNotifications();
+}
+document.addEventListener('click', (e) => {
+  const w = document.querySelector('.notif-wrap');
+  const p = document.getElementById('notif-panel');
+  if (w && p && !w.contains(e.target)) p.classList.remove('open');
+});
+
+// ═══ FAB ═══
+function toggleFab(e) {
+  e && e.stopPropagation();
+  document.getElementById('fab-wrap').classList.toggle('open');
+}
+function fabGo(section) {
+  document.getElementById('fab-wrap').classList.remove('open');
+  if (typeof showSection === 'function') showSection(section);
+}
+document.addEventListener('click', (e) => {
+  const fab = document.getElementById('fab-wrap');
+  if (fab && !fab.contains(e.target)) fab.classList.remove('open');
+});
+
+// ═══ BOOT ═══
+document.addEventListener('DOMContentLoaded', () => {
+  updateHijriPill();
+  setInterval(updateHijriPill, 60 * 60 * 1000); // refresh every hour
+  renderNotifications();
+});
+</script>
 
 </body>
 </html>
