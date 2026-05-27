@@ -10,7 +10,7 @@ WORKDIR /app
 RUN corepack enable && corepack prepare pnpm@9 --activate
 
 # Copy workspace manifests first for layer-caching
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 COPY tsconfig.base.json tsconfig.json ./
 COPY artifacts/api-server/package.json ./artifacts/api-server/
 COPY lib ./lib
