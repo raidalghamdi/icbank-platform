@@ -8380,18 +8380,26 @@ var DES = (function() {
   }
 
   // ── Seed presentation templates (server-rendered with sharp+Pango) ──
-  function seedPresentationTemplates() {
+  async function seedPresentationTemplates() {
     if (!confirm('سيتم إضافة أو تحديث قوالب العرض التقديمي (فقرات + أيقونات 2×2). متابعة؟')) return;
-    apiFetch('/api/designs/templates/reseed-presentation', { method: 'POST' })
-      .then(function(r) { return r.json(); })
-      .then(function(d) {
-        if (d && d.ok) {
-          alert('تم بنجاح: ' + (d.count || 0) + ' قالب، تحديث العرض…');
-          loadTemplates();
-        } else {
-          alert('تعذّر زرع القوالب: ' + JSON.stringify(d));
-        }
-      }).catch(function(e) { alert('خطأ: ' + e.message); });
+    try {
+      var r = await apiFetch('/api/designs/templates/reseed-presentation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: '{}'
+      });
+      var text = await r.text();
+      var d = null;
+      try { d = text ? JSON.parse(text) : null; } catch(_) {}
+      if (r.ok && d && d.ok) {
+        alert('تم بنجاح: ' + (d.count || 0) + ' قالب، تحديث العرض…');
+        loadTemplates();
+      } else {
+        alert('تعذّر زرع القوالب (HTTP ' + r.status + '): ' + (text || '').slice(0, 300));
+      }
+    } catch(e) {
+      alert('خطأ في الشبكة: ' + (e && e.message ? e.message : String(e)));
+    }
   }
 
   // ── Editor ───────────────────────────────────────────────────────
