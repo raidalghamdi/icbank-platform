@@ -26,7 +26,7 @@ COPY artifacts/api-server ./artifacts/api-server
 RUN pnpm --filter @workspace/api-server build
 
 # Prune dev deps for the runtime image
-RUN pnpm --filter @workspace/api-server deploy --prod --legacy /prod/api-server
+RUN pnpm --filter @workspace/api-server deploy --prod /prod/api-server
 
 # ─── Stage 2: runtime ──────────────────────────────────────────────────────
 FROM node:22-slim AS runtime
