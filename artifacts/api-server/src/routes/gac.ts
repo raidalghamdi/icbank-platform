@@ -161,7 +161,7 @@ router.post(
             descriptionAr: pub.descriptionAr ?? null,
             descriptionEn: pub.descriptionEn ?? null,
             version: pub.version ?? null,
-            publishedAt: pub.publishedAt ?? null,
+            publishedAt: pub.publishedAt ? new Date(pub.publishedAt) : null,
             originalUrl: pub.originalUrl ?? null,
             fileUrl,
             fileSizeBytes: buffer.byteLength,
