@@ -1,4 +1,4 @@
-// trigger: deploy SSL fix from lib/db (commit 62fc0da)
+// trigger: deploy pooler URL rewrite (lib/db) - v2
 import app from "./app";
 import { logger } from "./lib/logger";
 import { runSeedIfNeeded } from "./lib/seed";
