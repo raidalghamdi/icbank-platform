@@ -224,10 +224,10 @@ router.post(
           postUrl: p.postUrl ?? null,
           mediaUrl: p.mediaUrl ?? null,
           mediaType: p.mediaType ?? null,
-          postedAt: p.postedAt ?? null,
+          postedAt: p.postedAt ? new Date(p.postedAt) : null,
           metrics: p.metrics ?? {},
           account: p.account ?? null,
-          fetchedAt: new Date().toISOString(),
+          fetchedAt: new Date(),
         };
         if (existing.length > 0) {
           await db
