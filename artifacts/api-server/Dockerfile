@@ -47,6 +47,12 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /prod/api-server ./
+
+# Copy bundled assets (GAC publication PDFs, etc.) — these sit beside
+# package.json in the source tree and are loaded at runtime from
+# process.cwd()/assets/... by the gac reseed endpoints.
+COPY --from=builder /app/artifacts/api-server/assets ./assets
+
 EXPOSE 3000
 
 CMD ["node", "--enable-source-maps", "./dist/index.mjs"]

@@ -5,3 +5,4 @@ export * from "./ai-year";
 export * from "./rbac";
 export * from "./designs";
 export * from "./weekend-places";
+export * from "./gac";

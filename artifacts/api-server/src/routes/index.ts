@@ -11,6 +11,7 @@ import adminRouter from "./admin";
 import dashboardRouter from "./dashboard";
 import designsRouter from "./designs";
 import weekendPlacesRouter from "./weekend-places";
+import gacRouter from "./gac";
 import { authenticate, requireAuth, requirePageAccess } from "../middleware/auth";
 
 const router: IRouter = Router();
@@ -36,6 +37,13 @@ router.use(storageRouter);
 // authenticate() sets req.user from JWT (Bearer header or access_token cookie).
 // requireAuth() returns HTTP 401 if req.user is not set.
 router.use(authenticate);
+
+// ─── GAC content (public reads + admin-protected reseed) ───────────────────
+// Mounted after authenticate so requireAdmin can see req.user, but before
+// requireAuth so the public GETs (publications, social-feed, news) work
+// without a logged-in session.
+router.use(gacRouter);
+
 router.use(requireAuth);
 
 // ─── Page-level permission enforcement (method-aware) ──────────────────────

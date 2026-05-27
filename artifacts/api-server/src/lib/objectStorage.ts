@@ -311,6 +311,28 @@ export class ObjectStorageService {
   }
 
   /**
+   * Upload a GAC publication PDF directly to gac/publications/ and return its
+   * objectPath. Mirrors saveLogoBuffer but for PDFs in the GAC library.
+   */
+  async saveGacPublication(
+    buffer: Buffer,
+    contentType: string = "application/pdf"
+  ): Promise<string> {
+    const supabase = getSupabase();
+    const ext = contentType.includes("pdf") ? "pdf" : "bin";
+    const uuid = randomUUID();
+    const relPath = `gac/publications/${uuid}.${ext}`;
+    const key = relPathToKey(relPath);
+    const { error } = await supabase.storage
+      .from(SUPABASE_STORAGE_BUCKET)
+      .upload(key, buffer, { contentType, upsert: false });
+    if (error) {
+      throw new Error(`Supabase upload failed: ${error.message}`);
+    }
+    return `/objects/${relPath}`;
+  }
+
+  /**
    * Fetch raw bytes for an objectPath (e.g. /objects/designs/...) — useful so
    * the server composer can read both backgrounds and logos by URL.
    */

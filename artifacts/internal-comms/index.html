@@ -2356,6 +2356,8 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
     <symbol id="i-filter"   viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></symbol>
     <symbol id="i-plus"     viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></symbol>
     <symbol id="i-bookmark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></symbol>
+    <symbol id="i-book"     viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></symbol>
+    <symbol id="i-file-pdf" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M9 13h6M9 17h4"/></symbol>
     <symbol id="i-star"     viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></symbol>
     <symbol id="i-folder"   viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></symbol>
     <symbol id="i-alert-circle"   viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></symbol>
@@ -2468,6 +2470,10 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
         <a class="nav-item" id="nav-designs" data-page="designs" onclick="showSection('designs')" style="display:none;">
           <span class="ico"><svg><use href="#i-image"/></svg></span>
           <span>إنشاء التصاميم</span>
+        </a>
+        <a class="nav-item" data-page="gac_library" onclick="showSection('gac_library')">
+          <span class="ico"><svg><use href="#i-book"/></svg></span>
+          <span>مكتبة الهيئة</span>
         </a>
         <a class="nav-item" id="nav-admin-panel" data-page="admin_panel" onclick="showSection('admin_panel')" style="display:none;">
           <span class="ico"><svg><use href="#i-shield"/></svg></span>
@@ -2686,6 +2692,53 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
       </div>
       <div class="dash-news-grid" id="home-news">
         <div class="loading-wrap"><div class="spinner"></div><div class="loading-text">جارٍ تحميل الأخبار...</div></div>
+      </div>
+    </div>
+
+    <!-- ── GAC Social Feed (تغريدات + لينكدإن) ── -->
+    <div class="dash-section">
+      <div class="dash-section-head">
+        <h2 class="dash-section-title">📱 تحديثات الهيئة على منصات التواصل</h2>
+        <span style="color:#6b7280;font-size:13px;">تحديث تلقائي من الحسابات الرسمية</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;">
+        <!-- X / Twitter card -->
+        <div class="card" style="padding:18px;display:flex;flex-direction:column;gap:12px;border-top:4px solid #000;">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span style="width:36px;height:36px;background:#000;color:#fff;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-weight:900;font-size:18px;">𝕏</span>
+              <div>
+                <div style="font-weight:700;color:#111827;">@SaudiGAC</div>
+                <div style="color:#6b7280;font-size:12px;">الهيئة العامة للمنافسة</div>
+              </div>
+            </div>
+            <a href="https://twitter.com/SaudiGAC" target="_blank" rel="noopener" class="btn btn-secondary" style="font-size:13px;padding:6px 14px;">متابعة</a>
+          </div>
+          <div style="height:480px;overflow:auto;border:1px solid #e5e7eb;border-radius:10px;">
+            <a class="twitter-timeline"
+               data-height="480"
+               data-theme="light"
+               data-chrome="noheader nofooter noborders transparent"
+               data-lang="ar"
+               href="https://twitter.com/SaudiGAC?ref_src=twsrc%5Etfw">تغريدات SaudiGAC</a>
+          </div>
+        </div>
+        <!-- LinkedIn card -->
+        <div class="card" style="padding:18px;display:flex;flex-direction:column;gap:12px;border-top:4px solid #0A66C2;">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <span style="width:36px;height:36px;background:#0A66C2;color:#fff;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-weight:900;font-size:18px;">in</span>
+              <div>
+                <div style="font-weight:700;color:#111827;">General Authority for Competition</div>
+                <div style="color:#6b7280;font-size:12px;">الصفحة الرسمية على LinkedIn</div>
+              </div>
+            </div>
+            <a href="https://www.linkedin.com/company/general-authority-for-competition" target="_blank" rel="noopener" class="btn btn-secondary" style="font-size:13px;padding:6px 14px;">زيارة</a>
+          </div>
+          <div id="gac-linkedin-feed" style="height:480px;overflow:auto;border:1px solid #e5e7eb;border-radius:10px;padding:16px;">
+            <div class="loading-wrap"><div class="spinner"></div><div class="loading-text">جارٍ تحميل المنشورات...</div></div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -4056,6 +4109,38 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
 
   </div><!-- /section-designs -->
 
+  <!-- ══ GAC Library (مكتبة الهيئة) Section ══ -->
+  <div class="page-section" id="section-gac_library">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title">مكتبة الهيئة</h1>
+        <p class="page-sub">أدلة إرشادية، أنظمة، إحصائيات وأبحاث صادرة عن الهيئة العامة للمنافسة، جميعها مجمّعة في مكان واحد للفريق الداخلي.</p>
+      </div>
+      <button id="gac-lib-reseed-btn" class="btn btn-secondary" onclick="GACLIB.reseed()" style="display:none;">
+        <span class="ico"><svg><use href="#i-refresh"/></svg></span>
+        إعادة تحميل المحتوى
+      </button>
+    </div>
+
+    <!-- Search + filter chips -->
+    <div class="card" style="padding:18px;margin-bottom:18px;">
+      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+        <div style="position:relative;flex:1;min-width:240px;">
+          <span class="ico" style="position:absolute;top:50%;right:12px;transform:translateY(-50%);color:#6b7280;width:18px;height:18px;"><svg viewBox="0 0 24 24" width="18" height="18"><use href="#i-search"/></svg></span>
+          <input id="gac-lib-q" type="text" placeholder="ابحث في عنوان أو وصف الملف..." oninput="GACLIB.onSearch()" style="width:100%;padding:12px 44px 12px 16px;border:1px solid #e5e7eb;border-radius:10px;font-size:15px;font-family:inherit;">
+        </div>
+      </div>
+      <div id="gac-lib-chips" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;"></div>
+    </div>
+
+    <!-- Results -->
+    <div id="gac-lib-empty" style="display:none;text-align:center;padding:48px;color:#6b7280;">
+      <span class="ico" style="width:48px;height:48px;color:#9ca3af;"><svg viewBox="0 0 24 24" width="48" height="48"><use href="#i-folder"/></svg></span>
+      <p style="margin-top:12px;font-size:15px;">لم يتم إضافة أي ملفات بعد. اضغط على زر "إعادة تحميل المحتوى" لبدء تغذية المكتبة.</p>
+    </div>
+    <div id="gac-lib-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;"></div>
+  </div><!-- /section-gac_library -->
+
   <!-- ══ Places Library Section ══ -->
   <div class="page-section" id="section-places">
     <div class="page-head">
@@ -4366,6 +4451,7 @@ function authCanView(pageName) {
   if (pageName === 'designs') return AUTH_USER.role === 'admin' || AUTH_USER.role === 'super_admin';
   if (pageName === 'places') return AUTH_USER.role === 'admin' || AUTH_USER.role === 'super_admin';
   if (pageName === 'smart_assistant' || pageName === 'settings') return !!AUTH_USER;
+  if (pageName === 'gac_library') return !!AUTH_USER;
   var permKey = PAGE_PERM_MAP[pageName] || pageName;
   var pagePerms = (AUTH_USER.permissions || {})[permKey] || [];
   return pagePerms.includes('view');
@@ -5576,6 +5662,7 @@ const PAGE_LABELS = {
   smart_assistant:'المساعد الذكي', settings:'الإعدادات',
   admin_panel:'لوحة التحكم',
   designs:'إنشاء التصاميم',
+  gac_library:'مكتبة الهيئة',
 };
 
 function showSection(name) {
@@ -5794,8 +5881,50 @@ document.addEventListener('DOMContentLoaded', async () => {
   renderAllInitiatives(INITIATIVES);
   initWeekend();
   fetchNews();
+  loadGacSocialFeed();
   localStorage.removeItem('weekend_issues');
 });
+
+// ─── GAC LinkedIn feed loader ──────────────────────────────────────
+async function loadGacSocialFeed() {
+  var host = document.getElementById('gac-linkedin-feed');
+  if (!host) return;
+  try {
+    var res = await apiFetch('/api/gac/social-feed?platform=linkedin&limit=10');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    var data = await res.json();
+    var items = (data && data.items) || [];
+    if (!items.length) {
+      host.innerHTML =
+        '<div style="text-align:center;color:#6b7280;padding:24px;">' +
+          '<p style="margin:0 0 12px;font-size:14px;">لم تتوفر منشورات مخزّنة بعد.</p>' +
+          '<p style="margin:0;font-size:13px;">سيتم ملء هذه البطاقة تلقائيًا عند تفعيل الوظيفة الدورية للتحديث.</p>' +
+          '<a href="https://www.linkedin.com/company/general-authority-for-competition" target="_blank" rel="noopener" style="display:inline-block;margin-top:14px;color:#0A66C2;text-decoration:underline;font-size:13px;">فتح الصفحة على LinkedIn</a>' +
+        '</div>';
+      return;
+    }
+    host.innerHTML = items.map(function(p) {
+      var when = p.postedAt ? new Date(p.postedAt).toLocaleDateString('ar-SA', { year:'numeric', month:'short', day:'numeric' }) : '';
+      var body = (p.contentAr || p.contentEn || '').slice(0, 280);
+      return (
+        '<div style="padding:14px;border-bottom:1px solid #f3f4f6;">' +
+          '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">' +
+            '<span style="font-weight:600;color:#0A66C2;font-size:13px;">منشور</span>' +
+            '<span style="color:#6b7280;font-size:12px;">' + when + '</span>' +
+          '</div>' +
+          '<p style="margin:0 0 10px;font-size:13px;line-height:1.7;color:#111827;">' + body + (body.length >= 280 ? '…' : '') + '</p>' +
+          (p.postUrl ? '<a href="' + p.postUrl + '" target="_blank" rel="noopener" style="color:#0A66C2;font-size:12px;text-decoration:underline;">عرض المنشور الأصلي</a>' : '') +
+        '</div>'
+      );
+    }).join('');
+  } catch (err) {
+    host.innerHTML =
+      '<div style="text-align:center;color:#6b7280;padding:24px;">' +
+        '<p style="margin:0 0 10px;font-size:13px;">تعذّر تحميل المنشورات المخزّنة.</p>' +
+        '<a href="https://www.linkedin.com/company/general-authority-for-competition" target="_blank" rel="noopener" style="color:#0A66C2;text-decoration:underline;font-size:13px;">فتح الصفحة على LinkedIn</a>' +
+      '</div>';
+  }
+}
 
 // ════════════════════════════════════════
 // FETCH NEWS
@@ -9239,6 +9368,171 @@ var PLCS = (function() {
   };
 })();
 
+// ─── GAC Library (مكتبة الهيئة) ─────────────────────────────────
+var GACLIB = (function() {
+  var CATEGORIES = [
+    { id: '',           label: 'الكل',           color: '#0e7c66' },
+    { id: 'guidelines', label: 'أدلة إرشادية', color: '#1E40AF' },
+    { id: 'regulations',label: 'أنظمة',         color: '#7C2D12' },
+    { id: 'statistics', label: 'إحصائيات',     color: '#16A34A' },
+    { id: 'research',   label: 'أبحاث',         color: '#7C3AED' },
+    { id: 'policy',     label: 'سياسات',        color: '#D97706' },
+    { id: 'brand',      label: 'هوية بصرية',    color: '#0EA5E9' },
+  ];
+  var state = {
+    items: [],
+    q: '',
+    category: '',
+    searchTimer: null,
+  };
+
+  function fmtBytes(n) {
+    if (!n || n < 1024) return (n || 0) + ' B';
+    var kb = n / 1024;
+    if (kb < 1024) return kb.toFixed(0) + ' KB';
+    return (kb / 1024).toFixed(1) + ' MB';
+  }
+
+  function fmtDate(iso) {
+    if (!iso) return '';
+    try {
+      var d = new Date(iso);
+      if (isNaN(d.getTime())) return iso;
+      return d.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long' });
+    } catch(_) { return iso; }
+  }
+
+  function catMeta(id) {
+    for (var i = 0; i < CATEGORIES.length; i++) if (CATEGORIES[i].id === id) return CATEGORIES[i];
+    return { id: id, label: id, color: '#6b7280' };
+  }
+
+  function renderChips() {
+    var host = document.getElementById('gac-lib-chips');
+    if (!host) return;
+    host.innerHTML = '';
+    CATEGORIES.forEach(function(c) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.textContent = c.label;
+      var active = state.category === c.id;
+      btn.style.cssText =
+        'padding:8px 16px;border-radius:999px;font-size:13px;font-family:inherit;cursor:pointer;border:1.5px solid ' + c.color + ';' +
+        (active
+          ? 'background:' + c.color + ';color:#fff;font-weight:600;'
+          : 'background:#fff;color:' + c.color + ';');
+      btn.onclick = function() { state.category = c.id; renderChips(); load(); };
+      host.appendChild(btn);
+    });
+  }
+
+  function renderGrid() {
+    var grid = document.getElementById('gac-lib-grid');
+    var empty = document.getElementById('gac-lib-empty');
+    if (!grid || !empty) return;
+    if (!state.items.length) {
+      grid.innerHTML = '';
+      empty.style.display = 'block';
+      return;
+    }
+    empty.style.display = 'none';
+    grid.innerHTML = state.items.map(function(item) {
+      var cat = catMeta(item.category);
+      var langBadge = item.language === 'en' ? 'EN' : (item.language === 'bilingual' ? 'AR/EN' : 'AR');
+      var dlHref = '/api/storage' + item.fileUrl;
+      var tags = (item.tags || []).slice(0, 3).map(function(t) {
+        return '<span style="background:#f3f4f6;color:#374151;padding:3px 10px;border-radius:6px;font-size:12px;">' + t + '</span>';
+      }).join('');
+      var version = item.version ? '<span style="color:#6b7280;font-size:13px;">الإصدار: ' + item.version + '</span>' : '';
+      var pubDate = item.publishedAt ? '<span style="color:#6b7280;font-size:13px;">' + fmtDate(item.publishedAt) + '</span>' : '';
+      var size = item.fileSizeBytes ? '<span style="color:#6b7280;font-size:13px;">' + fmtBytes(item.fileSizeBytes) + '</span>' : '';
+      return (
+        '<div class="card" style="padding:18px;display:flex;flex-direction:column;gap:12px;border-top:4px solid ' + cat.color + ';">' +
+          '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">' +
+            '<div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;">' +
+              '<span class="ico" style="width:36px;height:36px;flex-shrink:0;color:' + cat.color + ';"><svg viewBox="0 0 24 24" width="36" height="36"><use href="#i-file-pdf"/></svg></span>' +
+              '<span style="background:' + cat.color + ';color:#fff;padding:3px 10px;border-radius:6px;font-size:12px;font-weight:600;">' + cat.label + '</span>' +
+            '</div>' +
+            '<span style="background:#f3f4f6;color:#374151;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:600;">' + langBadge + '</span>' +
+          '</div>' +
+          '<h3 style="margin:0;font-size:16px;line-height:1.5;color:#111827;font-weight:700;">' + (item.titleAr || '') + '</h3>' +
+          (item.descriptionAr ? '<p style="margin:0;font-size:13px;line-height:1.6;color:#6b7280;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;">' + item.descriptionAr + '</p>' : '') +
+          (tags ? '<div style="display:flex;gap:6px;flex-wrap:wrap;">' + tags + '</div>' : '') +
+          '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding-top:8px;border-top:1px dashed #e5e7eb;">' +
+            '<div style="display:flex;gap:10px;flex-wrap:wrap;">' + version + pubDate + size + '</div>' +
+          '</div>' +
+          '<a href="' + dlHref + '" target="_blank" rel="noopener" download class="btn btn-primary" style="justify-content:center;text-decoration:none;">' +
+            '<span class="ico"><svg><use href="#i-download"/></svg></span>' +
+            'تنزيل الملف' +
+          '</a>' +
+        '</div>'
+      );
+    }).join('');
+  }
+
+  async function load() {
+    var params = new URLSearchParams();
+    if (state.q) params.set('q', state.q);
+    if (state.category) params.set('category', state.category);
+    try {
+      var res = await apiFetch('/api/gac/publications' + (params.toString() ? '?' + params.toString() : ''));
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      var data = await res.json();
+      state.items = data.items || [];
+      renderGrid();
+    } catch (err) {
+      console.error('GACLIB load error', err);
+      var grid = document.getElementById('gac-lib-grid');
+      if (grid) grid.innerHTML = '<div style="color:#dc2626;padding:24px;">تعذّر تحميل المكتبة: ' + (err.message || err) + '</div>';
+    }
+  }
+
+  function onSearch() {
+    var input = document.getElementById('gac-lib-q');
+    if (!input) return;
+    state.q = (input.value || '').trim();
+    clearTimeout(state.searchTimer);
+    state.searchTimer = setTimeout(load, 250);
+  }
+
+  async function reseed() {
+    var btn = document.getElementById('gac-lib-reseed-btn');
+    if (btn) { btn.disabled = true; btn.textContent = 'جارٍ التحميل...'; }
+    try {
+      var res = await apiFetch('/api/gac/publications/reseed', { method: 'POST' });
+      var data = await res.json();
+      if (!res.ok || !data.ok) {
+        alert('تعذّرت إعادة التغذية:\n' + (data.errors || []).join('\n') || res.status);
+      } else {
+        alert('تم إضافة ' + data.inserted + ' ملف.\nتم تجاوز: ' + (data.skipped || []).length);
+      }
+      await load();
+    } catch (err) {
+      alert('خطأ: ' + (err.message || err));
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<span class="ico"><svg><use href="#i-refresh"/></svg></span> إعادة تحميل المحتوى';
+      }
+    }
+  }
+
+  function init() {
+    renderChips();
+    // Show reseed button only for admin/super_admin
+    try {
+      var u = (typeof AUTH_USER !== 'undefined') ? AUTH_USER : null;
+      if (u && (u.isSuperAdmin || u.role === 'admin' || u.role === 'super_admin')) {
+        var btn = document.getElementById('gac-lib-reseed-btn');
+        if (btn) btn.style.display = 'inline-flex';
+      }
+    } catch(_) {}
+    load();
+  }
+
+  return { init: init, onSearch: onSearch, reseed: reseed };
+})();
+
 // Re-render canvases on window resize (fixes fit-mode after resize)
 (function() {
   var _resizeTimer;
@@ -9278,6 +9572,9 @@ async function aiyGenerateReport() {
   </div>
   <div id="des-full-preview-content" class="des-canvas"></div>
 </div>
+
+<!-- X / Twitter widgets (renders <a class="twitter-timeline"> elements on the dashboard) -->
+<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
 
 </body>
 </html>
