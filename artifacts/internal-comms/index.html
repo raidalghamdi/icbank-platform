@@ -2960,7 +2960,7 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
           </div>
         </div>
         <!-- LinkedIn card -->
-        <div class="card" style="padding:18px;display:flex;flex-direction:column;gap:12px;border-top:4px solid #0A66C2;">
+        <div class="card" id="home-social-card" style="padding:18px;display:flex;flex-direction:column;gap:12px;border-top:4px solid #0A66C2;">
           <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
             <div style="display:flex;align-items:center;gap:10px;">
               <span style="width:36px;height:36px;background:#0A66C2;color:#fff;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-weight:900;font-size:18px;">in</span>
@@ -10195,10 +10195,11 @@ document.addEventListener('click', (e) => {
 });
 
 // ═══ NOTIFICATIONS ═══
+// Each notification can optionally have a `target` element id to scroll to after section nav.
 const NOTIFICATIONS = [
   { id:1, icon:'i-trending-up', title:'تقرير الأداء التنفيذي لليوم جاهز', desc:'تم توليد التقرير تلقائياً — 78% إنجاز، مستوى المخاطر: منخفض', time:'منذ 30 دقيقة', unread:true, kind:'success', section:'reports' },
   { id:2, icon:'i-alert-triangle', title:'مشروعان متأخران يحتاجان متابعة', desc:'حملة نزاهة الأسعار وتقرير المنافسة الربع الأول', time:'منذ ساعتين', unread:true, kind:'warn', section:'reports' },
-  { id:3, icon:'i-globe', title:'10 منشورات جديدة على لينكدإن', desc:'تم تحديث منشورات صفحة هيئة المنافسة تلقائياً', time:'منذ 3 ساعات', unread:true, kind:'', section:'home' },
+  { id:3, icon:'i-globe', title:'10 منشورات جديدة على لينكدإن', desc:'تم تحديث منشورات صفحة هيئة المنافسة تلقائياً', time:'منذ 3 ساعات', unread:true, kind:'', section:'home', target:'home-social-card' },
   { id:4, icon:'i-brain', title:'تم إضافة 3 تفعيلات جديدة', desc:'عام الذكاء الاصطناعي 2026', time:'أمس', unread:false, kind:'success', section:'aiyear' },
   { id:5, icon:'i-shield', title:'التزام كامل باللوائح', desc:'لا فجوات امتثال في DGA · NCA · SADAIA', time:'أمس', unread:false, kind:'success', section:'reports' },
 ];
@@ -10238,6 +10239,20 @@ function clickNotif(id) {
   renderNotifications();
   document.getElementById('notif-panel').classList.remove('open');
   if (n.section && typeof showSection === 'function') showSection(n.section);
+  // Deep-link: scroll to target element after section render
+  if (n.target) {
+    setTimeout(() => {
+      const el = document.getElementById(n.target);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // brief highlight
+        const prev = el.style.boxShadow;
+        el.style.transition = 'box-shadow 0.4s ease';
+        el.style.boxShadow = '0 0 0 3px rgba(30,64,175,0.45)';
+        setTimeout(() => { el.style.boxShadow = prev || ''; }, 1800);
+      }
+    }, 250);
+  }
 }
 function markAllNotifRead() {
   NOTIFICATIONS.forEach(n => n.unread = false);
