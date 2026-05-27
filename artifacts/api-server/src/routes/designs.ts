@@ -13,6 +13,8 @@ import { requireAdmin } from "../middleware/auth";
 import { ObjectStorageService } from "../lib/objectStorage";
 import { composeDesign } from "../composer/composer";
 import { SEED_PRESENTATION_TEMPLATES } from "../composer/seed-presentation";
+import { SEED_TEMPLATES_V2 } from "../composer/seed-templates-v2";
+import { GAC_LOGOS } from "../composer/seed-gac-assets";
 
 const router = Router();
 const objectStorage = new ObjectStorageService();
@@ -111,6 +113,75 @@ router.post("/designs/templates/reseed-presentation", async (_req: Request, res:
     }
   }
   res.json({ ok: true, count: inserted.length, templates: inserted, notes: skipped });
+});
+
+// ─── Seed V2 social media templates (Square / FB cover / Twitter) ─────────────
+// Mirror of reseed-presentation: idempotent overwrite-by-templateNameAr.
+// V2 templates follow GAC-Brand-Manual.pdf (ص 99–103) exactly.
+router.post("/designs/templates/reseed-v2", async (_req: Request, res: Response) => {
+  const inserted: unknown[] = [];
+  const skipped: string[] = [];
+  for (const tpl of SEED_TEMPLATES_V2) {
+    const existing = await db
+      .select()
+      .from(designTemplatesTable)
+      .where(eq(designTemplatesTable.templateNameAr, tpl.templateNameAr))
+      .limit(1);
+    if (existing.length > 0) {
+      const [updated] = await db
+        .update(designTemplatesTable)
+        .set({
+          category: tpl.category,
+          canvasWidth: tpl.canvasWidth,
+          canvasHeight: tpl.canvasHeight,
+          backgroundPanelConfig: tpl.backgroundPanelConfig,
+          textSlots: tpl.textSlots,
+          logoSlots: tpl.logoSlots,
+          promptHint: tpl.promptHint,
+        })
+        .where(eq(designTemplatesTable.id, existing[0].id))
+        .returning();
+      inserted.push(updated);
+      skipped.push(`updated: ${tpl.templateNameAr}`);
+    } else {
+      const [row] = await db.insert(designTemplatesTable).values(tpl).returning();
+      inserted.push(row);
+    }
+  }
+  res.json({ ok: true, count: inserted.length, templates: inserted, notes: skipped });
+});
+
+// ─── Seed GAC official brand logos (horizontal + vertical from PDF) ────────────
+// Decodes base64 PNGs bundled in seed-gac-assets.ts, uploads to Supabase
+// Storage at designs/logos/{uuid}.png, then inserts brand_logos row.
+// Idempotent: skips any logoName that already exists.
+router.post("/designs/logos/seed-gac", async (_req: Request, res: Response) => {
+  const inserted: unknown[] = [];
+  const skipped: string[] = [];
+  for (const asset of GAC_LOGOS) {
+    const existing = await db
+      .select()
+      .from(brandLogosTable)
+      .where(eq(brandLogosTable.logoName, asset.logoName))
+      .limit(1);
+    if (existing.length > 0) {
+      skipped.push(`exists: ${asset.logoName}`);
+      continue;
+    }
+    const buffer = Buffer.from(asset.base64, "base64");
+    const objectPath = await objectStorage.saveLogoBuffer(buffer, "image/png");
+    const [row] = await db
+      .insert(brandLogosTable)
+      .values({
+        logoName: asset.logoName,
+        fileUrl: objectPath,
+        transparent: asset.transparent,
+        defaultWidth: asset.defaultWidth,
+      })
+      .returning();
+    inserted.push(row);
+  }
+  res.json({ ok: true, inserted: inserted.length, skipped, logos: inserted });
 });
 
 // ─── Delete a template (admin only) ───────────────────────────────────────────

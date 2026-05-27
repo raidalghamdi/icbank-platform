@@ -3883,6 +3883,12 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
           <button class="btn btn-primary" style="font-size:13px;" onclick="DES.seedPresentationTemplates()">
             <span class="ico"><svg><use href="#i-plus"/></svg></span> زرع قوالب العرض (PPTX)
           </button>
+          <button class="btn btn-primary" style="font-size:13px;" onclick="DES.seedTemplatesV2()">
+            <span class="ico"><svg><use href="#i-plus"/></svg></span> زرع قوالب V2 (Social Media)
+          </button>
+          <button class="btn btn-primary" style="font-size:13px;" onclick="DES.seedGacLogos()">
+            <span class="ico"><svg><use href="#i-plus"/></svg></span> زرع شعارات GAC
+          </button>
         </div>
       </div>
 
@@ -8402,6 +8408,53 @@ var DES = (function() {
     }
   }
 
+  // ── Seed V2 social media templates (Square + FB cover + Twitter) ──
+  async function seedTemplatesV2() {
+    if (!confirm('سيتم إضافة أو تحديث قوالب V2 (مربع ×3 + غلاف فيسبوك + غلاف تويتر + صورة تويتر). متابعة؟')) return;
+    try {
+      var r = await apiFetch('/api/designs/templates/reseed-v2', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: '{}'
+      });
+      var text = await r.text();
+      var d = null;
+      try { d = text ? JSON.parse(text) : null; } catch(_) {}
+      if (r.ok && d && d.ok) {
+        alert('تم بنجاح: ' + (d.count || 0) + ' قالب، تحديث العرض…');
+        loadTemplates();
+      } else {
+        alert('تعذّر زرع قوالب V2 (HTTP ' + r.status + '): ' + (text || '').slice(0, 300));
+      }
+    } catch(e) {
+      alert('خطأ في الشبكة: ' + (e && e.message ? e.message : String(e)));
+    }
+  }
+
+  // ── Seed GAC official brand logos (horizontal + vertical from PDF) ──
+  async function seedGacLogos() {
+    if (!confirm('سيتم رفع شعاري GAC (أفقي + عمودي) إلى التخزين. متابعة؟')) return;
+    try {
+      var r = await apiFetch('/api/designs/logos/seed-gac', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: '{}'
+      });
+      var text = await r.text();
+      var d = null;
+      try { d = text ? JSON.parse(text) : null; } catch(_) {}
+      if (r.ok && d && d.ok) {
+        var msg = 'تم بنجاح: أضيف ' + (d.inserted || 0) + ' شعار';
+        if (d.skipped && d.skipped.length) msg += '، تخطي ' + d.skipped.length;
+        alert(msg);
+      } else {
+        alert('تعذّر رفع الشعارات (HTTP ' + r.status + '): ' + (text || '').slice(0, 300));
+      }
+    } catch(e) {
+      alert('خطأ في الشبكة: ' + (e && e.message ? e.message : String(e)));
+    }
+  }
+
   // ── Editor ───────────────────────────────────────────────────────
   var _edTpl = null;
   var _edFonts = [];
@@ -8951,6 +9004,8 @@ var DES = (function() {
     uploadFont: uploadFont, setDefaultFont: setDefaultFont, deleteFont: deleteFont,
     selectTemplate: selectTemplate, seedTestTemplate: seedTestTemplate,
     seedPresentationTemplates: seedPresentationTemplates,
+    seedTemplatesV2: seedTemplatesV2,
+    seedGacLogos: seedGacLogos,
     edOpen: edOpen, edUpdate: edUpdate, edToggleLogo: edToggleLogo, edZoom: edZoom,
     edGenerateBg: edGenerateBg, edSelectBg: edSelectBg,
     edFullPreview: edFullPreview, edCloseFullPreview: edCloseFullPreview, edDownload: edDownload,

@@ -288,6 +288,29 @@ export class ObjectStorageService {
   }
 
   /**
+   * Upload a logo buffer directly to designs/logos/ and return its objectPath.
+   * Used by the GAC logo seed endpoint to push the official brand-manual logos
+   * straight from the bundled base64 assets into Supabase Storage.
+   */
+  async saveLogoBuffer(
+    buffer: Buffer,
+    contentType: string = "image/png"
+  ): Promise<string> {
+    const supabase = getSupabase();
+    const ext = contentType.includes("png") ? "png" : contentType.includes("jpeg") ? "jpg" : "png";
+    const uuid = randomUUID();
+    const relPath = `designs/logos/${uuid}.${ext}`;
+    const key = relPathToKey(relPath);
+    const { error } = await supabase.storage
+      .from(SUPABASE_STORAGE_BUCKET)
+      .upload(key, buffer, { contentType, upsert: false });
+    if (error) {
+      throw new Error(`Supabase upload failed: ${error.message}`);
+    }
+    return `/objects/${relPath}`;
+  }
+
+  /**
    * Fetch raw bytes for an objectPath (e.g. /objects/designs/...) — useful so
    * the server composer can read both backgrounds and logos by URL.
    */
