@@ -2,6 +2,14 @@ import app from "./app";
 import { logger } from "./lib/logger";
 import { runSeedIfNeeded } from "./lib/seed";
 
+// Catch any unhandled errors so the process never exits silently on Railway
+process.on("unhandledRejection", (reason) => {
+  logger.error({ reason }, "Unhandled promise rejection");
+});
+process.on("uncaughtException", (err) => {
+  logger.error({ err }, "Uncaught exception");
+});
+
 const rawPort = process.env["PORT"];
 
 if (!rawPort) {
@@ -23,5 +31,12 @@ app.listen(port, "0.0.0.0", (err) => {
   }
 
   logger.info({ port, host: "0.0.0.0" }, "Server listening");
-  runSeedIfNeeded().catch(err => logger.error({ err }, "Seed error"));
+
+  // Skip seed if disabled (data is already seeded via Supabase MCP)
+  if (process.env["SKIP_SEED"] === "true") {
+    logger.info("SKIP_SEED=true, skipping seed");
+    return;
+  }
+
+  runSeedIfNeeded().catch((err) => logger.error({ err }, "Seed error"));
 });
