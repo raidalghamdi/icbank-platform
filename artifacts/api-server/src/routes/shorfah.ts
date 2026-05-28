@@ -9,6 +9,7 @@ import {
   shorfahAssignmentsTable,
   shorfahRemindersTable,
   shorfahNotificationsTable,
+  usersTable,
 } from "@workspace/db";
 import { eq, desc, asc, and, or, lt, inArray, isNotNull } from "drizzle-orm";
 import { requireAuth, requireAdmin } from "../middleware/auth";
@@ -55,14 +56,25 @@ async function logAction(
 }
 
 // Fetch all users (for publish fan-out / notifications)
-async function getAllUsers(): Promise<Array<{ id: number; email: string | null; name: string | null }>> {
+async function getAllUsers(): Promise<Array<{ id: number; email: string; name: string }>> {
   try {
-    const result = await db.execute(
-      `SELECT id, email, name_ar as name FROM users ORDER BY id`
-    );
-    return (result.rows || []) as Array<{ id: number; email: string | null; name: string | null }>;
+    const users = await db.select({ id: usersTable.id, email: usersTable.email, name: usersTable.name }).from(usersTable);
+    return users;
   } catch {
     return [];
+  }
+}
+
+// Fetch user by ID
+async function getUserById(userId: number): Promise<{ id: number; email: string; name: string } | null> {
+  try {
+    const [user] = await db.select({ id: usersTable.id, email: usersTable.email, name: usersTable.name })
+      .from(usersTable)
+      .where(eq(usersTable.id, userId))
+      .limit(1);
+    return user || null;
+  } catch {
+    return null;
   }
 }
 
@@ -631,16 +643,9 @@ router.post("/shorfah/issues/:id/send-initial", requireAdmin, async (req: Reques
     const sectionAssignments = assignments.filter((a) => a.sectionId === section.id);
     for (const assignment of sectionAssignments) {
       // Get user details
-      let userEmail: string | null = null;
-      let userName = "المساهم";
-      try {
-        const userRows = await db.execute(`SELECT email, name_ar FROM users WHERE id = ${assignment.userId} LIMIT 1`);
-        const u = (userRows.rows || [])[0] as Record<string, unknown> | undefined;
-        if (u) {
-          userEmail = (u.email as string) || null;
-          userName = (u.name_ar as string) || "المساهم";
-        }
-      } catch {}
+      const userRec1 = await getUserById(assignment.userId);
+      const userEmail = userRec1?.email ?? null;
+      const userName = userRec1?.name ?? "المساهم";
 
       const arabicMonths = ["يناير","فبراير","مارس","أبريل","مايو","يونيو",
         "يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
@@ -687,13 +692,9 @@ router.post("/shorfah/sections/:id/remind", requireAdmin, async (req: Request, r
 
   const [issue] = await db.select().from(shorfahIssuesTable).where(eq(shorfahIssuesTable.id, section.issueId)).limit(1);
 
-  let userEmail: string | null = null;
-  let userName = "المساهم";
-  try {
-    const userRows = await db.execute(`SELECT email, name_ar FROM users WHERE id = ${userId} LIMIT 1`);
-    const u = (userRows.rows || [])[0] as Record<string, unknown> | undefined;
-    if (u) { userEmail = (u.email as string) || null; userName = (u.name_ar as string) || "المساهم"; }
-  } catch {}
+  const userRec = await getUserById(Number(userId));
+  let userEmail: string | null = userRec?.email ?? null;
+  let userName: string = userRec?.name ?? "المساهم";
 
   const now = new Date();
   const daysOverdue = section.slaDeadline
@@ -788,13 +789,9 @@ router.post("/cron/shorfah/check-overdue", async (req: Request, res: Response) =
       const daysOverdue = Math.floor((now.getTime() - section.slaDeadline!.getTime()) / 86400000);
 
       for (const assignment of assignments) {
-        let userEmail: string | null = null;
-        let userName = "المساهم";
-        try {
-          const userRows = await db.execute(`SELECT email, name_ar FROM users WHERE id = ${assignment.userId} LIMIT 1`);
-          const u = (userRows.rows || [])[0] as Record<string, unknown> | undefined;
-          if (u) { userEmail = (u.email as string) || null; userName = (u.name_ar as string) || "المساهم"; }
-        } catch {}
+        const userRec = await getUserById(assignment.userId);
+        let userEmail: string | null = userRec?.email ?? null;
+        let userName: string = userRec?.name ?? "المساهم";
 
         await sendNotification({
           userId: assignment.userId,
