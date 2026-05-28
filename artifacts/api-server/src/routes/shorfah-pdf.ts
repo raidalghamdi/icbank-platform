@@ -934,8 +934,9 @@ export const SHORFAH_PDF_CSS = `
   /* ─── Generic section page ─────────────────────────────────── */
   .section {
     position: relative;
-    width: 210mm; min-height: 297mm;
+    width: 210mm; height: 297mm;
     page-break-after: always;
+    page-break-inside: avoid;
     overflow: hidden;
   }
   .theme-light { background: ${OFFWHITE}; color: ${NAVY}; }
@@ -1244,23 +1245,23 @@ export const SHORFAH_PDF_CSS = `
   /* ─── Employee QA (light, teal title plate, speech bubbles) ── */
   .section-qa .qa-titlebar {
     background: ${TEAL}; color: #fff;
-    padding: 6mm 14mm; margin: 0 0 8mm;
+    padding: 4mm 14mm; margin: 0 0 5mm;
     border-radius: 0;
     display: flex; align-items: center; justify-content: space-between;
     direction: rtl;
     gap: 6mm;
   }
-  .section-qa .qa-title { margin: 0; color: #fff; font-size: 36pt; font-weight: 900; flex: 1; }
-  .section-qa .qa-speech-icon { width: 28mm; height: 28mm; flex-shrink: 0; }
+  .section-qa .qa-title { margin: 0; color: #fff; font-size: 28pt; font-weight: 900; flex: 1; }
+  .section-qa .qa-speech-icon { width: 20mm; height: 20mm; flex-shrink: 0; }
 
   .section-qa .qa-grid {
-    display: grid; grid-template-columns: 55mm 1fr;
-    gap: 8mm; padding: 0 14mm 18mm;
+    display: grid; grid-template-columns: 50mm 1fr;
+    gap: 6mm; padding: 0 14mm 8mm;
     direction: rtl;
   }
   .section-qa .qa-portrait-col { display: flex; flex-direction: column; }
   .section-qa .qa-portrait {
-    width: 55mm; height: 74mm;
+    width: 50mm; height: 60mm;
     border-radius: 3mm; overflow: hidden;
     background: ${MINT};
   }
@@ -1284,13 +1285,13 @@ export const SHORFAH_PDF_CSS = `
 
   /* Q&A speech bubbles */
   .section-qa .qa-body {
-    display: flex; flex-direction: column; gap: 3mm;
+    display: flex; flex-direction: column; gap: 2mm;
     direction: rtl;
   }
   .qa-bubble {
-    padding: 4mm 5mm;
+    padding: 2.5mm 4mm;
     border-radius: 2mm;
-    font-size: 10pt; line-height: 1.7;
+    font-size: 9.5pt; line-height: 1.5;
     display: flex; align-items: flex-start; gap: 3mm;
     position: relative;
   }
