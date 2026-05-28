@@ -4517,21 +4517,29 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
 
     <!-- Selected issue detail -->
     <div id="shorfah-issue-detail" style="display:none;">
-      <div class="card" style="padding:18px;margin-bottom:14px;">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;">
-          <div>
-            <div id="shorfah-issue-title" style="font-size:20px;font-weight:900;color:var(--text);"></div>
-            <div id="shorfah-issue-meta" style="font-size:13px;color:var(--text-3);margin-top:6px;"></div>
-          </div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button class="btn btn-ghost btn-sm" onclick="shorfahBackToList()">← العودة للأعداد</button>
-            <a id="shorfah-pdf-btn" class="btn btn-secondary btn-sm" href="#" target="_blank">
-              <span class="ico"><svg><use href="#i-file-pdf"/></svg></span>عرض PDF
-            </a>
-            <button id="shorfah-publish-btn" class="btn btn-primary btn-sm" onclick="shorfahPublishIssue()" style="display:none;">
-              <span class="ico"><svg><use href="#i-check"/></svg></span>نشر العدد
-            </button>
-          </div>
+      <div class="card" style="padding:16px;margin-bottom:14px;">
+        <!-- Back link (always on top, full-width on mobile) -->
+        <button class="btn btn-ghost btn-sm" onclick="shorfahBackToList()" style="margin-bottom:10px;">
+          <svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          العودة للأعداد
+        </button>
+        <!-- Title + meta -->
+        <div id="shorfah-issue-title" style="font-size:18px;font-weight:900;color:var(--text);line-height:1.4;"></div>
+        <div id="shorfah-issue-meta" style="font-size:13px;color:var(--text-3);margin-top:6px;"></div>
+        <!-- Action buttons row (full-width on mobile) -->
+        <div id="shorfah-issue-actions" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;">
+          <a id="shorfah-pdf-preview-btn" class="btn btn-ghost btn-sm" href="#" target="_blank" style="flex:1 1 140px;justify-content:center;">
+            <svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            معاينة
+          </a>
+          <a id="shorfah-pdf-download-btn" class="btn btn-secondary btn-sm" href="#" download style="flex:1 1 140px;justify-content:center;">
+            <svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            تحميل PDF
+          </a>
+          <button id="shorfah-publish-btn" class="btn btn-primary btn-sm" onclick="shorfahPublishIssue()" style="display:none;flex:1 1 140px;justify-content:center;">
+            <svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            نشر العدد
+          </button>
         </div>
       </div>
 
@@ -10452,11 +10460,18 @@ async function shorfahOpenIssue(id) {
     var month = SHORFAH_ARABIC_MONTHS[data.issue.month - 1] || data.issue.month;
     document.getElementById('shorfah-issue-title').textContent = (data.issue.titleAr || data.issue.title_ar || 'شُرفة') + ' — العدد ' + (data.issue.issueNo || data.issue.issue_no);
     document.getElementById('shorfah-issue-meta').innerHTML = month + ' ' + data.issue.year + ' · حالة: <strong>'+(data.issue.status || '—')+'</strong>';
-    // PDF button — preview mode for non-published, normal for published
-    var pdfBtn = document.getElementById('shorfah-pdf-btn');
+    // PDF buttons — preview (HTML view) + download (binary .pdf)
     var isPublished = data.issue.status === 'published';
-    pdfBtn.href = '/api/shorfah/issues/'+id+'/pdf' + (isPublished ? '' : '?preview=1');
-    pdfBtn.innerHTML = (isPublished ? '<svg class="i-file-pdf"></svg>عرض PDF النهائي' : '<svg class="i-file-pdf"></svg>معاينة PDF');
+    var previewBtn = document.getElementById('shorfah-pdf-preview-btn');
+    var downloadBtn = document.getElementById('shorfah-pdf-download-btn');
+    if (previewBtn) {
+      previewBtn.href = '/api/shorfah/issues/'+id+'/pdf' + (isPublished ? '' : '?preview=1');
+    }
+    if (downloadBtn) {
+      // Real .pdf binary route (Puppeteer). For non-published issues, allow preview-mode download.
+      downloadBtn.href = '/api/shorfah/issues/'+id+'/pdf.pdf' + (isPublished ? '' : '?preview=1');
+      downloadBtn.setAttribute('download', 'shorfah-issue-'+(data.issue.issueNo||data.issue.issue_no||id)+'.pdf');
+    }
     // Publish button — admin only
     var pubBtn = document.getElementById('shorfah-publish-btn');
     pubBtn.style.display = (shorfahIsAdmin() && !isPublished) ? '' : 'none';
