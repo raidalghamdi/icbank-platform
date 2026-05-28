@@ -6,11 +6,10 @@
  * - Teal/Cyan palette: #1a6e7a (teal), #0e3b4a (navy), #cce4e6 (mint), #3ec0d0 (cyan), #f0f7f8 (offwhite)
  * - GAC official: #00567D (dark blue), #46BCCD (cyan)
  * - Display font: Tajawal 900 for huge titles, Cairo/Tajawal 700 for body
- * - Each section page has: top nav strip (current highlighted), large title with 3D icon, content
+ * - Each section page has: top nav strip (current highlighted), large title with icon, content
  * - Page themes vary: light/mint cover, light section pages, dark navy pages, full teal pages
  *
- * IMPORTANT: This template targets print via @page A4 portrait. Images are served from
- * /shorfah/*.png (Vercel static).
+ * IMPORTANT: All icons are inline SVG — no external image dependencies.
  */
 
 const TEAL = "#1a6e7a";
@@ -21,15 +20,147 @@ const OFFWHITE = "#f0f7f8";
 const TEAL_DARK = "#155a64";
 const DEEPNAVY = "#0a2c38";
 
-// Map section type -> 3D icon image file (served from /shorfah/)
+// Map section type -> inline SVG string (self-contained, no external deps)
 export const SECTION_ICON: Record<string, string> = {
-  news: "/shorfah/cover-newspaper.png",
-  office_interview: "/shorfah/icon-mic.png",
-  competition_culture: "/shorfah/icon-monitor.png",
-  outside_box: "/shorfah/icon-box-arrow.png",
-  events: "/shorfah/icon-bunting.png",
-  employee_qa: "/shorfah/icon-speech.png",
+  news: "newspaper",
+  office_interview: "microphone",
+  competition_culture: "monitor",
+  outside_box: "box",
+  events: "bunting",
+  employee_qa: "speech",
 };
+
+/** Returns inline SVG markup for each section icon type. */
+function sectionIconSvg(type: string): string {
+  switch (type) {
+    case "newspaper":
+      return `<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">
+        <rect x="8" y="14" width="52" height="60" rx="4" fill="#e8f4f6" stroke="${TEAL}" stroke-width="2.5"/>
+        <rect x="18" y="24" width="32" height="4" rx="2" fill="${TEAL}"/>
+        <rect x="18" y="32" width="24" height="3" rx="1.5" fill="${MINT}"/>
+        <rect x="18" y="39" width="28" height="3" rx="1.5" fill="${MINT}"/>
+        <rect x="18" y="46" width="20" height="3" rx="1.5" fill="${MINT}"/>
+        <rect x="18" y="53" width="26" height="3" rx="1.5" fill="${MINT}"/>
+        <rect x="18" y="60" width="18" height="3" rx="1.5" fill="${MINT}"/>
+        <rect x="56" y="20" width="18" height="48" rx="3" fill="${CYAN}" opacity="0.85"/>
+        <rect x="60" y="28" width="10" height="2.5" rx="1.2" fill="white"/>
+        <rect x="60" y="34" width="10" height="2.5" rx="1.2" fill="white"/>
+        <rect x="60" y="40" width="10" height="2.5" rx="1.2" fill="white"/>
+        <rect x="60" y="46" width="10" height="2.5" rx="1.2" fill="white"/>
+      </svg>`;
+    case "microphone":
+      return `<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">
+        <rect x="28" y="8" width="24" height="36" rx="12" fill="${TEAL}"/>
+        <rect x="34" y="8" width="12" height="36" rx="6" fill="${TEAL_DARK}" opacity="0.5"/>
+        <path d="M16 38 Q16 62 40 62 Q64 62 64 38" stroke="${CYAN}" stroke-width="4" fill="none" stroke-linecap="round"/>
+        <line x1="40" y1="62" x2="40" y2="72" stroke="${TEAL}" stroke-width="4" stroke-linecap="round"/>
+        <line x1="28" y1="72" x2="52" y2="72" stroke="${TEAL}" stroke-width="4" stroke-linecap="round"/>
+        <rect x="34" y="18" width="4" height="3" rx="1.5" fill="white" opacity="0.7"/>
+        <rect x="34" y="25" width="4" height="3" rx="1.5" fill="white" opacity="0.7"/>
+      </svg>`;
+    case "monitor":
+      return `<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">
+        <rect x="8" y="12" width="64" height="44" rx="5" fill="${NAVY}"/>
+        <rect x="14" y="18" width="52" height="32" rx="2" fill="${CYAN}" opacity="0.15"/>
+        <rect x="14" y="18" width="52" height="32" rx="2" fill="none" stroke="${CYAN}" stroke-width="1.5"/>
+        <circle cx="40" cy="34" r="8" fill="${CYAN}" opacity="0.7"/>
+        <path d="M36 34 L44 30 L44 38 Z" fill="white"/>
+        <rect x="32" y="56" width="16" height="6" rx="2" fill="${TEAL}" opacity="0.7"/>
+        <rect x="20" y="62" width="40" height="4" rx="2" fill="${TEAL}"/>
+      </svg>`;
+    case "box":
+      return `<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">
+        <rect x="10" y="30" width="50" height="38" rx="4" fill="${MINT}" stroke="${TEAL}" stroke-width="2.5"/>
+        <rect x="8" y="22" width="54" height="12" rx="3" fill="${TEAL}"/>
+        <line x1="35" y1="22" x2="35" y2="34" stroke="white" stroke-width="2"/>
+        <path d="M50 14 L60 6 M60 6 L54 6 M60 6 L60 12" stroke="${CYAN}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        <rect x="18" y="40" width="34" height="3" rx="1.5" fill="${TEAL}" opacity="0.5"/>
+        <rect x="18" y="47" width="28" height="3" rx="1.5" fill="${TEAL}" opacity="0.4"/>
+        <rect x="18" y="54" width="22" height="3" rx="1.5" fill="${TEAL}" opacity="0.3"/>
+      </svg>`;
+    case "bunting":
+      return `<svg viewBox="0 0 120 40" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">
+        <path d="M4 4 Q15 4 20 4 Q30 4 35 4 Q50 4 55 4 Q65 4 70 4 Q80 4 85 4 Q100 4 105 4 Q115 4 116 4" stroke="${TEAL}" stroke-width="2" fill="none"/>
+        <polygon points="12,6 18,28 6,28" fill="${TEAL}"/>
+        <polygon points="30,6 36,28 24,28" fill="${CYAN}"/>
+        <polygon points="48,6 54,28 42,28" fill="${MINT}" stroke="${TEAL}" stroke-width="1"/>
+        <polygon points="66,6 72,28 60,28" fill="${TEAL}"/>
+        <polygon points="84,6 90,28 78,28" fill="${CYAN}"/>
+        <polygon points="102,6 108,28 96,28" fill="${MINT}" stroke="${TEAL}" stroke-width="1"/>
+      </svg>`;
+    case "speech":
+      return `<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">
+        <rect x="6" y="10" width="58" height="40" rx="10" fill="${TEAL}"/>
+        <path d="M20 50 L12 64 L32 54" fill="${TEAL}"/>
+        <rect x="16" y="22" width="38" height="4" rx="2" fill="white" opacity="0.9"/>
+        <rect x="16" y="31" width="30" height="4" rx="2" fill="white" opacity="0.7"/>
+        <rect x="16" y="40" width="22" height="4" rx="2" fill="white" opacity="0.5"/>
+      </svg>`;
+    default:
+      return `<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">
+        <circle cx="40" cy="40" r="32" fill="${TEAL}" opacity="0.3"/>
+        <circle cx="40" cy="40" r="20" fill="${TEAL}"/>
+      </svg>`;
+  }
+}
+
+/** GAC official logo SVG — inline, no external dependency. */
+function gacLogoSvg(): string {
+  return `<svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">
+    <!-- Interlocking diamond / weave pattern inspired by GAC hexagonal logo -->
+    <g fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <!-- Outer hex -->
+      <polygon points="40,4 68,20 68,56 40,72 12,56 12,20" stroke-width="2.5"/>
+      <!-- Inner woven cross -->
+      <line x1="40" y1="14" x2="40" y2="62"/>
+      <line x1="18" y1="26" x2="62" y2="50"/>
+      <line x1="62" y1="26" x2="18" y2="50"/>
+      <!-- Accent dots at intersections -->
+    </g>
+    <circle cx="40" cy="38" r="6" fill="white" opacity="0.9"/>
+    <circle cx="40" cy="20" r="3" fill="white" opacity="0.7"/>
+    <circle cx="55" cy="29" r="3" fill="white" opacity="0.7"/>
+    <circle cx="55" cy="47" r="3" fill="white" opacity="0.7"/>
+    <circle cx="40" cy="56" r="3" fill="white" opacity="0.7"/>
+    <circle cx="25" cy="47" r="3" fill="white" opacity="0.7"/>
+    <circle cx="25" cy="29" r="3" fill="white" opacity="0.7"/>
+  </svg>`;
+}
+
+/** Newspaper illustration SVG for cover hero — no external dependency. */
+function coverNewspaperSvg(): string {
+  return `<svg viewBox="0 0 260 200" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;filter:drop-shadow(0 8px 20px rgba(0,0,0,0.22))">
+    <!-- Main newspaper body — slightly rotated, rendered inline via transform -->
+    <g transform="rotate(-6 130 100)">
+      <!-- Shadow -->
+      <rect x="20" y="22" width="190" height="156" rx="10" fill="rgba(10,44,56,0.25)" transform="translate(6,8)"/>
+      <!-- Paper body -->
+      <rect x="20" y="22" width="190" height="156" rx="10" fill="#e8f4f6"/>
+      <!-- Header strip -->
+      <rect x="20" y="22" width="190" height="34" rx="10" fill="${TEAL}"/>
+      <rect x="20" y="44" width="190" height="12" fill="${TEAL}"/>
+      <!-- Header lines -->
+      <rect x="34" y="30" width="100" height="6" rx="3" fill="white" opacity="0.9"/>
+      <rect x="34" y="40" width="70" height="4" rx="2" fill="white" opacity="0.6"/>
+      <!-- Photo placeholder left col -->
+      <rect x="30" y="66" width="80" height="54" rx="5" fill="${CYAN}" opacity="0.4"/>
+      <rect x="38" y="74" width="64" height="38" rx="3" fill="${CYAN}" opacity="0.5"/>
+      <!-- Lines right col -->
+      <rect x="122" y="66" width="78" height="5" rx="2.5" fill="${NAVY}" opacity="0.4"/>
+      <rect x="122" y="76" width="72" height="5" rx="2.5" fill="${NAVY}" opacity="0.3"/>
+      <rect x="122" y="86" width="68" height="5" rx="2.5" fill="${NAVY}" opacity="0.3"/>
+      <rect x="122" y="96" width="74" height="5" rx="2.5" fill="${NAVY}" opacity="0.3"/>
+      <rect x="122" y="106" width="60" height="5" rx="2.5" fill="${NAVY}" opacity="0.2"/>
+      <!-- Bottom lines full width -->
+      <rect x="30" y="132" width="180" height="5" rx="2.5" fill="${NAVY}" opacity="0.25"/>
+      <rect x="30" y="142" width="160" height="5" rx="2.5" fill="${NAVY}" opacity="0.2"/>
+      <rect x="30" y="152" width="140" height="5" rx="2.5" fill="${NAVY}" opacity="0.15"/>
+      <rect x="30" y="162" width="100" height="5" rx="2.5" fill="${NAVY}" opacity="0.12"/>
+    </g>
+    <!-- Folded corner highlight -->
+    <path d="M192 28 L216 4 L216 28 Z" fill="${MINT}" opacity="0.7" transform="rotate(-6 130 100)"/>
+  </svg>`;
+}
 
 // Theme per section type (matches sample exactly)
 export const SECTION_THEME: Record<string, "light" | "navy" | "teal"> = {
@@ -101,6 +232,97 @@ export function mdToHtml(md: string): string {
     .join("\n");
 }
 
+/**
+ * Parse markdown into news card objects: { title, body }[].
+ * Looks for ## heading followed by paragraphs as cards.
+ * Falls back to a single card with all content if no headings found.
+ */
+function parseNewsCards(md: string): Array<{ title: string; body: string }> {
+  if (!md || !md.trim()) return [];
+
+  const lines = md.split("\n");
+  const cards: Array<{ title: string; body: string[] }> = [];
+  let current: { title: string; body: string[] } | null = null;
+
+  for (const line of lines) {
+    const headingMatch = line.match(/^##\s+(.+)$/);
+    if (headingMatch) {
+      if (current) cards.push(current);
+      current = { title: headingMatch[1].trim(), body: [] };
+    } else if (current) {
+      if (line.trim()) current.body.push(line.trim());
+    } else {
+      // Content before any heading — make a headerless card
+      if (line.trim()) {
+        if (!current) current = { title: "", body: [] };
+        current.body.push(line.trim());
+      }
+    }
+  }
+  if (current) cards.push(current);
+
+  return cards
+    .filter((c) => c.title || c.body.length)
+    .map((c) => ({ title: c.title, body: c.body.join(" ") }));
+}
+
+/**
+ * Parse markdown Q&A pairs.
+ * Recognizes:
+ *   > question text   (blockquote = question)
+ *   following paragraph = answer
+ * OR ## Q: / ## A: markers
+ * OR alternating paragraphs (odd=Q, even=A)
+ */
+function parseQAPairs(md: string): Array<{ q: string; a: string }> {
+  if (!md || !md.trim()) return [];
+
+  const pairs: Array<{ q: string; a: string }> = [];
+
+  // Try blockquote pattern: > Q then paragraph A
+  const bqPattern = /^> (.+)$/gm;
+  const bqMatches = [...md.matchAll(bqPattern)];
+  if (bqMatches.length > 0) {
+    // Split around blockquotes
+    const parts = md.split(/^> .+$/m);
+    for (let i = 0; i < bqMatches.length; i++) {
+      const q = bqMatches[i][1].trim();
+      const a = (parts[i + 1] || "").trim().replace(/\n+/g, " ").replace(/^[>-]\s*/gm, "");
+      if (q || a) pairs.push({ q, a });
+    }
+    if (pairs.length > 0) return pairs;
+  }
+
+  // Try alternating paragraphs
+  const paras = md.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
+  for (let i = 0; i < paras.length; i += 2) {
+    const q = paras[i].replace(/^[#>*-]+\s*/, "").trim();
+    const a = (paras[i + 1] || "").replace(/^[#>*-]+\s*/, "").trim();
+    pairs.push({ q, a });
+  }
+  return pairs;
+}
+
+/**
+ * Parse competition culture stats from markdown.
+ * Looks for patterns like:
+ *   - Caption: Number
+ *   - Caption — Number
+ *   Or ## heading with following bullet list
+ */
+function parseStatCards(md: string): Array<{ label: string; value: string; caption?: string }> {
+  const stats: Array<{ label: string; value: string; caption?: string }> = [];
+
+  // Pattern: "- label: number" or "- label — number"
+  const linePattern = /^-\s+(.+?)[:—–]\s*(\d[\d,٠-٩]*%?)\s*$/gm;
+  let m: RegExpExecArray | null;
+  while ((m = linePattern.exec(md)) !== null) {
+    stats.push({ label: m[1].trim(), value: m[2].trim() });
+  }
+
+  return stats;
+}
+
 /** Top navigation strip showing all 6 section tabs; active one underlined. */
 function navStrip(activeType: string, theme: "light" | "navy" | "teal" = "light"): string {
   const tabs = NAV_ORDER.map((type) => {
@@ -124,42 +346,35 @@ function coverPageHtml(opts: {
   return `
   <section class="cover">
     <div class="cover-bg-pattern"></div>
-    <!-- Ribbon date (top-right in RTL = right side) -->
+    <!-- Ribbon date — top-LEFT visually (start in RTL), matching sample-1 -->
     <div class="cv-ribbon">
       <div class="cv-ribbon-year">${opts.year}</div>
       <div class="cv-ribbon-month">${opts.arabicMonth}</div>
     </div>
-    <!-- Brand top-left -->
+    <!-- Brand top-RIGHT visually (end in RTL), matching sample-1 -->
     <div class="cv-brand">
-      <div class="cv-brand-ar">الهيئة العامة للمنافسة</div>
-      <div class="cv-brand-en">General Authority for Competition</div>
-      <div class="cv-brand-mark">
-        <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
-          <g fill="#fff">
-            <path d="M30 4 L48 18 L48 38 L30 52 L12 38 L12 18 Z" fill="none" stroke="#fff" stroke-width="2.5"/>
-            <path d="M22 22 L30 16 L38 22 L38 32 L30 38 L22 32 Z" fill="#fff" opacity="0.95"/>
-          </g>
-        </svg>
+      <div class="cv-brand-text">
+        <div class="cv-brand-ar">الهيئة العامة للمنافسة</div>
+        <div class="cv-brand-en">General Authority for Competition</div>
       </div>
+      <div class="cv-brand-mark">${gacLogoSvg()}</div>
     </div>
 
-    <!-- Hero: large title + newspaper artwork -->
+    <!-- Hero: newspaper SVG illustration + شرفة wordmark -->
     <div class="cv-hero">
-      <img class="cv-newspaper" src="/shorfah/cover-newspaper.png" alt=""/>
-      <h1 class="cv-title">
-        <span class="cv-title-prefix">شرفـــــ</span><span class="cv-title-suffix">ـــــة</span>
-      </h1>
+      <div class="cv-newspaper-wrap">${coverNewspaperSvg()}</div>
+      <h1 class="cv-title">شرفـــــة</h1>
     </div>
 
     <div class="cv-subtitle">${opts.subtitle}</div>
 
-    <!-- Tabs strip with "في هذا العدد" badge on right -->
+    <!-- Tabs strip with "في هذا العدد" badge on left (RTL start) -->
     <div class="cv-tabs-row">
-      <div class="cv-tabs-strip">${tabs}</div>
       <div class="cv-tabs-badge">
         <div>في هذا</div>
         <div>العدد</div>
       </div>
+      <div class="cv-tabs-strip">${tabs}</div>
     </div>
 
     <!-- Motto plate at bottom -->
@@ -167,20 +382,56 @@ function coverPageHtml(opts: {
   </section>`;
 }
 
-/** Default News section (light theme with grid of cards). */
+/** News section — 2-column card grid with gradient photo areas + teal title plates. */
 function sectionNewsHtml(opts: {
   titleAr: string;
-  contentHtml: string;
+  contentMd: string;
   type: string;
 }): string {
+  const cards = parseNewsCards(opts.contentMd);
+
+  let cardsHtml: string;
+  if (cards.length === 0) {
+    // Fallback: render parsed HTML as-is
+    cardsHtml = `<div class="news-single">${mdToHtml(opts.contentMd)}</div>`;
+  } else {
+    cardsHtml = cards
+      .map((card, idx) => {
+        // Alternate gradient hues for photo placeholder
+        const gradients = [
+          `linear-gradient(135deg, ${TEAL} 0%, ${CYAN} 100%)`,
+          `linear-gradient(135deg, ${NAVY} 0%, ${TEAL} 100%)`,
+          `linear-gradient(135deg, ${TEAL_DARK} 0%, ${CYAN} 100%)`,
+          `linear-gradient(135deg, ${DEEPNAVY} 0%, ${TEAL} 100%)`,
+        ];
+        const grad = gradients[idx % gradients.length];
+        const titleHtml = card.title
+          ? `<div class="news-card-title">${card.title}</div>`
+          : "";
+        const bodyHtml = card.body
+          ? `<div class="news-card-body">${card.body}</div>`
+          : "";
+        return `<div class="news-card">
+          <div class="news-card-photo" style="background:${grad}">
+            <div class="news-card-photo-pattern"></div>
+          </div>
+          ${titleHtml}
+          ${bodyHtml}
+        </div>`;
+      })
+      .join("");
+  }
+
   return `
   <section class="section section-news theme-light">
     ${navStrip(opts.type, "light")}
     <div class="sec-hero">
-      <img class="sec-icon sec-icon-news" src="${SECTION_ICON[opts.type] || "/shorfah/cover-newspaper.png"}" alt=""/>
+      <div class="sec-icon-wrap">${sectionIconSvg("newspaper")}</div>
       <h2 class="sec-title sec-title-news">${opts.titleAr}</h2>
     </div>
-    <div class="sec-body sec-body-news">${opts.contentHtml}</div>
+    <div class="sec-body sec-body-news">
+      <div class="news-grid">${cardsHtml}</div>
+    </div>
   </section>`;
 }
 
@@ -200,8 +451,21 @@ function sectionOfficeInterviewHtml(opts: {
         <div class="oi-portrait-placeholder">
           <svg viewBox="0 0 120 160" xmlns="http://www.w3.org/2000/svg">
             <rect width="120" height="160" fill="${MINT}"/>
-            <circle cx="60" cy="60" r="28" fill="${TEAL}"/>
-            <path d="M20 160 Q60 100 100 160 Z" fill="${TEAL}"/>
+            <!-- Shoulders/torso -->
+            <rect x="20" y="100" width="80" height="60" rx="8" fill="${TEAL}" opacity="0.6"/>
+            <!-- Neck -->
+            <rect x="48" y="86" width="24" height="20" rx="4" fill="#d4a87a"/>
+            <!-- Head -->
+            <ellipse cx="60" cy="72" rx="26" ry="28" fill="#d4a87a"/>
+            <!-- Ghutra / headdress suggestion -->
+            <ellipse cx="60" cy="50" rx="28" ry="14" fill="white" opacity="0.9"/>
+            <rect x="32" y="50" width="56" height="8" rx="2" fill="white" opacity="0.85"/>
+            <!-- Agal (black ring) -->
+            <ellipse cx="60" cy="50" rx="20" ry="6" fill="${NAVY}" opacity="0.75"/>
+            <!-- Facial features minimal -->
+            <ellipse cx="50" cy="74" rx="4" ry="3" fill="${NAVY}" opacity="0.3"/>
+            <ellipse cx="70" cy="74" rx="4" ry="3" fill="${NAVY}" opacity="0.3"/>
+            <path d="M50 84 Q60 90 70 84" stroke="${NAVY}" stroke-width="2" fill="none" opacity="0.4" stroke-linecap="round"/>
           </svg>
         </div>
         ${opts.descriptionAr ? `<div class="oi-caption">${opts.descriptionAr}</div>` : ""}
@@ -211,31 +475,55 @@ function sectionOfficeInterviewHtml(opts: {
   </section>`;
 }
 
-/** Competition culture — full dark navy page with big title + infographic-like body. */
+/** Competition culture — full dark navy page with big vertical title + stat cards. */
 function sectionCompetitionCultureHtml(opts: {
   titleAr: string;
-  contentHtml: string;
+  contentMd: string;
   type: string;
   arabicMonth: string;
   year: number;
 }): string {
+  const stats = parseStatCards(opts.contentMd);
+  const contentHtml = mdToHtml(opts.contentMd);
+
+  // Build stat cards or fallback
+  let statsHtml: string;
+  if (stats.length > 0) {
+    statsHtml = stats
+      .map(
+        (s) => `<div class="cc-stat-card">
+          <div class="cc-stat-value">${s.value}</div>
+          <div class="cc-stat-label">${s.label}</div>
+        </div>`
+      )
+      .join("");
+  } else {
+    // Render any markdown content as-is
+    statsHtml = contentHtml
+      ? `<div class="cc-content-fallback">${contentHtml}</div>`
+      : `<div class="cc-stat-card cc-stat-placeholder"><div class="cc-stat-value">—</div><div class="cc-stat-label">أضف الإحصائيات</div></div>
+         <div class="cc-stat-card cc-stat-placeholder"><div class="cc-stat-value">—</div><div class="cc-stat-label">أضف الإحصائيات</div></div>`;
+  }
+
   return `
   <section class="section section-comp theme-navy">
     ${navStrip(opts.type, "navy")}
-    <div class="cc-hero">
-      <div class="cc-hero-title-block">
-        <h2 class="cc-title">${opts.titleAr}</h2>
-        <div class="cc-date">${opts.arabicMonth} ${opts.year}</div>
+    <div class="cc-layout">
+      <!-- Big vertical title on the RIGHT (RTL start) -->
+      <div class="cc-title-col">
+        <div class="cc-big-title">${opts.titleAr}</div>
+        <div class="cc-date-badge">${opts.arabicMonth} ${opts.year}</div>
       </div>
-      <div class="cc-hero-callout">
-        <div class="cc-hero-callout-text">من منطلق حرص الهيئة على نشر ثقافة المنافسة</div>
+      <!-- Stat content on the LEFT (RTL end) -->
+      <div class="cc-content-col">
+        <div class="cc-callout">من منطلق حرص الهيئة على نشر ثقافة المنافسة</div>
+        <div class="cc-stats-grid">${statsHtml}</div>
       </div>
     </div>
-    <div class="cc-body">${opts.contentHtml}</div>
   </section>`;
 }
 
-/** Outside-the-box — light bg, navy box for title, portrait + content. */
+/** Outside-the-box — light bg, navy titlebar spanning full width, portrait + box icon + body. */
 function sectionOutsideBoxHtml(opts: {
   titleAr: string;
   descriptionAr?: string | null;
@@ -249,60 +537,124 @@ function sectionOutsideBoxHtml(opts: {
       <div class="ob-title-text">${opts.titleAr}</div>
     </div>
     <div class="ob-grid">
-      <div class="ob-portrait">
-        <svg viewBox="0 0 120 160" xmlns="http://www.w3.org/2000/svg">
-          <rect width="120" height="160" fill="${NAVY}"/>
-          <circle cx="60" cy="60" r="28" fill="#fff" opacity="0.95"/>
-          <path d="M20 160 Q60 100 100 160 Z" fill="#fff" opacity="0.9"/>
-        </svg>
+      <div class="ob-portrait-col">
+        <div class="ob-portrait">
+          <svg viewBox="0 0 120 160" xmlns="http://www.w3.org/2000/svg">
+            <rect width="120" height="160" fill="${NAVY}"/>
+            <!-- Shoulders -->
+            <rect x="18" y="105" width="84" height="55" rx="8" fill="${TEAL_DARK}" opacity="0.8"/>
+            <!-- Neck -->
+            <rect x="46" y="90" width="28" height="22" rx="4" fill="#c8956a"/>
+            <!-- Head -->
+            <ellipse cx="60" cy="76" rx="28" ry="30" fill="#c8956a"/>
+            <!-- Headdress -->
+            <ellipse cx="60" cy="52" rx="30" ry="15" fill="white" opacity="0.92"/>
+            <rect x="30" y="52" width="60" height="10" rx="3" fill="white" opacity="0.88"/>
+            <ellipse cx="60" cy="52" rx="22" ry="7" fill="${NAVY}" opacity="0.8"/>
+            <!-- Thobe collar -->
+            <path d="M40 120 L60 108 L80 120" stroke="white" stroke-width="3" fill="none" opacity="0.5"/>
+          </svg>
+        </div>
         ${opts.descriptionAr ? `<div class="ob-portrait-caption">${opts.descriptionAr}</div>` : ""}
       </div>
-      <div class="ob-icon">
-        <img src="${SECTION_ICON.outside_box}" alt=""/>
+      <div class="ob-center-col">
+        <div class="ob-box-icon">${sectionIconSvg("box")}</div>
+        <div class="ob-box-wordmark">خارج<br/>الصندوق</div>
       </div>
       <div class="ob-body">${opts.contentHtml}</div>
     </div>
   </section>`;
 }
 
-/** Events — full teal page with bunting + photo collage placeholder. */
+/** Events — full teal page with CSS bunting banner + photo collage placeholders. */
 function sectionEventsHtml(opts: {
   titleAr: string;
   contentHtml: string;
   type: string;
 }): string {
+  // Generate a collage of placeholder photo tiles with tilts
+  const placeholderPhotos = [
+    { label: "إفطار رمضان", rotate: "-3deg", top: "0", right: "5mm", grad: `${TEAL_DARK}` },
+    { label: "الاحتفال بعيد الفطر", rotate: "2deg", top: "0", left: "0", grad: `${NAVY}` },
+    { label: "فعالية الهيئة", rotate: "-1.5deg", top: "60mm", right: "60mm", grad: `${TEAL}` },
+    { label: "لقاء المنافسة", rotate: "3deg", top: "56mm", left: "10mm", grad: `${TEAL_DARK}` },
+    { label: "فعالية داخلية", rotate: "-2deg", top: "118mm", right: "8mm", grad: `${DEEPNAVY}` },
+    { label: "نشاط مؤسسي", rotate: "1.5deg", top: "122mm", left: "40mm", grad: `${NAVY}` },
+  ];
+
+  const collageTiles = placeholderPhotos
+    .map(
+      (ph, i) => `<div class="ev-photo-tile" style="
+        transform: rotate(${ph.rotate});
+        grid-area: auto;
+        background: linear-gradient(145deg, ${ph.grad} 0%, ${TEAL_DARK} 100%);
+      ">
+        <div class="ev-photo-inner">
+          <div class="ev-photo-pattern"></div>
+        </div>
+        <div class="ev-photo-label">${ph.label}</div>
+      </div>`
+    )
+    .join("");
+
   return `
   <section class="section section-events theme-teal">
     ${navStrip(opts.type, "teal")}
+    <!-- Bunting banner -->
     <div class="ev-banner">
-      <img class="ev-bunting" src="${SECTION_ICON.events}" alt=""/>
+      <div class="ev-bunting-svg">${sectionIconSvg("bunting")}</div>
       <h2 class="ev-title">${opts.titleAr}</h2>
     </div>
-    <div class="ev-collage">${opts.contentHtml || `<div class="ev-empty">سيتم إضافة صور الفعاليات</div>`}</div>
+    <!-- Photo collage grid -->
+    <div class="ev-collage">
+      ${collageTiles}
+    </div>
+    ${opts.contentHtml ? `<div class="ev-extra">${opts.contentHtml}</div>` : ""}
   </section>`;
 }
 
-/** Employee Q&A — light bg, teal title plate + speech bubble + Q/A bubbles. */
+/** Employee Q&A — light bg, teal title plate + speech bubble icon + alternating Q/A bubbles. */
 function sectionEmployeeQAHtml(opts: {
   titleAr: string;
   descriptionAr?: string | null;
-  contentHtml: string;
+  contentMd: string;
   type: string;
 }): string {
+  const pairs = parseQAPairs(opts.contentMd);
+
+  let bubblesHtml: string;
+  if (pairs.length === 0) {
+    // Fallback: render parsed markdown
+    bubblesHtml = mdToHtml(opts.contentMd);
+  } else {
+    bubblesHtml = pairs
+      .map(
+        (pair) => `
+      ${pair.q ? `<div class="qa-bubble qa-bubble-q"><span class="qa-label-q">س</span><span class="qa-text">${pair.q}</span></div>` : ""}
+      ${pair.a ? `<div class="qa-bubble qa-bubble-a"><span class="qa-label-a">ج</span><span class="qa-text">${pair.a}</span></div>` : ""}
+      `
+      )
+      .join("");
+  }
+
   return `
   <section class="section section-qa theme-light">
     ${navStrip(opts.type, "light")}
     <div class="qa-titlebar">
       <h2 class="qa-title">${opts.titleAr}</h2>
-      <img class="qa-icon" src="${SECTION_ICON.employee_qa}" alt=""/>
+      <div class="qa-speech-icon">${sectionIconSvg("speech")}</div>
     </div>
     <div class="qa-grid">
       <div class="qa-portrait-col">
         <div class="qa-portrait">
           <svg viewBox="0 0 120 160" xmlns="http://www.w3.org/2000/svg">
             <rect width="120" height="160" fill="${MINT}"/>
-            <circle cx="60" cy="56" r="26" fill="${TEAL}"/>
-            <path d="M20 160 Q60 100 100 160 Z" fill="${TEAL}"/>
+            <rect x="20" y="104" width="80" height="56" rx="8" fill="${TEAL}" opacity="0.65"/>
+            <rect x="46" y="88" width="28" height="22" rx="4" fill="#d4a87a"/>
+            <ellipse cx="60" cy="74" rx="27" ry="29" fill="#d4a87a"/>
+            <ellipse cx="60" cy="50" rx="29" ry="14" fill="white" opacity="0.9"/>
+            <rect x="31" y="50" width="58" height="9" rx="2" fill="white" opacity="0.88"/>
+            <ellipse cx="60" cy="50" rx="20" ry="6" fill="${NAVY}" opacity="0.75"/>
           </svg>
         </div>
         ${opts.descriptionAr ? `<div class="qa-name">${opts.descriptionAr}</div>` : ""}
@@ -313,7 +665,7 @@ function sectionEmployeeQAHtml(opts: {
           <div class="qa-qr-caption">للمشاركة في شرفة يسعدنا تواصلك عبر مسح رمز QR</div>
         </div>
       </div>
-      <div class="qa-body">${opts.contentHtml}</div>
+      <div class="qa-body">${bubblesHtml}</div>
     </div>
   </section>`;
 }
@@ -323,13 +675,13 @@ function sectionGenericHtml(opts: {
   titleAr: string;
   contentHtml: string;
   type: string;
-  iconUrl?: string;
+  iconSvgType?: string;
 }): string {
   return `
   <section class="section section-generic theme-light">
     ${navStrip(opts.type, "light")}
     <div class="sec-hero">
-      ${opts.iconUrl ? `<img class="sec-icon" src="${opts.iconUrl}" alt=""/>` : ""}
+      ${opts.iconSvgType ? `<div class="sec-icon-wrap">${sectionIconSvg(opts.iconSvgType)}</div>` : ""}
       <h2 class="sec-title">${opts.titleAr}</h2>
     </div>
     <div class="sec-body">${opts.contentHtml}</div>
@@ -344,30 +696,32 @@ export function renderSectionHtml(s: {
   contentMd?: string | null;
 }, ctx: { arabicMonth: string; year: number }): string {
   const contentHtml = mdToHtml(s.contentMd || "");
+  const contentMd = s.contentMd || "";
   const common = {
     type: s.sectionType,
     titleAr: s.titleAr,
     descriptionAr: s.descriptionAr,
     contentHtml,
+    contentMd,
   };
   switch (s.sectionType) {
     case "news":
     case "local_news":
     case "regional_news":
     case "global_news":
-      return sectionNewsHtml(common);
+      return sectionNewsHtml({ type: s.sectionType, titleAr: s.titleAr, contentMd });
     case "office_interview":
       return sectionOfficeInterviewHtml(common);
     case "competition_culture":
-      return sectionCompetitionCultureHtml({ ...common, arabicMonth: ctx.arabicMonth, year: ctx.year });
+      return sectionCompetitionCultureHtml({ type: s.sectionType, titleAr: s.titleAr, contentMd, arabicMonth: ctx.arabicMonth, year: ctx.year });
     case "outside_box":
       return sectionOutsideBoxHtml(common);
     case "events":
-      return sectionEventsHtml(common);
+      return sectionEventsHtml({ type: s.sectionType, titleAr: s.titleAr, contentHtml });
     case "employee_qa":
-      return sectionEmployeeQAHtml(common);
+      return sectionEmployeeQAHtml({ type: s.sectionType, titleAr: s.titleAr, descriptionAr: s.descriptionAr, contentMd });
     default:
-      return sectionGenericHtml({ ...common, iconUrl: SECTION_ICON[s.sectionType] });
+      return sectionGenericHtml({ type: s.sectionType, titleAr: s.titleAr, contentHtml, iconSvgType: SECTION_ICON[s.sectionType] });
   }
 }
 
@@ -402,11 +756,12 @@ export const SHORFAH_PDF_CSS = `
     opacity: 0.65;
     pointer-events: none;
   }
-  /* Ribbon date - right side */
+
+  /* Ribbon date — top-LEFT visually (matches sample-1: ribbon on left, logo on right) */
   .cv-ribbon {
-    position: absolute; top: 0; right: 32mm;
+    position: absolute; top: 0; left: 28mm;
     background: ${NAVY}; color: #fff;
-    padding: 18mm 7mm 10mm; min-width: 28mm;
+    padding: 14mm 7mm 10mm; min-width: 28mm;
     border-radius: 0 0 4mm 4mm;
     text-align: center;
     box-shadow: 0 4mm 8mm rgba(0,0,0,0.2);
@@ -420,41 +775,43 @@ export const SHORFAH_PDF_CSS = `
   .cv-ribbon-year { font-size: 28pt; font-weight: 900; line-height: 1; }
   .cv-ribbon-month { font-size: 20pt; font-weight: 700; margin-top: 4mm; }
 
-  /* Brand top-left */
-  .cv-brand { position: absolute; top: 18mm; left: 14mm; display: flex; align-items: center; gap: 4mm; }
-  .cv-brand-ar { font-size: 11pt; font-weight: 700; text-align: left; }
-  .cv-brand-en { font-size: 7.5pt; font-weight: 400; text-align: left; opacity: 0.9; margin-top: 1mm; }
-  .cv-brand-mark { width: 16mm; height: 16mm; }
+  /* Brand — top-RIGHT visually (matches sample-1) */
+  .cv-brand {
+    position: absolute; top: 14mm; right: 14mm;
+    display: flex; align-items: center; gap: 4mm;
+    direction: ltr;
+  }
+  .cv-brand-text { text-align: right; direction: rtl; }
+  .cv-brand-ar { font-size: 10pt; font-weight: 700; }
+  .cv-brand-en { font-size: 7pt; font-weight: 400; opacity: 0.85; margin-top: 1mm; }
+  .cv-brand-mark { width: 16mm; height: 16mm; flex-shrink: 0; }
   .cv-brand-mark svg { width: 100%; height: 100%; }
 
-  /* Hero with title overlaid on newspaper */
+  /* Hero — newspaper SVG + wordmark, vertically stacked */
   .cv-hero {
-    position: absolute; top: 60mm; left: 0; right: 0;
+    position: absolute; top: 52mm; left: 0; right: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 4mm;
+    height: 100mm;
+  }
+  .cv-newspaper-wrap {
+    width: 140mm; height: auto;
     display: flex; align-items: center; justify-content: center;
-    height: 90mm;
   }
-  .cv-newspaper {
-    position: absolute;
-    width: 130mm; height: auto;
-    top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-3deg);
-    z-index: 1;
-    opacity: 0.95;
-  }
+  .cv-newspaper-wrap svg { width: 100%; height: auto; }
   .cv-title {
     position: relative; z-index: 2;
     font-family: "Tajawal", "Noto Sans Arabic", sans-serif;
-    font-size: 110pt; font-weight: 900; line-height: 1;
+    font-size: 90pt; font-weight: 900; line-height: 1;
     margin: 0; color: #fff;
-    text-shadow: 0 6mm 12mm rgba(0,0,0,0.18);
-    letter-spacing: -2pt;
+    text-shadow: 0 4mm 10mm rgba(0,0,0,0.2);
+    letter-spacing: -1pt;
     text-align: center;
-    display: flex; justify-content: center;
   }
-  .cv-title-prefix, .cv-title-suffix { display:inline-block; }
 
   .cv-subtitle {
-    position: absolute; top: 155mm; left: 0; right: 0;
-    text-align: center; font-size: 12pt; font-weight: 600;
+    position: absolute; top: 158mm; left: 0; right: 0;
+    text-align: center; font-size: 11pt; font-weight: 600;
     color: #fff; opacity: 0.97;
     padding: 0 30mm; line-height: 1.5;
   }
@@ -463,6 +820,7 @@ export const SHORFAH_PDF_CSS = `
   .cv-tabs-row {
     position: absolute; bottom: 60mm; left: 14mm; right: 14mm;
     display: flex; align-items: center; gap: 6mm;
+    direction: rtl;
   }
   .cv-tabs-strip {
     flex: 1;
@@ -484,6 +842,7 @@ export const SHORFAH_PDF_CSS = `
     text-align: center; font-weight: 800; font-size: 12pt;
     line-height: 1.2; min-width: 22mm;
     box-shadow: 0 2mm 5mm rgba(0,0,0,0.1);
+    flex-shrink: 0;
   }
 
   /* Motto plate */
@@ -509,8 +868,8 @@ export const SHORFAH_PDF_CSS = `
 
   /* ─── Nav strip (top of each section page) ─────────────────── */
   .nav-strip {
-    display: flex; justify-content: flex-end; gap: 12mm;
-    padding: 6mm 14mm; font-size: 10pt; font-weight: 700;
+    display: flex; justify-content: flex-end; gap: 10mm;
+    padding: 5mm 14mm; font-size: 9.5pt; font-weight: 700;
     direction: rtl;
   }
   .nav-light { background: ${OFFWHITE}; color: #8aa9b0; border-bottom: 0.3mm solid #d6e9eb; }
@@ -532,10 +891,22 @@ export const SHORFAH_PDF_CSS = `
   .theme-navy  { background: ${NAVY}; color: ${MINT}; }
   .theme-teal  { background: ${TEAL}; color: #fff; }
 
-  .sec-hero { display: flex; align-items: center; gap: 8mm; padding: 14mm 14mm 6mm; }
-  .sec-icon { width: 50mm; height: 50mm; object-fit: contain; flex-shrink: 0; }
-  .sec-title { font-size: 48pt; font-weight: 900; margin: 0; color: ${TEAL}; line-height: 1; }
-  .sec-body { padding: 0 14mm 18mm; font-size: 11pt; line-height: 1.85; }
+  .sec-hero {
+    display: flex; align-items: center; gap: 8mm;
+    padding: 10mm 14mm 6mm;
+    direction: rtl;
+  }
+  .sec-icon-wrap { width: 40mm; height: 40mm; flex-shrink: 0; }
+  .sec-title {
+    font-size: 52pt; font-weight: 900; margin: 0;
+    color: ${TEAL}; line-height: 1;
+  }
+  .sec-body {
+    padding: 0 14mm 18mm;
+    font-size: 11pt; line-height: 1.85;
+    direction: rtl;
+    text-align: right;
+  }
   .sec-body h3 { color: ${TEAL}; font-size: 14pt; margin-top: 8mm; font-weight: 800; }
   .sec-body h4 { color: ${TEAL}; font-size: 12pt; margin-top: 6mm; font-weight: 800; }
   .sec-body p { margin: 4mm 0; text-align: justify; }
@@ -543,182 +914,314 @@ export const SHORFAH_PDF_CSS = `
   .sec-body li { margin: 2mm 0; }
   .sec-body strong { color: ${TEAL}; font-weight: 800; }
 
-  /* ─── News section (theme-light + 2-col cards) ─────────────── */
-  .section-news .sec-hero { flex-direction: row-reverse; justify-content: center; padding: 18mm 14mm 8mm; }
+  /* ─── News section — 2-column card grid ──────────────────── */
+  .section-news .sec-hero { justify-content: center; padding: 12mm 14mm 6mm; }
   .section-news .sec-title-news { font-size: 64pt; text-align: center; }
-  .section-news .sec-icon-news { width: 60mm; height: 60mm; transform: rotate(-3deg); }
-  .section-news .sec-body-news { padding: 4mm 14mm 18mm; }
-  .section-news .sec-body-news p {
-    background: ${MINT}; padding: 8mm; border-radius: 2mm;
-    margin: 3mm 0; box-shadow: 0 1mm 3mm rgba(0,0,0,0.04);
+  .section-news .sec-icon-wrap { width: 55mm; height: 55mm; transform: rotate(-3deg); }
+  .section-news .sec-body-news { padding: 4mm 14mm 14mm; }
+
+  .news-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6mm;
+    direction: rtl;
   }
-  .section-news .sec-body-news h3 {
-    color: ${NAVY}; background: none; padding: 0;
-    border-right: 2mm solid ${TEAL}; padding-right: 4mm; margin-top: 8mm;
+  .news-card {
+    background: #fff;
+    border-radius: 3mm;
+    overflow: hidden;
+    box-shadow: 0 2mm 8mm rgba(14,59,74,0.10);
+    display: flex; flex-direction: column;
+  }
+  .news-card-photo {
+    width: 100%; height: 45mm;
+    position: relative; overflow: hidden;
+    flex-shrink: 0;
+  }
+  .news-card-photo-pattern {
+    position: absolute; inset: 0;
+    background-image:
+      repeating-linear-gradient(45deg, transparent 0 8px, rgba(255,255,255,0.05) 8px 9px);
+  }
+  .news-card-title {
+    background: ${MINT};
+    color: ${NAVY};
+    padding: 3mm 5mm;
+    font-size: 11pt; font-weight: 800;
+    text-align: right;
+    line-height: 1.4;
+    direction: rtl;
+  }
+  .news-card-body {
+    padding: 4mm 5mm;
+    font-size: 9pt; line-height: 1.75;
+    color: ${NAVY};
+    text-align: justify;
+    direction: rtl;
+    flex: 1;
+  }
+  .news-single {
+    direction: rtl;
+  }
+  .news-single p {
+    background: ${MINT}; padding: 5mm; border-radius: 2mm;
+    margin: 3mm 0; text-align: justify;
+  }
+  .news-single h3 {
+    color: ${NAVY}; border-right: 2mm solid ${TEAL}; padding-right: 4mm; margin-top: 6mm;
   }
 
   /* ─── Office interview (light, navy title bar) ─────────────── */
   .section-office .oi-titlebar {
     background: ${NAVY}; color: #fff;
-    padding: 6mm 10mm; margin: 6mm 14mm 8mm;
-    font-size: 22pt; font-weight: 900;
-    text-align: center; border-radius: 1mm;
+    padding: 6mm 14mm; margin: 0 0 6mm;
+    font-size: 20pt; font-weight: 900;
+    text-align: right;
+    direction: rtl;
+    line-height: 1.4;
   }
   .section-office .oi-grid {
-    display: grid; grid-template-columns: 60mm 1fr;
+    display: grid; grid-template-columns: 58mm 1fr;
     gap: 8mm; padding: 0 14mm 18mm;
+    direction: rtl;
   }
+  .section-office .oi-left { display: flex; flex-direction: column; }
   .section-office .oi-portrait-placeholder {
-    width: 60mm; height: 80mm;
-    border-radius: 2mm; overflow: hidden;
-    background: ${MINT};
+    width: 58mm; height: 78mm;
+    border-radius: 3mm; overflow: hidden;
+    background: ${MINT}; flex-shrink: 0;
   }
   .section-office .oi-portrait-placeholder svg { width: 100%; height: 100%; display: block; }
   .section-office .oi-caption {
     font-weight: 800; font-size: 11pt; color: ${NAVY};
-    margin-top: 4mm; padding-right: 2mm;
-    border-right: 1mm solid ${TEAL};
+    margin-top: 4mm; padding-right: 3mm;
+    border-right: 1.5mm solid ${TEAL};
+    text-align: right; direction: rtl;
   }
   .section-office .oi-right {
-    font-size: 10pt; line-height: 1.8;
+    font-size: 10pt; line-height: 1.85;
     column-count: 2; column-gap: 6mm;
     text-align: justify;
+    direction: rtl;
   }
   .section-office .oi-right h3 {
     color: ${NAVY}; font-size: 11pt; font-weight: 900;
     margin: 4mm 0 2mm; break-after: avoid;
+    column-span: all;
   }
   .section-office .oi-right p { margin: 2mm 0; }
   .section-office .oi-right strong { color: ${TEAL}; }
 
-  /* ─── Competition culture (full navy) ──────────────────────── */
+  /* ─── Competition culture (full navy, big vertical title) ─── */
   .section-comp { background: ${NAVY}; }
-  .section-comp .cc-hero {
-    padding: 14mm 14mm 6mm;
-    display: grid; grid-template-columns: 1fr 60mm; gap: 8mm;
-    align-items: center;
+  .cc-layout {
+    display: grid;
+    grid-template-columns: 1fr 70mm;
+    gap: 8mm;
+    padding: 10mm 14mm 14mm;
+    min-height: 260mm;
+    direction: rtl;
   }
-  .section-comp .cc-title {
-    font-size: 56pt; color: #fff; font-weight: 900;
-    text-align: center; line-height: 1;
-    margin: 0;
-    writing-mode: horizontal-tb;
+  /* Right col = RTL start = BIG title */
+  .cc-title-col {
+    display: flex; flex-direction: column;
+    align-items: flex-start; justify-content: center;
+    grid-column: 2;
+    grid-row: 1;
   }
-  .section-comp .cc-date {
+  .cc-big-title {
+    font-size: 52pt; font-weight: 900;
+    color: #fff; line-height: 1.05;
+    text-align: right;
+    direction: rtl;
+    word-break: keep-all;
+  }
+  .cc-date-badge {
     background: ${CYAN}; color: ${NAVY};
-    padding: 3mm 8mm; display: inline-block;
-    font-size: 18pt; font-weight: 900;
-    margin-top: 4mm;
+    padding: 2mm 6mm; display: inline-block;
+    font-size: 20pt; font-weight: 900;
+    margin-top: 6mm; border-radius: 1mm;
+    direction: ltr;
   }
-  .section-comp .cc-hero-callout {
+  /* Left col = RTL end = stats */
+  .cc-content-col {
+    grid-column: 1;
+    grid-row: 1;
+    display: flex; flex-direction: column; gap: 6mm;
+  }
+  .cc-callout {
     background: ${MINT}; color: ${NAVY};
-    padding: 8mm 6mm; border-radius: 2mm;
+    padding: 6mm; border-radius: 2mm;
     font-size: 11pt; line-height: 1.6; font-weight: 600;
+    text-align: right; direction: rtl;
   }
-  .section-comp .cc-body {
-    padding: 6mm 14mm 18mm;
-    color: ${MINT};
+  .cc-stats-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 5mm;
   }
-  .section-comp .cc-body h3, .section-comp .cc-body strong {
-    color: ${CYAN}; font-weight: 800;
+  .cc-stat-card {
+    background: rgba(255,255,255,0.08);
+    border: 0.5mm solid rgba(62,192,208,0.35);
+    border-radius: 2mm;
+    padding: 6mm; text-align: center;
   }
-  .section-comp .cc-body p {
-    background: rgba(255,255,255,0.06);
-    padding: 6mm; border-radius: 2mm; margin: 3mm 0;
+  .cc-stat-placeholder { opacity: 0.5; }
+  .cc-stat-value {
+    font-size: 48pt; font-weight: 900;
+    color: ${CYAN}; line-height: 1;
+    direction: ltr;
   }
+  .cc-stat-label {
+    font-size: 10pt; color: ${MINT};
+    margin-top: 2mm; line-height: 1.4;
+  }
+  .cc-content-fallback {
+    color: ${MINT}; font-size: 10pt; line-height: 1.75;
+    text-align: right; direction: rtl;
+  }
+  .cc-content-fallback h3 { color: ${CYAN}; }
+  .cc-content-fallback p { margin: 3mm 0; }
 
-  /* ─── Outside the box (light, navy title bar) ──────────────── */
+  /* ─── Outside the box ──────────────────────────────────────── */
   .section-outside .ob-titlebar {
     background: ${NAVY}; color: #fff;
-    padding: 6mm 10mm; margin: 6mm 14mm 8mm;
-    font-size: 20pt; font-weight: 900;
-    border-radius: 1mm;
+    padding: 7mm 14mm; margin: 0 0 6mm;
+    font-size: 19pt; font-weight: 900;
+    text-align: right; direction: rtl;
+    line-height: 1.4;
   }
   .section-outside .ob-grid {
     display: grid;
-    grid-template-columns: 60mm 50mm 1fr;
+    grid-template-columns: 58mm 46mm 1fr;
     gap: 6mm;
     padding: 0 14mm 18mm;
+    direction: rtl;
   }
-  .section-outside .ob-portrait { width: 60mm; height: 80mm; border-radius: 2mm; overflow: hidden; background: ${NAVY}; }
+  .section-outside .ob-portrait-col { display: flex; flex-direction: column; }
+  .section-outside .ob-portrait {
+    width: 58mm; height: 80mm;
+    border-radius: 3mm; overflow: hidden;
+    background: ${NAVY};
+  }
   .section-outside .ob-portrait svg { width: 100%; height: 100%; display: block; }
   .section-outside .ob-portrait-caption {
     font-weight: 800; font-size: 11pt; color: ${NAVY};
-    margin-top: 4mm; padding-right: 2mm;
-    border-right: 1mm solid ${TEAL};
+    margin-top: 4mm; text-align: center;
+    background: ${MINT}; padding: 3mm; border-radius: 1.5mm;
   }
-  .section-outside .ob-icon { display: flex; align-items: center; justify-content: center; }
-  .section-outside .ob-icon img { max-width: 100%; max-height: 80mm; }
+  .section-outside .ob-center-col {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 4mm;
+  }
+  .section-outside .ob-box-icon { width: 38mm; height: 38mm; }
+  .section-outside .ob-box-wordmark {
+    font-size: 22pt; font-weight: 900; color: ${NAVY};
+    text-align: center; line-height: 1.2;
+    background: ${MINT}; padding: 3mm 5mm; border-radius: 2mm;
+  }
   .section-outside .ob-body {
-    font-size: 10pt; line-height: 1.8;
-    column-count: 1;
-    text-align: justify;
+    font-size: 10pt; line-height: 1.85;
+    text-align: justify; direction: rtl;
   }
+  .section-outside .ob-body p { margin: 2mm 0; }
   .section-outside .ob-body strong { color: ${TEAL}; }
 
-  /* ─── Events (full teal) ───────────────────────────────────── */
+  /* ─── Events (full teal, bunting, collage) ─────────────────── */
   .section-events { background: ${TEAL}; }
   .section-events .ev-banner {
-    margin: 12mm 14mm 8mm;
+    margin: 8mm 14mm 8mm;
     background: ${MINT};
-    padding: 8mm 10mm;
+    padding: 8mm 10mm 6mm;
     border-radius: 2mm;
-    display: flex; align-items: center; justify-content: center;
-    gap: 8mm; position: relative;
-    min-height: 30mm;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
   }
-  .section-events .ev-bunting {
-    position: absolute; top: -4mm; left: 4mm; right: 4mm;
-    width: calc(100% - 8mm); height: 18mm;
-    object-fit: contain;
-    z-index: 1;
+  .section-events .ev-bunting-svg {
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 16mm; overflow: hidden;
   }
+  .section-events .ev-bunting-svg svg { width: 100%; height: 100%; }
   .section-events .ev-title {
-    font-size: 48pt; font-weight: 900;
-    color: #fff;
-    margin: 0;
-    text-shadow: 0 1mm 3mm rgba(0,0,0,0.15);
+    font-size: 54pt; font-weight: 900;
+    color: ${TEAL}; margin: 10mm 0 0;
+    text-shadow: none;
+    line-height: 1;
     position: relative; z-index: 2;
-    padding-top: 6mm;
-  }
-  .section-events .ev-collage {
-    margin: 8mm 14mm;
-    background: rgba(255,255,255,0.06);
-    border-radius: 2mm;
-    padding: 10mm;
-    color: #fff; font-size: 11pt; line-height: 1.8;
-  }
-  .section-events .ev-collage h3 { color: #fff; }
-  .section-events .ev-empty {
-    text-align: center; padding: 20mm; opacity: 0.7;
-    border: 0.5mm dashed rgba(255,255,255,0.4);
-    border-radius: 2mm;
   }
 
-  /* ─── Employee QA (light, teal title plate) ────────────────── */
+  .section-events .ev-collage {
+    margin: 6mm 14mm;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: 52mm 52mm;
+    gap: 4mm;
+  }
+  .ev-photo-tile {
+    border-radius: 2mm;
+    overflow: hidden;
+    position: relative;
+    display: flex; flex-direction: column;
+    box-shadow: 0 3mm 10mm rgba(0,0,0,0.25);
+  }
+  .ev-photo-inner {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    min-height: 36mm;
+  }
+  .ev-photo-pattern {
+    position: absolute; inset: 0;
+    background-image: repeating-linear-gradient(45deg,
+      transparent 0 10px,
+      rgba(255,255,255,0.06) 10px 11px);
+  }
+  .ev-photo-label {
+    background: rgba(255,255,255,0.9);
+    color: ${NAVY};
+    padding: 2mm 4mm;
+    font-size: 8.5pt; font-weight: 700;
+    text-align: center;
+    direction: rtl;
+  }
+  .section-events .ev-extra {
+    margin: 4mm 14mm 8mm;
+    color: #fff; font-size: 10pt; line-height: 1.75;
+    text-align: right; direction: rtl;
+  }
+
+  /* ─── Employee QA (light, teal title plate, speech bubbles) ── */
   .section-qa .qa-titlebar {
     background: ${TEAL}; color: #fff;
-    padding: 6mm 10mm; margin: 6mm 14mm 8mm;
-    font-size: 30pt; font-weight: 900;
-    border-radius: 1mm; position: relative;
+    padding: 6mm 14mm; margin: 0 0 8mm;
+    border-radius: 0;
     display: flex; align-items: center; justify-content: space-between;
+    direction: rtl;
+    gap: 6mm;
   }
-  .section-qa .qa-title { margin: 0; color: #fff; }
-  .section-qa .qa-icon { width: 22mm; height: 22mm; object-fit: contain; }
+  .section-qa .qa-title { margin: 0; color: #fff; font-size: 36pt; font-weight: 900; flex: 1; }
+  .section-qa .qa-speech-icon { width: 28mm; height: 28mm; flex-shrink: 0; }
+
   .section-qa .qa-grid {
     display: grid; grid-template-columns: 55mm 1fr;
     gap: 8mm; padding: 0 14mm 18mm;
+    direction: rtl;
   }
-  .section-qa .qa-portrait { width: 55mm; height: 75mm; border-radius: 2mm; overflow: hidden; background: ${MINT}; }
+  .section-qa .qa-portrait-col { display: flex; flex-direction: column; }
+  .section-qa .qa-portrait {
+    width: 55mm; height: 74mm;
+    border-radius: 3mm; overflow: hidden;
+    background: ${MINT};
+  }
   .section-qa .qa-portrait svg { width:100%; height:100%; display:block; }
   .section-qa .qa-name {
-    font-weight: 800; font-size: 11pt; color: ${NAVY};
+    font-weight: 800; font-size: 11pt;
     margin-top: 4mm; text-align: center;
     background: ${TEAL}; color: #fff;
     padding: 3mm; border-radius: 1mm;
   }
-  .section-qa .qa-qr { margin-top: 6mm; background: ${MINT}; padding: 4mm; border-radius: 1.5mm; text-align: center; }
-  .section-qa .qa-qr-box { width: 30mm; height: 30mm; margin: 0 auto 3mm; background: #fff; padding: 2mm; }
+  .section-qa .qa-qr { margin-top: 5mm; background: ${MINT}; padding: 4mm; border-radius: 1.5mm; text-align: center; }
+  .section-qa .qa-qr-box { width: 28mm; height: 28mm; margin: 0 auto 3mm; background: #fff; padding: 2mm; }
   .section-qa .qa-qr-grid {
     width: 100%; height: 100%;
     background-image:
@@ -726,29 +1229,61 @@ export const SHORFAH_PDF_CSS = `
       repeating-linear-gradient(90deg, ${NAVY} 0 1.5mm, transparent 1.5mm 3mm);
     background-blend-mode: multiply;
   }
-  .section-qa .qa-qr-caption { font-size: 8pt; color: ${NAVY}; line-height: 1.4; }
-  .section-qa .qa-body { display: flex; flex-direction: column; gap: 4mm; }
-  .section-qa .qa-body p {
-    background: ${TEAL}; color: #fff;
-    padding: 4mm 6mm; border-radius: 1.5mm;
-    margin: 0; font-size: 10pt; font-weight: 600;
+  .section-qa .qa-qr-caption { font-size: 7.5pt; color: ${NAVY}; line-height: 1.4; margin-top: 2mm; }
+
+  /* Q&A speech bubbles */
+  .section-qa .qa-body {
+    display: flex; flex-direction: column; gap: 3mm;
+    direction: rtl;
+  }
+  .qa-bubble {
+    padding: 4mm 5mm;
+    border-radius: 2mm;
+    font-size: 10pt; line-height: 1.7;
+    display: flex; align-items: flex-start; gap: 3mm;
     position: relative;
   }
-  .section-qa .qa-body p:nth-child(odd) {
-    background: ${MINT}; color: ${NAVY};
+  .qa-bubble-q {
+    background: ${MINT};
+    color: ${NAVY};
+    margin-right: 0;
+    margin-left: 8mm;
+    border-radius: 2mm 0 2mm 2mm;
   }
-  .section-qa .qa-body p:nth-child(odd)::before {
-    content: ""; position: absolute; top: 50%;
-    right: -3mm; transform: translateY(-50%);
-    border-style: solid; border-width: 3mm 0 3mm 3mm;
-    border-color: transparent transparent transparent ${MINT};
+  .qa-bubble-q::after {
+    content: "";
+    position: absolute; top: 0; left: -6mm;
+    border-style: solid; border-width: 5mm 6mm 0 0;
+    border-color: ${MINT} transparent transparent transparent;
   }
-  .section-qa .qa-body p:nth-child(even)::before {
-    content: ""; position: absolute; top: 50%;
-    right: -3mm; transform: translateY(-50%);
-    border-style: solid; border-width: 3mm 0 3mm 3mm;
-    border-color: transparent transparent transparent ${TEAL};
+  .qa-bubble-a {
+    background: ${TEAL};
+    color: #fff;
+    margin-left: 0;
+    margin-right: 8mm;
+    border-radius: 0 2mm 2mm 2mm;
   }
+  .qa-bubble-a::after {
+    content: "";
+    position: absolute; top: 0; right: -6mm;
+    border-style: solid; border-width: 5mm 0 0 6mm;
+    border-color: ${TEAL} transparent transparent transparent;
+  }
+  .qa-label-q {
+    background: ${TEAL}; color: #fff;
+    font-size: 9pt; font-weight: 900;
+    padding: 1mm 2.5mm; border-radius: 1mm;
+    flex-shrink: 0; align-self: flex-start;
+    margin-top: 0.5mm;
+  }
+  .qa-label-a {
+    background: rgba(255,255,255,0.25); color: #fff;
+    font-size: 9pt; font-weight: 900;
+    padding: 1mm 2.5mm; border-radius: 1mm;
+    flex-shrink: 0; align-self: flex-start;
+    margin-top: 0.5mm;
+  }
+  .qa-text { flex: 1; text-align: right; }
 `;
 
 /** Build full PDF HTML document. */
@@ -771,20 +1306,7 @@ export function buildShorfahPdfHtml(opts: {
   /** Base URL for static assets (e.g. /shorfah/*.png). Defaults to empty (relative). */
   baseUrl?: string;
 }): string {
-  // Patch image URLs if baseUrl is provided
-  const _baseUrl = opts.baseUrl ? opts.baseUrl.replace(/\/$/, "") : "";
-  if (_baseUrl) {
-    const origSectionIcon = { ...SECTION_ICON };
-    for (const k of Object.keys(SECTION_ICON)) {
-      SECTION_ICON[k] = _baseUrl + origSectionIcon[k];
-    }
-    // Restore after build
-    setTimeout(() => {
-      for (const k of Object.keys(SECTION_ICON)) {
-        SECTION_ICON[k] = origSectionIcon[k];
-      }
-    }, 0);
-  }
+  // baseUrl is accepted but no longer needed (all icons are inline SVG)
   const arabicMonth = ARABIC_MONTHS[opts.issue.month - 1] || "—";
   const subtitle = opts.issue.subtitleAr || "نشرة داخلية شهرية تصدر من الإدارة التنفيذية للتواصل المؤسسي";
   const motto = opts.issue.editorLetter || "بجهودكم تتعزز بيئة المنافسة... وبعملكم يترسخ مبدأ العدالة.";
