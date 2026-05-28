@@ -6,11 +6,15 @@ import {
   shorfahSectionPermissionsTable,
   shorfahSectionMediaTable,
   shorfahWorkflowLogTable,
+  shorfahAssignmentsTable,
+  shorfahRemindersTable,
+  shorfahNotificationsTable,
 } from "@workspace/db";
-import { eq, desc, asc, and, or } from "drizzle-orm";
+import { eq, desc, asc, and, or, lt, inArray, isNotNull } from "drizzle-orm";
 import { requireAuth, requireAdmin } from "../middleware/auth";
 import { geminiJSON } from "../lib/aiProviders";
 import { buildShorfahPdfHtml } from "./shorfah-pdf";
+import { sendNotification, buildPublishEmailHtml, buildOverdueEmailHtml, buildInitialEmailHtml } from "../lib/notify";
 
 const router = Router();
 
@@ -48,6 +52,18 @@ async function logAction(
     toStatus,
     notes: notes ?? null,
   });
+}
+
+// Fetch all users (for publish fan-out / notifications)
+async function getAllUsers(): Promise<Array<{ id: number; email: string | null; name: string | null }>> {
+  try {
+    const result = await db.execute(
+      `SELECT id, email, name_ar as name FROM users ORDER BY id`
+    );
+    return (result.rows || []) as Array<{ id: number; email: string | null; name: string | null }>;
+  } catch {
+    return [];
+  }
 }
 
 // ── issues ───────────────────────────────────────────────────────────────
@@ -104,6 +120,7 @@ router.post("/shorfah/issues", requireAdmin, async (req: Request, res: Response)
       contributionsOpenAt: contributionsOpenAt ? new Date(contributionsOpenAt) : null,
       contributionsCloseAt: contributionsCloseAt ? new Date(contributionsCloseAt) : null,
       editorLetter: editorLetter ?? null,
+      status: "collecting",
       createdBy: req.user!.id,
     })
     .returning();
@@ -123,6 +140,19 @@ router.patch("/shorfah/issues/:id", requireAdmin, async (req: Request, res: Resp
     .set(patch)
     .where(eq(shorfahIssuesTable.id, id))
     .returning();
+  res.json({ issue: updated });
+});
+
+// Task 2: Start-review transition
+router.post("/shorfah/issues/:id/start-review", requireAdmin, async (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+  const [issue] = await db.select().from(shorfahIssuesTable).where(eq(shorfahIssuesTable.id, id)).limit(1);
+  if (!issue) return res.status(404).json({ error: "العدد غير موجود" });
+  if (issue.status === "published") return res.status(400).json({ error: "العدد منشور بالفعل" });
+  const [updated] = await db.update(shorfahIssuesTable).set({
+    status: "in_review",
+    updatedAt: new Date(),
+  }).where(eq(shorfahIssuesTable.id, id)).returning();
   res.json({ issue: updated });
 });
 
@@ -188,6 +218,12 @@ router.patch("/shorfah/sections/:id", requireAuth, async (req: Request, res: Res
     if (req.body.titleAr !== undefined) patch.titleAr = req.body.titleAr;
     if (req.body.displayOrder !== undefined) patch.displayOrder = req.body.displayOrder;
     if (req.body.descriptionAr !== undefined) patch.descriptionAr = req.body.descriptionAr;
+  }
+  // SLA fields: admin only
+  if (isAdmin) {
+    if (req.body.slaDays !== undefined) patch.slaDays = req.body.slaDays;
+    if (req.body.slaStartsAt !== undefined) patch.slaStartsAt = new Date(req.body.slaStartsAt);
+    if (req.body.slaDeadline !== undefined) patch.slaDeadline = new Date(req.body.slaDeadline);
   }
 
   const [updated] = await db
@@ -286,13 +322,10 @@ router.post("/shorfah/sections/:id/generate", requireAdmin, async (req: Request,
       outside_box: `اكتب مقالاً إبداعياً بقلم موظف خبير في أحد المجالات (على سبيل المثال: الموارد البشرية، المالية، أو التحول الرقمي). البداية باسم الضيف ومنصبه وعنوان جذاب، ثم مقال من 4-5 فقرات (300-450 كلمة).`,
       events: `أعد قائمة فعاليات الهيئة لهذا الشهر بعنوان H3 لكل فعالية + فقرة وصفية قصيرة (40-80 كلمة). العدد من 3 إلى 5 فعاليات.`,
       employee_qa: `اختر أحد الموظفين وأجر معه حواراً سريعاً: اسمه ومنصبه، ثم 6 أسئلة سريعة وإجابات قصيرة (جملة أو جملتين). استخدم صيغة: **س: السؤال** ... **ج: الإجابة**.`,
-      local_news: `اكتب قسماً يغطي أبرز أخبار وقرارات هيئات المنافسة محلياً داخل المملكة.`,
-      regional_news: `اكتب قسماً يغطي أبرز أخبار هيئات المنافسة خليجياً وعربياً.`,
-      global_news: `اكتب قسماً يغطي أبرز أخبار وقرارات هيئات المنافسة عالمياً.`,
     };
     const guidance = typePrompts[section.sectionType] || `اكتب محتوى مناسباً للقسم.`;
-    prompt = `أنت محرر مجلة "شُرفة" الشهرية الداخلية للهيئة العامة للمنافسة السعودية.
-القسم: "${section.titleAr}"
+    prompt = `أنت محرر مجلة \"شُرفة\" الشهرية الداخلية للهيئة العامة للمنافسة السعودية.
+القسم: \"${section.titleAr}\"
 الوصف: ${section.descriptionAr || ""}
 المطلوب: ${guidance}
 النبرة: رسمية، احترافية، عربية فصحى واضحة.
@@ -348,7 +381,7 @@ router.get("/shorfah/sections/:id/log", requireAuth, async (req: Request, res: R
   res.json({ logs });
 });
 
-// ── PDF generation — branded HTML matching the printed sample ────────────
+// ── PDF generation: HTML preview ─────────────────────────────────────────
 router.get("/shorfah/issues/:id/pdf", requireAuth, async (req: Request, res: Response) => {
   const id = Number(req.params.id);
   const [issue] = await db
@@ -400,6 +433,401 @@ router.get("/shorfah/issues/:id/pdf", requireAuth, async (req: Request, res: Res
   res.send(html);
 });
 
+// Task 1: Binary PDF download via Puppeteer
+router.get("/shorfah/issues/:id/pdf.pdf", requireAuth, async (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+  const [issue] = await db
+    .select()
+    .from(shorfahIssuesTable)
+    .where(eq(shorfahIssuesTable.id, id))
+    .limit(1);
+  if (!issue) return res.status(404).json({ error: "العدد غير موجود" });
+
+  const isPreview =
+    String(req.query.preview ?? "") === "1" ||
+    String(req.query.preview ?? "") === "true";
+  const whereClause = isPreview
+    ? and(
+        eq(shorfahSectionsTable.issueId, id),
+        eq(shorfahSectionsTable.includeInPdf, true),
+      )
+    : and(
+        eq(shorfahSectionsTable.issueId, id),
+        eq(shorfahSectionsTable.includeInPdf, true),
+        eq(shorfahSectionsTable.workflowStatus, "approved"),
+      );
+
+  const sections = await db
+    .select()
+    .from(shorfahSectionsTable)
+    .where(whereClause)
+    .orderBy(asc(shorfahSectionsTable.displayOrder));
+
+  // Use absolute URLs for assets so Puppeteer can load them
+  const FRONTEND_BASE = process.env.FRONTEND_URL || "https://icbank-platform-internal-comms.vercel.app";
+  const html = buildShorfahPdfHtml({
+    issue: {
+      titleAr: issue.titleAr,
+      subtitleAr: issue.subtitleAr,
+      editorLetter: issue.editorLetter,
+      month: issue.month,
+      year: issue.year,
+      issueNo: issue.issueNo,
+      publishedAt: issue.publishedAt,
+    },
+    sections: sections.map((s) => ({
+      sectionType: s.sectionType,
+      titleAr: s.titleAr,
+      descriptionAr: s.descriptionAr,
+      contentMd: s.contentMd,
+    })),
+    baseUrl: FRONTEND_BASE,
+  });
+
+  const arabicMonths = ["يناير","فبراير","مارس","أبريل","مايو","يونيو",
+    "يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
+  const monthName = arabicMonths[issue.month - 1] || String(issue.month);
+  const filename = `shorfah-issue-${issue.issueNo}-${monthName}-${issue.year}.pdf`;
+
+  try {
+    // Attempt Puppeteer PDF generation
+    const chromium = await import("@sparticuz/chromium-min");
+    const puppeteer = await import("puppeteer-core");
+
+    // Use a public CDN for the chromium binary to avoid large bundle issues on Railway
+    const CHROMIUM_URL = process.env.CHROMIUM_URL || 
+      "https://github.com/Sparticuz/chromium/releases/download/v131.0.1/chromium-v131.0.1-pack.tar";
+    
+    const executablePath = await chromium.default.executablePath(CHROMIUM_URL);
+    
+    const browser = await puppeteer.default.launch({
+      args: [...chromium.default.args, "--no-sandbox", "--disable-setuid-sandbox"],
+      defaultViewport: chromium.default.defaultViewport,
+      executablePath,
+      headless: true,
+    });
+
+    const page = await browser.newPage();
+    
+    // Replace relative /shorfah/ image paths with absolute URLs
+    const htmlWithAbsUrls = html.replace(
+      /src="\/shorfah\//g,
+      `src="${FRONTEND_BASE}/shorfah/`
+    );
+    
+    await page.setContent(htmlWithAbsUrls, { waitUntil: "networkidle2" });
+    
+    const pdfBuffer = await page.pdf({
+      format: "A4",
+      printBackground: true,
+      margin: { top: "0", right: "0", bottom: "0", left: "0" },
+    });
+
+    await browser.close();
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+    res.send(Buffer.from(pdfBuffer));
+  } catch (err) {
+    console.error("[pdf.pdf] Puppeteer failed, falling back to HTML:", err);
+    // Graceful fallback: serve HTML with print CSS and autoprint
+    const htmlWithPrint = html.replace(
+      "</body>",
+      `<script>window.onload=function(){setTimeout(function(){window.print();},800);}</script></body>`
+    ).replace(/src="\/shorfah\//g, `src="${FRONTEND_BASE}/shorfah/`);
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
+    res.setHeader("Content-Disposition", `inline; filename="${filename}"`);
+    res.send(htmlWithPrint);
+  }
+});
+
+// ── Admin: SLA management ────────────────────────────────────────────────
+router.get("/shorfah/issues/:id/admin", requireAdmin, async (req: Request, res: Response) => {
+  const issueId = Number(req.params.id);
+  const sections = await db
+    .select()
+    .from(shorfahSectionsTable)
+    .where(eq(shorfahSectionsTable.issueId, issueId))
+    .orderBy(asc(shorfahSectionsTable.displayOrder));
+
+  const sectionIds = sections.map((s) => s.id);
+  
+  const assignments = sectionIds.length
+    ? await db.select().from(shorfahAssignmentsTable)
+        .where(inArray(shorfahAssignmentsTable.sectionId, sectionIds))
+    : [];
+  
+  const reminders = sectionIds.length
+    ? await db.select().from(shorfahRemindersTable)
+        .where(inArray(shorfahRemindersTable.sectionId, sectionIds))
+        .orderBy(desc(shorfahRemindersTable.sentAt))
+    : [];
+
+  res.json({ sections, assignments, reminders });
+});
+
+// Update SLA for a section
+router.patch("/shorfah/sections/:id/sla", requireAdmin, async (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+  const { slaDays, slaStartsAt } = req.body || {};
+  const patch: Record<string, unknown> = { updatedAt: new Date() };
+  if (slaDays !== undefined) patch.slaDays = Number(slaDays);
+  if (slaStartsAt) {
+    const starts = new Date(slaStartsAt);
+    patch.slaStartsAt = starts;
+    const deadline = new Date(starts);
+    deadline.setDate(deadline.getDate() + (Number(slaDays) || 7));
+    patch.slaDeadline = deadline;
+  }
+  const [updated] = await db.update(shorfahSectionsTable).set(patch).where(eq(shorfahSectionsTable.id, id)).returning();
+  res.json({ section: updated });
+});
+
+// Assign contributor to section
+router.post("/shorfah/sections/:id/assign", requireAdmin, async (req: Request, res: Response) => {
+  const sectionId = Number(req.params.id);
+  const { userId, role } = req.body || {};
+  if (!userId) return res.status(400).json({ error: "بيانات ناقصة" });
+  const [created] = await db.insert(shorfahAssignmentsTable).values({
+    sectionId,
+    userId: Number(userId),
+    role: role ?? "contributor",
+  }).returning();
+  res.json({ assignment: created });
+});
+
+router.delete("/shorfah/assignments/:id", requireAdmin, async (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+  await db.delete(shorfahAssignmentsTable).where(eq(shorfahAssignmentsTable.id, id));
+  res.json({ ok: true });
+});
+
+// Send initial messages (sets sla_starts_at + sends notifications)
+router.post("/shorfah/issues/:id/send-initial", requireAdmin, async (req: Request, res: Response) => {
+  const issueId = Number(req.params.id);
+  const [issue] = await db.select().from(shorfahIssuesTable).where(eq(shorfahIssuesTable.id, issueId)).limit(1);
+  if (!issue) return res.status(404).json({ error: "العدد غير موجود" });
+
+  const sections = await db.select().from(shorfahSectionsTable).where(eq(shorfahSectionsTable.issueId, issueId));
+  const sectionIds = sections.map((s) => s.id);
+  const assignments = sectionIds.length
+    ? await db.select().from(shorfahAssignmentsTable).where(inArray(shorfahAssignmentsTable.sectionId, sectionIds))
+    : [];
+
+  const now = new Date();
+  const results: unknown[] = [];
+
+  for (const section of sections) {
+    const slaDays = section.slaDays ?? 7;
+    const deadline = new Date(now);
+    deadline.setDate(deadline.getDate() + slaDays);
+    
+    await db.update(shorfahSectionsTable).set({
+      slaStartsAt: now,
+      slaDeadline: deadline,
+      updatedAt: now,
+    }).where(eq(shorfahSectionsTable.id, section.id));
+
+    const sectionAssignments = assignments.filter((a) => a.sectionId === section.id);
+    for (const assignment of sectionAssignments) {
+      // Get user details
+      let userEmail: string | null = null;
+      let userName = "المساهم";
+      try {
+        const userRows = await db.execute(`SELECT email, name_ar FROM users WHERE id = ${assignment.userId} LIMIT 1`);
+        const u = (userRows.rows || [])[0] as Record<string, unknown> | undefined;
+        if (u) {
+          userEmail = (u.email as string) || null;
+          userName = (u.name_ar as string) || "المساهم";
+        }
+      } catch {}
+
+      const arabicMonths = ["يناير","فبراير","مارس","أبريل","مايو","يونيو",
+        "يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
+      const monthName = arabicMonths[issue.month - 1] || String(issue.month);
+      const deadlineStr = deadline.toLocaleDateString("ar-SA");
+      const url = `/#/shorfah/${issueId}`;
+
+      await sendNotification({
+        userId: assignment.userId,
+        issueId,
+        sectionId: section.id,
+        channel: "both",
+        type: "initial",
+        title: `مطلوب مساهمتك في شُرفة — ${section.titleAr}`,
+        body: `تمت دعوتك للمساهمة في قسم "${section.titleAr}" من عدد "${issue.titleAr}" (${monthName} ${issue.year}). آخر موعد: ${deadlineStr}`,
+        url,
+        recipientEmail: userEmail,
+        assignmentId: assignment.id,
+        reminderType: "initial",
+        emailHtml: buildInitialEmailHtml({
+          recipientName: userName,
+          sectionTitle: section.titleAr,
+          issueTitleAr: issue.titleAr,
+          deadline: deadlineStr,
+          url: `https://icbank-platform-internal-comms.vercel.app${url}`,
+        }),
+      });
+
+      results.push({ sectionId: section.id, userId: assignment.userId, status: "sent" });
+    }
+  }
+
+  res.json({ ok: true, sent: results.length, results });
+});
+
+// Send manual reminder for a specific assignment/section
+router.post("/shorfah/sections/:id/remind", requireAdmin, async (req: Request, res: Response) => {
+  const sectionId = Number(req.params.id);
+  const { userId } = req.body || {};
+  if (!userId) return res.status(400).json({ error: "userId مطلوب" });
+
+  const [section] = await db.select().from(shorfahSectionsTable).where(eq(shorfahSectionsTable.id, sectionId)).limit(1);
+  if (!section) return res.status(404).json({ error: "القسم غير موجود" });
+
+  const [issue] = await db.select().from(shorfahIssuesTable).where(eq(shorfahIssuesTable.id, section.issueId)).limit(1);
+
+  let userEmail: string | null = null;
+  let userName = "المساهم";
+  try {
+    const userRows = await db.execute(`SELECT email, name_ar FROM users WHERE id = ${userId} LIMIT 1`);
+    const u = (userRows.rows || [])[0] as Record<string, unknown> | undefined;
+    if (u) { userEmail = (u.email as string) || null; userName = (u.name_ar as string) || "المساهم"; }
+  } catch {}
+
+  const now = new Date();
+  const daysOverdue = section.slaDeadline
+    ? Math.max(0, Math.floor((now.getTime() - section.slaDeadline.getTime()) / 86400000))
+    : 0;
+
+  await sendNotification({
+    userId: Number(userId),
+    issueId: section.issueId,
+    sectionId,
+    channel: "both",
+    type: "reminder_overdue",
+    title: `تذكير: قسم "${section.titleAr}" ${daysOverdue > 0 ? `متأخر ${daysOverdue} يوم` : "قيد التجميع"}`,
+    body: `يُرجى تسليم المحتوى الخاص بك لقسم "${section.titleAr}" في أقرب وقت.`,
+    url: `/#/shorfah/${section.issueId}`,
+    recipientEmail: userEmail,
+    reminderType: "pre_due",
+    emailHtml: buildOverdueEmailHtml({
+      recipientName: userName,
+      sectionTitle: section.titleAr,
+      issueTitleAr: issue?.titleAr || "شرفة",
+      daysOverdue,
+      url: `https://icbank-platform-internal-comms.vercel.app/#/shorfah/${section.issueId}`,
+    }),
+  });
+
+  res.json({ ok: true });
+});
+
+// ── Notifications API (Task 4) ────────────────────────────────────────────
+router.get("/notifications", requireAuth, async (req: Request, res: Response) => {
+  const userId = req.user!.id;
+  const notifications = await db
+    .select()
+    .from(shorfahNotificationsTable)
+    .where(eq(shorfahNotificationsTable.userId, userId))
+    .orderBy(desc(shorfahNotificationsTable.createdAt))
+    .limit(30);
+  res.json({ notifications });
+});
+
+router.post("/notifications/:id/read", requireAuth, async (req: Request, res: Response) => {
+  const notifId = Number(req.params.id);
+  const userId = req.user!.id;
+  await db.update(shorfahNotificationsTable)
+    .set({ isRead: true })
+    .where(and(
+      eq(shorfahNotificationsTable.id, notifId),
+      eq(shorfahNotificationsTable.userId, userId),
+    ));
+  res.json({ ok: true });
+});
+
+router.post("/notifications/read-all", requireAuth, async (req: Request, res: Response) => {
+  const userId = req.user!.id;
+  await db.update(shorfahNotificationsTable)
+    .set({ isRead: true })
+    .where(eq(shorfahNotificationsTable.userId, userId));
+  res.json({ ok: true });
+});
+
+// ── Cron: daily overdue check (Task 6) ───────────────────────────────────
+const CRON_SECRET = process.env.API_KEY || "9AyAoIvL1gtuf7m_9v7LkTfNzx0CLsFPGmhqP3nt0BI";
+
+router.post("/cron/shorfah/check-overdue", async (req: Request, res: Response) => {
+  const secret = req.headers["x-cron-secret"] || req.headers["x-api-key"];
+  if (secret !== CRON_SECRET) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  try {
+    const now = new Date();
+    // Find sections past deadline with non-final workflow statuses
+    const overdueSections = await db
+      .select()
+      .from(shorfahSectionsTable)
+      .where(
+        and(
+          isNotNull(shorfahSectionsTable.slaDeadline),
+          lt(shorfahSectionsTable.slaDeadline, now),
+          inArray(shorfahSectionsTable.workflowStatus, ["pending_contribution", "submitted"]),
+        )
+      );
+
+    let notified = 0;
+    for (const section of overdueSections) {
+      const [issue] = await db.select().from(shorfahIssuesTable).where(eq(shorfahIssuesTable.id, section.issueId)).limit(1);
+      
+      const assignments = await db.select().from(shorfahAssignmentsTable)
+        .where(eq(shorfahAssignmentsTable.sectionId, section.id));
+
+      const daysOverdue = Math.floor((now.getTime() - section.slaDeadline!.getTime()) / 86400000);
+
+      for (const assignment of assignments) {
+        let userEmail: string | null = null;
+        let userName = "المساهم";
+        try {
+          const userRows = await db.execute(`SELECT email, name_ar FROM users WHERE id = ${assignment.userId} LIMIT 1`);
+          const u = (userRows.rows || [])[0] as Record<string, unknown> | undefined;
+          if (u) { userEmail = (u.email as string) || null; userName = (u.name_ar as string) || "المساهم"; }
+        } catch {}
+
+        await sendNotification({
+          userId: assignment.userId,
+          issueId: section.issueId,
+          sectionId: section.id,
+          channel: "both",
+          type: "reminder_overdue",
+          title: `قسم "${section.titleAr}" متأخر عن الموعد بـ ${daysOverdue} يوم`,
+          body: `يُرجى تسليم المحتوى الخاص بك في أقرب وقت ممكن.`,
+          url: `/#/shorfah/${section.issueId}`,
+          recipientEmail: userEmail,
+          assignmentId: assignment.id,
+          reminderType: "overdue",
+          emailHtml: buildOverdueEmailHtml({
+            recipientName: userName,
+            sectionTitle: section.titleAr,
+            issueTitleAr: issue?.titleAr || "شرفة",
+            daysOverdue,
+            url: `https://icbank-platform-internal-comms.vercel.app/#/shorfah/${section.issueId}`,
+          }),
+        });
+        notified++;
+      }
+    }
+
+    res.json({ ok: true, overdueSections: overdueSections.length, notified });
+  } catch (err) {
+    console.error("[cron/shorfah/check-overdue]", err);
+    res.status(500).json({ error: "Internal error", details: err instanceof Error ? err.message : "unknown" });
+  }
+});
+
+// ── Publish (Task 7: fan-out notifications) ───────────────────────────────
 router.post("/shorfah/issues/:id/publish", requireAdmin, async (req: Request, res: Response) => {
   const id = Number(req.params.id);
   // ensure at least one approved+included section
@@ -409,12 +837,53 @@ router.post("/shorfah/issues/:id/publish", requireAdmin, async (req: Request, re
     eq(shorfahSectionsTable.includeInPdf, true),
   ));
   if (!sections.length) return res.status(400).json({ error: "لا يوجد أقسام معتمدة ومُفعّلة للنشر" });
+  
   const [updated] = await db.update(shorfahIssuesTable).set({
     status: "published",
     publishedAt: new Date(),
-    publishedPdfUrl: `/api/shorfah/issues/${id}/pdf`,
+    publishedPdfUrl: `/api/shorfah/issues/${id}/pdf.pdf`,
     updatedAt: new Date(),
   }).where(eq(shorfahIssuesTable.id, id)).returning();
+
+  // Task 7: Fan-out notifications to all users
+  try {
+    const arabicMonths = ["يناير","فبراير","مارس","أبريل","مايو","يونيو",
+      "يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
+    const monthName = arabicMonths[updated.month - 1] || String(updated.month);
+    const issueUrl = `/#/shorfah/${id}`;
+    const pdfUrl = `/api/shorfah/issues/${id}/pdf.pdf`;
+
+    const allUsers = await getAllUsers();
+    
+    for (const user of allUsers) {
+      const emailHtml = buildPublishEmailHtml({
+        issueTitleAr: updated.titleAr,
+        month: monthName,
+        year: updated.year,
+        issueNo: updated.issueNo,
+        url: `https://icbank-platform-internal-comms.vercel.app${issueUrl}`,
+        pdfUrl: `https://workspaceapi-server-production-9087.up.railway.app${pdfUrl}`,
+      });
+
+      await sendNotification({
+        userId: user.id,
+        issueId: id,
+        sectionId: null,
+        channel: user.email ? "both" : "in_app",
+        type: "published",
+        title: "عدد جديد من شُرفة متوفر الآن",
+        body: `تفضل بقراءة العدد ${updated.issueNo} — ${monthName} ${updated.year}`,
+        url: issueUrl,
+        recipientEmail: user.email,
+        emailHtml,
+      });
+    }
+    console.log(`[publish] Fan-out sent to ${allUsers.length} users`);
+  } catch (err) {
+    console.error("[publish] Fan-out error:", err);
+    // Don't fail the publish response if fan-out errors
+  }
+
   res.json({ issue: updated });
 });
 

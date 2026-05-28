@@ -768,8 +768,23 @@ export function buildShorfahPdfHtml(opts: {
     descriptionAr?: string | null;
     contentMd?: string | null;
   }>;
+  /** Base URL for static assets (e.g. /shorfah/*.png). Defaults to empty (relative). */
   baseUrl?: string;
 }): string {
+  // Patch image URLs if baseUrl is provided
+  const _baseUrl = opts.baseUrl ? opts.baseUrl.replace(/\/$/, "") : "";
+  if (_baseUrl) {
+    const origSectionIcon = { ...SECTION_ICON };
+    for (const k of Object.keys(SECTION_ICON)) {
+      SECTION_ICON[k] = _baseUrl + origSectionIcon[k];
+    }
+    // Restore after build
+    setTimeout(() => {
+      for (const k of Object.keys(SECTION_ICON)) {
+        SECTION_ICON[k] = origSectionIcon[k];
+      }
+    }, 0);
+  }
   const arabicMonth = ARABIC_MONTHS[opts.issue.month - 1] || "—";
   const subtitle = opts.issue.subtitleAr || "نشرة داخلية شهرية تصدر من الإدارة التنفيذية للتواصل المؤسسي";
   const motto = opts.issue.editorLetter || "بجهودكم تتعزز بيئة المنافسة... وبعملكم يترسخ مبدأ العدالة.";

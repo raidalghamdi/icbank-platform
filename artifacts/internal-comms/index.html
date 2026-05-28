@@ -4501,6 +4501,10 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
         </div>
       </div>
       <div style="display:flex;gap:8px;">
+        <button id="shorfah-admin-tab-btn" class="btn btn-ghost btn-sm" onclick="shorfahShowAdminPanel()" style="display:none;">
+          <svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M12 2a10 10 0 0 1 0 20"/></svg>
+          إدارة شرفة
+        </button>
         <button id="shorfah-new-issue-btn" class="btn btn-primary" onclick="shorfahNewIssue()" style="display:none;">
           <span class="ico"><svg><use href="#i-plus"/></svg></span>عدد جديد
         </button>
@@ -4536,6 +4540,10 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
             <svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             تحميل PDF
           </a>
+          <button id="shorfah-start-review-btn" class="btn btn-ghost btn-sm" onclick="shorfahStartReview()" style="display:none;flex:1 1 140px;justify-content:center;">
+            <svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            بدء المراجعة النهائية
+          </button>
           <button id="shorfah-publish-btn" class="btn btn-primary btn-sm" onclick="shorfahPublishIssue()" style="display:none;flex:1 1 140px;justify-content:center;">
             <svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
             نشر العدد
@@ -4545,6 +4553,43 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
 
       <!-- Sections workflow board -->
       <div id="shorfah-sections-board" style="display:grid;gap:12px;"></div>
+    </div>
+
+    <!-- Admin Panel -->
+    <div id="shorfah-admin-panel" style="display:none;">
+      <div class="card" style="padding:16px;margin-bottom:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+          <button class="btn btn-ghost btn-sm" onclick="shorfahHideAdminPanel()">
+            <svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            العودة
+          </button>
+          <div style="font-size:18px;font-weight:900;color:var(--text);">إدارة شُرفة — <span id="shorfah-admin-issue-title"></span></div>
+          <div></div>
+        </div>
+        <!-- Tabs -->
+        <div style="display:flex;gap:8px;border-bottom:2px solid var(--border);margin-bottom:16px;">
+          <button class="btn btn-ghost btn-sm shorfah-admin-tab active" data-tab="sla" onclick="shorfahAdminTab('sla')" style="border-bottom:2px solid #1a6e7a;border-radius:0;">إعدادات SLA</button>
+          <button class="btn btn-ghost btn-sm shorfah-admin-tab" data-tab="assign" onclick="shorfahAdminTab('assign')" style="border-radius:0;">المساهمون</button>
+          <button class="btn btn-ghost btn-sm shorfah-admin-tab" data-tab="status" onclick="shorfahAdminTab('status')" style="border-radius:0;">لوحة الحالة</button>
+          <button class="btn btn-ghost btn-sm shorfah-admin-tab" data-tab="reminders" onclick="shorfahAdminTab('reminders')" style="border-radius:0;">سجل التذكيرات</button>
+        </div>
+        <!-- Tab contents -->
+        <div id="shorfah-admin-tab-sla" class="shorfah-admin-tabcontent"></div>
+        <div id="shorfah-admin-tab-assign" class="shorfah-admin-tabcontent" style="display:none;"></div>
+        <div id="shorfah-admin-tab-status" class="shorfah-admin-tabcontent" style="display:none;"></div>
+        <div id="shorfah-admin-tab-reminders" class="shorfah-admin-tabcontent" style="display:none;"></div>
+        <!-- Send initial messages button -->
+        <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--border);display:flex;gap:10px;">
+          <button class="btn btn-primary" onclick="shorfahSendInitialMessages()">
+            <svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            إرسال رسائل البدء
+          </button>
+          <button class="btn btn-ghost btn-sm" onclick="shorfahShowAdminPanel()">
+            <svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.11"/></svg>
+            تحديث
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- Editor modal -->
@@ -10287,34 +10332,68 @@ document.addEventListener('click', (e) => {
   if (sw && dd && !sw.contains(e.target)) dd.classList.remove('open');
 });
 
-// ═══ NOTIFICATIONS ═══
-// Each notification can optionally have a `target` element id to scroll to after section nav.
-const NOTIFICATIONS = [
-  { id:1, icon:'i-trending-up', title:'تقرير الأداء التنفيذي لليوم جاهز', desc:'تم توليد التقرير تلقائياً — 78% إنجاز، مستوى المخاطر: منخفض', time:'منذ 30 دقيقة', unread:true, kind:'success', section:'reports' },
-  { id:2, icon:'i-alert-triangle', title:'مشروعان متأخران يحتاجان متابعة', desc:'حملة نزاهة الأسعار وتقرير المنافسة الربع الأول', time:'منذ ساعتين', unread:true, kind:'warn', section:'reports' },
-  { id:3, icon:'i-globe', title:'10 منشورات جديدة على لينكدإن', desc:'تم تحديث منشورات صفحة هيئة المنافسة تلقائياً', time:'منذ 3 ساعات', unread:true, kind:'', section:'home', target:'home-social-card' },
-  { id:4, icon:'i-brain', title:'تم إضافة 3 تفعيلات جديدة', desc:'عام الذكاء الاصطناعي 2026', time:'أمس', unread:false, kind:'success', section:'aiyear' },
-  { id:5, icon:'i-shield', title:'التزام كامل باللوائح', desc:'لا فجوات امتثال في DGA · NCA · SADAIA', time:'أمس', unread:false, kind:'success', section:'reports' },
-];
+// ═══ NOTIFICATIONS (API-backed — Task 4) ═══
+var NOTIFICATIONS_DATA = []; // API-backed, replaces hardcoded array
+var NOTIFICATIONS_POLL_INTERVAL = null;
+
+async function fetchNotifications() {
+  if (!window.AUTH_USER) return;
+  try {
+    var res = await apiFetch('/api/notifications');
+    if (!res.ok) return;
+    var data = await res.json();
+    NOTIFICATIONS_DATA = (data.notifications || []).map(function(n) {
+      return {
+        id: n.id,
+        icon: n.type === 'published' ? 'i-globe' : n.type === 'reminder_overdue' ? 'i-alert-triangle' : 'i-trending-up',
+        title: n.title,
+        desc: n.body || '',
+        time: formatRelativeTime(n.createdAt),
+        unread: !n.isRead,
+        kind: n.type === 'reminder_overdue' ? 'warn' : n.type === 'published' ? 'success' : '',
+        url: n.url || null,
+        _raw: n,
+      };
+    });
+    renderNotifications();
+  } catch(e) { /* silent */ }
+}
+
+function formatRelativeTime(dateStr) {
+  if (!dateStr) return '';
+  var d = new Date(dateStr);
+  var diff = (Date.now() - d.getTime()) / 1000;
+  if (diff < 60) return 'الآن';
+  if (diff < 3600) return 'منذ ' + Math.round(diff / 60) + ' دقيقة';
+  if (diff < 86400) return 'منذ ' + Math.round(diff / 3600) + ' ساعة';
+  return 'منذ ' + Math.round(diff / 86400) + ' يوم';
+}
+
+function startNotifPolling() {
+  fetchNotifications();
+  if (NOTIFICATIONS_POLL_INTERVAL) clearInterval(NOTIFICATIONS_POLL_INTERVAL);
+  NOTIFICATIONS_POLL_INTERVAL = setInterval(fetchNotifications, 60000); // poll every 60s
+}
+
 function renderNotifications() {
   const list = document.getElementById('notif-list');
   const count = document.getElementById('notif-count');
   if (!list) return;
-  const unreadCount = NOTIFICATIONS.filter(n => n.unread).length;
+  const unreadCount = NOTIFICATIONS_DATA.filter(n => n.unread).length;
   if (count) {
     if (unreadCount > 0) { count.textContent = unreadCount; count.style.display = 'inline-flex'; }
     else { count.style.display = 'none'; }
   }
-  if (!NOTIFICATIONS.length) {
+  if (!NOTIFICATIONS_DATA.length) {
     list.innerHTML = '<div class="notif-empty">لا توجد إشعارات</div>';
     return;
   }
-  list.innerHTML = NOTIFICATIONS.map(n => `
+  list.innerHTML = NOTIFICATIONS_DATA.map(n => `
     <div class="notif-item${n.unread?' unread':''}" onclick="clickNotif(${n.id})">
       <div class="notif-icon ${n.kind||''}"><span class="ico"><svg><use href="#${n.icon}"/></svg></span></div>
       <div class="notif-body">
         <div class="notif-title">${n.title}</div>
-        <div class="notif-desc">${n.desc}</div>
+        <div class="notif-desc">${n.desc || ''}</div>
         <div class="notif-time">${n.time}</div>
       </div>
     </div>`).join('');
@@ -10324,32 +10403,34 @@ function toggleNotifications(e) {
   const p = document.getElementById('notif-panel');
   if (!p) return;
   p.classList.toggle('open');
+  if (p.classList.contains('open')) fetchNotifications();
 }
-function clickNotif(id) {
-  const n = NOTIFICATIONS.find(x => x.id === id);
+async function clickNotif(id) {
+  const n = NOTIFICATIONS_DATA.find(x => x.id === id);
   if (!n) return;
   n.unread = false;
   renderNotifications();
   document.getElementById('notif-panel').classList.remove('open');
-  if (n.section && typeof showSection === 'function') showSection(n.section);
-  // Deep-link: scroll to target element after section render
-  if (n.target) {
-    setTimeout(() => {
-      const el = document.getElementById(n.target);
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        // brief highlight
-        const prev = el.style.boxShadow;
-        el.style.transition = 'box-shadow 0.4s ease';
-        el.style.boxShadow = '0 0 0 3px rgba(30,64,175,0.45)';
-        setTimeout(() => { el.style.boxShadow = prev || ''; }, 1800);
+  // Mark as read in API
+  try { await apiFetch('/api/notifications/' + id + '/read', { method: 'POST' }); } catch(e) {}
+  // Navigate to URL if present
+  if (n.url && typeof showSection === 'function') {
+    var url = n.url;
+    var hashMatch = url.match(/#\/([^/]+)(?:\/(.*))?/);
+    if (hashMatch) {
+      var section = hashMatch[1];
+      var param = hashMatch[2];
+      showSection(section);
+      if (section === 'shorfah' && param) {
+        setTimeout(function() { shorfahOpenIssue(parseInt(param, 10)); }, 300);
       }
-    }, 250);
+    }
   }
 }
-function markAllNotifRead() {
-  NOTIFICATIONS.forEach(n => n.unread = false);
+async function markAllNotifRead() {
+  NOTIFICATIONS_DATA.forEach(n => n.unread = false);
   renderNotifications();
+  try { await apiFetch('/api/notifications/read-all', { method: 'POST' }); } catch(e) {}
 }
 document.addEventListener('click', (e) => {
   const w = document.querySelector('.notif-wrap');
@@ -10405,12 +10486,16 @@ function shorfahIsAdmin() { return shorfahCanRole(['admin','super_admin']); }
 
 async function shorfahInit() {
   if (typeof closeMobileSidebar === 'function') closeMobileSidebar();
-  // Show admin-only button
+  // Show admin-only buttons
   var newBtn = document.getElementById('shorfah-new-issue-btn');
   if (newBtn) newBtn.style.display = shorfahIsAdmin() ? '' : 'none';
+  var adminBtn = document.getElementById('shorfah-admin-tab-btn');
+  if (adminBtn) adminBtn.style.display = shorfahIsAdmin() ? '' : 'none';
   // Default view: list
   document.getElementById('shorfah-issues-list').style.display = '';
   document.getElementById('shorfah-issue-detail').style.display = 'none';
+  var ap = document.getElementById('shorfah-admin-panel');
+  if (ap) ap.style.display = 'none';
   await shorfahLoadIssues();
 }
 
@@ -10428,7 +10513,16 @@ async function shorfahLoadIssues() {
     if (!issues.length) { grid.innerHTML = '<div style="color:#666;padding:24px;text-align:center;grid-column:1/-1;">لا توجد أعداد بعد</div>'; return; }
     grid.innerHTML = issues.map(function(iss) {
       var month = SHORFAH_ARABIC_MONTHS[iss.month - 1] || iss.month;
-      var statusColor = iss.status === 'published' ? '#15803d' : (iss.status === 'approved' ? '#0369a1' : '#a16207');
+       // Task 2: Three distinct state badges
+      var badge;
+      if (iss.status === 'published') {
+        var pubDate = iss.publishedAt ? new Date(iss.publishedAt).toLocaleDateString('ar-SA') : '';
+        badge = '<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;background:#dcfce7;color:#15803d;font-weight:800;font-size:11px;">✓ منشور رسمياً' + (pubDate ? ' · ' + pubDate : '') + '</span>';
+      } else if (iss.status === 'in_review') {
+        badge = '<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;background:#fef3c7;color:#92400e;font-weight:800;font-size:11px;">⏳ تحت المراجعة النهائية</span>';
+      } else {
+        badge = '<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;background:#f3f4f6;color:#6b7280;font-weight:800;font-size:11px;">● لم يبدأ بعد</span>';
+      }
       return '<div style="cursor:pointer;border:1px solid #d6e9eb;border-radius:14px;overflow:hidden;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,0.04);transition:transform .15s;" onclick="shorfahOpenIssue('+iss.id+')" onmouseover="this.style.transform=\'translateY(-3px)\'" onmouseout="this.style.transform=\'translateY(0)\'">'+
         '<div style="background:linear-gradient(135deg,#1a6e7a 0%,#2a8d9b 60%,#3ec0d0 100%);color:#fff;padding:24px 20px;text-align:center;">'+
           '<div style="font-size:13px;letter-spacing:2px;opacity:0.9;">العدد '+(iss.issueNo || iss.issue_no || '?')+'</div>'+
@@ -10436,10 +10530,9 @@ async function shorfahLoadIssues() {
           '<div style="font-size:14px;opacity:0.92;">'+month+' '+iss.year+'</div>'+
         '</div>'+
         '<div style="padding:14px 16px;background:#fff;">'+
-          '<div style="font-size:12px;color:'+statusColor+';font-weight:800;">●  '+(iss.status === 'published' ? 'منشور' : iss.status === 'approved' ? 'معتمد' : iss.status === 'in_review' ? 'قيد المراجعة' : iss.status === 'collecting' ? 'جاري التجميع' : 'مسودة')+'</div>'+
+          '<div style="margin-bottom:6px;">'+badge+'</div>'+
           '<div style="font-size:12px;color:var(--text-3);margin-top:4px;">'+(iss.subtitleAr || iss.subtitle_ar || '')+'</div>'+
-        '</div></div>';
-    }).join('');
+        '</div></div>';    }).join('');
   } catch(e) {
     grid.innerHTML = '<div style="color:#b91c1c;padding:24px;text-align:center;grid-column:1/-1;">خطأ: '+e.message+'</div>';
   }
@@ -10459,7 +10552,16 @@ async function shorfahOpenIssue(id) {
     SHORFAH_STATE.sections = data.sections || [];
     var month = SHORFAH_ARABIC_MONTHS[data.issue.month - 1] || data.issue.month;
     document.getElementById('shorfah-issue-title').textContent = (data.issue.titleAr || data.issue.title_ar || 'شُرفة') + ' — العدد ' + (data.issue.issueNo || data.issue.issue_no);
-    document.getElementById('shorfah-issue-meta').innerHTML = month + ' ' + data.issue.year + ' · حالة: <strong>'+(data.issue.status || '—')+'</strong>';
+    // Task 2: status badge in detail view
+    var statusBadge;
+    if (data.issue.status === 'published') {
+      statusBadge = '<span style="padding:2px 10px;border-radius:12px;background:#dcfce7;color:#15803d;font-weight:800;">✓ منشور رسمياً</span>';
+    } else if (data.issue.status === 'in_review') {
+      statusBadge = '<span style="padding:2px 10px;border-radius:12px;background:#fef3c7;color:#92400e;font-weight:800;">⏳ تحت المراجعة</span>';
+    } else {
+      statusBadge = '<span style="padding:2px 10px;border-radius:12px;background:#f3f4f6;color:#6b7280;font-weight:800;">◯ قيد التجميع</span>';
+    }
+    document.getElementById('shorfah-issue-meta').innerHTML = month + ' ' + data.issue.year + ' &nbsp;' + statusBadge;
     // PDF buttons — preview (HTML view) + download (binary .pdf)
     var isPublished = data.issue.status === 'published';
     var previewBtn = document.getElementById('shorfah-pdf-preview-btn');
@@ -10475,6 +10577,9 @@ async function shorfahOpenIssue(id) {
     // Publish button — admin only
     var pubBtn = document.getElementById('shorfah-publish-btn');
     pubBtn.style.display = (shorfahIsAdmin() && !isPublished) ? '' : 'none';
+    // Task 2: Start-review button for collecting status
+    var revBtn = document.getElementById('shorfah-start-review-btn');
+    if (revBtn) revBtn.style.display = (shorfahIsAdmin() && data.issue.status === 'collecting') ? '' : 'none';
     shorfahRenderBoard();
   } catch(e) {
     board.innerHTML = '<div style="color:#b91c1c;padding:24px;">خطأ: '+e.message+'</div>';
@@ -10670,10 +10775,291 @@ async function shorfahPublishIssue() {
 }
 
 // ═══ BOOT ═══
+
+async function shorfahStartReview() {
+  if (!shorfahIsAdmin()) { alert('تحتاج صلاحيات مسؤول'); return; }
+  if (!confirm('نقل العدد لمرحلة المراجعة النهائية؟')) return;
+  var id = SHORFAH_STATE.currentIssueId;
+  try {
+    var res = await apiFetch('/api/shorfah/issues/'+id+'/start-review', { method: 'POST' });
+    var data = await res.json();
+    if (!res.ok) { alert('خطأ: '+(data.error || res.status)); return; }
+    alert('تم نقل العدد لمرحلة المراجعة النهائية.');
+    await shorfahOpenIssue(id);
+  } catch(e) { alert('خطأ: '+e.message); }
+}
+
+// ═══ SHORFAH ADMIN PANEL (Task 3) ═══
+var SHORFAH_ADMIN_STATE = { issueId: null, sections: [], assignments: [], reminders: [], activeTab: 'sla' };
+
+async function shorfahShowAdminPanel() {
+  if (!shorfahIsAdmin()) { alert('تحتاج صلاحيات مسؤول'); return; }
+  var issueId = SHORFAH_STATE.currentIssueId;
+  if (!issueId) { alert('يرجى فتح عدد أولاً'); return; }
+  SHORFAH_ADMIN_STATE.issueId = issueId;
+  document.getElementById('shorfah-issues-list').style.display = 'none';
+  document.getElementById('shorfah-issue-detail').style.display = 'none';
+  document.getElementById('shorfah-admin-panel').style.display = '';
+  // Set issue title
+  var issue = SHORFAH_STATE.issue;
+  var titleEl = document.getElementById('shorfah-admin-issue-title');
+  if (titleEl && issue) {
+    var month = SHORFAH_ARABIC_MONTHS[(issue.month||1) - 1] || issue.month;
+    titleEl.textContent = (issue.titleAr || 'شُرفة') + ' — ' + month + ' ' + issue.year;
+  }
+  await shorfahAdminLoadData();
+  shorfahAdminTab(SHORFAH_ADMIN_STATE.activeTab);
+}
+
+function shorfahHideAdminPanel() {
+  document.getElementById('shorfah-admin-panel').style.display = 'none';
+  document.getElementById('shorfah-issue-detail').style.display = '';
+}
+
+async function shorfahAdminLoadData() {
+  var issueId = SHORFAH_ADMIN_STATE.issueId;
+  try {
+    var res = await apiFetch('/api/shorfah/issues/'+issueId+'/admin');
+    if (!res.ok) return;
+    var data = await res.json();
+    SHORFAH_ADMIN_STATE.sections = data.sections || [];
+    SHORFAH_ADMIN_STATE.assignments = data.assignments || [];
+    SHORFAH_ADMIN_STATE.reminders = data.reminders || [];
+  } catch(e) { console.error('Admin load error:', e); }
+}
+
+function shorfahAdminTab(tab) {
+  SHORFAH_ADMIN_STATE.activeTab = tab;
+  // Update tab button styles
+  document.querySelectorAll('.shorfah-admin-tab').forEach(function(btn) {
+    if (btn.dataset.tab === tab) {
+      btn.style.borderBottom = '2px solid #1a6e7a';
+      btn.style.color = '#1a6e7a';
+    } else {
+      btn.style.borderBottom = '';
+      btn.style.color = '';
+    }
+  });
+  // Hide all tab contents
+  document.querySelectorAll('.shorfah-admin-tabcontent').forEach(function(el) {
+    el.style.display = 'none';
+  });
+  var el = document.getElementById('shorfah-admin-tab-'+tab);
+  if (el) el.style.display = '';
+
+  switch(tab) {
+    case 'sla': shorfahAdminRenderSla(); break;
+    case 'assign': shorfahAdminRenderAssign(); break;
+    case 'status': shorfahAdminRenderStatus(); break;
+    case 'reminders': shorfahAdminRenderReminders(); break;
+  }
+}
+
+function shorfahAdminRenderSla() {
+  var el = document.getElementById('shorfah-admin-tab-sla');
+  if (!el) return;
+  var sections = SHORFAH_ADMIN_STATE.sections;
+  if (!sections.length) { el.innerHTML = '<div style="color:#666;padding:16px;">لا توجد أقسام</div>'; return; }
+  el.innerHTML = '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:14px;">' +
+    '<thead><tr style="background:#f0f7f8;"><th style="padding:10px;text-align:right;">القسم</th><th style="padding:10px;text-align:center;">أيام SLA</th><th style="padding:10px;text-align:center;">تاريخ البدء</th><th style="padding:10px;text-align:center;">الموعد النهائي</th><th style="padding:10px;"></th></tr></thead>' +
+    '<tbody>' + sections.map(function(s) {
+      var slaStarts = s.slaStartsAt ? new Date(s.slaStartsAt).toLocaleDateString('ar-SA') : '—';
+      var slaDeadline = s.slaDeadline ? new Date(s.slaDeadline).toLocaleDateString('ar-SA') : '—';
+      return '<tr style="border-bottom:1px solid #e5e7eb;">' +
+        '<td style="padding:10px;font-weight:700;">'+s.titleAr+'</td>' +
+        '<td style="padding:10px;text-align:center;"><input type="number" value="'+(s.slaDays||7)+'" min="1" max="90" style="width:70px;padding:4px;border:1px solid #d1d5db;border-radius:6px;text-align:center;" id="sla-days-'+s.id+'"/></td>' +
+        '<td style="padding:10px;text-align:center;">'+slaStarts+'</td>' +
+        '<td style="padding:10px;text-align:center;">'+slaDeadline+'</td>' +
+        '<td style="padding:10px;"><button class="btn btn-ghost btn-sm" onclick="shorfahSaveSla('+s.id+')">حفظ</button></td>' +
+      '</tr>';
+    }).join('') +
+    '</tbody></table></div>';
+}
+
+async function shorfahSaveSla(sectionId) {
+  var daysEl = document.getElementById('sla-days-'+sectionId);
+  if (!daysEl) return;
+  var slaDays = parseInt(daysEl.value, 10);
+  if (isNaN(slaDays) || slaDays < 1) { alert('أيام SLA غير صحيحة'); return; }
+  try {
+    var res = await apiFetch('/api/shorfah/sections/'+sectionId+'/sla', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ slaDays: slaDays, slaStartsAt: new Date().toISOString() })
+    });
+    var data = await res.json();
+    if (!res.ok) { alert('خطأ: '+(data.error || res.status)); return; }
+    await shorfahAdminLoadData();
+    shorfahAdminRenderSla();
+    alert('تم حفظ SLA بنجاح');
+  } catch(e) { alert('خطأ: '+e.message); }
+}
+
+function shorfahAdminRenderAssign() {
+  var el = document.getElementById('shorfah-admin-tab-assign');
+  if (!el) return;
+  var sections = SHORFAH_ADMIN_STATE.sections;
+  var assignments = SHORFAH_ADMIN_STATE.assignments;
+  el.innerHTML = '<div style="display:grid;gap:12px;">' + sections.map(function(s) {
+    var sectionAssignments = assignments.filter(function(a) { return a.sectionId === s.id; });
+    return '<div style="border:1px solid #e5e7eb;border-radius:8px;padding:12px;">' +
+      '<div style="font-weight:800;margin-bottom:8px;">'+s.titleAr+'</div>' +
+      (sectionAssignments.length ? sectionAssignments.map(function(a) {
+        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:13px;">' +
+          '<span>مستخدم #'+a.userId+' — '+a.role+'</span>' +
+          '<button class="btn btn-ghost btn-sm" style="color:#b91c1c;" onclick="shorfahDeleteAssignment('+a.id+')">حذف</button>' +
+          '</div>';
+      }).join('') : '<div style="color:#9ca3af;font-size:13px;">لا يوجد مساهمون</div>') +
+      '<div style="display:flex;gap:6px;margin-top:8px;">' +
+        '<input type="number" placeholder="معرف المستخدم" style="padding:4px 8px;border:1px solid #d1d5db;border-radius:6px;width:120px;font-size:13px;" id="assign-uid-'+s.id+'"/>' +
+        '<select style="padding:4px;border:1px solid #d1d5db;border-radius:6px;font-size:13px;" id="assign-role-'+s.id+'">' +
+          '<option value="contributor">مساهم</option>' +
+          '<option value="reviewer">مراجع</option>' +
+          '<option value="approver">معتمد</option>' +
+        '</select>' +
+        '<button class="btn btn-primary btn-sm" onclick="shorfahAddAssignment('+s.id+')">إضافة</button>' +
+      '</div>' +
+    '</div>';
+  }).join('') + '</div>';
+}
+
+async function shorfahAddAssignment(sectionId) {
+  var uidEl = document.getElementById('assign-uid-'+sectionId);
+  var roleEl = document.getElementById('assign-role-'+sectionId);
+  if (!uidEl) return;
+  var userId = parseInt(uidEl.value, 10);
+  if (isNaN(userId)) { alert('أدخل معرف المستخدم'); return; }
+  var role = roleEl ? roleEl.value : 'contributor';
+  try {
+    var res = await apiFetch('/api/shorfah/sections/'+sectionId+'/assign', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: userId, role: role })
+    });
+    var data = await res.json();
+    if (!res.ok) { alert('خطأ: '+(data.error || res.status)); return; }
+    await shorfahAdminLoadData();
+    shorfahAdminRenderAssign();
+  } catch(e) { alert('خطأ: '+e.message); }
+}
+
+async function shorfahDeleteAssignment(assignmentId) {
+  if (!confirm('حذف هذا التعيين؟')) return;
+  try {
+    var res = await apiFetch('/api/shorfah/assignments/'+assignmentId, { method: 'DELETE' });
+    if (!res.ok) { alert('خطأ في الحذف'); return; }
+    await shorfahAdminLoadData();
+    shorfahAdminRenderAssign();
+  } catch(e) { alert('خطأ: '+e.message); }
+}
+
+function shorfahAdminRenderStatus() {
+  var el = document.getElementById('shorfah-admin-tab-status');
+  if (!el) return;
+  var sections = SHORFAH_ADMIN_STATE.sections;
+  var assignments = SHORFAH_ADMIN_STATE.assignments;
+  var reminders = SHORFAH_ADMIN_STATE.reminders;
+  var now = new Date();
+  el.innerHTML = '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;">' +
+    '<thead><tr style="background:#f0f7f8;">' +
+      '<th style="padding:10px;text-align:right;">القسم</th>' +
+      '<th style="padding:10px;text-align:center;">المساهمون</th>' +
+      '<th style="padding:10px;text-align:center;">الموعد النهائي</th>' +
+      '<th style="padding:10px;text-align:center;">الحالة</th>' +
+      '<th style="padding:10px;text-align:center;">أيام متبقية</th>' +
+      '<th style="padding:10px;text-align:center;">آخر تذكير</th>' +
+      '<th style="padding:10px;"></th>' +
+    '</tr></thead>' +
+    '<tbody>' + sections.map(function(s) {
+      var sectionAssignments = assignments.filter(function(a) { return a.sectionId === s.id; });
+      var deadline = s.slaDeadline ? new Date(s.slaDeadline) : null;
+      var daysLeft = deadline ? Math.ceil((deadline.getTime() - now.getTime()) / 86400000) : null;
+      var lastReminder = reminders.filter(function(r) { return r.sectionId === s.id; })[0];
+      var lastReminderStr = lastReminder ? new Date(lastReminder.sentAt).toLocaleDateString('ar-SA') : '—';
+      var status = SHORFAH_STATUS_LABELS[s.workflowStatus] || SHORFAH_STATUS_LABELS.pending_contribution;
+      var daysText = daysLeft === null ? '—' : (daysLeft >= 0 ? daysLeft + ' يوم' : Math.abs(daysLeft) + ' يوم (متأخر)');
+      var daysColor = daysLeft === null ? '#9ca3af' : (daysLeft < 0 ? '#b91c1c' : daysLeft < 3 ? '#a16207' : '#15803d');
+      return '<tr style="border-bottom:1px solid #e5e7eb;">' +
+        '<td style="padding:10px;font-weight:700;">'+s.titleAr+'</td>' +
+        '<td style="padding:10px;text-align:center;">'+(sectionAssignments.length ? sectionAssignments.map(function(a) { return '#'+a.userId; }).join(', ') : '—')+'</td>' +
+        '<td style="padding:10px;text-align:center;">'+(deadline ? deadline.toLocaleDateString('ar-SA') : '—')+'</td>' +
+        '<td style="padding:10px;text-align:center;"><span style="padding:2px 8px;border-radius:12px;background:'+status.bg+';color:'+status.color+';font-weight:700;font-size:11px;">'+status.ar+'</span></td>' +
+        '<td style="padding:10px;text-align:center;color:'+daysColor+';font-weight:700;">'+daysText+'</td>' +
+        '<td style="padding:10px;text-align:center;">'+lastReminderStr+'</td>' +
+        '<td style="padding:10px;">' +
+          sectionAssignments.map(function(a) {
+            return '<button class="btn btn-ghost btn-sm" style="font-size:11px;" onclick="shorfahSendReminder('+s.id+','+a.userId+')">تذكير #'+a.userId+'</button>';
+          }).join('') +
+        '</td>' +
+      '</tr>';
+    }).join('') +
+    '</tbody></table></div>';
+}
+
+async function shorfahSendReminder(sectionId, userId) {
+  if (!confirm('إرسال تذكير للمستخدم #'+userId+'؟')) return;
+  try {
+    var res = await apiFetch('/api/shorfah/sections/'+sectionId+'/remind', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: userId })
+    });
+    var data = await res.json();
+    if (!res.ok) { alert('خطأ: '+(data.error || res.status)); return; }
+    alert('تم إرسال التذكير');
+    await shorfahAdminLoadData();
+    shorfahAdminRenderStatus();
+  } catch(e) { alert('خطأ: '+e.message); }
+}
+
+function shorfahAdminRenderReminders() {
+  var el = document.getElementById('shorfah-admin-tab-reminders');
+  if (!el) return;
+  var reminders = SHORFAH_ADMIN_STATE.reminders;
+  if (!reminders.length) { el.innerHTML = '<div style="color:#666;padding:16px;">لا توجد تذكيرات مسجلة بعد</div>'; return; }
+  el.innerHTML = '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;">' +
+    '<thead><tr style="background:#f0f7f8;">' +
+      '<th style="padding:10px;text-align:right;">التاريخ</th>' +
+      '<th style="padding:10px;text-align:center;">المستخدم</th>' +
+      '<th style="padding:10px;text-align:center;">القناة</th>' +
+      '<th style="padding:10px;text-align:center;">النوع</th>' +
+      '<th style="padding:10px;text-align:center;">الحالة</th>' +
+      '<th style="padding:10px;text-align:right;">الرسالة</th>' +
+    '</tr></thead>' +
+    '<tbody>' + reminders.map(function(r) {
+      return '<tr style="border-bottom:1px solid #e5e7eb;">' +
+        '<td style="padding:10px;">' + new Date(r.sentAt).toLocaleString('ar-SA') + '</td>' +
+        '<td style="padding:10px;text-align:center;">#'+r.recipientUserId+'</td>' +
+        '<td style="padding:10px;text-align:center;">'+(r.channel === 'email' ? 'بريد إلكتروني' : r.channel === 'in_app' ? 'داخل التطبيق' : 'كلاهما')+'</td>' +
+        '<td style="padding:10px;text-align:center;">'+(r.reminderType === 'initial' ? 'ابتدائي' : r.reminderType === 'overdue' ? 'متأخر' : r.reminderType === 'pre_due' ? 'قبل الموعد' : r.reminderType)+'</td>' +
+        '<td style="padding:10px;text-align:center;"><span style="color:'+(r.status==='sent'?'#15803d':'#b91c1c')+';">'+(r.status==='sent'?'أُرسل':'فشل')+'</span></td>' +
+        '<td style="padding:10px;color:#6b7280;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+(r.message||'—')+'</td>' +
+      '</tr>';
+    }).join('') +
+    '</tbody></table></div>';
+}
+
+async function shorfahSendInitialMessages() {
+  if (!shorfahIsAdmin()) return;
+  var issueId = SHORFAH_ADMIN_STATE.issueId;
+  if (!issueId) return;
+  if (!confirm('إرسال رسائل البدء لجميع المساهمين؟ سيتم ضبط تاريخ البدء الآن.')) return;
+  try {
+    var res = await apiFetch('/api/shorfah/issues/'+issueId+'/send-initial', { method: 'POST' });
+    var data = await res.json();
+    if (!res.ok) { alert('خطأ: '+(data.error || res.status)); return; }
+    alert('تم إرسال '+data.sent+' إشعار للمساهمين');
+    await shorfahAdminLoadData();
+    shorfahAdminRenderStatus();
+  } catch(e) { alert('خطأ: '+e.message); }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   updateHijriPill();
   setInterval(updateHijriPill, 60 * 60 * 1000); // refresh every hour
   renderNotifications();
+  // Start API-backed notification polling after auth is ready
+  setTimeout(startNotifPolling, 1500);
 });
 </script>
 
