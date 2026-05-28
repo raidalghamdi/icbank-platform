@@ -245,7 +245,8 @@ function parseNewsCards(md: string): Array<{ title: string; body: string }> {
   let current: { title: string; body: string[] } | null = null;
 
   for (const line of lines) {
-    const headingMatch = line.match(/^##\s+(.+)$/);
+    // Match ## OR ### OR #### headings as card titles
+    const headingMatch = line.match(/^#{2,4}\s+(.+)$/);
     if (headingMatch) {
       if (current) cards.push(current);
       current = { title: headingMatch[1].trim(), body: [] };
@@ -279,11 +280,18 @@ function parseQAPairs(md: string): Array<{ q: string; a: string }> {
 
   const pairs: Array<{ q: string; a: string }> = [];
 
-  // Try blockquote pattern: > Q then paragraph A
+  // Pattern 1: **س: ...?** followed by ج: answer  (Shorfah seed format)
+  const arPattern = /\*\*\s*س\s*[:：]\s*([^*]+?)\s*\*\*\s*\n?\s*ج\s*[:：]\s*([^\n]+)/g;
+  let arM: RegExpExecArray | null;
+  while ((arM = arPattern.exec(md)) !== null) {
+    pairs.push({ q: arM[1].trim().replace(/\?+$/, "؟"), a: arM[2].trim() });
+  }
+  if (pairs.length > 0) return pairs;
+
+  // Pattern 2: blockquote > Q then paragraph A
   const bqPattern = /^> (.+)$/gm;
   const bqMatches = [...md.matchAll(bqPattern)];
   if (bqMatches.length > 0) {
-    // Split around blockquotes
     const parts = md.split(/^> .+$/m);
     for (let i = 0; i < bqMatches.length; i++) {
       const q = bqMatches[i][1].trim();
@@ -293,11 +301,11 @@ function parseQAPairs(md: string): Array<{ q: string; a: string }> {
     if (pairs.length > 0) return pairs;
   }
 
-  // Try alternating paragraphs
+  // Pattern 3: alternating paragraphs (odd=Q, even=A)
   const paras = md.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
   for (let i = 0; i < paras.length; i += 2) {
-    const q = paras[i].replace(/^[#>*-]+\s*/, "").trim();
-    const a = (paras[i + 1] || "").replace(/^[#>*-]+\s*/, "").trim();
+    const q = paras[i].replace(/^[#>*\-\s]+/, "").replace(/\*\*/g, "").trim();
+    const a = (paras[i + 1] || "").replace(/^[#>*\-\s]+/, "").replace(/\*\*/g, "").trim();
     pairs.push({ q, a });
   }
   return pairs;
@@ -313,9 +321,16 @@ function parseQAPairs(md: string): Array<{ q: string; a: string }> {
 function parseStatCards(md: string): Array<{ label: string; value: string; caption?: string }> {
   const stats: Array<{ label: string; value: string; caption?: string }> = [];
 
-  // Pattern: "- label: number" or "- label — number"
-  const linePattern = /^-\s+(.+?)[:—–]\s*(\d[\d,٠-٩]*%?)\s*$/gm;
+  // Pattern A: "- **NUMBER** caption"  (Shorfah seed format)
+  const boldFirstPattern = /^-\s+\*\*([0-9٠-٩][0-9٠-٩,]*%?)\*\*\s+(.+?)$/gm;
   let m: RegExpExecArray | null;
+  while ((m = boldFirstPattern.exec(md)) !== null) {
+    stats.push({ label: m[2].trim(), value: m[1].trim() });
+  }
+  if (stats.length > 0) return stats;
+
+  // Pattern B: "- label: number" or "- label — number"
+  const linePattern = /^-\s+(.+?)[:—–]\s*([0-9٠-٩][0-9٠-٩,]*%?)\s*$/gm;
   while ((m = linePattern.exec(md)) !== null) {
     stats.push({ label: m[1].trim(), value: m[2].trim() });
   }
@@ -789,20 +804,21 @@ export const SHORFAH_PDF_CSS = `
 
   /* Hero — newspaper SVG + wordmark, vertically stacked */
   .cv-hero {
-    position: absolute; top: 52mm; left: 0; right: 0;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 4mm;
-    height: 100mm;
+    position: absolute; top: 48mm; left: 0; right: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+    gap: 0mm;
+    height: 110mm;
   }
   .cv-newspaper-wrap {
-    width: 140mm; height: auto;
+    width: 110mm; height: 70mm;
     display: flex; align-items: center; justify-content: center;
+    margin-bottom: -8mm;
   }
-  .cv-newspaper-wrap svg { width: 100%; height: auto; }
+  .cv-newspaper-wrap svg { width: 100%; height: 100%; }
   .cv-title {
     position: relative; z-index: 2;
     font-family: "Tajawal", "Noto Sans Arabic", sans-serif;
-    font-size: 90pt; font-weight: 900; line-height: 1;
+    font-size: 78pt; font-weight: 900; line-height: 1;
     margin: 0; color: #fff;
     text-shadow: 0 4mm 10mm rgba(0,0,0,0.2);
     letter-spacing: -1pt;
@@ -810,7 +826,7 @@ export const SHORFAH_PDF_CSS = `
   }
 
   .cv-subtitle {
-    position: absolute; top: 158mm; left: 0; right: 0;
+    position: absolute; top: 175mm; left: 0; right: 0;
     text-align: center; font-size: 11pt; font-weight: 600;
     color: #fff; opacity: 0.97;
     padding: 0 30mm; line-height: 1.5;
