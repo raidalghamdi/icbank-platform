@@ -500,8 +500,9 @@ router.get("/shorfah/issues/:id/pdf.pdf", requireAuth, async (req: Request, res:
     baseUrl: FRONTEND_BASE,
   });
 
-  const monthName = arabicMonths[issue.month - 1] || String(issue.month);
-  const filename = `shorfah-issue-${issue.issueNo}-${monthName}-${issue.year}.pdf`;
+  // Use ASCII-only filename for Content-Disposition header compatibility
+  const monthNum = String(issue.month).padStart(2, '0');
+  const filename = `shorfah-issue-${issue.issueNo}-${issue.year}-${monthNum}.pdf`;
 
   try {
     // Attempt Puppeteer PDF generation
