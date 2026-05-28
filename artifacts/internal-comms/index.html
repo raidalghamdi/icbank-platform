@@ -4604,22 +4604,22 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
         <div id="shorfah-editor-meta" style="font-size:12px;color:var(--text-3);margin-bottom:10px;"></div>
         <label style="display:block;font-weight:700;margin-bottom:6px;">المحتوى (Markdown):</label>
         <textarea id="shorfah-editor-content" style="width:100%;height:300px;padding:12px;border:1px solid var(--border);border-radius:8px;font-family:'Tajawal',system-ui,sans-serif;font-size:15px;line-height:1.7;resize:vertical;" dir="rtl"></textarea>
-        <!-- Media uploader -->
-        <div id="shorfah-media-panel" style="margin-top:14px;padding:12px;border:1px dashed var(--border);border-radius:8px;background:#fafbfc;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-            <div style="font-weight:800;font-size:14px;">
-              <span class="ico" style="vertical-align:middle;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></span>
+        <!-- Media uploader — more prominent -->
+        <div id="shorfah-media-panel" style="margin-top:16px;padding:14px;border:2px solid #1a6e7a;border-radius:10px;background:#f0f7f8;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+            <div style="font-weight:900;font-size:15px;color:#0e3b4a;">
+              <span class="ico" style="vertical-align:middle;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></span>
               صور القسم
             </div>
-            <div style="font-size:11px;color:var(--text-3);">حتى الحد الأقصى 6 صور · 8مجابيت/صورة</div>
+            <div style="font-size:11px;color:var(--text-3);">حتى 6 صور · 8مب للصورة</div>
           </div>
-          <div id="shorfah-media-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-bottom:10px;">
+          <div id="shorfah-media-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-bottom:12px;">
             <!-- thumbnails inserted by JS -->
           </div>
-          <label class="btn btn-ghost btn-sm" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;">
+          <label class="btn btn-primary" style="cursor:pointer;display:inline-flex;align-items:center;gap:8px;font-weight:700;padding:10px 16px;">
             <input type="file" id="shorfah-media-file-input" accept="image/*" multiple style="display:none;" onchange="shorfahUploadMedia(event)">
-            <span class="ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></span>
-            ارفع صور
+            <span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></span>
+            ارفع صورًا لهذا القسم
           </label>
           <span id="shorfah-media-status" style="margin-right:10px;font-size:12px;color:var(--text-3);"></span>
         </div>
@@ -10648,6 +10648,11 @@ function shorfahRenderBoard() {
           '<span style="font-size:11px;padding:3px 8px;border-radius:10px;background:'+status.bg+';color:'+status.color+';font-weight:700;">'+status.ar+'</span>'+
         '</div>'+
         (s.descriptionAr ? '<div style="font-size:12px;color:var(--text-3);margin-bottom:8px;">'+s.descriptionAr+'</div>' : '')+
+        // SLA badge (read-only) + media count badge
+        '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">'+
+          '<span style="font-size:11px;padding:3px 10px;border-radius:10px;background:#fef3c7;color:#92400e;font-weight:700;" title="أيام SLA تُدار مركزيًا من إدارة شُرفة">⏱ SLA: ' + (s.slaDays || 7) + ' يوم</span>'+
+          '<span id="media-count-'+s.id+'" style="font-size:11px;padding:3px 10px;border-radius:10px;background:#dbeafe;color:#1e40af;font-weight:700;">📷 صور: <span data-count="'+s.id+'">…</span></span>'+
+        '</div>'+
         '<div style="font-size:13px;color:var(--text-2);line-height:1.7;padding:10px;background:#f9fafb;border-radius:8px;border-right:3px solid '+meta.color+';">'+contentPreview+'</div>'+
         '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px;">'+
           '<label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text-2);cursor:'+(canToggle?'pointer':'not-allowed')+';opacity:'+(canToggle?1:0.6)+';">'+
@@ -10663,6 +10668,13 @@ function shorfahRenderBoard() {
       '</div>'+
     '</div>';
   }).join('');
+  // Fill media counts asynchronously (one call per section)
+  sections.forEach(function(s) {
+    apiFetch('/api/shorfah/sections/'+s.id+'/media').then(function(r) { return r.json(); }).then(function(d) {
+      var el = document.querySelector('span[data-count="'+s.id+'"]');
+      if (el) el.textContent = (d.media && d.media.length) || 0;
+    }).catch(function(){ var el = document.querySelector('span[data-count="'+s.id+'"]'); if (el) el.textContent='?'; });
+  });
 }
 
 function shorfahBackToList() {
@@ -11094,7 +11106,8 @@ async function shorfahSaveSlaDefaults() {
     });
     var data = await res.json();
     if (!res.ok) { alert('خطأ: '+(data.error || res.status)); return; }
-    alert('تم حفظ قوالب SLA. ستُطبَّق على كل الأعداد الجديدة.');
+    var pn = data.propagatedSections || 0;
+    alert('تم حفظ قوالب SLA.\n• تُطبَّق تلقائيًا على كل الأعداد الجديدة.\n• تم تحديث ' + pn + ' قسمًا في الأعداد الحالية (الأقسام التي لم تبدأ بعد).');
     shorfahAdminRenderSla();
   } catch(e) { alert('خطأ: '+e.message); }
 }
@@ -11147,7 +11160,7 @@ function shorfahAdminRenderAssign() {
     excludeIds = excludeIds || [];
     return users
       .filter(function(u) { return excludeIds.indexOf(u.id) === -1; })
-      .map(function(u) { var nm = u.name || u.email || ('#'+u.id); return '<option value="'+u.id+'">'+ nm + ' (' + shorfahRoleLabel(u.role) + ')' +'</option>'; })
+      .map(function(u) { var nm = u.name || u.email || ('#'+u.id); var dept = u.department ? ' — ' + u.department : ''; return '<option value="'+u.id+'">'+ nm + dept +'</option>'; })
       .join('');
   }
 

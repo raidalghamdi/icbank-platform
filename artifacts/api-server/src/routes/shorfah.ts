@@ -246,10 +246,13 @@ router.get("/shorfah/sla-defaults", requireAuth, async (_req: Request, res: Resp
 });
 
 router.put("/shorfah/sla-defaults", requireAdmin, async (req: Request, res: Response) => {
-  const { defaults } = req.body || {};
+  const { defaults, propagate } = req.body || {};
   if (!Array.isArray(defaults)) return res.status(400).json({ error: "defaults يجب أن يكون مصفوفة" });
   const userId = req.user!.id;
   const now = new Date();
+  // السلوك الافتراضي: نعم، يتم تطبيق التغيير على أقسام الأعداد الموجودة التي لم تبدأ بعد.
+  const shouldPropagate = propagate !== false;
+  let updatedSections = 0;
   for (const row of defaults) {
     if (!row || !row.sectionType) continue;
     const slaDays = Math.max(1, Math.min(60, Number(row.slaDays) || 7));
@@ -266,9 +269,22 @@ router.put("/shorfah/sla-defaults", requireAdmin, async (req: Request, res: Resp
         updatedBy: userId,
       });
     }
+    // تغيير الأقسام التي لا تزال في حالة pending_contribution أو rejected
+    if (shouldPropagate) {
+      const updated = await db.update(shorfahSectionsTable)
+        .set({ slaDays })
+        .where(
+          and(
+            eq(shorfahSectionsTable.sectionType, row.sectionType),
+            inArray(shorfahSectionsTable.workflowStatus, ["pending_contribution", "rejected"]),
+          )
+        )
+        .returning({ id: shorfahSectionsTable.id });
+      updatedSections += updated.length;
+    }
   }
   const rows = await db.select().from(shorfahSectionSlaDefaultsTable);
-  res.json({ defaults: rows });
+  res.json({ defaults: rows, propagatedSections: updatedSections });
 });
 
 // ── sections ─────────────────────────────────────────────────────────────
