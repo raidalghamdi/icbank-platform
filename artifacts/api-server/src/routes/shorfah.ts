@@ -118,10 +118,50 @@ router.get("/shorfah/issues/:id", requireAuth, async (req: Request, res: Respons
   res.json({ issue, sections: sectionsEnriched });
 });
 
+// Canonical Shorfah issue template — keep in sync with the published issue 1 structure.
+const SHORFAH_DEFAULT_SECTIONS: Array<{
+  sectionType: string;
+  titleAr: string;
+  descriptionAr: string;
+  displayOrder: number;
+}> = [
+  { sectionType: "news", titleAr: "أخبارنا", descriptionAr: "أبرز أخبار الهيئة هذا الشهر", displayOrder: 10 },
+  { sectionType: "office_interview", titleAr: "في مكتبهم", descriptionAr: "حوار شهري مع أحد القياديين", displayOrder: 20 },
+  { sectionType: "competition_culture", titleAr: "ثقافة المنافسة", descriptionAr: "مفاهيم ومقالات في ثقافة المنافسة", displayOrder: 30 },
+  { sectionType: "outside_box", titleAr: "خارج الصندوق", descriptionAr: "مقال شهري من موظف", displayOrder: 40 },
+  { sectionType: "events", titleAr: "فعالياتنا", descriptionAr: "فعاليات الشهر", displayOrder: 50 },
+  { sectionType: "employee_qa", titleAr: "عطنا علومك", descriptionAr: "ست أسئلة سريعة مع أحد الزملاء", displayOrder: 60 },
+];
+
+async function seedShorfahSections(issueId: number) {
+  const rows = [] as Array<Record<string, unknown>>;
+  for (const t of SHORFAH_DEFAULT_SECTIONS) {
+    const slaDays = await getSlaDefaultDays(t.sectionType);
+    rows.push({
+      issueId,
+      sectionType: t.sectionType,
+      titleAr: t.titleAr,
+      descriptionAr: t.descriptionAr,
+      displayOrder: t.displayOrder,
+      includeInPdf: true,
+      workflowStatus: "pending_contribution",
+      slaDays,
+    });
+  }
+  await db.insert(shorfahSectionsTable).values(rows as any);
+}
+
 router.post("/shorfah/issues", requireAdmin, async (req: Request, res: Response) => {
-  const { issueNo, titleAr, subtitleAr, month, year, contributionsOpenAt, contributionsCloseAt, editorLetter } = req.body || {};
-  if (!issueNo || !titleAr || !month || !year) {
+  const { issueNo: bodyIssueNo, titleAr, subtitleAr, month, year, contributionsOpenAt, contributionsCloseAt, editorLetter } = req.body || {};
+  if (!titleAr || !month || !year) {
     return res.status(400).json({ error: "بيانات ناقصة" });
+  }
+  // Auto-assign issueNo when not provided: max(issueNo)+1
+  let issueNo = Number(bodyIssueNo);
+  if (!issueNo || isNaN(issueNo)) {
+    const all = await db.select({ n: shorfahIssuesTable.issueNo }).from(shorfahIssuesTable);
+    const maxNo = all.reduce((m, r) => Math.max(m, Number(r.n) || 0), 0);
+    issueNo = maxNo + 1;
   }
   const [created] = await db
     .insert(shorfahIssuesTable)
@@ -129,8 +169,8 @@ router.post("/shorfah/issues", requireAdmin, async (req: Request, res: Response)
       issueNo,
       titleAr,
       subtitleAr: subtitleAr ?? null,
-      month,
-      year,
+      month: Number(month),
+      year: Number(year),
       contributionsOpenAt: contributionsOpenAt ? new Date(contributionsOpenAt) : null,
       contributionsCloseAt: contributionsCloseAt ? new Date(contributionsCloseAt) : null,
       editorLetter: editorLetter ?? null,
@@ -138,7 +178,26 @@ router.post("/shorfah/issues", requireAdmin, async (req: Request, res: Response)
       createdBy: req.user!.id,
     })
     .returning();
+  // Seed canonical sections so the new issue has the same structure as issue 1
+  try {
+    await seedShorfahSections(created.id);
+  } catch (e) {
+    // Don't fail issue creation if seeding hits a transient error — just log.
+    console.error("[shorfah] seed sections failed for issue", created.id, e);
+  }
   res.json({ issue: created });
+});
+
+// Backfill: seed canonical sections into an existing issue that has none.
+router.post("/shorfah/issues/:id/seed-sections", requireAdmin, async (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+  const [issue] = await db.select().from(shorfahIssuesTable).where(eq(shorfahIssuesTable.id, id)).limit(1);
+  if (!issue) return res.status(404).json({ error: "العدد غير موجود" });
+  const existing = await db.select({ id: shorfahSectionsTable.id }).from(shorfahSectionsTable).where(eq(shorfahSectionsTable.issueId, id));
+  if (existing.length > 0) return res.status(400).json({ error: "هذا العدد يحتوي على أقسام بالفعل", existing: existing.length });
+  await seedShorfahSections(id);
+  const rows = await db.select().from(shorfahSectionsTable).where(eq(shorfahSectionsTable.issueId, id));
+  res.json({ ok: true, sections: rows.length });
 });
 
 router.patch("/shorfah/issues/:id", requireAdmin, async (req: Request, res: Response) => {
