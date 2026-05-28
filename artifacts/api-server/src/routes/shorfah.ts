@@ -448,6 +448,11 @@ router.get("/shorfah/issues/:id/pdf", requireAuth, async (req: Request, res: Res
 // Task 1: Binary PDF download via Puppeteer
 router.get("/shorfah/issues/:id/pdf.pdf", requireAuth, async (req: Request, res: Response) => {
   const id = Number(req.params.id);
+  const FRONTEND_BASE = process.env.FRONTEND_URL || "https://icbank-platform-internal-comms.vercel.app";
+  const arabicMonths = ["يناير","فبراير","مارس","أبريل","مايو","يونيو",
+    "يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
+
+  try {
   const [issue] = await db
     .select()
     .from(shorfahIssuesTable)
@@ -476,7 +481,6 @@ router.get("/shorfah/issues/:id/pdf.pdf", requireAuth, async (req: Request, res:
     .orderBy(asc(shorfahSectionsTable.displayOrder));
 
   // Use absolute URLs for assets so Puppeteer can load them
-  const FRONTEND_BASE = process.env.FRONTEND_URL || "https://icbank-platform-internal-comms.vercel.app";
   const html = buildShorfahPdfHtml({
     issue: {
       titleAr: issue.titleAr,
@@ -496,8 +500,6 @@ router.get("/shorfah/issues/:id/pdf.pdf", requireAuth, async (req: Request, res:
     baseUrl: FRONTEND_BASE,
   });
 
-  const arabicMonths = ["يناير","فبراير","مارس","أبريل","مايو","يونيو",
-    "يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
   const monthName = arabicMonths[issue.month - 1] || String(issue.month);
   const filename = `shorfah-issue-${issue.issueNo}-${monthName}-${issue.year}.pdf`;
 
@@ -550,6 +552,12 @@ router.get("/shorfah/issues/:id/pdf.pdf", requireAuth, async (req: Request, res:
     res.setHeader("Content-Type", "text/html; charset=utf-8");
     res.setHeader("Content-Disposition", `inline; filename="${filename}"`);
     res.send(htmlWithPrint);
+  }
+  } catch (outerErr) {
+    console.error("[pdf.pdf] Outer error:", outerErr);
+    if (!res.headersSent) {
+      res.status(500).json({ error: "فشل توليد PDF", details: outerErr instanceof Error ? outerErr.message : "unknown" });
+    }
   }
 });
 
