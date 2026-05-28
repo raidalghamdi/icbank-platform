@@ -17,6 +17,7 @@ import { requireAuth, requireAdmin } from "../middleware/auth";
 import { geminiJSON } from "../lib/aiProviders";
 import { buildShorfahPdfHtml } from "./shorfah-pdf";
 import { sendNotification, buildPublishEmailHtml, buildOverdueEmailHtml, buildInitialEmailHtml } from "../lib/notify";
+import { ObjectStorageService } from "../lib/objectStorage";
 
 const router = Router();
 
@@ -439,6 +440,81 @@ router.get("/shorfah/sections/:id/log", requireAuth, async (req: Request, res: R
   res.json({ logs });
 });
 
+// ── Section media (photos) ──────────────────────────────────────────────
+// GET list media for a section
+router.get("/shorfah/sections/:id/media", requireAuth, async (req: Request, res: Response) => {
+  const sectionId = Number(req.params.id);
+  const media = await db
+    .select()
+    .from(shorfahSectionMediaTable)
+    .where(eq(shorfahSectionMediaTable.sectionId, sectionId))
+    .orderBy(asc(shorfahSectionMediaTable.displayOrder));
+  res.json({ media });
+});
+
+// POST upload media (base64). Body: { dataBase64, contentType, captionAr?, displayOrder? }
+router.post("/shorfah/sections/:id/media", requireAuth, async (req: Request, res: Response) => {
+  const sectionId = Number(req.params.id);
+  const user = (req as any).user as { id: number; role: string };
+  // Reuse section permission helper — contributors/reviewers/approvers/admins allowed
+  const allowed =
+    user.role === "super_admin" || user.role === "admin" ||
+    (await canAccessSection(user.id, user.role, sectionId, "contribute")) ||
+    (await canAccessSection(user.id, user.role, sectionId, "review")) ||
+    (await canAccessSection(user.id, user.role, sectionId, "approve"));
+  if (!allowed) return res.status(403).json({ error: "غير مصرح" });
+
+  const { dataBase64, contentType, captionAr, displayOrder } = req.body ?? {};
+  if (!dataBase64 || typeof dataBase64 !== "string") {
+    return res.status(400).json({ error: "dataBase64 مطلوب" });
+  }
+  const ct = String(contentType ?? "image/png");
+  // Strip data URI prefix if present
+  const b64 = dataBase64.includes(",") ? dataBase64.split(",")[1] : dataBase64;
+  let buffer: Buffer;
+  try { buffer = Buffer.from(b64, "base64"); } catch { return res.status(400).json({ error: "base64 غير صالح" }); }
+  // Reject huge payloads (>8MB)
+  if (buffer.byteLength > 8 * 1024 * 1024) {
+    return res.status(413).json({ error: "الملف كبير جداً (الحد 8 ميجابايت)" });
+  }
+  const storage = new ObjectStorageService();
+  const objectPath = await storage.saveShorfahMedia(buffer, ct, sectionId);
+  const [row] = await db
+    .insert(shorfahSectionMediaTable)
+    .values({
+      sectionId,
+      mediaUrl: objectPath,
+      mediaType: ct.startsWith("image/") ? "image" : "file",
+      captionAr: captionAr ?? null,
+      displayOrder: Number(displayOrder ?? 0),
+    })
+    .returning();
+  res.json({ media: row });
+});
+
+// PATCH update caption / order
+router.patch("/shorfah/media/:id", requireAuth, async (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+  const { captionAr, displayOrder } = req.body ?? {};
+  const updates: Record<string, unknown> = {};
+  if (captionAr !== undefined) updates.captionAr = captionAr;
+  if (displayOrder !== undefined) updates.displayOrder = Number(displayOrder);
+  if (Object.keys(updates).length === 0) return res.json({ ok: true, noop: true });
+  const [row] = await db
+    .update(shorfahSectionMediaTable)
+    .set(updates)
+    .where(eq(shorfahSectionMediaTable.id, id))
+    .returning();
+  res.json({ media: row });
+});
+
+// DELETE media
+router.delete("/shorfah/media/:id", requireAuth, async (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+  await db.delete(shorfahSectionMediaTable).where(eq(shorfahSectionMediaTable.id, id));
+  res.json({ ok: true });
+});
+
 // ── PDF generation: HTML preview ─────────────────────────────────────────
 router.get("/shorfah/issues/:id/pdf", requireAuth, async (req: Request, res: Response) => {
   const id = Number(req.params.id);
@@ -469,6 +545,35 @@ router.get("/shorfah/issues/:id/pdf", requireAuth, async (req: Request, res: Res
     .where(whereClause)
     .orderBy(asc(shorfahSectionsTable.displayOrder));
 
+  // Load media for all sections in this issue (single query, then group)
+  const sectionIds = sections.map((s) => s.id);
+  const mediaRows = sectionIds.length > 0
+    ? await db
+        .select()
+        .from(shorfahSectionMediaTable)
+        .where(inArray(shorfahSectionMediaTable.sectionId, sectionIds))
+        .orderBy(asc(shorfahSectionMediaTable.displayOrder))
+    : [];
+  const mediaBySection = new Map<number, Array<{ url: string; caption: string | null }>>();
+  // Inline images as base64 data URLs so Playwright/PDF render works without network
+  const storageSvc = new ObjectStorageService();
+  for (const m of mediaRows) {
+    if (!mediaBySection.has(m.sectionId)) mediaBySection.set(m.sectionId, []);
+    let url = m.mediaUrl;
+    try {
+      if (m.mediaUrl.startsWith("/objects/")) {
+        const file = await storageSvc.getObjectEntityFile(m.mediaUrl);
+        const resp = await storageSvc.downloadObject(file);
+        const ct = resp.headers.get("content-type") || "image/png";
+        const buf = Buffer.from(await resp.arrayBuffer());
+        url = `data:${ct};base64,${buf.toString("base64")}`;
+      }
+    } catch (err) {
+      req.log.warn({ err, mediaId: m.id }, "Failed to inline shorfah media; falling back to URL");
+    }
+    mediaBySection.get(m.sectionId)!.push({ url, caption: m.captionAr ?? null });
+  }
+
   const html = buildShorfahPdfHtml({
     issue: {
       titleAr: issue.titleAr,
@@ -484,7 +589,9 @@ router.get("/shorfah/issues/:id/pdf", requireAuth, async (req: Request, res: Res
       titleAr: s.titleAr,
       descriptionAr: s.descriptionAr,
       contentMd: s.contentMd,
+      media: mediaBySection.get(s.id) ?? [],
     })),
+    baseUrl: `${req.protocol}://${req.get("host")}`,
   });
 
   res.setHeader("Content-Type", "text/html; charset=utf-8");

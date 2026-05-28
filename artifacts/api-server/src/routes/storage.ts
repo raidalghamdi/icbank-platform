@@ -25,7 +25,7 @@ if (!process.env.INTERNAL_STORAGE_TOKEN && process.env.NODE_ENV === "production"
  *      Set this secret in Replit Secrets for tighter control on deployed envs.
  *      When unset the endpoint relies on the Replit proxy auth boundary alone.
  */
-const ALLOWED_PREFIXES = ["ai-year/2026/", "designs/", "gac/"];
+const ALLOWED_PREFIXES = ["ai-year/2026/", "designs/", "gac/", "shorfah/"];
 
 router.get("/storage/objects/*path", async (req: Request, res: Response) => {
   // ── Optional bearer-token guard ────────────────────────────────────────────

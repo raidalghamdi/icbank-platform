@@ -311,6 +311,34 @@ export class ObjectStorageService {
   }
 
   /**
+   * Upload a Shorfah section media image directly and return its objectPath.
+   * Used by section editors to attach photos to news/events/interview/etc.
+   */
+  async saveShorfahMedia(
+    buffer: Buffer,
+    contentType: string = "image/png",
+    sectionId?: number,
+  ): Promise<string> {
+    const supabase = getSupabase();
+    const ext = contentType.includes("png") ? "png"
+      : contentType.includes("jpeg") ? "jpg"
+      : contentType.includes("webp") ? "webp"
+      : contentType.includes("gif") ? "gif"
+      : "png";
+    const uuid = randomUUID();
+    const folder = sectionId ? `shorfah/sections/${sectionId}` : `shorfah/sections/_misc`;
+    const relPath = `${folder}/${uuid}.${ext}`;
+    const key = relPathToKey(relPath);
+    const { error } = await supabase.storage
+      .from(SUPABASE_STORAGE_BUCKET)
+      .upload(key, buffer, { contentType, upsert: false });
+    if (error) {
+      throw new Error(`Supabase shorfah upload failed: ${error.message}`);
+    }
+    return `/objects/${relPath}`;
+  }
+
+  /**
    * Upload a GAC publication PDF directly to gac/publications/ and return its
    * objectPath. Mirrors saveLogoBuffer but for PDFs in the GAC library.
    */

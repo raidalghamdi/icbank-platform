@@ -4604,6 +4604,25 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
         <div id="shorfah-editor-meta" style="font-size:12px;color:var(--text-3);margin-bottom:10px;"></div>
         <label style="display:block;font-weight:700;margin-bottom:6px;">المحتوى (Markdown):</label>
         <textarea id="shorfah-editor-content" style="width:100%;height:300px;padding:12px;border:1px solid var(--border);border-radius:8px;font-family:'Tajawal',system-ui,sans-serif;font-size:15px;line-height:1.7;resize:vertical;" dir="rtl"></textarea>
+        <!-- Media uploader -->
+        <div id="shorfah-media-panel" style="margin-top:14px;padding:12px;border:1px dashed var(--border);border-radius:8px;background:#fafbfc;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+            <div style="font-weight:800;font-size:14px;">
+              <span class="ico" style="vertical-align:middle;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></span>
+              صور القسم
+            </div>
+            <div style="font-size:11px;color:var(--text-3);">حتى الحد الأقصى 6 صور · 8مجابيت/صورة</div>
+          </div>
+          <div id="shorfah-media-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-bottom:10px;">
+            <!-- thumbnails inserted by JS -->
+          </div>
+          <label class="btn btn-ghost btn-sm" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;">
+            <input type="file" id="shorfah-media-file-input" accept="image/*" multiple style="display:none;" onchange="shorfahUploadMedia(event)">
+            <span class="ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></span>
+            ارفع صور
+          </label>
+          <span id="shorfah-media-status" style="margin-right:10px;font-size:12px;color:var(--text-3);"></span>
+        </div>
         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:14px;flex-wrap:wrap;">
           <label style="display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer;">
             <input type="checkbox" id="shorfah-editor-include" checked> عرض هذا القسم في PDF النهائي
@@ -10687,6 +10706,88 @@ function shorfahOpenEditor(sectionId) {
   if (genBtn) genBtn.style.display = '';
   document.getElementById('shorfah-editor-modal').dataset.sectionId = sectionId;
   document.getElementById('shorfah-editor-modal').style.display = 'flex';
+  // Load section media
+  shorfahLoadMedia(sectionId);
+}
+
+// ── Section media (photos) ──────────────────────────────────────────────
+async function shorfahLoadMedia(sectionId) {
+  var grid = document.getElementById('shorfah-media-grid');
+  if (!grid) return;
+  grid.innerHTML = '<div style="grid-column:1/-1;font-size:12px;color:var(--text-3);text-align:center;padding:8px;">جاري التحميل...</div>';
+  try {
+    var res = await apiFetch('/api/shorfah/sections/'+sectionId+'/media');
+    var data = await res.json();
+    if (!res.ok) { grid.innerHTML = '<div style="grid-column:1/-1;font-size:12px;color:#c0392b;text-align:center;padding:8px;">خطأ في تحميل الصور</div>'; return; }
+    shorfahRenderMediaGrid(data.media || []);
+  } catch(e) {
+    grid.innerHTML = '<div style="grid-column:1/-1;font-size:12px;color:#c0392b;text-align:center;padding:8px;">'+e.message+'</div>';
+  }
+}
+
+function shorfahRenderMediaGrid(items) {
+  var grid = document.getElementById('shorfah-media-grid');
+  if (!grid) return;
+  if (items.length === 0) {
+    grid.innerHTML = '<div style="grid-column:1/-1;font-size:12px;color:var(--text-3);text-align:center;padding:16px;">لا توجد صور لهذا القسم بعد</div>';
+    return;
+  }
+  grid.innerHTML = items.map(function(m, idx) {
+    var url = m.mediaUrl.startsWith('/') ? ('/api/storage' + (m.mediaUrl.startsWith('/objects/') ? m.mediaUrl.replace('/objects/','/objects/') : m.mediaUrl)) : m.mediaUrl;
+    // /api/storage/objects/<rel>
+    var fullUrl = m.mediaUrl.startsWith('/objects/') ? ('/api/storage' + m.mediaUrl) : m.mediaUrl;
+    return '<div style="position:relative;aspect-ratio:1;border-radius:6px;overflow:hidden;border:1px solid var(--border);background:#f0f0f0;">'+
+      '<img src="'+fullUrl+'" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">'+
+      '<button onclick="shorfahDeleteMedia('+m.id+')" style="position:absolute;top:4px;left:4px;background:rgba(0,0,0,0.6);color:#fff;border:none;border-radius:4px;width:22px;height:22px;cursor:pointer;font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center;" title="حذف">×</button>'+
+      '<div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,0.6));color:#fff;padding:4px 6px;font-size:10px;">#'+(idx+1)+'</div>'+
+      '</div>';
+  }).join('');
+}
+
+async function shorfahUploadMedia(ev) {
+  var modal = document.getElementById('shorfah-editor-modal');
+  var sid = parseInt(modal.dataset.sectionId, 10);
+  var files = Array.from(ev.target.files || []);
+  ev.target.value = '';
+  if (files.length === 0) return;
+  var status = document.getElementById('shorfah-media-status');
+  status.textContent = 'الرفع (' + files.length + ' ملفات)...';
+  var nextOrder = (document.getElementById('shorfah-media-grid').querySelectorAll('img').length) || 0;
+  for (var i = 0; i < files.length; i++) {
+    var f = files[i];
+    if (!f.type.startsWith('image/')) { continue; }
+    if (f.size > 8 * 1024 * 1024) {
+      alert('الملف «' + f.name + '» أكبر من 8 ميجابايت وسيتجاوز.');
+      continue;
+    }
+    try {
+      var b64 = await new Promise(function(resolve, reject) {
+        var r = new FileReader();
+        r.onload = function() { resolve(r.result); };
+        r.onerror = function() { reject(new Error('فشل قراءة الملف')); };
+        r.readAsDataURL(f);
+      });
+      var res = await apiFetch('/api/shorfah/sections/'+sid+'/media', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dataBase64: b64, contentType: f.type, displayOrder: nextOrder + i })
+      });
+      var data = await res.json();
+      if (!res.ok) { alert('خطأ في رفع ' + f.name + ': ' + (data.error || res.status)); }
+    } catch(e) { alert('خطأ: ' + e.message); }
+  }
+  status.textContent = '';
+  await shorfahLoadMedia(sid);
+}
+
+async function shorfahDeleteMedia(mediaId) {
+  if (!confirm('حذف هذه الصورة؟')) return;
+  var modal = document.getElementById('shorfah-editor-modal');
+  var sid = parseInt(modal.dataset.sectionId, 10);
+  try {
+    var res = await apiFetch('/api/shorfah/media/'+mediaId, { method: 'DELETE' });
+    if (!res.ok) { var d = await res.json(); alert('خطأ: ' + (d.error || res.status)); return; }
+    await shorfahLoadMedia(sid);
+  } catch(e) { alert('خطأ: ' + e.message); }
 }
 function shorfahCloseEditor() { document.getElementById('shorfah-editor-modal').style.display = 'none'; }
 

@@ -432,8 +432,10 @@ function sectionNewsHtml(opts: {
   titleAr: string;
   contentMd: string;
   type: string;
+  media?: Array<{ url: string; caption: string | null }>;
 }): string {
   const cards = parseNewsCards(opts.contentMd);
+  const media = opts.media ?? [];
 
   let cardsHtml: string;
   if (cards.length === 0) {
@@ -450,6 +452,10 @@ function sectionNewsHtml(opts: {
           `linear-gradient(135deg, ${DEEPNAVY} 0%, ${TEAL} 100%)`,
         ];
         const grad = gradients[idx % gradients.length];
+        const photo = media[idx];
+        const photoStyle = photo
+          ? `background:url('${photo.url}') center/cover no-repeat, ${grad}`
+          : `background:${grad}`;
         const titleHtml = card.title
           ? `<div class="news-card-title">${card.title}</div>`
           : "";
@@ -457,8 +463,8 @@ function sectionNewsHtml(opts: {
           ? `<div class="news-card-body">${card.body}</div>`
           : "";
         return `<div class="news-card">
-          <div class="news-card-photo" style="background:${grad}">
-            <div class="news-card-photo-pattern"></div>
+          <div class="news-card-photo" style="${photoStyle}">
+            ${photo ? "" : '<div class="news-card-photo-pattern"></div>'}
           </div>
           ${titleHtml}
           ${bodyHtml}
@@ -486,34 +492,34 @@ function sectionOfficeInterviewHtml(opts: {
   descriptionAr?: string | null;
   contentHtml: string;
   type: string;
+  media?: Array<{ url: string; caption: string | null }>;
 }): string {
+  const portrait = (opts.media ?? [])[0];
+  const portraitBlock = portrait
+    ? `<div class="oi-portrait-placeholder" style="background:url('${portrait.url}') center/cover no-repeat;"></div>`
+    : `<div class="oi-portrait-placeholder">
+          <svg viewBox="0 0 120 160" xmlns="http://www.w3.org/2000/svg">
+            <rect width="120" height="160" fill="${MINT}"/>
+            <rect x="20" y="100" width="80" height="60" rx="8" fill="${TEAL}" opacity="0.6"/>
+            <rect x="48" y="86" width="24" height="20" rx="4" fill="#d4a87a"/>
+            <ellipse cx="60" cy="72" rx="26" ry="28" fill="#d4a87a"/>
+            <ellipse cx="60" cy="50" rx="28" ry="14" fill="white" opacity="0.9"/>
+            <rect x="32" y="50" width="56" height="8" rx="2" fill="white" opacity="0.85"/>
+            <ellipse cx="60" cy="50" rx="20" ry="6" fill="${NAVY}" opacity="0.75"/>
+            <ellipse cx="50" cy="74" rx="4" ry="3" fill="${NAVY}" opacity="0.3"/>
+            <ellipse cx="70" cy="74" rx="4" ry="3" fill="${NAVY}" opacity="0.3"/>
+            <path d="M50 84 Q60 90 70 84" stroke="${NAVY}" stroke-width="2" fill="none" opacity="0.4" stroke-linecap="round"/>
+          </svg>
+        </div>`;
+  const captionText = portrait?.caption || opts.descriptionAr || "حوار شهري مع أحد القياديين";
   return `
   <section class="section section-office theme-light">
     ${navStrip(opts.type, "light")}
     <div class="oi-titlebar">${opts.titleAr}</div>
     <div class="oi-grid">
       <div class="oi-left">
-        <div class="oi-portrait-placeholder">
-          <svg viewBox="0 0 120 160" xmlns="http://www.w3.org/2000/svg">
-            <rect width="120" height="160" fill="${MINT}"/>
-            <!-- Shoulders/torso -->
-            <rect x="20" y="100" width="80" height="60" rx="8" fill="${TEAL}" opacity="0.6"/>
-            <!-- Neck -->
-            <rect x="48" y="86" width="24" height="20" rx="4" fill="#d4a87a"/>
-            <!-- Head -->
-            <ellipse cx="60" cy="72" rx="26" ry="28" fill="#d4a87a"/>
-            <!-- Ghutra / headdress suggestion -->
-            <ellipse cx="60" cy="50" rx="28" ry="14" fill="white" opacity="0.9"/>
-            <rect x="32" y="50" width="56" height="8" rx="2" fill="white" opacity="0.85"/>
-            <!-- Agal (black ring) -->
-            <ellipse cx="60" cy="50" rx="20" ry="6" fill="${NAVY}" opacity="0.75"/>
-            <!-- Facial features minimal -->
-            <ellipse cx="50" cy="74" rx="4" ry="3" fill="${NAVY}" opacity="0.3"/>
-            <ellipse cx="70" cy="74" rx="4" ry="3" fill="${NAVY}" opacity="0.3"/>
-            <path d="M50 84 Q60 90 70 84" stroke="${NAVY}" stroke-width="2" fill="none" opacity="0.4" stroke-linecap="round"/>
-          </svg>
-        </div>
-        ${opts.descriptionAr ? `<div class="oi-caption">${opts.descriptionAr}</div>` : `<div class="oi-caption">حوار شهري مع أحد القياديين</div>`}
+        ${portraitBlock}
+        <div class="oi-caption">${captionText}</div>
       </div>
       <div class="oi-right">${opts.contentHtml}</div>
     </div>
@@ -574,7 +580,24 @@ function sectionOutsideBoxHtml(opts: {
   descriptionAr?: string | null;
   contentHtml: string;
   type: string;
+  media?: Array<{ url: string; caption: string | null }>;
 }): string {
+  const portrait = (opts.media ?? [])[0];
+  const portraitBlock = portrait
+    ? `<div class="ob-portrait" style="background:url('${portrait.url}') center/cover no-repeat;"></div>`
+    : `<div class="ob-portrait">
+          <svg viewBox="0 0 120 160" xmlns="http://www.w3.org/2000/svg">
+            <rect width="120" height="160" fill="${NAVY}"/>
+            <rect x="18" y="105" width="84" height="55" rx="8" fill="${TEAL_DARK}" opacity="0.8"/>
+            <rect x="46" y="90" width="28" height="22" rx="4" fill="#c8956a"/>
+            <ellipse cx="60" cy="76" rx="28" ry="30" fill="#c8956a"/>
+            <ellipse cx="60" cy="52" rx="30" ry="15" fill="white" opacity="0.92"/>
+            <rect x="30" y="52" width="60" height="10" rx="3" fill="white" opacity="0.88"/>
+            <ellipse cx="60" cy="52" rx="22" ry="7" fill="${NAVY}" opacity="0.8"/>
+            <path d="M40 120 L60 108 L80 120" stroke="white" stroke-width="3" fill="none" opacity="0.5"/>
+          </svg>
+        </div>`;
+  const obCaption = portrait?.caption || opts.descriptionAr || "مقال شهري من موظف";
   return `
   <section class="section section-outside theme-light">
     ${navStrip(opts.type, "light")}
@@ -583,24 +606,8 @@ function sectionOutsideBoxHtml(opts: {
     </div>
     <div class="ob-grid">
       <div class="ob-portrait-col">
-        <div class="ob-portrait">
-          <svg viewBox="0 0 120 160" xmlns="http://www.w3.org/2000/svg">
-            <rect width="120" height="160" fill="${NAVY}"/>
-            <!-- Shoulders -->
-            <rect x="18" y="105" width="84" height="55" rx="8" fill="${TEAL_DARK}" opacity="0.8"/>
-            <!-- Neck -->
-            <rect x="46" y="90" width="28" height="22" rx="4" fill="#c8956a"/>
-            <!-- Head -->
-            <ellipse cx="60" cy="76" rx="28" ry="30" fill="#c8956a"/>
-            <!-- Headdress -->
-            <ellipse cx="60" cy="52" rx="30" ry="15" fill="white" opacity="0.92"/>
-            <rect x="30" y="52" width="60" height="10" rx="3" fill="white" opacity="0.88"/>
-            <ellipse cx="60" cy="52" rx="22" ry="7" fill="${NAVY}" opacity="0.8"/>
-            <!-- Thobe collar -->
-            <path d="M40 120 L60 108 L80 120" stroke="white" stroke-width="3" fill="none" opacity="0.5"/>
-          </svg>
-        </div>
-        ${opts.descriptionAr ? `<div class="ob-portrait-caption">${opts.descriptionAr}</div>` : `<div class="ob-portrait-caption">مقال شهري من موظف</div>`}
+        ${portraitBlock}
+        <div class="ob-portrait-caption">${obCaption}</div>
       </div>
       <div class="ob-center-col">
         <div class="ob-box-icon">${sectionIconSvg("box")}</div>
@@ -616,30 +623,35 @@ function sectionEventsHtml(opts: {
   titleAr: string;
   contentHtml: string;
   type: string;
+  media?: Array<{ url: string; caption: string | null }>;
 }): string {
-  // Generate a collage of placeholder photo tiles with tilts
+  // Generate a collage of photo tiles with tilts. Use real media if provided.
   const placeholderPhotos = [
-    { label: "إفطار رمضان", rotate: "-3deg", top: "0", right: "5mm", grad: `${TEAL_DARK}` },
-    { label: "الاحتفال بعيد الفطر", rotate: "2deg", top: "0", left: "0", grad: `${NAVY}` },
-    { label: "فعالية الهيئة", rotate: "-1.5deg", top: "60mm", right: "60mm", grad: `${TEAL}` },
-    { label: "لقاء المنافسة", rotate: "3deg", top: "56mm", left: "10mm", grad: `${TEAL_DARK}` },
-    { label: "فعالية داخلية", rotate: "-2deg", top: "118mm", right: "8mm", grad: `${DEEPNAVY}` },
-    { label: "نشاط مؤسسي", rotate: "1.5deg", top: "122mm", left: "40mm", grad: `${NAVY}` },
+    { label: "إفطار رمضان", rotate: "-3deg", grad: `${TEAL_DARK}` },
+    { label: "الاحتفال بعيد الفطر", rotate: "2deg", grad: `${NAVY}` },
+    { label: "فعالية الهيئة", rotate: "-1.5deg", grad: `${TEAL}` },
+    { label: "لقاء المنافسة", rotate: "3deg", grad: `${TEAL_DARK}` },
+    { label: "فعالية داخلية", rotate: "-2deg", grad: `${DEEPNAVY}` },
+    { label: "نشاط مؤسسي", rotate: "1.5deg", grad: `${NAVY}` },
   ];
+  const media = opts.media ?? [];
 
   const collageTiles = placeholderPhotos
-    .map(
-      (ph) => `<div class="ev-photo-tile" style="
+    .map((ph, idx) => {
+      const photo = media[idx];
+      const tileBg = photo
+        ? `background: url('${photo.url}') center/cover no-repeat`
+        : `background: linear-gradient(145deg, ${ph.grad} 0%, ${TEAL_DARK} 100%)`;
+      const label = photo?.caption || ph.label;
+      return `<div class="ev-photo-tile" style="
         transform: rotate(${ph.rotate});
         grid-area: auto;
-        background: linear-gradient(145deg, ${ph.grad} 0%, ${TEAL_DARK} 100%);
+        ${tileBg};
       ">
-        <div class="ev-photo-inner">
-          <div class="ev-photo-pattern"></div>
-        </div>
-        <div class="ev-photo-label">${ph.label}</div>
-      </div>`
-    )
+        ${photo ? "" : '<div class="ev-photo-inner"><div class="ev-photo-pattern"></div></div>'}
+        <div class="ev-photo-label">${label}</div>
+      </div>`;
+    })
     .join("");
 
   return `
@@ -664,6 +676,7 @@ function sectionEmployeeQAHtml(opts: {
   descriptionAr?: string | null;
   contentMd: string;
   type: string;
+  media?: Array<{ url: string; caption: string | null }>;
 }): string {
   const pairs = parseQAPairs(opts.contentMd);
 
@@ -683,7 +696,21 @@ function sectionEmployeeQAHtml(opts: {
   }
 
   // Caption/name label below portrait
-  const captionText = opts.descriptionAr || "ست أسئلة سريعة مع أحد الزملاء";
+  const portrait = (opts.media ?? [])[0];
+  const captionText = portrait?.caption || opts.descriptionAr || "ست أسئلة سريعة مع أحد الزملاء";
+  const portraitBlock = portrait
+    ? `<div class="qa-portrait" style="background:url('${portrait.url}') center/cover no-repeat;"></div>`
+    : `<div class="qa-portrait">
+          <svg viewBox="0 0 120 160" xmlns="http://www.w3.org/2000/svg">
+            <rect width="120" height="160" fill="${MINT}"/>
+            <rect x="20" y="104" width="80" height="56" rx="8" fill="${TEAL}" opacity="0.65"/>
+            <rect x="46" y="88" width="28" height="22" rx="4" fill="#d4a87a"/>
+            <ellipse cx="60" cy="74" rx="27" ry="29" fill="#d4a87a"/>
+            <ellipse cx="60" cy="50" rx="29" ry="14" fill="white" opacity="0.9"/>
+            <rect x="31" y="50" width="58" height="9" rx="2" fill="white" opacity="0.88"/>
+            <ellipse cx="60" cy="50" rx="20" ry="6" fill="${NAVY}" opacity="0.75"/>
+          </svg>
+        </div>`;
 
   return `
   <section class="section section-qa theme-light">
@@ -694,17 +721,7 @@ function sectionEmployeeQAHtml(opts: {
     </div>
     <div class="qa-grid">
       <div class="qa-portrait-col">
-        <div class="qa-portrait">
-          <svg viewBox="0 0 120 160" xmlns="http://www.w3.org/2000/svg">
-            <rect width="120" height="160" fill="${MINT}"/>
-            <rect x="20" y="104" width="80" height="56" rx="8" fill="${TEAL}" opacity="0.65"/>
-            <rect x="46" y="88" width="28" height="22" rx="4" fill="#d4a87a"/>
-            <ellipse cx="60" cy="74" rx="27" ry="29" fill="#d4a87a"/>
-            <ellipse cx="60" cy="50" rx="29" ry="14" fill="white" opacity="0.9"/>
-            <rect x="31" y="50" width="58" height="9" rx="2" fill="white" opacity="0.88"/>
-            <ellipse cx="60" cy="50" rx="20" ry="6" fill="${NAVY}" opacity="0.75"/>
-          </svg>
-        </div>
+        ${portraitBlock}
         <div class="qa-name">${captionText}</div>
         <div class="qa-qr">
           <div class="qa-qr-box">
@@ -744,9 +761,11 @@ export function renderSectionHtml(s: {
   titleAr: string;
   descriptionAr?: string | null;
   contentMd?: string | null;
+  media?: Array<{ url: string; caption: string | null }>;
 }, ctx: { arabicMonth: string; year: number }): string {
   const contentHtml = mdToHtml(s.contentMd || "");
   const contentMd = s.contentMd || "";
+  const media = s.media ?? [];
   const common = {
     type: s.sectionType,
     titleAr: s.titleAr,
@@ -759,17 +778,17 @@ export function renderSectionHtml(s: {
     case "local_news":
     case "regional_news":
     case "global_news":
-      return sectionNewsHtml({ type: s.sectionType, titleAr: s.titleAr, contentMd });
+      return sectionNewsHtml({ type: s.sectionType, titleAr: s.titleAr, contentMd, media });
     case "office_interview":
-      return sectionOfficeInterviewHtml(common);
+      return sectionOfficeInterviewHtml({ ...common, media });
     case "competition_culture":
       return sectionCompetitionCultureHtml({ type: s.sectionType, titleAr: s.titleAr, contentMd, arabicMonth: ctx.arabicMonth, year: ctx.year });
     case "outside_box":
-      return sectionOutsideBoxHtml(common);
+      return sectionOutsideBoxHtml({ ...common, media });
     case "events":
-      return sectionEventsHtml({ type: s.sectionType, titleAr: s.titleAr, contentHtml });
+      return sectionEventsHtml({ type: s.sectionType, titleAr: s.titleAr, contentHtml, media });
     case "employee_qa":
-      return sectionEmployeeQAHtml({ type: s.sectionType, titleAr: s.titleAr, descriptionAr: s.descriptionAr, contentMd });
+      return sectionEmployeeQAHtml({ type: s.sectionType, titleAr: s.titleAr, descriptionAr: s.descriptionAr, contentMd, media });
     default:
       return sectionGenericHtml({ type: s.sectionType, titleAr: s.titleAr, contentHtml, iconSvgType: SECTION_ICON[s.sectionType] });
   }
@@ -1354,6 +1373,7 @@ export function buildShorfahPdfHtml(opts: {
     titleAr: string;
     descriptionAr?: string | null;
     contentMd?: string | null;
+    media?: Array<{ url: string; caption: string | null }>;
   }>;
   /** Base URL for static assets (e.g. /shorfah/*.png). Defaults to empty (relative). */
   baseUrl?: string;
