@@ -109,6 +109,14 @@ export const shorfahRemindersTable = pgTable("shorfah_reminders", {
   message: text("message"),
 });
 
+// Round 3 Task 1: SLA defaults per section type
+export const shorfahSectionSlaDefaultsTable = pgTable("shorfah_section_sla_defaults", {
+  sectionType: text("section_type").primaryKey(),
+  slaDays: integer("sla_days").notNull().default(7),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+  updatedBy: integer("updated_by"),
+});
+
 export const shorfahNotificationsTable = pgTable("shorfah_notifications", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),

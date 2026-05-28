@@ -10910,63 +10910,91 @@ function shorfahAdminTab(tab) {
   }
 }
 
-function shorfahAdminRenderSla() {
+// Round 3 Task 1: SLA templates by section type (not per section)
+var SHORFAH_SECTION_TYPE_LABELS = {
+  news: 'الأخبار',
+  office_interview: 'مقابلة مكتب المحافظ',
+  competition_culture: 'ثقافة المنافسة',
+  outside_box: 'خارج الصندوق',
+  events: 'الفعاليات',
+  employee_qa: 'الحوار مع الموظف'
+};
+var SHORFAH_SECTION_TYPE_ORDER = ['news','office_interview','competition_culture','outside_box','events','employee_qa'];
+function shorfahSectionTypeLabel(t) { return SHORFAH_SECTION_TYPE_LABELS[t] || t; }
+
+// Round 3 Task 2: contributor role labels in Arabic
+var SHORFAH_ROLE_LABELS = {
+  super_admin: 'مدير النظام',
+  admin: 'مدير',
+  comms_admin: 'مدير الإدارة',
+  content_editor: 'محرر محتوى',
+  reviewer: 'مراجع',
+  approver: 'معتمد',
+  contributor: 'مساهم',
+  viewer: 'مشاهد'
+};
+function shorfahRoleLabel(r) { return SHORFAH_ROLE_LABELS[r] || (r || 'مساهم'); }
+
+async function shorfahAdminRenderSla() {
   var el = document.getElementById('shorfah-admin-tab-sla');
   if (!el) return;
-  var sections = SHORFAH_ADMIN_STATE.sections;
-  if (!sections.length) { el.innerHTML = '<div style="color:#666;padding:16px;">لا توجد أقسام</div>'; return; }
+  el.innerHTML = '<div style="padding:16px;color:#666;">جارٍ تحميل قوالب SLA…</div>';
+  var defaults = [];
+  try {
+    var res = await apiFetch('/api/shorfah/sla-defaults');
+    if (res.ok) { var data = await res.json(); defaults = data.defaults || []; }
+  } catch(e) { console.warn('SLA defaults load fallback:', e); }
+  var byType = {};
+  defaults.forEach(function(d) { byType[d.sectionType] = d.slaDays; });
   var isMobile = window.innerWidth < 768;
-  if (isMobile) {
-    el.innerHTML = '<div style="display:grid;gap:10px;">' + sections.map(function(s) {
-      var slaStarts = s.slaStartsAt ? new Date(s.slaStartsAt).toLocaleDateString('ar-SA') : '—';
-      var slaDeadline = s.slaDeadline ? new Date(s.slaDeadline).toLocaleDateString('ar-SA') : '—';
+  var rowsHtml = SHORFAH_SECTION_TYPE_ORDER.map(function(type) {
+    var label = shorfahSectionTypeLabel(type);
+    var days = byType[type] || 7;
+    if (isMobile) {
       return '<div style="border:1px solid #e5e7eb;border-radius:10px;padding:12px;background:#fff;">' +
-        '<div style="font-weight:800;color:#0e3b4a;margin-bottom:8px;">'+s.titleAr+'</div>' +
-        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;color:var(--text-2);margin-bottom:10px;">' +
-          '<div><strong style="color:var(--text-3);font-weight:600;">البدء:</strong> '+slaStarts+'</div>' +
-          '<div><strong style="color:var(--text-3);font-weight:600;">الموعد النهائي:</strong> '+slaDeadline+'</div>' +
-        '</div>' +
-        '<div style="display:flex;align-items:center;gap:8px;padding-top:8px;border-top:1px solid #f1f5f9;">' +
+        '<div style="font-weight:800;color:#0e3b4a;margin-bottom:8px;">'+label+'</div>' +
+        '<div style="display:flex;align-items:center;gap:8px;">' +
           '<label style="font-size:13px;color:var(--text-2);">أيام SLA:</label>' +
-          '<input type="number" value="'+(s.slaDays||7)+'" min="1" max="90" style="width:70px;padding:6px;border:1px solid #d1d5db;border-radius:6px;text-align:center;" id="sla-days-'+s.id+'"/>' +
-          '<button class="btn btn-primary btn-sm" style="margin-right:auto;" onclick="shorfahSaveSla('+s.id+')">حفظ</button>' +
+          '<input type="number" value="'+days+'" min="1" max="60" style="width:80px;padding:6px;border:1px solid #d1d5db;border-radius:6px;text-align:center;" id="sla-tpl-'+type+'"/>' +
+          '<span style="font-size:13px;color:var(--text-3);">يوم</span>' +
         '</div>' +
       '</div>';
-    }).join('') + '</div>';
-    return;
-  }
-  el.innerHTML = '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:14px;">' +
-    '<thead><tr style="background:#f0f7f8;"><th style="padding:10px;text-align:right;">القسم</th><th style="padding:10px;text-align:center;">أيام SLA</th><th style="padding:10px;text-align:center;">تاريخ البدء</th><th style="padding:10px;text-align:center;">الموعد النهائي</th><th style="padding:10px;"></th></tr></thead>' +
-    '<tbody>' + sections.map(function(s) {
-      var slaStarts = s.slaStartsAt ? new Date(s.slaStartsAt).toLocaleDateString('ar-SA') : '—';
-      var slaDeadline = s.slaDeadline ? new Date(s.slaDeadline).toLocaleDateString('ar-SA') : '—';
-      return '<tr style="border-bottom:1px solid #e5e7eb;">' +
-        '<td style="padding:10px;font-weight:700;">'+s.titleAr+'</td>' +
-        '<td style="padding:10px;text-align:center;"><input type="number" value="'+(s.slaDays||7)+'" min="1" max="90" style="width:70px;padding:4px;border:1px solid #d1d5db;border-radius:6px;text-align:center;" id="sla-days-'+s.id+'"/></td>' +
-        '<td style="padding:10px;text-align:center;">'+slaStarts+'</td>' +
-        '<td style="padding:10px;text-align:center;">'+slaDeadline+'</td>' +
-        '<td style="padding:10px;"><button class="btn btn-ghost btn-sm" onclick="shorfahSaveSla('+s.id+')">حفظ</button></td>' +
-      '</tr>';
-    }).join('') +
-    '</tbody></table></div>';
+    }
+    return '<tr style="border-bottom:1px solid #e5e7eb;">' +
+      '<td style="padding:12px;font-weight:700;color:#0e3b4a;">'+label+'</td>' +
+      '<td style="padding:12px;text-align:center;"><input type="number" value="'+days+'" min="1" max="60" style="width:90px;padding:6px;border:1px solid #d1d5db;border-radius:6px;text-align:center;" id="sla-tpl-'+type+'"/> <span style="font-size:13px;color:var(--text-3);">يوم</span></td>' +
+    '</tr>';
+  }).join('');
+  var note = '<div style="background:#cce4e6;border-right:4px solid #1a6e7a;padding:12px 14px;border-radius:8px;margin-bottom:16px;color:#0e3b4a;font-size:13px;line-height:1.7;">' +
+    '<strong>قالب عام لكل أنواع الأقسام</strong><br/>' +
+    'هذا الإعداد ينطبق على كل الأعداد الجديدة. عند إنشاء عدد جديد، تأخذ أقسامه عدد أيام الـ SLA من هذا القالب تلقائياً.' +
+  '</div>';
+  var body = isMobile
+    ? ('<div style="display:grid;gap:10px;">'+rowsHtml+'</div>')
+    : ('<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:14px;background:#fff;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;">' +
+        '<thead><tr style="background:#f0f7f8;"><th style="padding:12px;text-align:right;color:#0e3b4a;">نوع القسم</th><th style="padding:12px;text-align:center;color:#0e3b4a;">أيام SLA الافتراضية</th></tr></thead>' +
+        '<tbody>'+rowsHtml+'</tbody></table></div>');
+  el.innerHTML = note + body +
+    '<div style="margin-top:16px;display:flex;justify-content:flex-start;"><button class="btn btn-primary" onclick="shorfahSaveSlaDefaults()">حفظ قوالب SLA</button></div>';
 }
 
-async function shorfahSaveSla(sectionId) {
-  var daysEl = document.getElementById('sla-days-'+sectionId);
-  if (!daysEl) return;
-  var slaDays = parseInt(daysEl.value, 10);
-  if (isNaN(slaDays) || slaDays < 1) { alert('أيام SLA غير صحيحة'); return; }
+async function shorfahSaveSlaDefaults() {
+  var defaults = SHORFAH_SECTION_TYPE_ORDER.map(function(type) {
+    var inp = document.getElementById('sla-tpl-'+type);
+    var days = inp ? parseInt(inp.value, 10) : 7;
+    if (isNaN(days) || days < 1) days = 7;
+    return { sectionType: type, slaDays: days };
+  });
   try {
-    var res = await apiFetch('/api/shorfah/sections/'+sectionId+'/sla', {
-      method: 'PATCH',
+    var res = await apiFetch('/api/shorfah/sla-defaults', {
+      method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ slaDays: slaDays, slaStartsAt: new Date().toISOString() })
+      body: JSON.stringify({ defaults: defaults })
     });
     var data = await res.json();
     if (!res.ok) { alert('خطأ: '+(data.error || res.status)); return; }
-    await shorfahAdminLoadData();
+    alert('تم حفظ قوالب SLA. ستُطبَّق على كل الأعداد الجديدة.');
     shorfahAdminRenderSla();
-    alert('تم حفظ SLA بنجاح');
   } catch(e) { alert('خطأ: '+e.message); }
 }
 
@@ -10976,9 +11004,21 @@ function shorfahAdminRenderAssign() {
   var sections = SHORFAH_ADMIN_STATE.sections;
   var assignments = SHORFAH_ADMIN_STATE.assignments;
   var users = SHORFAH_ADMIN_STATE.users || [];
-  var userNameById = {};
-  users.forEach(function(u) { userNameById[u.id] = u.name || u.email || ('#'+u.id); });
-  function displayUser(uid) { return userNameById[uid] || ('#'+uid); }
+  // Round 3 Task 2: render user as "Name (System Role)"
+  var userById = {};
+  users.forEach(function(u) { userById[u.id] = u; });
+  function displayUserName(uid) {
+    var u = userById[uid];
+    if (!u) return '#'+uid;
+    return u.name || u.email || ('#'+uid);
+  }
+  function displayUser(uid) {
+    var u = userById[uid];
+    if (!u) return '#'+uid;
+    var name = u.name || u.email || ('#'+uid);
+    var roleLbl = shorfahRoleLabel(u.role);
+    return name + ' (' + roleLbl + ')';
+  }
   var ROLE_LABELS = { contributor: 'مساهم', reviewer: 'مراجع', approver: 'معتمد' };
 
   // Build per-user summary: who contributes to which sections
@@ -11006,7 +11046,7 @@ function shorfahAdminRenderAssign() {
     excludeIds = excludeIds || [];
     return users
       .filter(function(u) { return excludeIds.indexOf(u.id) === -1; })
-      .map(function(u) { return '<option value="'+u.id+'">'+ (u.name || u.email || ('#'+u.id)) +'</option>'; })
+      .map(function(u) { var nm = u.name || u.email || ('#'+u.id); return '<option value="'+u.id+'">'+ nm + ' (' + shorfahRoleLabel(u.role) + ')' +'</option>'; })
       .join('');
   }
 
@@ -11078,9 +11118,20 @@ function shorfahAdminRenderStatus() {
   var reminders = SHORFAH_ADMIN_STATE.reminders;
   var users = SHORFAH_ADMIN_STATE.users || [];
   var now = new Date();
-  var userNameById = {};
-  users.forEach(function(u) { userNameById[u.id] = u.name || u.email || ('#'+u.id); });
-  function displayUser(uid) { return userNameById[uid] || ('#'+uid); }
+  // Round 3 Task 2: render user as "Name (System Role)"
+  var userById = {};
+  users.forEach(function(u) { userById[u.id] = u; });
+  function displayUserName(uid) {
+    var u = userById[uid];
+    if (!u) return '#'+uid;
+    return u.name || u.email || ('#'+uid);
+  }
+  function displayUser(uid) {
+    var u = userById[uid];
+    if (!u) return '#'+uid;
+    var name = u.name || u.email || ('#'+uid);
+    return name + ' (' + shorfahRoleLabel(u.role) + ')';
+  }
   // Mobile: render cards (small screens). Desktop: table.
   var isMobile = window.innerWidth < 768;
   if (isMobile) {
@@ -11106,7 +11157,7 @@ function shorfahAdminRenderStatus() {
         '</div>' +
         (sectionAssignments.length ? '<div style="display:flex;flex-wrap:wrap;gap:6px;padding-top:8px;border-top:1px solid #f1f5f9;">' +
           sectionAssignments.map(function(a) {
-            return '<button class="btn btn-ghost btn-sm" style="font-size:11px;flex:1 1 auto;" onclick="shorfahSendReminder('+s.id+','+a.userId+')">تذكير '+displayUser(a.userId)+'</button>';
+            return '<button class="btn btn-ghost btn-sm" style="font-size:11px;flex:1 1 auto;" onclick="shorfahSendReminder('+s.id+','+a.userId+')">تذكير '+displayUserName(a.userId)+'</button>';
           }).join('') +
           '</div>' : '') +
       '</div>';
@@ -11142,7 +11193,7 @@ function shorfahAdminRenderStatus() {
         '<td style="padding:10px;text-align:center;">'+lastReminderStr+'</td>' +
         '<td style="padding:10px;">' +
           sectionAssignments.map(function(a) {
-            return '<button class="btn btn-ghost btn-sm" style="font-size:11px;" onclick="shorfahSendReminder('+s.id+','+a.userId+')">تذكير '+displayUser(a.userId)+'</button>';
+            return '<button class="btn btn-ghost btn-sm" style="font-size:11px;" onclick="shorfahSendReminder('+s.id+','+a.userId+')">تذكير '+displayUserName(a.userId)+'</button>';
           }).join('') +
         '</td>' +
       '</tr>';

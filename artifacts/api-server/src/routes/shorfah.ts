@@ -9,6 +9,7 @@ import {
   shorfahAssignmentsTable,
   shorfahRemindersTable,
   shorfahNotificationsTable,
+  shorfahSectionSlaDefaultsTable,
   usersTable,
 } from "@workspace/db";
 import { eq, desc, asc, and, or, inArray } from "drizzle-orm";
@@ -168,11 +169,55 @@ router.post("/shorfah/issues/:id/start-review", requireAdmin, async (req: Reques
   res.json({ issue: updated });
 });
 
+// ── SLA defaults (Round 3 Task 1) ────────────────────────────────────────
+// Helper: lookup SLA default for a section type
+async function getSlaDefaultDays(sectionType: string): Promise<number> {
+  const [row] = await db
+    .select()
+    .from(shorfahSectionSlaDefaultsTable)
+    .where(eq(shorfahSectionSlaDefaultsTable.sectionType, sectionType))
+    .limit(1);
+  return row?.slaDays ?? 7;
+}
+
+router.get("/shorfah/sla-defaults", requireAuth, async (_req: Request, res: Response) => {
+  const rows = await db.select().from(shorfahSectionSlaDefaultsTable);
+  res.json({ defaults: rows });
+});
+
+router.put("/shorfah/sla-defaults", requireAdmin, async (req: Request, res: Response) => {
+  const { defaults } = req.body || {};
+  if (!Array.isArray(defaults)) return res.status(400).json({ error: "defaults يجب أن يكون مصفوفة" });
+  const userId = req.user!.id;
+  const now = new Date();
+  for (const row of defaults) {
+    if (!row || !row.sectionType) continue;
+    const slaDays = Math.max(1, Math.min(60, Number(row.slaDays) || 7));
+    const existing = await db.select().from(shorfahSectionSlaDefaultsTable).where(eq(shorfahSectionSlaDefaultsTable.sectionType, row.sectionType)).limit(1);
+    if (existing.length) {
+      await db.update(shorfahSectionSlaDefaultsTable)
+        .set({ slaDays, updatedAt: now, updatedBy: userId })
+        .where(eq(shorfahSectionSlaDefaultsTable.sectionType, row.sectionType));
+    } else {
+      await db.insert(shorfahSectionSlaDefaultsTable).values({
+        sectionType: row.sectionType,
+        slaDays,
+        updatedAt: now,
+        updatedBy: userId,
+      });
+    }
+  }
+  const rows = await db.select().from(shorfahSectionSlaDefaultsTable);
+  res.json({ defaults: rows });
+});
+
 // ── sections ─────────────────────────────────────────────────────────────
 router.post("/shorfah/issues/:id/sections", requireAdmin, async (req: Request, res: Response) => {
   const issueId = Number(req.params.id);
-  const { sectionType, titleAr, descriptionAr, displayOrder, ownerUserId, ownerRole, autoGenerate, generationPrompt, parentSectionId } = req.body || {};
+  const { sectionType, titleAr, descriptionAr, displayOrder, ownerUserId, ownerRole, autoGenerate, generationPrompt, parentSectionId, slaDays } = req.body || {};
   if (!sectionType || !titleAr) return res.status(400).json({ error: "بيانات ناقصة" });
+  // Round 3 Task 1: pull SLA default from per-section-type template
+  const defaultDays = slaDays !== undefined ? Number(slaDays) : await getSlaDefaultDays(sectionType);
   const [created] = await db
     .insert(shorfahSectionsTable)
     .values({
@@ -186,6 +231,7 @@ router.post("/shorfah/issues/:id/sections", requireAdmin, async (req: Request, r
       ownerRole: ownerRole ?? null,
       autoGenerate: !!autoGenerate,
       generationPrompt: generationPrompt ?? null,
+      slaDays: defaultDays,
     })
     .returning();
   res.json({ section: created });

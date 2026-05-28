@@ -268,44 +268,74 @@ function parseNewsCards(md: string): Array<{ title: string; body: string }> {
 }
 
 /**
- * Parse markdown Q&A pairs.
- * Recognizes:
- *   > question text   (blockquote = question)
- *   following paragraph = answer
- * OR ## Q: / ## A: markers
- * OR alternating paragraphs (odd=Q, even=A)
+ * Parse markdown Q&A pairs — FIXED line-by-line parser.
+ *
+ * Shorfah seed format:
+ *   **س: question text?**
+ *   ج: answer text
+ *
+ * The original bug: regex `[^\n]+` for the answer failed when there
+ * were blank lines between the question marker and ج:, because the
+ * global regex consumed the whole string and the lookahead didn't
+ * cross newline boundaries properly.
+ *
+ * Fix: split into lines, walk them explicitly, skip blank lines
+ * between **س:...** and ج:...
  */
 function parseQAPairs(md: string): Array<{ q: string; a: string }> {
   if (!md || !md.trim()) return [];
 
   const pairs: Array<{ q: string; a: string }> = [];
 
-  // Pattern 1: **س: ...?** followed by ج: answer  (Shorfah seed format)
-  const arPattern = /\*\*\s*س\s*[:：]\s*([^*]+?)\s*\*\*\s*\n?\s*ج\s*[:：]\s*([^\n]+)/g;
-  let arM: RegExpExecArray | null;
-  while ((arM = arPattern.exec(md)) !== null) {
-    pairs.push({ q: arM[1].trim().replace(/\?+$/, "؟"), a: arM[2].trim() });
+  // ── Pattern 1 (primary): line-by-line walk for Shorfah seed format ──
+  const lines = md.split("\n");
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i].trim();
+    // Match: **س: text** (with or without trailing ؟/?)
+    const qMatch = line.match(/^\*\*\s*س\s*[:：]\s*(.+?)\s*\*\*\s*$/);
+    if (qMatch) {
+      const question = qMatch[1].trim().replace(/[?？\u061F]+$/, "") + "؟";
+      // Advance past blank lines to find ج:
+      let j = i + 1;
+      while (j < lines.length && lines[j].trim() === "") j++;
+      let answer = "";
+      if (j < lines.length) {
+        const aMatch = lines[j].trim().match(/^ج\s*[:：]\s*(.+)$/);
+        if (aMatch) {
+          answer = aMatch[1].trim();
+          i = j + 1;
+        } else {
+          i++;
+        }
+      } else {
+        i++;
+      }
+      pairs.push({ q: question, a: answer });
+      continue;
+    }
+    i++;
   }
   if (pairs.length > 0) return pairs;
 
-  // Pattern 2: blockquote > Q then paragraph A
+  // ── Pattern 2: blockquote > Q then paragraph A ──
   const bqPattern = /^> (.+)$/gm;
   const bqMatches = [...md.matchAll(bqPattern)];
   if (bqMatches.length > 0) {
     const parts = md.split(/^> .+$/m);
-    for (let i = 0; i < bqMatches.length; i++) {
-      const q = bqMatches[i][1].trim();
-      const a = (parts[i + 1] || "").trim().replace(/\n+/g, " ").replace(/^[>-]\s*/gm, "");
+    for (let k = 0; k < bqMatches.length; k++) {
+      const q = bqMatches[k][1].trim();
+      const a = (parts[k + 1] || "").trim().replace(/\n+/g, " ").replace(/^[>-]\s*/gm, "");
       if (q || a) pairs.push({ q, a });
     }
     if (pairs.length > 0) return pairs;
   }
 
-  // Pattern 3: alternating paragraphs (odd=Q, even=A)
+  // ── Pattern 3: alternating paragraphs (odd=Q, even=A) ──
   const paras = md.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
-  for (let i = 0; i < paras.length; i += 2) {
-    const q = paras[i].replace(/^[#>*\-\s]+/, "").replace(/\*\*/g, "").trim();
-    const a = (paras[i + 1] || "").replace(/^[#>*\-\s]+/, "").replace(/\*\*/g, "").trim();
+  for (let k = 0; k < paras.length; k += 2) {
+    const q = paras[k].replace(/^[#>*\-\s]+/, "").replace(/\*\*/g, "").trim();
+    const a = (paras[k + 1] || "").replace(/^[#>*\-\s]+/, "").replace(/\*\*/g, "").trim();
     pairs.push({ q, a });
   }
   return pairs;
@@ -483,7 +513,7 @@ function sectionOfficeInterviewHtml(opts: {
             <path d="M50 84 Q60 90 70 84" stroke="${NAVY}" stroke-width="2" fill="none" opacity="0.4" stroke-linecap="round"/>
           </svg>
         </div>
-        ${opts.descriptionAr ? `<div class="oi-caption">${opts.descriptionAr}</div>` : ""}
+        ${opts.descriptionAr ? `<div class="oi-caption">${opts.descriptionAr}</div>` : `<div class="oi-caption">حوار شهري مع أحد القياديين</div>`}
       </div>
       <div class="oi-right">${opts.contentHtml}</div>
     </div>
@@ -570,7 +600,7 @@ function sectionOutsideBoxHtml(opts: {
             <path d="M40 120 L60 108 L80 120" stroke="white" stroke-width="3" fill="none" opacity="0.5"/>
           </svg>
         </div>
-        ${opts.descriptionAr ? `<div class="ob-portrait-caption">${opts.descriptionAr}</div>` : ""}
+        ${opts.descriptionAr ? `<div class="ob-portrait-caption">${opts.descriptionAr}</div>` : `<div class="ob-portrait-caption">مقال شهري من موظف</div>`}
       </div>
       <div class="ob-center-col">
         <div class="ob-box-icon">${sectionIconSvg("box")}</div>
@@ -599,7 +629,7 @@ function sectionEventsHtml(opts: {
 
   const collageTiles = placeholderPhotos
     .map(
-      (ph, i) => `<div class="ev-photo-tile" style="
+      (ph) => `<div class="ev-photo-tile" style="
         transform: rotate(${ph.rotate});
         grid-area: auto;
         background: linear-gradient(145deg, ${ph.grad} 0%, ${TEAL_DARK} 100%);
@@ -652,6 +682,9 @@ function sectionEmployeeQAHtml(opts: {
       .join("");
   }
 
+  // Caption/name label below portrait
+  const captionText = opts.descriptionAr || "ست أسئلة سريعة مع أحد الزملاء";
+
   return `
   <section class="section section-qa theme-light">
     ${navStrip(opts.type, "light")}
@@ -672,7 +705,7 @@ function sectionEmployeeQAHtml(opts: {
             <ellipse cx="60" cy="50" rx="20" ry="6" fill="${NAVY}" opacity="0.75"/>
           </svg>
         </div>
-        ${opts.descriptionAr ? `<div class="qa-name">${opts.descriptionAr}</div>` : ""}
+        <div class="qa-name">${captionText}</div>
         <div class="qa-qr">
           <div class="qa-qr-box">
             <div class="qa-qr-grid"></div>
@@ -680,7 +713,9 @@ function sectionEmployeeQAHtml(opts: {
           <div class="qa-qr-caption">للمشاركة في شرفة يسعدنا تواصلك عبر مسح رمز QR</div>
         </div>
       </div>
-      <div class="qa-body">${bubblesHtml}</div>
+      <div class="qa-body">
+      ${bubblesHtml}
+      </div>
     </div>
   </section>`;
 }
