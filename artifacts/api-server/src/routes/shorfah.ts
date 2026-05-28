@@ -11,7 +11,7 @@ import {
   shorfahNotificationsTable,
   usersTable,
 } from "@workspace/db";
-import { eq, desc, asc, and, or, lt, inArray, isNotNull } from "drizzle-orm";
+import { eq, desc, asc, and, or, inArray } from "drizzle-orm";
 import { requireAuth, requireAdmin } from "../middleware/auth";
 import { geminiJSON } from "../lib/aiProviders";
 import { buildShorfahPdfHtml } from "./shorfah-pdf";
@@ -754,74 +754,6 @@ router.post("/notifications/read-all", requireAuth, async (req: Request, res: Re
     .set({ isRead: true })
     .where(eq(shorfahNotificationsTable.userId, userId));
   res.json({ ok: true });
-});
-
-// ── Cron: daily overdue check (Task 6) ───────────────────────────────────
-const CRON_SECRET = process.env.API_KEY || "9AyAoIvL1gtuf7m_9v7LkTfNzx0CLsFPGmhqP3nt0BI";
-
-router.post("/cron/shorfah/check-overdue", async (req: Request, res: Response) => {
-  const secret = req.headers["x-cron-secret"] || req.headers["x-api-key"];
-  if (secret !== CRON_SECRET) {
-    return res.status(401).json({ error: "Unauthorized" });
-  }
-
-  try {
-    const now = new Date();
-    // Find sections past deadline with non-final workflow statuses
-    const overdueSections = await db
-      .select()
-      .from(shorfahSectionsTable)
-      .where(
-        and(
-          isNotNull(shorfahSectionsTable.slaDeadline),
-          lt(shorfahSectionsTable.slaDeadline, now),
-          inArray(shorfahSectionsTable.workflowStatus, ["pending_contribution", "submitted"]),
-        )
-      );
-
-    let notified = 0;
-    for (const section of overdueSections) {
-      const [issue] = await db.select().from(shorfahIssuesTable).where(eq(shorfahIssuesTable.id, section.issueId)).limit(1);
-      
-      const assignments = await db.select().from(shorfahAssignmentsTable)
-        .where(eq(shorfahAssignmentsTable.sectionId, section.id));
-
-      const daysOverdue = Math.floor((now.getTime() - section.slaDeadline!.getTime()) / 86400000);
-
-      for (const assignment of assignments) {
-        const userRec = await getUserById(assignment.userId);
-        let userEmail: string | null = userRec?.email ?? null;
-        let userName: string = userRec?.name ?? "المساهم";
-
-        await sendNotification({
-          userId: assignment.userId,
-          issueId: section.issueId,
-          sectionId: section.id,
-          channel: "both",
-          type: "reminder_overdue",
-          title: `قسم "${section.titleAr}" متأخر عن الموعد بـ ${daysOverdue} يوم`,
-          body: `يُرجى تسليم المحتوى الخاص بك في أقرب وقت ممكن.`,
-          url: `/#/shorfah/${section.issueId}`,
-          recipientEmail: userEmail,
-          assignmentId: assignment.id,
-          reminderType: "overdue",
-          emailHtml: buildOverdueEmailHtml({
-            recipientName: userName,
-            sectionTitle: section.titleAr,
-            issueTitleAr: issue?.titleAr || "شرفة",
-            daysOverdue,
-            url: `https://icbank-platform-internal-comms.vercel.app/#/shorfah/${section.issueId}`,
-          }),
-        });
-        notified++;
-      }
-    }
-
-    res.json({ ok: true, overdueSections: overdueSections.length, notified });
-  } catch (err) {
-    console.error("[cron/shorfah/check-overdue]", err);
-    res.status(500).json({ error: "Internal error", details: err instanceof Error ? err.message : "unknown" });
-  }
 });
 
 // ── Publish (Task 7: fan-out notifications) ───────────────────────────────

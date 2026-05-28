@@ -13,6 +13,7 @@ import designsRouter from "./designs";
 import weekendPlacesRouter from "./weekend-places";
 import weekendDraftsRouter from "./weekend-drafts";
 import shorfahRouter from "./shorfah";
+import shorfahCronRouter from "./shorfah-cron";
 import gacRouter from "./gac";
 import { authenticate, requireAuth, requirePageAccess } from "../middleware/auth";
 
@@ -27,6 +28,9 @@ router.use(healthRouter);
 // These routes use their own x-api-key header check (REPORT_API_KEY secret).
 // They must be registered BEFORE the JWT requireAuth gate.
 router.use(dailyReportRouter);
+
+// ─── Shorfah cron routes (x-cron-secret auth, no JWT required) ────────────
+router.use(shorfahCronRouter);
 
 // ─── Storage (public read, path-allowlisted) ────────────────────────────────
 // Must be before requireAuth so <img> tags and direct browser requests can load
