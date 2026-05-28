@@ -10795,7 +10795,31 @@ var SHORFAH_ADMIN_STATE = { issueId: null, sections: [], assignments: [], remind
 async function shorfahShowAdminPanel() {
   if (!shorfahIsAdmin()) { alert('تحتاج صلاحيات مسؤول'); return; }
   var issueId = SHORFAH_STATE.currentIssueId;
-  if (!issueId) { alert('يرجى فتح عدد أولاً'); return; }
+  // If no issue is currently open, pick the most recent non-published issue (or the latest of any kind)
+  if (!issueId) {
+    try {
+      var res = await apiFetch('/api/shorfah/issues');
+      if (res.ok) {
+        var data = await res.json();
+        var issues = data.issues || [];
+        // Prefer non-published (active workflow), fallback to most recent overall
+        var active = issues.find(function(i){ return i.status !== 'published'; });
+        var pick = active || issues[0];
+        if (pick) {
+          // Hydrate SHORFAH_STATE so the admin panel has the issue context
+          var detailRes = await apiFetch('/api/shorfah/issues/'+pick.id);
+          if (detailRes.ok) {
+            var detailData = await detailRes.json();
+            SHORFAH_STATE.currentIssueId = pick.id;
+            SHORFAH_STATE.issue = detailData.issue;
+            SHORFAH_STATE.sections = detailData.sections || [];
+            issueId = pick.id;
+          }
+        }
+      }
+    } catch(e) { console.error('Failed to auto-pick issue:', e); }
+    if (!issueId) { alert('لا توجد أعداد متاحة للإدارة'); return; }
+  }
   SHORFAH_ADMIN_STATE.issueId = issueId;
   document.getElementById('shorfah-issues-list').style.display = 'none';
   document.getElementById('shorfah-issue-detail').style.display = 'none';
