@@ -2666,6 +2666,11 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
           <span>عام الذكاء الاصطناعي</span>
           <span class="nav-item-count" id="aiy-nav-count">—</span>
         </a>
+        <a class="nav-item" data-page="shorfah" onclick="showSection('shorfah')">
+          <span class="ico"><svg><use href="#i-book"/></svg></span>
+          <span>شُرفة</span>
+          <span class="nav-item-count" id="shorfah-nav-count">—</span>
+        </a>
       </div>
     </div>
 
@@ -4483,6 +4488,83 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
     <div id="plcs-grid" class="plcs-grid" style="display:none;"></div>
   </div><!-- /section-places -->
 
+  <!-- ══ Shorfah — Monthly Magazine ══ -->
+  <div class="page-section" id="section-shorfah">
+    <div class="page-header" style="display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:18px;">
+      <div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="width:42px;height:42px;background:linear-gradient(135deg,#0a4a3d,#2d8a73);color:#fff;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;font-weight:900;font-size:22px;">ش</span>
+          <div>
+            <div style="font-size:22px;font-weight:900;color:var(--text);">شُرفة</div>
+            <div style="font-size:13px;color:var(--text-3);">مجلة شهرية — أعداد + مساهمات + workflow اعتماد ثلاثي + PDF نهائي</div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button id="shorfah-new-issue-btn" class="btn btn-primary" onclick="shorfahNewIssue()" style="display:none;">
+          <span class="ico"><svg><use href="#i-plus"/></svg></span>عدد جديد
+        </button>
+      </div>
+    </div>
+
+    <!-- Issues grid -->
+    <div id="shorfah-issues-list" class="card" style="padding:18px;margin-bottom:16px;">
+      <div style="font-weight:800;margin-bottom:10px;color:var(--text);">الأعداد</div>
+      <div id="shorfah-issues-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;">
+        <div style="color:var(--text-3);font-size:14px;">جاري التحميل…</div>
+      </div>
+    </div>
+
+    <!-- Selected issue detail -->
+    <div id="shorfah-issue-detail" style="display:none;">
+      <div class="card" style="padding:18px;margin-bottom:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;">
+          <div>
+            <div id="shorfah-issue-title" style="font-size:20px;font-weight:900;color:var(--text);"></div>
+            <div id="shorfah-issue-meta" style="font-size:13px;color:var(--text-3);margin-top:6px;"></div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btn-ghost btn-sm" onclick="shorfahBackToList()">← العودة للأعداد</button>
+            <a id="shorfah-pdf-btn" class="btn btn-secondary btn-sm" href="#" target="_blank">
+              <span class="ico"><svg><use href="#i-file-pdf"/></svg></span>عرض PDF
+            </a>
+            <button id="shorfah-publish-btn" class="btn btn-primary btn-sm" onclick="shorfahPublishIssue()" style="display:none;">
+              <span class="ico"><svg><use href="#i-check"/></svg></span>نشر العدد
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sections workflow board -->
+      <div id="shorfah-sections-board" style="display:grid;gap:12px;"></div>
+    </div>
+
+    <!-- Editor modal -->
+    <div id="shorfah-editor-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2000;align-items:center;justify-content:center;">
+      <div style="background:#fff;border-radius:14px;width:min(820px,94vw);max-height:90vh;overflow:auto;padding:22px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+          <div id="shorfah-editor-title" style="font-size:18px;font-weight:900;"></div>
+          <button class="btn btn-ghost btn-sm" onclick="shorfahCloseEditor()">×</button>
+        </div>
+        <div id="shorfah-editor-meta" style="font-size:12px;color:var(--text-3);margin-bottom:10px;"></div>
+        <label style="display:block;font-weight:700;margin-bottom:6px;">المحتوى (Markdown):</label>
+        <textarea id="shorfah-editor-content" style="width:100%;height:300px;padding:12px;border:1px solid var(--border);border-radius:8px;font-family:'Tajawal',system-ui,sans-serif;font-size:15px;line-height:1.7;resize:vertical;" dir="rtl"></textarea>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:14px;flex-wrap:wrap;">
+          <label style="display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer;">
+            <input type="checkbox" id="shorfah-editor-include" checked> عرض هذا القسم في PDF النهائي
+          </label>
+          <div style="display:flex;gap:8px;">
+            <button id="shorfah-editor-generate" class="btn btn-secondary btn-sm" onclick="shorfahGenerateAI()" style="display:none;">
+              <span class="ico"><svg><use href="#i-brain"/></svg></span>توليد آلي (Gemini)
+            </button>
+            <button class="btn btn-ghost btn-sm" onclick="shorfahSaveDraft()">حفظ</button>
+            <button class="btn btn-primary btn-sm" onclick="shorfahSubmitContent()">حفظ + تسليم للمراجعة</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div><!-- /section-shorfah -->
+
   <!-- ══ 403 Forbidden Section ══ -->
   <div class="page-section" id="section-403" style="display:none;">
     <div style="text-align:center;padding:80px 20px;">
@@ -4722,6 +4804,7 @@ function authCanView(pageName) {
   if (pageName === 'places') return AUTH_USER.role === 'admin' || AUTH_USER.role === 'super_admin';
   if (pageName === 'smart_assistant' || pageName === 'settings') return !!AUTH_USER;
   if (pageName === 'gac_library') return !!AUTH_USER;
+  if (pageName === 'shorfah') return !!AUTH_USER;
   var permKey = PAGE_PERM_MAP[pageName] || pageName;
   var pagePerms = (AUTH_USER.permissions || {})[permKey] || [];
   return pagePerms.includes('view');
@@ -5933,6 +6016,7 @@ const PAGE_LABELS = {
   admin_panel:'لوحة التحكم',
   designs:'إنشاء التصاميم',
   gac_library:'مكتبة الهيئة',
+  shorfah:'شُرفة — مجلة شهرية',
 };
 
 function showSection(name) {
@@ -5965,6 +6049,7 @@ function showSection(name) {
   if (name === 'designs') designsInit();
   if (name === 'places') PLCS.init();
   if (name === 'weekend') wk2AdminInit();
+  if (name === 'shorfah') shorfahInit();
 }
 
 function toggleMobileSidebar() {
@@ -10277,6 +10362,297 @@ document.addEventListener('click', (e) => {
   const fab = document.getElementById('fab-wrap');
   if (fab && !fab.contains(e.target)) fab.classList.remove('open');
 });
+
+// ═══ SHORFAH — Monthly Publication ═══
+var SHORFAH_STATE = { currentIssueId: null, issue: null, sections: [] };
+var SHORFAH_SECTION_LABELS = {
+  news: { ar: 'أخبارنا', icon: '📰', color: '#1a6e7a', desc: 'أبرز أخبار الهيئة' },
+  office_interview: { ar: 'في مكتبهم', icon: '🎙️', color: '#2a8d9b', desc: 'حوار مع قيادي' },
+  competition_culture: { ar: 'ثقافة المنافسة', icon: '📊', color: '#0e3b4a', desc: 'مؤشرات وأرقام' },
+  outside_box: { ar: 'خارج الصندوق', icon: '💡', color: '#0e3b4a', desc: 'مقال موظف' },
+  events: { ar: 'فعالياتنا', icon: '🎉', color: '#1a6e7a', desc: 'صور الفعاليات' },
+  employee_qa: { ar: 'عطنا علومك', icon: '💬', color: '#2a8d9b', desc: 'حوار سريع' },
+  editor: { ar: 'كلمة افتتاحية', icon: '✍️', color: '#5a8c96', desc: '' },
+  local_news: { ar: 'أخبار محلية', icon: '🇸🇦', color: '#1a6e7a', desc: '' },
+  regional_news: { ar: 'أخبار خليجية/عربية', icon: '🌍', color: '#2a8d9b', desc: '' },
+  global_news: { ar: 'أخبار عالمية', icon: '🌐', color: '#0e3b4a', desc: '' },
+  stakeholder: { ar: 'مساهمة جهة', icon: '🏢', color: '#5a8c96', desc: '' },
+  custom: { ar: 'قسم مخصص', icon: '➕', color: '#5a8c96', desc: '' }
+};
+var SHORFAH_STATUS_LABELS = {
+  pending_contribution: { ar: 'قيد المساهمة', color: '#9ca3af', bg: '#f3f4f6' },
+  submitted: { ar: 'تم التسليم', color: '#0369a1', bg: '#dbeafe' },
+  in_review: { ar: 'قيد المراجعة', color: '#a16207', bg: '#fef3c7' },
+  approved: { ar: 'معتمد', color: '#15803d', bg: '#dcfce7' },
+  rejected: { ar: 'مرفوض', color: '#b91c1c', bg: '#fee2e2' }
+};
+var SHORFAH_ARABIC_MONTHS = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+
+function shorfahCanRole(roles) {
+  if (!window.AUTH_USER) return false;
+  var role = (AUTH_USER.role || '').toLowerCase();
+  return roles.some(function(r) { return role === r.toLowerCase(); });
+}
+function shorfahIsAdmin() { return shorfahCanRole(['admin','super_admin']); }
+
+async function shorfahInit() {
+  if (typeof closeMobileSidebar === 'function') closeMobileSidebar();
+  // Show admin-only button
+  var newBtn = document.getElementById('shorfah-new-issue-btn');
+  if (newBtn) newBtn.style.display = shorfahIsAdmin() ? '' : 'none';
+  // Default view: list
+  document.getElementById('shorfah-issues-list').style.display = '';
+  document.getElementById('shorfah-issue-detail').style.display = 'none';
+  await shorfahLoadIssues();
+}
+
+async function shorfahLoadIssues() {
+  var grid = document.getElementById('shorfah-issues-grid');
+  if (!grid) return;
+  grid.innerHTML = '<div style="color:#666;padding:24px;text-align:center;grid-column:1/-1;">جاري التحميل...</div>';
+  try {
+    var res = await apiFetch('/api/shorfah/issues');
+    if (!res.ok) { grid.innerHTML = '<div style="color:#b91c1c;padding:24px;text-align:center;grid-column:1/-1;">تعذر تحميل الأعداد ('+res.status+')</div>'; return; }
+    var data = await res.json();
+    var issues = data.issues || [];
+    var countEl = document.getElementById('shorfah-nav-count');
+    if (countEl) countEl.textContent = issues.length;
+    if (!issues.length) { grid.innerHTML = '<div style="color:#666;padding:24px;text-align:center;grid-column:1/-1;">لا توجد أعداد بعد</div>'; return; }
+    grid.innerHTML = issues.map(function(iss) {
+      var month = SHORFAH_ARABIC_MONTHS[iss.month - 1] || iss.month;
+      var statusColor = iss.status === 'published' ? '#15803d' : (iss.status === 'approved' ? '#0369a1' : '#a16207');
+      return '<div style="cursor:pointer;border:1px solid #d6e9eb;border-radius:14px;overflow:hidden;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,0.04);transition:transform .15s;" onclick="shorfahOpenIssue('+iss.id+')" onmouseover="this.style.transform=\'translateY(-3px)\'" onmouseout="this.style.transform=\'translateY(0)\'">'+
+        '<div style="background:linear-gradient(135deg,#1a6e7a 0%,#2a8d9b 60%,#3ec0d0 100%);color:#fff;padding:24px 20px;text-align:center;">'+
+          '<div style="font-size:13px;letter-spacing:2px;opacity:0.9;">العدد '+(iss.issueNo || iss.issue_no || '?')+'</div>'+
+          '<div style="font-size:36px;font-weight:900;margin:4px 0;">شُرفة</div>'+
+          '<div style="font-size:14px;opacity:0.92;">'+month+' '+iss.year+'</div>'+
+        '</div>'+
+        '<div style="padding:14px 16px;background:#fff;">'+
+          '<div style="font-size:12px;color:'+statusColor+';font-weight:800;">●  '+(iss.status === 'published' ? 'منشور' : iss.status === 'approved' ? 'معتمد' : iss.status === 'in_review' ? 'قيد المراجعة' : iss.status === 'collecting' ? 'جاري التجميع' : 'مسودة')+'</div>'+
+          '<div style="font-size:12px;color:var(--text-3);margin-top:4px;">'+(iss.subtitleAr || iss.subtitle_ar || '')+'</div>'+
+        '</div></div>';
+    }).join('');
+  } catch(e) {
+    grid.innerHTML = '<div style="color:#b91c1c;padding:24px;text-align:center;grid-column:1/-1;">خطأ: '+e.message+'</div>';
+  }
+}
+
+async function shorfahOpenIssue(id) {
+  SHORFAH_STATE.currentIssueId = id;
+  document.getElementById('shorfah-issues-list').style.display = 'none';
+  document.getElementById('shorfah-issue-detail').style.display = '';
+  var board = document.getElementById('shorfah-sections-board');
+  board.innerHTML = '<div style="color:#666;padding:24px;text-align:center;">جاري التحميل...</div>';
+  try {
+    var res = await apiFetch('/api/shorfah/issues/'+id);
+    if (!res.ok) { board.innerHTML = '<div style="color:#b91c1c;padding:24px;">تعذر تحميل العدد ('+res.status+')</div>'; return; }
+    var data = await res.json();
+    SHORFAH_STATE.issue = data.issue;
+    SHORFAH_STATE.sections = data.sections || [];
+    var month = SHORFAH_ARABIC_MONTHS[data.issue.month - 1] || data.issue.month;
+    document.getElementById('shorfah-issue-title').textContent = (data.issue.titleAr || data.issue.title_ar || 'شُرفة') + ' — العدد ' + (data.issue.issueNo || data.issue.issue_no);
+    document.getElementById('shorfah-issue-meta').innerHTML = month + ' ' + data.issue.year + ' · حالة: <strong>'+(data.issue.status || '—')+'</strong>';
+    // PDF button — preview mode for non-published, normal for published
+    var pdfBtn = document.getElementById('shorfah-pdf-btn');
+    var isPublished = data.issue.status === 'published';
+    pdfBtn.href = '/api/shorfah/issues/'+id+'/pdf' + (isPublished ? '' : '?preview=1');
+    pdfBtn.innerHTML = (isPublished ? '<svg class="i-file-pdf"></svg>عرض PDF النهائي' : '<svg class="i-file-pdf"></svg>معاينة PDF');
+    // Publish button — admin only
+    var pubBtn = document.getElementById('shorfah-publish-btn');
+    pubBtn.style.display = (shorfahIsAdmin() && !isPublished) ? '' : 'none';
+    shorfahRenderBoard();
+  } catch(e) {
+    board.innerHTML = '<div style="color:#b91c1c;padding:24px;">خطأ: '+e.message+'</div>';
+  }
+}
+
+function shorfahRenderBoard() {
+  var board = document.getElementById('shorfah-sections-board');
+  var sections = SHORFAH_STATE.sections;
+  if (!sections.length) { board.innerHTML = '<div style="color:#666;padding:24px;text-align:center;">لا توجد أقسام في هذا العدد</div>'; return; }
+  board.innerHTML = sections.map(function(s) {
+    var meta = SHORFAH_SECTION_LABELS[s.sectionType] || SHORFAH_SECTION_LABELS.custom;
+    var status = SHORFAH_STATUS_LABELS[s.workflowStatus] || SHORFAH_STATUS_LABELS.pending_contribution;
+    var canEdit = shorfahIsAdmin() || ['pending_contribution','rejected'].indexOf(s.workflowStatus) >= 0;
+    var canReview = shorfahIsAdmin();
+    var canApprove = shorfahIsAdmin();
+    var canToggle = shorfahIsAdmin() || s.workflowStatus === 'approved';
+    var includeChecked = s.includeInPdf !== false;
+    var hasContent = !!(s.contentMd && s.contentMd.trim().length > 0);
+    var contentPreview = hasContent ? (s.contentMd.substring(0, 160).replace(/[*#]/g,'') + (s.contentMd.length > 160 ? '...' : '')) : '<em style="color:#9ca3af;">لا يوجد محتوى بعد</em>';
+    return '<div style="border:1px solid #e5e7eb;border-radius:12px;padding:16px;background:#fff;display:flex;gap:14px;align-items:flex-start;">'+
+      '<div style="flex-shrink:0;width:56px;height:56px;border-radius:12px;background:'+meta.color+';color:#fff;display:flex;align-items:center;justify-content:center;font-size:28px;">'+meta.icon+'</div>'+
+      '<div style="flex:1;min-width:0;">'+
+        '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">'+
+          '<div style="font-size:17px;font-weight:900;color:var(--text);">'+s.titleAr+'</div>'+
+          '<span style="font-size:11px;padding:3px 8px;border-radius:10px;background:#e0f2fe;color:#0369a1;font-weight:700;">'+meta.ar+'</span>'+
+          '<span style="font-size:11px;padding:3px 8px;border-radius:10px;background:'+status.bg+';color:'+status.color+';font-weight:700;">'+status.ar+'</span>'+
+        '</div>'+
+        (s.descriptionAr ? '<div style="font-size:12px;color:var(--text-3);margin-bottom:8px;">'+s.descriptionAr+'</div>' : '')+
+        '<div style="font-size:13px;color:var(--text-2);line-height:1.7;padding:10px;background:#f9fafb;border-radius:8px;border-right:3px solid '+meta.color+';">'+contentPreview+'</div>'+
+        '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px;">'+
+          '<label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text-2);cursor:'+(canToggle?'pointer':'not-allowed')+';opacity:'+(canToggle?1:0.6)+';">'+
+            '<input type="checkbox" '+(includeChecked?'checked':'')+' '+(canToggle?'':'disabled')+' onchange="shorfahToggleInclude('+s.id+', this.checked)"> عرض في PDF'+
+          '</label>'+
+          (canEdit ? '<button class="btn btn-ghost btn-sm" onclick="shorfahOpenEditor('+s.id+')">✏️ تحرير</button>' : '')+
+          (canReview && s.workflowStatus === 'submitted' ? '<button class="btn btn-secondary btn-sm" onclick="shorfahReviewSection('+s.id+', \'pass\')">⏩ تمرير للاعتماد</button>' : '')+
+          (canReview && s.workflowStatus === 'submitted' ? '<button class="btn btn-ghost btn-sm" style="color:#b91c1c;" onclick="shorfahReviewSection('+s.id+', \'reject\')">↩️ إعادة</button>' : '')+
+          (canApprove && s.workflowStatus === 'in_review' ? '<button class="btn btn-primary btn-sm" onclick="shorfahApproveSection('+s.id+')">✅ اعتماد</button>' : '')+
+          (canApprove && s.workflowStatus === 'in_review' ? '<button class="btn btn-ghost btn-sm" style="color:#b91c1c;" onclick="shorfahReviewSection('+s.id+', \'reject\')">↩️ رفض</button>' : '')+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+function shorfahBackToList() {
+  document.getElementById('shorfah-issues-list').style.display = '';
+  document.getElementById('shorfah-issue-detail').style.display = 'none';
+}
+
+async function shorfahNewIssue() {
+  if (!shorfahIsAdmin()) { alert('عذراً، تحتاج صلاحيات مسؤول لإنشاء عدد جديد'); return; }
+  var monthInput = prompt('أدخل الشهر (1-12):');
+  if (!monthInput) return;
+  var month = parseInt(monthInput, 10);
+  if (isNaN(month) || month < 1 || month > 12) { alert('شهر غير صحيح'); return; }
+  var yearInput = prompt('أدخل السنة (مثل 2026):', '2026');
+  if (!yearInput) return;
+  var year = parseInt(yearInput, 10);
+  if (isNaN(year)) { alert('سنة غير صحيحة'); return; }
+  try {
+    var res = await apiFetch('/api/shorfah/issues', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ titleAr: 'شُرفة', subtitleAr: 'نشرة داخلية شهرية', month: month, year: year, status: 'collecting' })
+    });
+    var data = await res.json();
+    if (!res.ok) { alert('خطأ: '+(data.error || res.status)); return; }
+    await shorfahLoadIssues();
+  } catch(e) { alert('خطأ: '+e.message); }
+}
+
+function shorfahOpenEditor(sectionId) {
+  var s = SHORFAH_STATE.sections.find(function(x) { return x.id === sectionId; });
+  if (!s) return;
+  var meta = SHORFAH_SECTION_LABELS[s.sectionType] || SHORFAH_SECTION_LABELS.custom;
+  var status = SHORFAH_STATUS_LABELS[s.workflowStatus] || SHORFAH_STATUS_LABELS.pending_contribution;
+  document.getElementById('shorfah-editor-title').textContent = s.titleAr;
+  document.getElementById('shorfah-editor-meta').innerHTML = meta.icon+' '+meta.ar + ' · حالة: <strong>'+status.ar+'</strong>';
+  document.getElementById('shorfah-editor-content').value = s.contentMd || '';
+  document.getElementById('shorfah-editor-include').checked = (s.includeInPdf !== false);
+  // Show AI-generate button for any section (works for all types now)
+  var genBtn = document.getElementById('shorfah-editor-generate');
+  if (genBtn) genBtn.style.display = '';
+  document.getElementById('shorfah-editor-modal').dataset.sectionId = sectionId;
+  document.getElementById('shorfah-editor-modal').style.display = 'flex';
+}
+function shorfahCloseEditor() { document.getElementById('shorfah-editor-modal').style.display = 'none'; }
+
+async function shorfahSaveDraft() {
+  var modal = document.getElementById('shorfah-editor-modal');
+  var sid = parseInt(modal.dataset.sectionId, 10);
+  var contentMd = document.getElementById('shorfah-editor-content').value;
+  var includeInPdf = document.getElementById('shorfah-editor-include').checked;
+  try {
+    var res = await apiFetch('/api/shorfah/sections/'+sid, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contentMd: contentMd, includeInPdf: includeInPdf })
+    });
+    var data = await res.json();
+    if (!res.ok) { alert('خطأ في الحفظ: '+(data.error || res.status)); return false; }
+    shorfahCloseEditor();
+    await shorfahOpenIssue(SHORFAH_STATE.currentIssueId);
+    return true;
+  } catch(e) { alert('خطأ: '+e.message); return false; }
+}
+async function shorfahSubmitContent() {
+  var modal = document.getElementById('shorfah-editor-modal');
+  var sid = parseInt(modal.dataset.sectionId, 10);
+  // Save first
+  var contentMd = document.getElementById('shorfah-editor-content').value;
+  var includeInPdf = document.getElementById('shorfah-editor-include').checked;
+  try {
+    var saveRes = await apiFetch('/api/shorfah/sections/'+sid, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contentMd: contentMd, includeInPdf: includeInPdf })
+    });
+    if (!saveRes.ok) { var sd = await saveRes.json(); alert('خطأ في الحفظ: '+(sd.error || saveRes.status)); return; }
+    var subRes = await apiFetch('/api/shorfah/sections/'+sid+'/submit', { method: 'POST' });
+    var sub = await subRes.json();
+    if (!subRes.ok) { alert('خطأ في التسليم: '+(sub.error || subRes.status)); return; }
+    shorfahCloseEditor();
+    await shorfahOpenIssue(SHORFAH_STATE.currentIssueId);
+  } catch(e) { alert('خطأ: '+e.message); }
+}
+async function shorfahGenerateAI() {
+  var modal = document.getElementById('shorfah-editor-modal');
+  var sid = parseInt(modal.dataset.sectionId, 10);
+  var btn = document.getElementById('shorfah-editor-generate');
+  var orig = btn.innerHTML;
+  btn.innerHTML = 'جاري التوليد...'; btn.disabled = true;
+  try {
+    var res = await apiFetch('/api/shorfah/sections/'+sid+'/generate', { method: 'POST' });
+    var data = await res.json();
+    if (!res.ok) { alert('خطأ في التوليد: '+(data.error || res.status)); return; }
+    if (data.section && data.section.contentMd) {
+      document.getElementById('shorfah-editor-content').value = data.section.contentMd;
+      alert('تم توليد المحتوى وحفظه كمسودة مسلَّمة.');
+    }
+    shorfahCloseEditor();
+    await shorfahOpenIssue(SHORFAH_STATE.currentIssueId);
+  } catch(e) { alert('خطأ: '+e.message); }
+  finally { btn.innerHTML = orig; btn.disabled = false; }
+}
+async function shorfahReviewSection(sectionId, decision) {
+  var notes = decision === 'reject' ? (prompt('سبب الرفض/الإعادة (اختياري):') || '') : '';
+  try {
+    var res = await apiFetch('/api/shorfah/sections/'+sectionId+'/review', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ decision: decision, notes: notes })
+    });
+    var data = await res.json();
+    if (!res.ok) { alert('خطأ: '+(data.error || res.status)); return; }
+    await shorfahOpenIssue(SHORFAH_STATE.currentIssueId);
+  } catch(e) { alert('خطأ: '+e.message); }
+}
+async function shorfahApproveSection(sectionId) {
+  if (!confirm('اعتماد هذا القسم؟ سيظهر في الـ PDF النهائي.')) return;
+  try {
+    var res = await apiFetch('/api/shorfah/sections/'+sectionId+'/approve', { method: 'POST' });
+    var data = await res.json();
+    if (!res.ok) { alert('خطأ: '+(data.error || res.status)); return; }
+    await shorfahOpenIssue(SHORFAH_STATE.currentIssueId);
+  } catch(e) { alert('خطأ: '+e.message); }
+}
+async function shorfahToggleInclude(sectionId, checked) {
+  try {
+    var res = await apiFetch('/api/shorfah/sections/'+sectionId, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ includeInPdf: checked })
+    });
+    var data = await res.json();
+    if (!res.ok) {
+      alert('خطأ في التحديث: '+(data.error || res.status));
+      await shorfahOpenIssue(SHORFAH_STATE.currentIssueId); // refresh
+    } else {
+      // Update local cache silently
+      var s = SHORFAH_STATE.sections.find(function(x) { return x.id === sectionId; });
+      if (s) s.includeInPdf = checked;
+    }
+  } catch(e) { alert('خطأ: '+e.message); }
+}
+async function shorfahPublishIssue() {
+  if (!shorfahIsAdmin()) { alert('عذراً، تحتاج صلاحيات مسؤول للنشر'); return; }
+  if (!confirm('نشر هذا العدد؟ سيصبح متاحاً للجميع كنسخة نهائية.')) return;
+  try {
+    var res = await apiFetch('/api/shorfah/issues/'+SHORFAH_STATE.currentIssueId+'/publish', { method: 'POST' });
+    var data = await res.json();
+    if (!res.ok) { alert('خطأ في النشر: '+(data.error || res.status)); return; }
+    alert('تم نشر العدد بنجاح.');
+    await shorfahOpenIssue(SHORFAH_STATE.currentIssueId);
+  } catch(e) { alert('خطأ: '+e.message); }
+}
 
 // ═══ BOOT ═══
 document.addEventListener('DOMContentLoaded', () => {
