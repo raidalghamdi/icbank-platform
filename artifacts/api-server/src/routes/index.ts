@@ -15,6 +15,7 @@ import weekendDraftsRouter from "./weekend-drafts";
 import shorfahRouter from "./shorfah";
 import shorfahCronRouter from "./shorfah-cron";
 import gacRouter from "./gac";
+import mediaMonitoringRouter from "./media-monitoring";
 import { authenticate, requireAuth, requirePageAccess } from "../middleware/auth";
 
 const router: IRouter = Router();
@@ -49,6 +50,9 @@ router.use(authenticate);
 // requireAuth so the public GETs (publications, social-feed, news) work
 // without a logged-in session.
 router.use(gacRouter);
+
+// Media monitoring + Prompt frameworks (mounted with public read, auth for writes via requireAdmin)
+router.use(mediaMonitoringRouter);
 
 router.use(requireAuth);
 

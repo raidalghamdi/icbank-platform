@@ -400,8 +400,8 @@ router.post("/designs/generate-backgrounds", async (req: Request, res: Response)
     .filter(Boolean)
     .join(" ");
 
-  // TESTING MODE: 1 image to save quota. Change GEN_COUNT back to 4 for production.
-  const GEN_COUNT = 1; // ← change to 4 when done testing
+  // PRODUCTION: generate 4 variants per request.
+  const GEN_COUNT = 4;
   req.log.info({ fullPrompt, GEN_COUNT }, "Calling Nano Banana (gemini-2.5-flash-image)");
 
   const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${googleKey}`;

@@ -2697,6 +2697,16 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
           <span class="ico"><svg><use href="#i-book"/></svg></span>
           <span>مكتبة الهيئة</span>
         </a>
+        <a class="nav-item" data-page="media_monitoring" onclick="showSection('media_monitoring')">
+          <span class="ico"><svg><use href="#i-news"/></svg></span>
+          <span>الرصد الإعلامي</span>
+          <span class="nav-item-count" id="mm-nav-count">—</span>
+        </a>
+        <a class="nav-item" data-page="prompts_lib" onclick="showSection('prompts_lib')">
+          <span class="ico"><svg><use href="#i-bot"/></svg></span>
+          <span>مكتبة الأوامر</span>
+          <span class="nav-item-count" id="pl-nav-count">—</span>
+        </a>
         <a class="nav-item" id="nav-admin-panel" data-page="admin_panel" onclick="showSection('admin_panel')" style="display:none;">
           <span class="ico"><svg><use href="#i-shield"/></svg></span>
           <span>لوحة التحكم</span>
@@ -4639,6 +4649,212 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
     </div>
   </div><!-- /section-shorfah -->
 
+  <!-- ══ Media Monitoring — تقارير الرصد الإعلامي ══ -->
+  <div class="page-section" id="section-media_monitoring">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title">الرصد الإعلامي</h1>
+        <p class="page-sub">تقارير رصد آلية بـ AI — تلخيص، تحليل نبرة، وأرشفة للرجوع.</p>
+      </div>
+      <button class="btn btn-primary" onclick="MM.openGenerateModal()">
+        <span class="ico"><svg><use href="#i-plus"/></svg></span>
+        توليد تقرير جديد
+      </button>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:14px;margin-bottom:20px;" id="mm-stats-cards"></div>
+
+    <div id="mm-loading" style="text-align:center;padding:30px;color:var(--text-3);font-size:13px;">جاري التحميل…</div>
+    <div id="mm-empty" style="display:none;text-align:center;padding:60px 20px;color:var(--text-3);">
+      <div style="font-size:48px;margin-bottom:12px;">📊</div>
+      <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:6px;">لا توجد تقارير بعد</div>
+      <div style="font-size:13px;">اضغط "توليد تقرير جديد" لإنشاء أول تقرير بـ AI.</div>
+    </div>
+    <div id="mm-list" style="display:none;"></div>
+
+    <!-- Generate Modal -->
+    <div id="mm-gen-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;align-items:center;justify-content:center;padding:20px;">
+      <div style="background:white;border-radius:14px;max-width:560px;width:100%;padding:24px;max-height:90vh;overflow-y:auto;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+          <h3 style="margin:0;font-size:18px;font-weight:700;">توليد تقرير رصد إعلامي</h3>
+          <button class="btn btn-ghost btn-sm" onclick="MM.closeGenerateModal()">✕</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px;">
+          <div>
+            <label style="font-size:12px;font-weight:600;color:var(--text-2);display:block;margin-bottom:4px;">جمهور التقرير (التخصيص حسب المستوى)</label>
+            <select id="mm-gen-audience" class="adm-input" style="width:100%;">
+              <option value="executive">🎯 تنفيذي — للقيادة العليا (ملخص موجز + توصية واحدة)</option>
+              <option value="manager" selected>📊 إداري — للإدارة الوسطى (متوازن)</option>
+              <option value="analyst">🔍 تحليلي — للمحللين (تفصيلي + تحليل عميق)</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:600;color:var(--text-2);display:block;margin-bottom:4px;">نوع التقرير</label>
+            <select id="mm-gen-type" class="adm-input" style="width:100%;" onchange="MM.onTypeChange()">
+              <option value="weekly" selected>أسبوعي (آخر 7 أيام)</option>
+              <option value="monthly">شهري (آخر 30 يوم)</option>
+              <option value="custom">فترة مخصصة</option>
+            </select>
+          </div>
+          <div id="mm-gen-dates" style="display:none;grid-template-columns:1fr 1fr;gap:10px;">
+            <div>
+              <label style="font-size:12px;font-weight:600;color:var(--text-2);display:block;margin-bottom:4px;">من</label>
+              <input type="date" id="mm-gen-from" class="adm-input" style="width:100%;">
+            </div>
+            <div>
+              <label style="font-size:12px;font-weight:600;color:var(--text-2);display:block;margin-bottom:4px;">إلى</label>
+              <input type="date" id="mm-gen-to" class="adm-input" style="width:100%;">
+            </div>
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:600;color:var(--text-2);display:block;margin-bottom:6px;">المصادر</label>
+            <div style="display:flex;gap:14px;flex-wrap:wrap;">
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" id="mm-src-linkedin" checked> <span>لينكدإن</span></label>
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" id="mm-src-news" checked> <span>أخبار/قرارات</span></label>
+              <label style="display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" id="mm-src-twitter"> <span>تويتر</span></label>
+            </div>
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:600;color:var(--text-2);display:block;margin-bottom:4px;">عنوان مخصص (اختياري)</label>
+            <input type="text" id="mm-gen-title" class="adm-input" placeholder="سيولّد تلقائياً إن تُرك فارغاً" style="width:100%;">
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:18px;justify-content:flex-end;">
+          <button class="btn btn-ghost" onclick="MM.closeGenerateModal()">إلغاء</button>
+          <button class="btn btn-primary" id="mm-gen-btn" onclick="MM.runGenerate()">
+            <span class="ico"><svg><use href="#i-bot"/></svg></span>
+            <span id="mm-gen-btn-label">توليد بـ AI</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- View Modal -->
+    <div id="mm-view-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;">
+      <div style="background:white;border-radius:14px;max-width:840px;width:100%;padding:28px;margin-top:20px;max-height:92vh;overflow-y:auto;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:18px;">
+          <div style="flex:1;">
+            <h3 id="mm-view-title" style="margin:0 0 6px 0;font-size:20px;font-weight:700;color:#0e3b4a;"></h3>
+            <div id="mm-view-meta" style="font-size:12px;color:var(--text-3);"></div>
+          </div>
+          <div style="display:flex;gap:6px;">
+            <button class="btn btn-ghost btn-sm" onclick="MM.exportReport()" title="تصدير"><span class="ico"><svg><use href="#i-download"/></svg></span></button>
+            <button class="btn btn-ghost btn-sm" onclick="MM.deleteReport()" title="حذف">✕</button>
+            <button class="btn btn-ghost btn-sm" onclick="MM.closeViewModal()">إغلاق</button>
+          </div>
+        </div>
+        <div id="mm-view-summary" style="background:#f0f7f8;border-right:3px solid #1a6e7a;padding:14px 16px;border-radius:8px;margin-bottom:18px;font-size:14px;line-height:1.7;"></div>
+        <div id="mm-view-content" class="mm-md-body" style="font-size:14px;line-height:1.85;color:var(--text);"></div>
+      </div>
+    </div>
+  </div><!-- /section-media_monitoring -->
+
+  <!-- ══ Prompt Frameworks Library ══ -->
+  <div class="page-section" id="section-prompts_lib">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title">مكتبة الأوامر (Prompt Frameworks)</h1>
+        <p class="page-sub">أوامر مهيكلة معتمدة لدعم إنشاء المحتوى، تحليل النصوص، وإعادة الصياغة.</p>
+      </div>
+      <button class="btn btn-primary" onclick="PL.openCreateModal()">
+        <span class="ico"><svg><use href="#i-plus"/></svg></span>
+        إضافة أمر جديد
+      </button>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;" id="pl-cat-filters">
+      <button class="btn btn-ghost btn-sm pl-cat-btn active" data-cat="" onclick="PL.filterCat('')">الكل</button>
+      <button class="btn btn-ghost btn-sm pl-cat-btn" data-cat="media-report" onclick="PL.filterCat('media-report')">📊 تقارير رصد</button>
+      <button class="btn btn-ghost btn-sm pl-cat-btn" data-cat="content-creation" onclick="PL.filterCat('content-creation')">✏️ إنشاء محتوى</button>
+      <button class="btn btn-ghost btn-sm pl-cat-btn" data-cat="analysis" onclick="PL.filterCat('analysis')">🔍 تحليل</button>
+      <button class="btn btn-ghost btn-sm pl-cat-btn" data-cat="summarization" onclick="PL.filterCat('summarization')">📌 تلخيص</button>
+      <button class="btn btn-ghost btn-sm pl-cat-btn" data-cat="rewriting" onclick="PL.filterCat('rewriting')">✍️ إعادة صياغة</button>
+      <button class="btn btn-ghost btn-sm pl-cat-btn" data-cat="insights" onclick="PL.filterCat('insights')">💡 رؤى</button>
+    </div>
+
+    <div id="pl-loading" style="text-align:center;padding:30px;color:var(--text-3);font-size:13px;">جاري التحميل…</div>
+    <div id="pl-grid" style="display:none;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;"></div>
+
+    <!-- Run Modal -->
+    <div id="pl-run-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;">
+      <div style="background:white;border-radius:14px;max-width:720px;width:100%;padding:24px;margin-top:20px;max-height:92vh;overflow-y:auto;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+          <h3 id="pl-run-title" style="margin:0;font-size:18px;font-weight:700;color:#0e3b4a;"></h3>
+          <button class="btn btn-ghost btn-sm" onclick="PL.closeRunModal()">✕</button>
+        </div>
+        <div id="pl-run-desc" style="font-size:13px;color:var(--text-3);margin-bottom:14px;line-height:1.6;"></div>
+        <div id="pl-run-vars" style="display:flex;flex-direction:column;gap:12px;margin-bottom:18px;"></div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;">
+          <button class="btn btn-ghost" onclick="PL.closeRunModal()">إلغاء</button>
+          <button class="btn btn-primary" id="pl-run-btn" onclick="PL.runPrompt()">
+            <span class="ico"><svg><use href="#i-bot"/></svg></span>
+            <span id="pl-run-btn-label">تشغيل بـ AI</span>
+          </button>
+        </div>
+        <div id="pl-run-output-wrap" style="display:none;margin-top:18px;">
+          <div style="font-size:12px;font-weight:600;color:var(--text-2);margin-bottom:6px;">المخرج</div>
+          <div id="pl-run-output" class="mm-md-body" style="background:#f0f7f8;border-radius:8px;padding:14px 16px;font-size:14px;line-height:1.85;white-space:pre-wrap;"></div>
+          <div style="display:flex;gap:6px;margin-top:8px;">
+            <button class="btn btn-ghost btn-sm" onclick="PL.copyOutput()">📋 نسخ</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Create/Edit Modal -->
+    <div id="pl-create-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;">
+      <div style="background:white;border-radius:14px;max-width:680px;width:100%;padding:24px;margin-top:20px;max-height:92vh;overflow-y:auto;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+          <h3 id="pl-create-title" style="margin:0;font-size:18px;font-weight:700;">إضافة أمر جديد</h3>
+          <button class="btn btn-ghost btn-sm" onclick="PL.closeCreateModal()">✕</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div>
+            <label style="font-size:12px;font-weight:600;color:var(--text-2);display:block;margin-bottom:4px;">الاسم (عربي) *</label>
+            <input type="text" id="pl-c-name" class="adm-input" style="width:100%;">
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div>
+              <label style="font-size:12px;font-weight:600;color:var(--text-2);display:block;margin-bottom:4px;">الفئة</label>
+              <select id="pl-c-cat" class="adm-input" style="width:100%;">
+                <option value="content-creation">✏️ إنشاء محتوى</option>
+                <option value="media-report">📊 تقارير رصد</option>
+                <option value="analysis">🔍 تحليل</option>
+                <option value="summarization">📌 تلخيص</option>
+                <option value="rewriting">✍️ إعادة صياغة</option>
+                <option value="insights">💡 رؤى</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:12px;font-weight:600;color:var(--text-2);display:block;margin-bottom:4px;">النوع</label>
+              <select id="pl-c-kind" class="adm-input" style="width:100%;">
+                <option value="framework">🏗️ Framework</option>
+                <option value="template">📄 Template</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:600;color:var(--text-2);display:block;margin-bottom:4px;">الوصف</label>
+            <input type="text" id="pl-c-desc" class="adm-input" style="width:100%;">
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:600;color:var(--text-2);display:block;margin-bottom:4px;">نص الأمر (استخدم <code>{{key}}</code> للمتغيرات) *</label>
+            <textarea id="pl-c-prompt" class="adm-input" rows="8" style="width:100%;font-family:inherit;direction:rtl;"></textarea>
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:600;color:var(--text-2);display:block;margin-bottom:4px;">المتغيرات (JSON — مثال: <code>[{"key":"topic","label":"الموضوع","required":true}]</code>)</label>
+            <textarea id="pl-c-vars" class="adm-input" rows="3" style="width:100%;font-family:monospace;font-size:12px;" placeholder='[{"key":"topic","label":"الموضوع","required":true}]'></textarea>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:18px;justify-content:flex-end;">
+          <button class="btn btn-ghost" onclick="PL.closeCreateModal()">إلغاء</button>
+          <button class="btn btn-primary" onclick="PL.savePrompt()">حفظ</button>
+        </div>
+        <input type="hidden" id="pl-c-edit-id">
+      </div>
+    </div>
+  </div><!-- /section-prompts_lib -->
+
   <!-- ══ 403 Forbidden Section ══ -->
   <div class="page-section" id="section-403" style="display:none;">
     <div style="text-align:center;padding:80px 20px;">
@@ -4879,6 +5095,8 @@ function authCanView(pageName) {
   if (pageName === 'smart_assistant' || pageName === 'settings') return !!AUTH_USER;
   if (pageName === 'gac_library') return !!AUTH_USER;
   if (pageName === 'shorfah') return !!AUTH_USER;
+  if (pageName === 'media_monitoring') return !!AUTH_USER;
+  if (pageName === 'prompts_lib') return !!AUTH_USER;
   var permKey = PAGE_PERM_MAP[pageName] || pageName;
   var pagePerms = (AUTH_USER.permissions || {})[permKey] || [];
   return pagePerms.includes('view');
@@ -6091,6 +6309,8 @@ const PAGE_LABELS = {
   designs:'إنشاء التصاميم',
   gac_library:'مكتبة الهيئة',
   shorfah:'شُرفة — مجلة شهرية',
+  media_monitoring:'الرصد الإعلامي',
+  prompts_lib:'مكتبة الأوامر',
 };
 
 function showSection(name) {
@@ -6124,6 +6344,8 @@ function showSection(name) {
   if (name === 'places') PLCS.init();
   if (name === 'weekend') wk2AdminInit();
   if (name === 'shorfah') shorfahInit();
+  if (name === 'media_monitoring') MM.load();
+  if (name === 'prompts_lib') PL.load();
 }
 
 function toggleMobileSidebar() {
@@ -11372,6 +11594,417 @@ async function shorfahSendInitialMessages() {
     shorfahAdminRenderStatus();
   } catch(e) { alert('خطأ: '+e.message); }
 }
+
+// ════════════════════════════════════════
+// MEDIA MONITORING + PROMPTS LIBRARY
+// ════════════════════════════════════════
+
+// Lightweight markdown renderer for AI outputs
+function mmRenderMarkdown(md) {
+  if (!md) return '';
+  var html = escHtml(md);
+  // Headings
+  html = html.replace(/^###### (.+)$/gm, '<h6>$1</h6>');
+  html = html.replace(/^##### (.+)$/gm, '<h5>$1</h5>');
+  html = html.replace(/^#### (.+)$/gm, '<h4>$1</h4>');
+  html = html.replace(/^### (.+)$/gm, '<h3 style="color:#0e3b4a;margin:14px 0 8px;font-size:16px;font-weight:700;">$1</h3>');
+  html = html.replace(/^## (.+)$/gm, '<h2 style="color:#0e3b4a;margin:16px 0 10px;font-size:18px;font-weight:700;border-bottom:2px solid #cce4e6;padding-bottom:4px;">$1</h2>');
+  html = html.replace(/^# (.+)$/gm, '<h1 style="color:#0e3b4a;margin:18px 0 12px;font-size:20px;font-weight:800;">$1</h1>');
+  // Bold / italic
+  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  html = html.replace(/(?<!\*)\*([^*\n]+?)\*(?!\*)/g, '<em>$1</em>');
+  // Inline code
+  html = html.replace(/`([^`\n]+)`/g, '<code style="background:#f0f7f8;padding:1px 5px;border-radius:3px;font-size:.92em;">$1</code>');
+  // Lists
+  html = html.replace(/^[\-\*\u2022] (.+)$/gm, '<li>$1</li>');
+  html = html.replace(/(<li>[\s\S]+?<\/li>)(?!\s*<li>)/g, '<ul style="margin:6px 0 10px;padding-right:22px;">$1</ul>');
+  html = html.replace(/^(\d+)\. (.+)$/gm, '<li>$2</li>');
+  // Paragraphs (double newline)
+  html = html.split(/\n{2,}/).map(function(p){
+    if (/^\s*<(h[1-6]|ul|ol|li|table|blockquote|div)/.test(p)) return p;
+    return '<p style="margin:6px 0;">' + p.replace(/\n/g, '<br>') + '</p>';
+  }).join('\n');
+  // Tables (very basic)
+  return html;
+}
+
+// ══ Media Monitoring module ══
+window.MM = (function(){
+  var state = { reports: [], current: null, loaded: false };
+
+  async function load() {
+    var loadingEl = document.getElementById('mm-loading');
+    var emptyEl = document.getElementById('mm-empty');
+    var listEl = document.getElementById('mm-list');
+    if (!loadingEl) return;
+    loadingEl.style.display = 'block';
+    if (emptyEl) emptyEl.style.display = 'none';
+    if (listEl) listEl.style.display = 'none';
+    try {
+      var res = await apiFetch('/api/media-reports');
+      var data = await res.json();
+      state.reports = data.reports || data.items || data || [];
+      if (!Array.isArray(state.reports)) state.reports = [];
+      state.loaded = true;
+      renderStats();
+      renderList();
+    } catch(e) {
+      loadingEl.innerHTML = '<div style="color:var(--danger)">تعذّر تحميل التقارير: ' + escHtml(e.message||'') + '</div>';
+    }
+  }
+
+  function renderStats() {
+    var el = document.getElementById('mm-stats-cards');
+    if (!el) return;
+    var total = state.reports.length;
+    var byAud = {};
+    state.reports.forEach(function(r){ var a = r.audience || 'manager'; byAud[a] = (byAud[a]||0)+1; });
+    var latest = state.reports[0];
+    var latestDate = latest && latest.createdAt ? new Date(latest.createdAt).toLocaleDateString('ar-SA-u-nu-latn') : '—';
+    function card(label, value, color){
+      return '<div style="background:white;border:1px solid var(--border);border-radius:12px;padding:16px;">'+
+        '<div style="font-size:11px;color:var(--text-3);margin-bottom:6px;">'+escHtml(label)+'</div>'+
+        '<div style="font-size:22px;font-weight:800;color:'+(color||'#0e3b4a')+';">'+escHtml(String(value))+'</div></div>';
+    }
+    el.innerHTML = card('إجمالي التقارير', total, '#1a6e7a')
+      + card('تنفيذي', byAud.executive||0, '#0e3b4a')
+      + card('إداري', byAud.manager||0, '#3ec0d0')
+      + card('تحليلي', byAud.analyst||0, '#1a6e7a')
+      + card('آخر تقرير', latestDate);
+  }
+
+  function audienceLabel(a){ return ({executive:'🎯 تنفيذي',manager:'📊 إداري',analyst:'🔍 تحليلي'})[a] || a; }
+  function typeLabel(t){ return ({weekly:'أسبوعي',monthly:'شهري',custom:'مخصص'})[t] || t; }
+
+  function renderList() {
+    var loadingEl = document.getElementById('mm-loading');
+    var emptyEl = document.getElementById('mm-empty');
+    var listEl = document.getElementById('mm-list');
+    loadingEl.style.display = 'none';
+    if (state.reports.length === 0) { emptyEl.style.display = 'block'; return; }
+    listEl.style.display = 'block';
+    listEl.innerHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;">' +
+      state.reports.map(function(r){
+        var date = r.createdAt ? new Date(r.createdAt).toLocaleDateString('ar-SA-u-nu-latn') : '';
+        return '<div onclick="MM.viewReport(\''+r.id+'\')" style="background:white;border:1px solid var(--border);border-radius:12px;padding:16px;cursor:pointer;transition:.18s;" onmouseenter="this.style.borderColor=\'#1a6e7a\';this.style.boxShadow=\'0 4px 16px rgba(26,110,122,.12)\'" onmouseleave="this.style.borderColor=\'var(--border)\';this.style.boxShadow=\'none\'">' +
+          '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">' +
+            '<span style="font-size:10px;background:#cce4e6;color:#0e3b4a;padding:2px 8px;border-radius:10px;font-weight:600;">'+audienceLabel(r.audience)+'</span>' +
+            '<span style="font-size:10px;background:#f0f7f8;color:var(--text-2);padding:2px 8px;border-radius:10px;">'+typeLabel(r.reportType||r.type)+'</span>' +
+          '</div>' +
+          '<div style="font-size:15px;font-weight:700;color:#0e3b4a;margin-bottom:6px;line-height:1.4;">'+escHtml(r.title||'تقرير رصد إعلامي')+'</div>' +
+          '<div style="font-size:12px;color:var(--text-3);line-height:1.6;margin-bottom:10px;max-height:60px;overflow:hidden;">'+escHtml((r.summary||'').slice(0,140))+'</div>' +
+          '<div style="font-size:11px;color:var(--text-4);display:flex;justify-content:space-between;">' +
+            '<span>'+date+'</span>' +
+            '<span>'+(r.itemsCount||0)+' عنصر</span>' +
+          '</div>' +
+        '</div>';
+      }).join('') + '</div>';
+  }
+
+  function openGenerateModal() {
+    document.getElementById('mm-gen-modal').style.display = 'flex';
+    var today = new Date(); var weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate()-7);
+    document.getElementById('mm-gen-from').value = weekAgo.toISOString().slice(0,10);
+    document.getElementById('mm-gen-to').value = today.toISOString().slice(0,10);
+  }
+  function closeGenerateModal(){ document.getElementById('mm-gen-modal').style.display='none'; }
+  function onTypeChange() {
+    var t = document.getElementById('mm-gen-type').value;
+    document.getElementById('mm-gen-dates').style.display = (t==='custom') ? 'grid' : 'none';
+  }
+
+  async function runGenerate() {
+    var btn = document.getElementById('mm-gen-btn');
+    var lbl = document.getElementById('mm-gen-btn-label');
+    var orig = lbl.textContent;
+    btn.disabled = true; lbl.textContent = 'جارٍ التوليد… (قد يستغرق 30 ثانية)';
+    try {
+      var sources = [];
+      if (document.getElementById('mm-src-linkedin').checked) sources.push('linkedin');
+      if (document.getElementById('mm-src-news').checked) sources.push('news');
+      if (document.getElementById('mm-src-twitter').checked) sources.push('twitter');
+      var payload = {
+        audience: document.getElementById('mm-gen-audience').value,
+        reportType: document.getElementById('mm-gen-type').value,
+        sources: sources,
+        title: document.getElementById('mm-gen-title').value || null
+      };
+      if (payload.reportType === 'custom') {
+        payload.dateFrom = document.getElementById('mm-gen-from').value;
+        payload.dateTo = document.getElementById('mm-gen-to').value;
+      }
+      var res = await apiFetch('/api/media-reports/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) {
+        var err = await res.text();
+        throw new Error(err || 'فشل التوليد');
+      }
+      var data = await res.json();
+      closeGenerateModal();
+      await load();
+      if (data && (data.id || (data.report && data.report.id))) {
+        viewReport((data.id) || data.report.id);
+      }
+    } catch(e) {
+      alert('تعذّر التوليد: ' + (e.message || e));
+    } finally {
+      btn.disabled = false; lbl.textContent = orig;
+    }
+  }
+
+  async function viewReport(id) {
+    try {
+      var res = await apiFetch('/api/media-reports/' + id);
+      var data = await res.json();
+      var r = data.report || data;
+      state.current = r;
+      document.getElementById('mm-view-title').textContent = r.title || 'تقرير رصد إعلامي';
+      var date = r.createdAt ? new Date(r.createdAt).toLocaleString('ar-SA-u-nu-latn') : '';
+      document.getElementById('mm-view-meta').innerHTML = audienceLabel(r.audience) + ' · ' + typeLabel(r.reportType||r.type) + ' · ' + date + ' · ' + (r.itemsCount||0) + ' عنصر';
+      document.getElementById('mm-view-summary').innerHTML = escHtml(r.summary || '');
+      document.getElementById('mm-view-content').innerHTML = mmRenderMarkdown(r.content || '');
+      document.getElementById('mm-view-modal').style.display = 'flex';
+    } catch(e) { alert('تعذّر تحميل التقرير'); }
+  }
+  function closeViewModal(){ document.getElementById('mm-view-modal').style.display='none'; state.current=null; }
+
+  async function deleteReport() {
+    if (!state.current) return;
+    if (!confirm('حذف التقرير نهائياً؟')) return;
+    try {
+      var res = await apiFetch('/api/media-reports/' + state.current.id, { method: 'DELETE' });
+      if (!res.ok) throw new Error('فشل الحذف');
+      closeViewModal();
+      await load();
+    } catch(e) { alert(e.message || 'خطأ'); }
+  }
+
+  function exportReport() {
+    if (!state.current) return;
+    var r = state.current;
+    var md = '# ' + (r.title || 'تقرير رصد إعلامي') + '\n\n' +
+      '> ' + (r.summary || '') + '\n\n' + (r.content || '');
+    var blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = (r.title || 'media-report').replace(/[\\\/:*?"<>|]/g, '_') + '.md';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+  }
+
+  return { load: load, openGenerateModal: openGenerateModal, closeGenerateModal: closeGenerateModal,
+    onTypeChange: onTypeChange, runGenerate: runGenerate, viewReport: viewReport,
+    closeViewModal: closeViewModal, deleteReport: deleteReport, exportReport: exportReport };
+})();
+
+// ══ Prompts Library module ══
+window.PL = (function(){
+  var state = { all: [], filtered: [], cat: '', current: null };
+
+  function catLabel(c){
+    return ({'media-report':'📊 تقارير رصد','content-creation':'✏️ إنشاء محتوى','analysis':'🔍 تحليل','summarization':'📌 تلخيص','rewriting':'✍️ إعادة صياغة','insights':'💡 رؤى'})[c] || c;
+  }
+  function kindLabel(k){ return k==='template' ? '📄 Template' : '🏗️ Framework'; }
+
+  async function load() {
+    var loadingEl = document.getElementById('pl-loading');
+    var grid = document.getElementById('pl-grid');
+    loadingEl.style.display = 'block';
+    grid.style.display = 'none';
+    try {
+      var res = await apiFetch('/api/prompts');
+      var data = await res.json();
+      state.all = data.prompts || data.items || data || [];
+      if (!Array.isArray(state.all)) state.all = [];
+      filterCat(state.cat);
+    } catch(e) {
+      loadingEl.innerHTML = '<div style="color:var(--danger)">تعذّر تحميل الأوامر: ' + escHtml(e.message||'') + '</div>';
+    }
+  }
+
+  function filterCat(c) {
+    state.cat = c;
+    state.filtered = c ? state.all.filter(function(p){ return p.category === c; }) : state.all.slice();
+    document.querySelectorAll('.pl-cat-btn').forEach(function(b){
+      b.classList.toggle('active', (b.getAttribute('data-cat')||'') === c);
+    });
+    render();
+  }
+
+  function render() {
+    var loadingEl = document.getElementById('pl-loading');
+    var grid = document.getElementById('pl-grid');
+    loadingEl.style.display = 'none';
+    grid.style.display = 'grid';
+    if (state.filtered.length === 0) {
+      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:50px;color:var(--text-3);"><div style="font-size:42px;margin-bottom:8px;">📝</div><div>لا توجد أوامر في هذه الفئة</div></div>';
+      return;
+    }
+    var isAdmin = AUTH_USER && (AUTH_USER.role === 'admin' || AUTH_USER.role === 'super_admin' || AUTH_USER.isSuperAdmin);
+    grid.innerHTML = state.filtered.map(function(p){
+      return '<div style="background:white;border:1px solid var(--border);border-radius:12px;padding:16px;display:flex;flex-direction:column;">' +
+        '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">' +
+          '<span style="font-size:10px;background:#cce4e6;color:#0e3b4a;padding:2px 8px;border-radius:10px;font-weight:600;">'+escHtml(catLabel(p.category))+'</span>' +
+          '<span style="font-size:10px;background:#f0f7f8;color:var(--text-2);padding:2px 8px;border-radius:10px;">'+escHtml(kindLabel(p.kind))+'</span>' +
+          (p.isDefault ? '<span style="font-size:10px;background:#fff3cd;color:#856404;padding:2px 8px;border-radius:10px;">⭐ افتراضي</span>' : '') +
+        '</div>' +
+        '<div style="font-size:15px;font-weight:700;color:#0e3b4a;margin-bottom:4px;line-height:1.4;">'+escHtml(p.name||'')+'</div>' +
+        '<div style="font-size:12px;color:var(--text-3);margin-bottom:10px;line-height:1.6;flex:1;">'+escHtml(p.description||'')+'</div>' +
+        '<div style="font-size:11px;color:var(--text-4);margin-bottom:10px;">الاستخدام: '+(p.usageCount||0)+' · المتغيرات: '+((p.variables||[]).length)+'</div>' +
+        '<div style="display:flex;gap:6px;">' +
+          '<button class="btn btn-primary btn-sm" style="flex:1" onclick="PL.openRunModal(\''+p.id+'\')"><span class="ico"><svg><use href="#i-bot"/></svg></span> تشغيل</button>' +
+          (isAdmin ? '<button class="btn btn-ghost btn-sm" onclick="PL.editPrompt(\''+p.id+'\')" title="تعديل">✏️</button>' : '') +
+          ((isAdmin && !p.isDefault) ? '<button class="btn btn-ghost btn-sm" onclick="PL.deletePrompt(\''+p.id+'\')" title="حذف">🗑️</button>' : '') +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  function openRunModal(id) {
+    var p = state.all.find(function(x){ return x.id === id; });
+    if (!p) return;
+    state.current = p;
+    document.getElementById('pl-run-title').textContent = p.name || '';
+    document.getElementById('pl-run-desc').textContent = p.description || '';
+    var vars = p.variables || [];
+    var html = '';
+    if (vars.length === 0) {
+      html = '<div style="font-size:13px;color:var(--text-3);background:#f0f7f8;padding:10px;border-radius:8px;">هذا الأمر لا يحتاج متغيرات — اضغط "تشغيل" للمتابعة.</div>';
+    } else {
+      html = vars.map(function(v){
+        var multiline = v.type === 'textarea' || (v.label && v.label.length > 30);
+        return '<div>' +
+          '<label style="font-size:12px;font-weight:600;color:var(--text-2);display:block;margin-bottom:4px;">'+escHtml(v.label||v.key)+(v.required?' *':'')+'</label>' +
+          (multiline ?
+            '<textarea class="adm-input pl-var" data-key="'+escHtml(v.key)+'" rows="4" style="width:100%;direction:rtl;font-family:inherit;" placeholder="'+escHtml(v.placeholder||'')+'"></textarea>' :
+            '<input type="text" class="adm-input pl-var" data-key="'+escHtml(v.key)+'" style="width:100%;" placeholder="'+escHtml(v.placeholder||'')+'">') +
+        '</div>';
+      }).join('');
+    }
+    document.getElementById('pl-run-vars').innerHTML = html;
+    document.getElementById('pl-run-output-wrap').style.display = 'none';
+    document.getElementById('pl-run-output').textContent = '';
+    document.getElementById('pl-run-modal').style.display = 'flex';
+  }
+  function closeRunModal(){ document.getElementById('pl-run-modal').style.display='none'; state.current=null; }
+
+  async function runPrompt() {
+    if (!state.current) return;
+    var vars = {};
+    document.querySelectorAll('#pl-run-vars .pl-var').forEach(function(el){
+      vars[el.getAttribute('data-key')] = el.value || '';
+    });
+    var btn = document.getElementById('pl-run-btn');
+    var lbl = document.getElementById('pl-run-btn-label');
+    var orig = lbl.textContent;
+    btn.disabled = true; lbl.textContent = 'جارٍ التشغيل…';
+    try {
+      var res = await apiFetch('/api/prompts/' + state.current.id + '/run', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ variables: vars })
+      });
+      if (!res.ok) {
+        var t = await res.text();
+        throw new Error(t || 'فشل التشغيل');
+      }
+      var data = await res.json();
+      var out = data.output || data.result || data.text || JSON.stringify(data, null, 2);
+      document.getElementById('pl-run-output').innerHTML = mmRenderMarkdown(out);
+      document.getElementById('pl-run-output-wrap').style.display = 'block';
+      state.current._lastOutput = out;
+    } catch(e) {
+      alert('خطأ: ' + (e.message || e));
+    } finally {
+      btn.disabled = false; lbl.textContent = orig;
+    }
+  }
+
+  function copyOutput() {
+    var txt = (state.current && state.current._lastOutput) || document.getElementById('pl-run-output').innerText;
+    navigator.clipboard.writeText(txt || '').then(function(){
+      var btn = event.target;
+      var orig = btn.textContent; btn.textContent = '✓ تم النسخ';
+      setTimeout(function(){ btn.textContent = orig; }, 1500);
+    });
+  }
+
+  function openCreateModal() {
+    document.getElementById('pl-create-title').textContent = 'إضافة أمر جديد';
+    ['pl-c-name','pl-c-desc','pl-c-prompt','pl-c-vars','pl-c-edit-id'].forEach(function(id){ document.getElementById(id).value = ''; });
+    document.getElementById('pl-c-cat').value = 'content-creation';
+    document.getElementById('pl-c-kind').value = 'framework';
+    document.getElementById('pl-create-modal').style.display = 'flex';
+  }
+  function closeCreateModal(){ document.getElementById('pl-create-modal').style.display='none'; }
+
+  function editPrompt(id) {
+    var p = state.all.find(function(x){ return x.id === id; });
+    if (!p) return;
+    document.getElementById('pl-create-title').textContent = 'تعديل الأمر';
+    document.getElementById('pl-c-edit-id').value = id;
+    document.getElementById('pl-c-name').value = p.name || '';
+    document.getElementById('pl-c-desc').value = p.description || '';
+    document.getElementById('pl-c-cat').value = p.category || 'content-creation';
+    document.getElementById('pl-c-kind').value = p.kind || 'framework';
+    document.getElementById('pl-c-prompt').value = p.promptText || p.template || '';
+    document.getElementById('pl-c-vars').value = JSON.stringify(p.variables || [], null, 2);
+    document.getElementById('pl-create-modal').style.display = 'flex';
+  }
+
+  async function savePrompt() {
+    var id = document.getElementById('pl-c-edit-id').value;
+    var varsTxt = document.getElementById('pl-c-vars').value.trim();
+    var variables = [];
+    if (varsTxt) {
+      try { variables = JSON.parse(varsTxt); }
+      catch(e) { alert('JSON غير صالح للمتغيرات'); return; }
+    }
+    var payload = {
+      name: document.getElementById('pl-c-name').value.trim(),
+      description: document.getElementById('pl-c-desc').value.trim(),
+      category: document.getElementById('pl-c-cat').value,
+      kind: document.getElementById('pl-c-kind').value,
+      promptText: document.getElementById('pl-c-prompt').value,
+      variables: variables
+    };
+    if (!payload.name || !payload.promptText) { alert('الاسم ونص الأمر مطلوبان'); return; }
+    try {
+      var res = await apiFetch('/api/prompts' + (id ? '/'+id : ''), {
+        method: id ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) { var t = await res.text(); throw new Error(t || 'فشل الحفظ'); }
+      closeCreateModal();
+      await load();
+    } catch(e) { alert('خطأ: ' + (e.message || e)); }
+  }
+
+  async function deletePrompt(id) {
+    if (!confirm('حذف الأمر نهائياً؟')) return;
+    try {
+      var res = await apiFetch('/api/prompts/' + id, { method: 'DELETE' });
+      if (!res.ok) throw new Error('فشل الحذف');
+      await load();
+    } catch(e) { alert(e.message || 'خطأ'); }
+  }
+
+  return { load: load, filterCat: filterCat, openRunModal: openRunModal, closeRunModal: closeRunModal,
+    runPrompt: runPrompt, copyOutput: copyOutput, openCreateModal: openCreateModal, closeCreateModal: closeCreateModal,
+    editPrompt: editPrompt, savePrompt: savePrompt, deletePrompt: deletePrompt };
+})();
+
+// Active state styling for PL category filters
+(function(){
+  var st = document.createElement('style');
+  st.textContent = '.pl-cat-btn.active{background:#1a6e7a !important;color:white !important;}.mm-md-body p{margin:6px 0;}.mm-md-body ul{margin:6px 0 10px;padding-right:22px;}.mm-md-body li{margin:3px 0;}';
+  document.head.appendChild(st);
+})();
 
 document.addEventListener('DOMContentLoaded', () => {
   updateHijriPill();
