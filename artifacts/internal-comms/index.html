@@ -2886,7 +2886,7 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
     <div class="dash-kpi-strip">
       <div class="dash-kpi-card">
         <div class="dash-kpi-val" id="dash-kpi-ws">—</div>
-        <div class="dash-kpi-label">محتوى بداية الأسبوع هذا الشهر</div>
+        <div class="dash-kpi-label">إجمالي محتوى بداية الأسبوع</div>
       </div>
       <div class="dash-kpi-card">
         <div class="dash-kpi-val" id="dash-kpi-mm">—</div>
@@ -6604,16 +6604,18 @@ async function dashLoadMediaMonitoring() {
 function dashRenderKPIs(data) {
   var set = function(id, val) { var el = document.getElementById(id); if (el) el.textContent = val; };
   set('dash-kpi-aiy', data.kpi.aiYearActivations ?? '—');
-  set('dash-kpi-ws',  data.kpi.weekStartThisMonth ?? '—');
+  set('dash-kpi-ws',  data.kpi.weekStartTotal ?? data.kpi.weekStartThisMonth ?? '—');
   set('dash-kpi-intl', data.kpi.intlDaysUpcomingCount ?? '—');
 }
 
 function dashRenderServiceCards(data) {
   var wsEl = document.getElementById('dash-svc-weekstart');
   if (wsEl && data.weekStart) {
-    var count = data.weekStart.thisMonthCount || 0;
+    var total = data.weekStart.totalCount || 0;
+    var thisMonth = data.weekStart.thisMonthCount || 0;
     var last  = data.weekStart.lastTitle;
-    wsEl.innerHTML = count + ' رسالة هذا الشهر' + (last ? '<br><span style="font-size:11px;color:var(--text-4)">آخرها: ' + escHtml(last.slice(0,40)) + '</span>' : '');
+    var line1 = total + ' رسالة محفوظة' + (thisMonth ? ' • ' + thisMonth + ' هذا الشهر' : '');
+    wsEl.innerHTML = line1 + (last ? '<br><span style="font-size:11px;color:var(--text-4)">آخرها: ' + escHtml(last.slice(0,40)) + '</span>' : '');
   }
   var aiyEl = document.getElementById('dash-svc-aiyear');
   if (aiyEl && data.aiYear) {

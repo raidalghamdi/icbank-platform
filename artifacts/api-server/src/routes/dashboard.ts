@@ -19,7 +19,7 @@ router.get("/dashboard/summary", async (req: Request, res: Response) => {
     const currentMonth = now.getMonth() + 1;
     const currentYear = now.getFullYear();
 
-    const [aiYearStatsResult, recentActivationsResult, weekStartResult, intlDaysResult] =
+    const [aiYearStatsResult, recentActivationsResult, weekStartResult, weekStartTotalRow, intlDaysResult] =
       await Promise.all([
         db.select({ count: count() }).from(aiYearActivationsTable),
         db
@@ -43,6 +43,7 @@ router.get("/dashboard/summary", async (req: Request, res: Response) => {
           .from(archiveEntriesTable)
           .orderBy(desc(archiveEntriesTable.createdAt))
           .limit(50),
+        db.select({ count: count() }).from(archiveEntriesTable),
         db
           .select({
             id: internationalDaysTable.id,
@@ -115,10 +116,12 @@ router.get("/dashboard/summary", async (req: Request, res: Response) => {
       kpi: {
         aiYearActivations: Number(aiYearStatsResult[0]?.count ?? 0),
         weekStartThisMonth: wsThisMonth.length,
+        weekStartTotal: Number(weekStartTotalRow[0]?.count ?? 0),
         intlDaysUpcomingCount: upcomingDays.length,
       },
       weekStart: {
         thisMonthCount: wsThisMonth.length,
+        totalCount: Number(weekStartTotalRow[0]?.count ?? 0),
         lastTitle: weekStartResult[0]?.title ?? null,
       },
       aiYear: {
