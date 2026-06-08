@@ -6577,6 +6577,28 @@ async function homeDashboardInit() {
     dashRenderIntlDays(data.intlDaysUpcoming || []);
     dashRenderRecentActivations((data.aiYear && data.aiYear.recentActivations) || []);
   } catch(e) { /* silent — page still functional */ }
+  // Load media-monitoring count for KPI + service card
+  dashLoadMediaMonitoring();
+}
+
+async function dashLoadMediaMonitoring() {
+  try {
+    var res = await apiFetch('/api/media-reports?limit=50');
+    if (!res.ok) return;
+    var data = await res.json();
+    var count = data.count || (data.items ? data.items.length : 0);
+    var items = data.items || [];
+    var kpiEl = document.getElementById('dash-kpi-mm');
+    if (kpiEl) kpiEl.textContent = count;
+    var svcEl = document.getElementById('dash-svc-mm');
+    if (svcEl) {
+      var latest = items[0];
+      var latestTitle = latest ? (latest.title || latest.reportNumber || '') : '';
+      var meta = count + ' تقرير محفوظ';
+      if (latestTitle) meta += '<br><span style="font-size:11px;color:var(--text-4)">آخره: ' + escHtml(String(latestTitle).slice(0,40)) + '</span>';
+      svcEl.innerHTML = meta;
+    }
+  } catch(e) { /* silent */ }
 }
 
 function dashRenderKPIs(data) {
