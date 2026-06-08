@@ -658,7 +658,7 @@ router.get("/intl-days/archive", async (req: Request, res: Response) => {
     .select()
     .from(internationalDaysTable)
     .where(conditions.length ? and(...conditions) : undefined)
-    .orderBy(desc(internationalDaysTable.updatedAt));
+    .orderBy(desc(internationalDaysTable.annualDate), desc(internationalDaysTable.updatedAt));
 
   const result = await Promise.all(
     days.map(async (day) => {
