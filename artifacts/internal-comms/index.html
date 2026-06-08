@@ -4683,8 +4683,8 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
       </div>
       <div id="mm-wiz-step"></div>
       <div style="display:flex;justify-content:space-between;margin-top:24px;">
-        <button class="btn btn-ghost" id="mm-wiz-back" onclick="MM.wizPrev()" style="color:#fff;border-color:rgba(255,255,255,.3);">→ السابق</button>
-        <button class="btn" id="mm-wiz-next" onclick="MM.wizNext()" style="background:#fbbf24;color:#0e3b4a;font-weight:700;">التالي ←</button>
+        <button type="button" class="btn btn-ghost" id="mm-wiz-back" onclick="event.preventDefault(); MM.wizPrev(); return false;" style="color:#fff;border-color:rgba(255,255,255,.3);">← السابق</button>
+        <button type="button" class="btn" id="mm-wiz-next" onclick="event.preventDefault(); MM.wizNext(); return false;" style="background:#fbbf24;color:#0e3b4a;font-weight:700;">التالي →</button>
       </div>
     </div>
 
@@ -11793,7 +11793,7 @@ window.MM = (function(){
           '<div style="font-size:12px;line-height:1.9;">'+
             '• النوع: <b>'+typeLabel(a.reportType)+'</b><br>'+
             '• الجمهور: <b>'+audienceLabel(a.audience)+'</b><br>'+
-            '• المصادر: <b>'+(a.sources||[]).join( + '، ')+'</b><br>'+
+            '• المصادر: <b>'+((a.sources||[]).map(function(s){return ({linkedin:'لينكدإن',news:'أخبار',twitter:'إكس',international:'إعلام دولي'})[s]||s;}).join('، ') || 'افتراضي')+'</b><br>'+
             (a.focusTopics ? '• التركيز: <b>'+escHtml(a.focusTopics)+'</b><br>' : '')+
             (a.recipients ? '• المستلمون: <b>'+escHtml(a.recipients)+'</b>' : '')+
           '</div>'+
@@ -11804,8 +11804,14 @@ window.MM = (function(){
     el.innerHTML = html;
     document.getElementById('mm-wiz-current').textContent = step;
     document.getElementById('mm-wiz-progress').style.width = ((step/state.wizMax)*100)+'%';
-    document.getElementById('mm-wiz-back').style.visibility = step === 1 ? 'hidden' : 'visible';
-    document.getElementById('mm-wiz-next').textContent = step === state.wizMax ? 'توليد التقرير ←' : 'التالي ←';
+    var backBtn = document.getElementById('mm-wiz-back');
+    if (backBtn) {
+      backBtn.style.visibility = step === 1 ? 'hidden' : 'visible';
+      backBtn.disabled = (step === 1);
+      backBtn.textContent = '← السابق';
+    }
+    var nextBtn2 = document.getElementById('mm-wiz-next');
+    if (nextBtn2) nextBtn2.textContent = step === state.wizMax ? '✨ توليد التقرير' : 'التالي →';
   }
   function wizCard(val,lbl,desc,key){
     var on = state.wizAnswers[key] === val;
@@ -11822,7 +11828,18 @@ window.MM = (function(){
     if (!cb.checked && i>=0) arr.splice(i,1);
     state.wizAnswers.sources = arr;
   }
-  function wizPrev(){ if(state.wizStep>1){state.wizStep--; renderWizardStep();} }
+  function wizPrev(){
+    // Persist any in-progress field values before going back
+    try {
+      if (state.wizStep === 4) { var ft=document.getElementById('mm-wiz-focus'); if(ft) state.wizAnswers.focusTopics=ft.value; }
+      if (state.wizStep === 5) { var rc=document.getElementById('mm-wiz-recipients'); if(rc) state.wizAnswers.recipients=rc.value; }
+      if (state.wizStep === 1 && state.wizAnswers.reportType==='custom') {
+        var f=document.getElementById('mm-wiz-from'); var t=document.getElementById('mm-wiz-to');
+        if(f) state.wizAnswers.dateFrom=f.value; if(t) state.wizAnswers.dateTo=t.value;
+      }
+    } catch(_){}
+    if (state.wizStep > 1) { state.wizStep--; renderWizardStep(); }
+  }
   async function wizNext(){
     if (state.wizStep === 4) {
       var ft = document.getElementById('mm-wiz-focus');
@@ -11858,7 +11875,26 @@ window.MM = (function(){
       if (state.wizAnswers.dateFrom) payload.dateFrom = state.wizAnswers.dateFrom;
       if (state.wizAnswers.dateTo) payload.dateTo = state.wizAnswers.dateTo;
       var res = await apiFetch('/api/final-media-reports/generate', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
-      if (!res.ok) { var err = await res.text(); throw new Error(err.slice(0,200)); }
+      if (!res.ok) {
+        var errTxt = await res.text();
+        // Parse nested AI provider errors gracefully
+        var friendly = errTxt;
+        try {
+          var ej = JSON.parse(errTxt);
+          if (ej && ej.error) {
+            var inner = ej.error;
+            if (typeof inner === 'string') { try { inner = JSON.parse(inner); } catch(_){} }
+            var msg = (inner && inner.error && inner.error.message) || (inner && inner.message) || ej.error;
+            var code = (inner && inner.error && inner.error.code) || (inner && inner.code);
+            if (code === 429 || /prepayment|quota|depleted|exceeded/i.test(String(msg))) {
+              friendly = '⚠️ نفد رصيد الذكاء الاصطناعي (Gemini API).\n\nيجب على المسؤول تجديد رصيد المفتاح من https://ai.studio/projects ثم المحاولة لاحقاً.';
+            } else {
+              friendly = String(msg).slice(0,300);
+            }
+          }
+        } catch(_){}
+        throw new Error(friendly);
+      }
       var data = await res.json();
       state.draft = data.draft;
       if (data.saved) {
@@ -11879,7 +11915,7 @@ window.MM = (function(){
         showDraftPreview(data.draft);
       }
     } catch(e) {
-      alert('تعذّر التوليد: ' + (e.message || e));
+      alert('تعذّر التوليد:\n\n' + (e.message || e));
     } finally {
       nextBtn.disabled = false; nextBtn.textContent = orig;
     }
