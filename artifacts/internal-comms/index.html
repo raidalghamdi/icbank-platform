@@ -12168,7 +12168,8 @@ window.MM = (function(){
       var res = await apiFetch('/api/final-media-reports/' + id);
       var data = await res.json();
       if (!data.ok) throw new Error(data.error||'فشل التحميل');
-      var r = data.report;
+      var r = data.item || data.report;
+      if (!r) throw new Error('لم يتم العثور على بيانات التقرير');
       state.current = r;
       var titleEl = document.getElementById('mm-view-title'); if (titleEl) titleEl.textContent = r.title || 'تقرير رصد إعلامي';
       var date = r.createdAt ? new Date(r.createdAt).toLocaleString('ar-SA-u-nu-latn') : '';
