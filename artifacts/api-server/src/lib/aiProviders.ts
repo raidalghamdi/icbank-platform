@@ -66,48 +66,81 @@ function isTransientGeminiError(err: unknown): boolean {
 }
 
 /**
+ * Fallback chain of models tried in order when the primary returns transient errors
+ * (503/UNAVAILABLE/overloaded). Each tier has its own internal retry loop.
+ */
+function buildModelChain(primary: string): string[] {
+  const chain: string[] = [primary];
+  // If primary is pro/2.5, fall back to 2.5-flash then 2.0-flash
+  if (!primary.includes("flash")) {
+    chain.push("gemini-2.5-flash");
+  }
+  if (!chain.includes("gemini-2.0-flash")) {
+    chain.push("gemini-2.0-flash");
+  }
+  if (!chain.includes("gemini-1.5-flash")) {
+    chain.push("gemini-1.5-flash");
+  }
+  return chain;
+}
+
+/**
  * Generate plain text from a single user prompt. Auto-retries transient errors
- * (503/UNAVAILABLE, 429, network) with exponential backoff up to 4 attempts.
+ * (503/UNAVAILABLE, 429, network) with exponential backoff per model, then
+ * falls back to alternative Gemini models if all retries fail.
  */
 export async function geminiText(
   prompt: string,
   opts: { model?: string; maxTokens?: number; system?: string } = {},
 ): Promise<string> {
-  const model = opts.model ?? GEMINI_TEXT_MODEL;
-  const maxAttempts = 4;
+  const primary = opts.model ?? GEMINI_TEXT_MODEL;
+  const chain = buildModelChain(primary);
+  const attemptsPerModel = 2; // 2 attempts per model, then fall back
   let lastErr: unknown = null;
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    try {
-      const result = await gemini.models.generateContent({
-        model,
-        contents: [
-          ...(opts.system
-            ? [{ role: "user", parts: [{ text: opts.system }] }]
-            : []),
-          { role: "user", parts: [{ text: prompt }] },
-        ],
-        config: {
-          maxOutputTokens: opts.maxTokens ?? 2048,
-          temperature: 0.7,
-        },
-      });
-      return result.text ?? "";
-    } catch (err) {
-      lastErr = err;
-      if (attempt < maxAttempts && isTransientGeminiError(err)) {
-        const delay = 1500 * Math.pow(2, attempt - 1) + Math.floor(Math.random() * 500);
-        // eslint-disable-next-line no-console
-        console.warn(
-          `[ai] geminiText transient error (attempt ${attempt}/${maxAttempts}), retrying in ${delay}ms:`,
-          err instanceof Error ? err.message : String(err),
-        );
-        await sleep(delay);
-        continue;
+  for (let mi = 0; mi < chain.length; mi++) {
+    const model = chain[mi];
+    for (let attempt = 1; attempt <= attemptsPerModel; attempt++) {
+      try {
+        const result = await gemini.models.generateContent({
+          model,
+          contents: [
+            ...(opts.system
+              ? [{ role: "user", parts: [{ text: opts.system }] }]
+              : []),
+            { role: "user", parts: [{ text: prompt }] },
+          ],
+          config: {
+            maxOutputTokens: opts.maxTokens ?? 2048,
+            temperature: 0.7,
+          },
+        });
+        if (mi > 0 || attempt > 1) {
+          // eslint-disable-next-line no-console
+          console.log(`[ai] geminiText recovered with model=${model} attempt=${attempt}`);
+        }
+        return result.text ?? "";
+      } catch (err) {
+        lastErr = err;
+        const transient = isTransientGeminiError(err);
+        if (!transient) throw err;
+        if (attempt < attemptsPerModel) {
+          const delay = 1200 * attempt + Math.floor(Math.random() * 400);
+          // eslint-disable-next-line no-console
+          console.warn(
+            `[ai] geminiText transient on model=${model} (attempt ${attempt}/${attemptsPerModel}), retry in ${delay}ms`,
+          );
+          await sleep(delay);
+        } else if (mi < chain.length - 1) {
+          // eslint-disable-next-line no-console
+          console.warn(
+            `[ai] geminiText: model=${model} exhausted, falling back to ${chain[mi + 1]}`,
+          );
+          await sleep(800);
+        }
       }
-      throw err;
     }
   }
-  throw lastErr ?? new Error("geminiText: unknown error");
+  throw lastErr ?? new Error("geminiText: all models exhausted");
 }
 
 /**
