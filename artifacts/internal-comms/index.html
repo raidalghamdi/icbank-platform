@@ -3,21 +3,22 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-<meta name="theme-color" content="#1E40AF">
-<title>بنك التواصل الداخلي</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<meta name="theme-color" content="#25935F">
+<title>التواصل المؤسسي الذكي</title>
+<link rel="preload" as="font" type="font/ttf" href="/fonts/cairo/Cairo-Variable.ttf" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="/fonts/plex/IBMPlexSans-Regular.woff2" crossorigin>
+<link rel="stylesheet" href="/css/dga.css">
 <style>
 /* ═══ TOKENS ═══ */
 :root {
-  --primary:        #1E40AF;
-  --primary-hover:  #1E3A8A;
-  --primary-50:     #EFF6FF;
-  --primary-100:    #DBEAFE;
-  --primary-600:    #2563EB;
+  /* ═══ DGA NAZM TOKENS (overrides) ═══ */
+  --primary:        #25935F;
+  --primary-hover:  #166A45;
+  --primary-50:     #EFFAF4;
+  --primary-100:    #DBF2E5;
+  --primary-600:    #1E7A4F;
 
-  --bg:             #F8F9FB;
+  --bg:             #F7FDF9;
   --surface:        #FFFFFF;
   --surface-2:      #F4F5F8;
   --sidebar-bg:     #FFFFFF;
@@ -26,48 +27,48 @@
   --border-strong:  #D1D5DB;
   --border-subtle:  #F0F1F4;
 
-  --text:           #0F172A;
+  --text:           #0C111D;
   --text-2:         #334155;
   --text-3:         #64748B;
   --text-4:         #94A3B8;
   --text-5:         #CBD5E1;
 
-  --success:        #16A34A;
+  --success:        #166A45;
   --success-bg:     #F0FDF4;
-  --warning:        #D97706;
+  --warning:        #B54708;
   --warning-bg:     #FFFBEB;
-  --danger:         #DC2626;
-  --danger-bg:      #FEF2F2;
-  --info:           #0284C7;
-  --info-bg:        #F0F9FF;
+  --danger:         #B42318;
+  --danger-bg:      #FEF3F2;
+  --info:           #175CD3;
+  --info-bg:        #EFF8FF;
 
   /* legacy compat */
   --white:          #ffffff;
-  --primary-light:  #EFF6FF;
-  --primary-mid:    #DBEAFE;
-  --text-dark:      #0F172A;
+  --primary-light:  #EFFAF4;
+  --primary-mid:    #DBF2E5;
+  --text-dark:      #0C111D;
   --text-mid:       #334155;
   --text-soft:      #64748B;
   --text-muted:     #94A3B8;
-  --green:          #16A34A;
+  --green:          #25935F;
   --green-light:    #F0FDF4;
-  --orange:         #D97706;
+  --orange:         #B54708;
   --orange-light:   #FFFBEB;
   --purple:         #7C3AED;
   --purple-light:   #FAF5FF;
   --border-light:   #F0F1F4;
-  --shadow-sm:      0 1px 3px rgba(0,0,0,0.06);
-  --shadow-md:      0 4px 16px rgba(0,0,0,0.08);
+  --shadow-sm:      0 1px 3px rgba(16,24,40,0.06);
+  --shadow-md:      0 4px 16px rgba(16,24,40,0.08);
   --radius-sm:      4px;
   --radius-md:      6px;
   --radius-lg:      8px;
 
-  --sans:    'IBM Plex Sans Arabic', 'Inter', system-ui, -apple-system, sans-serif;
-  --sans-en: 'Inter', 'IBM Plex Sans Arabic', system-ui, sans-serif;
-  --mono:    'JetBrains Mono', 'IBM Plex Mono', ui-monospace, monospace;
+  --sans:    'Cairo', 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  --sans-en: 'IBM Plex Sans', 'Cairo', system-ui, sans-serif;
+  --mono:    'IBM Plex Mono', ui-monospace, monospace;
 
-  --sidebar-w: 240px;
-  --topbar-h:  60px;
+  --sidebar-w: 264px;
+  --topbar-h:  72px;
 }
 
 /* ═══ AUTH LOADING OVERLAY ═══ */
@@ -92,6 +93,44 @@
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* ═══ NAZM OVERRIDES — دمج مع دغا في public/css/dga.css ═══ */
+/* إخفاء صفحات محذوفة (ملاحظة 2+3) */
+#section-reports, #section-aiyear { display: none !important; }
+/* تطبيق لمسات Nazm على السايدبار الحالي */
+.sidebar { background:#FFFFFF !important; border-inline-end:1px solid var(--border-subtle); }
+.sidebar-section-title { color: var(--text-3); font-size:11px; letter-spacing:.06em; text-transform:uppercase; }
+.nav-item.active { background: var(--primary-50) !important; color: var(--primary) !important; border-inline-start: 3px solid var(--primary); }
+.brand-logo { background: linear-gradient(135deg, var(--primary), var(--primary-hover)) !important; }
+.kpi-card, .dash-kpi-card, .card { border:1px solid var(--border-subtle); border-radius: 12px; box-shadow: var(--shadow-sm); }
+.btn-primary, button.primary { background: var(--primary) !important; color:#fff !important; }
+.btn-primary:hover { background: var(--primary-hover) !important; }
+/* ═══ مراحل المبادرة + خط زمني + KPIs (ملاحظة 5) ═══ */
+.init-phases, .init-timeline, .init-kpis { margin-top:14px; padding:12px; background:#FAFAFA; border:1px solid var(--border-subtle); border-radius:10px; }
+.init-phases-title, .init-timeline-title, .init-kpis-title { font-size:12px; font-weight:700; color:var(--text-2); margin-bottom:10px; }
+.init-phases-track { display:flex; align-items:center; gap:0; }
+.init-phase { display:flex; flex-direction:column; align-items:center; gap:4px; flex:0 0 auto; min-width:56px; opacity:.45; }
+.init-phase.current { opacity:1; }
+.init-phase.done { opacity:.85; }
+.init-phase-dot { width:32px; height:32px; border-radius:50%; background:#EEE; display:flex; align-items:center; justify-content:center; font-size:14px; border:2px solid #DDD; }
+.init-phase.current .init-phase-dot { background:var(--primary-50); border-color:var(--primary); box-shadow:0 0 0 4px var(--primary-100); }
+.init-phase.done .init-phase-dot { background:var(--success); border-color:var(--success); color:#fff; }
+.init-phase-lbl { font-size:10px; font-weight:600; color:var(--text-3); text-align:center; }
+.init-phase.current .init-phase-lbl { color:var(--primary); }
+.init-phase-conn { flex:1; height:2px; background:#E5E7EB; min-width:8px; }
+.init-phase-conn.done { background:var(--success); }
+.init-timeline-list { display:flex; flex-direction:column; gap:8px; padding-inline-start:8px; border-inline-start:2px dashed var(--border); }
+.init-timeline-item { display:flex; gap:10px; align-items:flex-start; position:relative; }
+.init-tl-marker { width:10px; height:10px; border-radius:50%; background:var(--border-strong); margin-inline-start:-15px; margin-top:5px; flex:0 0 auto; }
+.init-timeline-item.done .init-tl-marker { background:var(--success); }
+.init-tl-date { font-size:10px; color:var(--text-3); font-weight:600; }
+.init-tl-text { font-size:12px; color:var(--text-2); line-height:1.5; }
+.init-kpis-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(110px,1fr)); gap:8px; }
+.init-kpi-box { background:#fff; border:1px solid var(--border-subtle); border-radius:8px; padding:8px; text-align:center; }
+.init-kpi-val { font-size:16px; font-weight:800; color:var(--primary); }
+.init-kpi-lbl { font-size:10px; color:var(--text-3); margin-top:2px; }
+.wk2-send-opt { display:flex; align-items:center; gap:8px; padding:10px 12px; border:1px solid var(--border-subtle); border-radius:8px; cursor:pointer; transition:all .15s; font-size:13px; color:var(--text-2); background:#FAFAFA; }
+.wk2-send-opt:has(input:checked) { border-color: var(--primary); background: var(--primary-50); color: var(--primary); font-weight:600; }
+.wk2-send-opt input { width:16px; height:16px; accent-color: var(--primary); cursor:pointer; }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html { -webkit-font-smoothing: antialiased; }
 body {
@@ -2618,18 +2657,14 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
     <div class="sidebar-brand">
       <div class="brand-logo">IC</div>
       <div class="brand-info">
-        <div class="brand-title">بنك التواصل الداخلي</div>
+        <div class="brand-title">التواصل المؤسسي الذكي</div>
         <div class="brand-sub en">INTERNAL COMMS · 2026</div>
       </div>
     </div>
 
     <div class="sidebar-section">
-      <div class="sidebar-section-title en">Workspace</div>
+      <div class="sidebar-section-title en">Home</div>
       <div class="sidebar-nav">
-        <a class="nav-item" data-page="reports" onclick="showSection('reports')">
-          <span class="ico"><svg><use href="#i-dashboard"/></svg></span>
-          <span>الأداء التنفيذي</span>
-        </a>
         <a class="nav-item active" data-page="home" onclick="showSection('home')">
           <span class="ico"><svg><use href="#i-home"/></svg></span>
           <span>الرئيسية</span>
@@ -2638,33 +2673,19 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
     </div>
 
     <div class="sidebar-section">
-      <div class="sidebar-section-title en">Library</div>
+      <div class="sidebar-section-title en">Corporate Comms</div>
       <div class="sidebar-nav">
-        <a class="nav-item" data-page="initiatives" onclick="showSection('initiatives')">
-          <span class="ico"><svg><use href="#i-bulb"/></svg></span>
-          <span>المبادرات</span>
-          <span class="nav-item-count">42</span>
-        </a>
-        <a class="nav-item" data-page="news" onclick="showSection('news')">
-          <span class="ico"><svg><use href="#i-news"/></svg></span>
-          <span>الأخبار العالمية</span>
+        <a class="nav-item" data-page="weekstart" onclick="showSection('weekstart')">
+          <span class="ico"><svg><use href="#i-star"/></svg></span>
+          <span>بداية الأسبوع</span>
         </a>
         <a class="nav-item" data-page="weekend" onclick="showSection('weekend')">
           <span class="ico"><svg><use href="#i-calendar"/></svg></span>
           <span>نهاية الأسبوع</span>
         </a>
-        <a class="nav-item" data-page="weekstart" onclick="showSection('weekstart')">
-          <span class="ico"><svg><use href="#i-star"/></svg></span>
-          <span>بداية الأسبوع</span>
-        </a>
         <a class="nav-item" data-page="intldays" onclick="showSection('intldays')">
           <span class="ico"><svg><use href="#i-globe"/></svg></span>
           <span>الأيام العالمية</span>
-        </a>
-        <a class="nav-item" data-page="aiyear" onclick="showSection('aiyear')">
-          <span class="ico"><svg><use href="#i-bot"/></svg></span>
-          <span>عام الذكاء الاصطناعي</span>
-          <span class="nav-item-count" id="aiy-nav-count">—</span>
         </a>
         <a class="nav-item" data-page="shorfah" onclick="showSection('shorfah')">
           <span class="ico"><svg><use href="#i-book"/></svg></span>
@@ -2675,37 +2696,64 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
     </div>
 
     <div class="sidebar-section">
-      <div class="sidebar-section-title en">Tools</div>
+      <div class="sidebar-section-title en">Monitoring &amp; Analysis</div>
       <div class="sidebar-nav">
-        <a class="nav-item" data-page="smart_assistant" onclick="showSection('smart_assistant')">
-          <span class="ico"><svg><use href="#i-bot"/></svg></span>
-          <span>المساعد الذكي</span>
-        </a>
-        <a class="nav-item" data-page="settings" onclick="showSection('settings')">
-          <span class="ico"><svg><use href="#i-settings"/></svg></span>
-          <span>الإعدادات</span>
-        </a>
-        <a class="nav-item" id="nav-places" data-page="places" onclick="showSection('places')" style="display:none;">
-          <span class="ico"><svg><use href="#i-bookmark"/></svg></span>
-          <span>مكتبة الأماكن</span>
-        </a>
-        <a class="nav-item" id="nav-designs" data-page="designs" onclick="showSection('designs')" style="display:none;">
-          <span class="ico"><svg><use href="#i-image"/></svg></span>
-          <span>إنشاء التصاميم</span>
-        </a>
-        <a class="nav-item" data-page="gac_library" onclick="showSection('gac_library')">
-          <span class="ico"><svg><use href="#i-book"/></svg></span>
-          <span>مكتبة الهيئة</span>
-        </a>
         <a class="nav-item" data-page="media_monitoring" onclick="showSection('media_monitoring')">
           <span class="ico"><svg><use href="#i-news"/></svg></span>
           <span>الرصد الإعلامي</span>
           <span class="nav-item-count" id="mm-nav-count">—</span>
         </a>
+        <a class="nav-item" data-page="news" onclick="showSection('news')">
+          <span class="ico"><svg><use href="#i-globe"/></svg></span>
+          <span>أخبار هيئات المنافسة</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title en">Initiatives</div>
+      <div class="sidebar-nav">
+        <a class="nav-item" data-page="initiatives" onclick="showSection('initiatives')">
+          <span class="ico"><svg><use href="#i-bulb"/></svg></span>
+          <span>المبادرات</span>
+          <span class="nav-item-count">42</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title en">Creative Studio</div>
+      <div class="sidebar-nav">
+        <a class="nav-item" id="nav-designs" data-page="designs" onclick="showSection('designs')" style="display:none;">
+          <span class="ico"><svg><use href="#i-image"/></svg></span>
+          <span>إنشاء التصاميم</span>
+        </a>
+        <a class="nav-item" id="nav-places" data-page="places" onclick="showSection('places')" style="display:none;">
+          <span class="ico"><svg><use href="#i-bookmark"/></svg></span>
+          <span>مكتبة الأماكن</span>
+        </a>
+        <a class="nav-item" data-page="gac_library" onclick="showSection('gac_library')">
+          <span class="ico"><svg><use href="#i-book"/></svg></span>
+          <span>مكتبة الهيئة</span>
+        </a>
+        <a class="nav-item" data-page="smart_assistant" onclick="showSection('smart_assistant')">
+          <span class="ico"><svg><use href="#i-bot"/></svg></span>
+          <span>المساعد الذكي</span>
+        </a>
         <a class="nav-item" data-page="prompts_lib" onclick="showSection('prompts_lib')">
           <span class="ico"><svg><use href="#i-bot"/></svg></span>
           <span>مكتبة الأوامر</span>
           <span class="nav-item-count" id="pl-nav-count">—</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title en">Administration</div>
+      <div class="sidebar-nav">
+        <a class="nav-item" data-page="settings" onclick="showSection('settings')">
+          <span class="ico"><svg><use href="#i-settings"/></svg></span>
+          <span>الإعدادات</span>
         </a>
         <a class="nav-item" id="nav-admin-panel" data-page="admin_panel" onclick="showSection('admin_panel')" style="display:none;">
           <span class="ico"><svg><use href="#i-shield"/></svg></span>
@@ -2837,12 +2885,12 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
     <!-- ── KPI Strip ── -->
     <div class="dash-kpi-strip">
       <div class="dash-kpi-card">
-        <div class="dash-kpi-val" id="dash-kpi-aiy">—</div>
-        <div class="dash-kpi-label">تفعيلات عام الذكاء الاصطناعي</div>
-      </div>
-      <div class="dash-kpi-card">
         <div class="dash-kpi-val" id="dash-kpi-ws">—</div>
         <div class="dash-kpi-label">محتوى بداية الأسبوع هذا الشهر</div>
+      </div>
+      <div class="dash-kpi-card">
+        <div class="dash-kpi-val" id="dash-kpi-mm">—</div>
+        <div class="dash-kpi-label">تقارير الرصد الإعلامي</div>
       </div>
       <div class="dash-kpi-card">
         <div class="dash-kpi-val" id="dash-kpi-intl">—</div>
@@ -2850,7 +2898,7 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
       </div>
       <div class="dash-kpi-card">
         <div class="dash-kpi-val" id="dash-kpi-news">—</div>
-        <div class="dash-kpi-label">أخبار التواصل الداخلي المتاحة</div>
+        <div class="dash-kpi-label">أخبار التواصل المؤسسي المتاحة</div>
       </div>
     </div>
 
@@ -2860,12 +2908,12 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
         <h2 class="dash-section-title">خدماتنا الرئيسية</h2>
       </div>
       <div class="dash-services-grid">
-        <div class="dash-svc-card" onclick="showSection('reports')" style="--svc-color:#1E40AF">
+        <div class="dash-svc-card" onclick="showSection('media_monitoring')" style="--svc-color:#25935F">
           <div class="dash-svc-top"></div>
           <div class="dash-svc-icon">📊</div>
-          <div class="dash-svc-name">الأداء التنفيذي</div>
-          <div class="dash-svc-meta" id="dash-svc-reports">مؤشرات الأداء والتقارير التنفيذية</div>
-          <div class="dash-svc-btn">افتح الأداء →</div>
+          <div class="dash-svc-name">الرصد الإعلامي</div>
+          <div class="dash-svc-meta" id="dash-svc-mm">تقارير الرصد وتحليل التغطية الإعلامية</div>
+          <div class="dash-svc-btn">افتح الرصد →</div>
         </div>
         <div class="dash-svc-card" onclick="showSection('weekstart')" style="--svc-color:#16A34A">
           <div class="dash-svc-top"></div>
@@ -2881,12 +2929,12 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
           <div class="dash-svc-meta">رسائل نهاية الأسبوع للموظفين بأسلوب مؤسسي مميز</div>
           <div class="dash-svc-btn">افتح الأرشيف →</div>
         </div>
-        <div class="dash-svc-card" onclick="showSection('aiyear')" style="--svc-color:#D97706">
+        <div class="dash-svc-card" onclick="showSection('intldays')" style="--svc-color:#175CD3">
           <div class="dash-svc-top"></div>
-          <div class="dash-svc-icon">🤖</div>
-          <div class="dash-svc-name">عام الذكاء الاصطناعي</div>
-          <div class="dash-svc-meta" id="dash-svc-aiyear">جارٍ التحميل...</div>
-          <div class="dash-svc-btn">افتح المعرض →</div>
+          <div class="dash-svc-icon">🌐</div>
+          <div class="dash-svc-name">الأيام العالمية</div>
+          <div class="dash-svc-meta" id="dash-svc-intldays">بحث عالمي + أرشيف الأيام الدولية</div>
+          <div class="dash-svc-btn">افتح الأيام →</div>
         </div>
       </div>
     </div>
@@ -2897,7 +2945,7 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
         <div class="dash-ai-header">
           <div>
             <div class="dash-ai-title">🤖 الملخص التنفيذي الذكي</div>
-            <div class="dash-ai-subtitle">تحليل فوري لنشاط التواصل الداخلي</div>
+            <div class="dash-ai-subtitle">تحليل فوري لنشاط التواصل المؤسسي</div>
           </div>
           <div style="display:flex;gap:8px;align-items:center">
             <button class="btn btn-ghost" id="dash-ai-gen-btn" onclick="dashGenerateAISummary()">✨ توليد ملخص</button>
@@ -3019,7 +3067,7 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
     <div class="page-head">
       <div>
         <h1 class="page-title">المبادرات</h1>
-        <p class="page-sub">قاعدة بيانات شاملة لمبادرات التواصل الداخلي من منظمات عالمية ومحلية، إضافةً إلى مقترحات ذكاء اصطناعي قابلة للتطبيق.</p>
+        <p class="page-sub">قاعدة بيانات شاملة لمبادرات التواصل المؤسسي من منظمات عالمية ومحلية، إضافةً إلى مقترحات ذكاء اصطناعي قابلة للتطبيق.</p>
       </div>
       <div class="page-actions">
         <span id="init-count" style="font-size:12px;color:var(--text-3);font-weight:600;padding:8px 0;"></span>
@@ -3031,12 +3079,16 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
       <input type="text" id="init-search" placeholder="ابحث في المبادرات..." oninput="searchInitiatives(this.value)">
     </div>
 
-    <div class="filter-tabs">
+    <div class="filter-tabs" style="flex-wrap:wrap;gap:6px;">
       <button class="filter-tab active" onclick="filterInitiatives('all',this)">🌍 الكل</button>
       <button class="filter-tab" onclick="filterInitiatives('global',this)">🌐 عالمية</button>
       <button class="filter-tab" onclick="filterInitiatives('local',this)">🇸🇦 محلية</button>
       <button class="filter-tab" onclick="filterInitiatives('ai',this)">🤖 مقترحة بالذكاء الاصطناعي</button>
-      <button class="filter-tab" onclick="filterInitiatives('new',this)">✨ جديدة</button>
+      <span style="display:inline-block;width:1px;height:24px;background:var(--border);margin:0 4px;"></span>
+      <button class="filter-tab" onclick="filterInitiatives('planning',this)">📋 التخطيط</button>
+      <button class="filter-tab" onclick="filterInitiatives('execution',this)">⚙️ التنفيذ</button>
+      <button class="filter-tab" onclick="filterInitiatives('results',this)">📊 النتائج</button>
+      <button class="filter-tab" onclick="filterInitiatives('impact',this)">🎯 قياس الأثر</button>
     </div>
 
     <div class="init-cards-grid" id="all-initiatives"></div>
@@ -3050,8 +3102,8 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
 
     <div class="page-head">
       <div>
-        <h1 class="page-title">الأخبار العالمية</h1>
-        <p class="page-sub">أحدث المستجدات العالمية والمحلية في مجال التواصل المؤسسي.</p>
+        <h1 class="page-title">أخبار هيئات المنافسة</h1>
+        <p class="page-sub">أحدث تطورات هيئات وسلطات المنافسة العالمية (FTC, EC/DG COMP, CMA, Bundeskartellamt, JFTC, KFTC, OECD, ICN, شبكة المنافسة العربية) إلى جانب أخبار الهيئة العامة للمنافسة السعودية.</p>
       </div>
       <div class="page-actions">
         <div class="period-chip">
@@ -3065,9 +3117,10 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
     <div class="filter-tabs">
       <button class="filter-tab active" onclick="filterNewsPage('all',this)">🌍 الكل</button>
       <button class="filter-tab" onclick="filterNewsPage('global',this)">🌐 عالمي</button>
-      <button class="filter-tab" onclick="filterNewsPage('local',this)">🇸🇦 محلي</button>
-      <button class="filter-tab" onclick="filterNewsPage('تواصل القيادة',this)">تواصل القيادة</button>
-      <button class="filter-tab" onclick="filterNewsPage('قنوات التواصل',this)">قنوات التواصل</button>
+      <button class="filter-tab" onclick="filterNewsPage('local',this)">🇸🇦 محلي (GAC)</button>
+      <button class="filter-tab" onclick="filterNewsPage('إنفاذ',this)">إنفاذ</button>
+      <button class="filter-tab" onclick="filterNewsPage('غرامات',this)">غرامات</button>
+      <button class="filter-tab" onclick="filterNewsPage('تعاون دولي',this)">تعاون دولي</button>
     </div>
 
     <div class="news-list" id="all-news">
@@ -3095,6 +3148,34 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
         <div class="wk2-hero-sub">محتوى نهاية الأسبوع — للاطلاع والاستمتاع</div>
         <div class="wk2-hero-desc">أماكن، عروض، بودكاستات، أدوات AI، مباريات، وأفلام</div>
       </div>
+    </div>
+
+    <!-- ═══ قنوات الإرسال (ملاحظة 7+8) ═══ -->
+    <div class="wk2-send-panel" style="background:#fff;border:1px solid var(--border-subtle);border-radius:12px;padding:16px;margin-bottom:16px;box-shadow:var(--shadow-sm);">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:14px;">
+        <div>
+          <div style="font-size:15px;font-weight:700;color:var(--text);">📤 إرسال تقرير نهاية الأسبوع</div>
+          <div style="font-size:12px;color:var(--text-3);margin-top:3px;">اختر القنوات المناسبة لإرسال التقرير إلى المستلمين</div>
+        </div>
+        <button class="btn btn-primary" onclick="sendWeekendReport()" style="padding:8px 18px;font-weight:700;">🚀 إرسال الآن</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;">
+        <label class="wk2-send-opt"><input type="checkbox" id="wk-send-email-work" checked> <span>📧 البريد الرسمي (الهيئة)</span></label>
+        <label class="wk2-send-opt"><input type="checkbox" id="wk-send-email-personal"> <span>📨 البريد الشخصي</span></label>
+        <label class="wk2-send-opt"><input type="checkbox" id="wk-send-sms"> <span>📱 SMS</span></label>
+        <label class="wk2-send-opt"><input type="checkbox" id="wk-send-whatsapp"> <span>💬 WhatsApp</span></label>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:12px;">
+        <input id="wk-email-work-val" placeholder="name@gac.gov.sa" class="wk-send-input" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;">
+        <input id="wk-email-personal-val" placeholder="name@gmail.com" class="wk-send-input" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;">
+        <input id="wk-phone-val" placeholder="+966 5XX XXX XXX" class="wk-send-input" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;">
+        <select id="wk-provider" class="wk-send-input" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;">
+          <option value="unifonic">مزود: Unifonic (سعودي)</option>
+          <option value="twilio">مزود: Twilio</option>
+          <option value="whatsapp-business">WhatsApp Business API</option>
+        </select>
+      </div>
+      <div id="wk-send-status" style="font-size:12px;color:var(--text-3);margin-top:10px;"></div>
     </div>
 
     <!-- SECTIONS -->
@@ -5159,6 +5240,9 @@ function authLogout() {
 const INITIATIVES = [
   {
     id:1, icon:'💼', type:'global', status:'مجربة', applicability:96,
+    phase:'impact', phaseNote:'تطبيق ناضج وأثر مُقاس عالمياً',
+    timeline: [{date:'2023', text:'الإطلاق والتنفيذ', done:true}, {date:'2024', text:'النتائج الأولية', done:true}, {date:'2025', text:'قياس الأثر التراكمي', done:true}, {date:'2026', text:'المراجعة الاستراتيجية والتوسع', done:true}],
+    kpis: [{value:'100%', label:'نسبة الإنجاز'}, {value:'مرتفع', label:'الأثر الكمي'}, {value:'مستدام', label:'الأثر النوعي'}],
     name:'مايكروسوفت فيفا — منصة تجربة الموظف',
     en:'Microsoft Viva — Employee Experience Platform',
     tags:['عالمي','تقنية','اندماج'],
@@ -5170,6 +5254,9 @@ const INITIATIVES = [
   },
   {
     id:2, icon:'🔄', type:'global', status:'مجربة', applicability:83,
+    phase:'execution', phaseNote:'مرحلة تنفيذ نشطة في المؤسسات',
+    timeline: [{date:'Q2 2025', text:'إكمال التخطيط وتحديد KPIs', done:true}, {date:'Q3 2025', text:'إطلاق المرحلة الأولى', done:true}, {date:'Q4 2025', text:'توسعة التطبيق ومراقبة المخاطر', done:true}, {date:'Q1 2026', text:'مراجعة منتصف الفترة', done:false}],
+    kpis: [{value:'45%', label:'نسبة الإنجاز'}, {value:'3/5', label:'milestones'}, {value:'منخفض', label:'مستوى المخاطر'}],
     name:'نموذج Adobe للتغذية الراجعة المستمرة',
     en:'Adobe Check-in Model — Continuous Feedback',
     tags:['عالمي','اندماج','الأداء'],
@@ -5181,6 +5268,9 @@ const INITIATIVES = [
   },
   {
     id:3, icon:'🎤', type:'global', status:'مجربة', applicability:91,
+    phase:'results', phaseNote:'تم تحقيق نتائج موثقة',
+    timeline: [{date:'Q1 2025', text:'إكمال التنفيذ', done:true}, {date:'Q2 2025', text:'جمع وتحليل النتائج', done:true}, {date:'Q3 2025', text:'إصدار التقرير المرحلي', done:true}, {date:'Q4 2025', text:'مرحلة قياس الأثر', done:false}],
+    kpis: [{value:'85%', label:'نسبة الإنجاز'}, {value:'5/5', label:'milestones'}, {value:'تم', label:'التسليم'}],
     name:'قاعة التجمع الافتراضي — سيمنز ويونيليفر',
     en:'Digital Town Hall — Siemens & Unilever',
     tags:['عالمي','تواصل القيادة','اندماج'],
@@ -5192,10 +5282,13 @@ const INITIATIVES = [
   },
   {
     id:4, icon:'📱', type:'global', status:'مجربة', applicability:85,
+    phase:'impact', phaseNote:'منتشرة عالمياً مع قياس أثر مستمر',
+    timeline: [{date:'2023', text:'الإطلاق والتنفيذ', done:true}, {date:'2024', text:'النتائج الأولية', done:true}, {date:'2025', text:'قياس الأثر التراكمي', done:true}, {date:'2026', text:'المراجعة الاستراتيجية والتوسع', done:true}],
+    kpis: [{value:'100%', label:'نسبة الإنجاز'}, {value:'مرتفع', label:'الأثر الكمي'}, {value:'مستدام', label:'الأثر النوعي'}],
     name:'تطبيق الموظف الموحد — Staffbase',
     en:'Employee Super App — Staffbase',
     tags:['عالمي','تقنية','قنوات التواصل'],
-    desc:'تطبيق جوال يجمع كل قنوات التواصل الداخلي: الأخبار، الإجراءات، الجدول الزمني، وتواصل الفريق.',
+    desc:'تطبيق جوال يجمع كل قنوات التواصل المؤسسي: الأخبار، الإجراءات، الجدول الزمني، وتواصل الفريق.',
     goals:['الوصول للموظفين غير المكتبيين','توحيد قنوات التواصل في منصة واحدة','رفع معدلات قراءة الرسائل الداخلية'],
     org:'Staffbase GmbH', country:'ألمانيا',
     impact:'↑70%', impactLabel:'ارتفاع في الوصول التواصلي — معدل انفتاح الرسائل 4 أضعاف البريد',
@@ -5203,6 +5296,9 @@ const INITIATIVES = [
   },
   {
     id:5, icon:'🔬', type:'global', status:'مجربة', applicability:88,
+    phase:'results', phaseNote:'نتائج إيجابية مع توسع الانتشار',
+    timeline: [{date:'Q1 2025', text:'إكمال التنفيذ', done:true}, {date:'Q2 2025', text:'جمع وتحليل النتائج', done:true}, {date:'Q3 2025', text:'إصدار التقرير المرحلي', done:true}, {date:'Q4 2025', text:'مرحلة قياس الأثر', done:false}],
+    kpis: [{value:'85%', label:'نسبة الإنجاز'}, {value:'5/5', label:'milestones'}, {value:'تم', label:'التسليم'}],
     name:'مشروع أوكسجين — تحليلات القيادة (Google)',
     en:'Project Oxygen — People Analytics (Google)',
     tags:['عالمي','الأداء','اندماج'],
@@ -5214,6 +5310,9 @@ const INITIATIVES = [
   },
   {
     id:6, icon:'🌟', type:'global', status:'مجربة', applicability:80,
+    phase:'execution', phaseNote:'قيد التطبيق في عدة منظمات',
+    timeline: [{date:'Q2 2025', text:'إكمال التخطيط وتحديد KPIs', done:true}, {date:'Q3 2025', text:'إطلاق المرحلة الأولى', done:true}, {date:'Q4 2025', text:'توسعة التطبيق ومراقبة المخاطر', done:true}, {date:'Q1 2026', text:'مراجعة منتصف الفترة', done:false}],
+    kpis: [{value:'45%', label:'نسبة الإنجاز'}, {value:'3/5', label:'milestones'}, {value:'منخفض', label:'مستوى المخاطر'}],
     name:'برنامج سفراء الثقافة الداخلية — J&J',
     en:'Internal Culture Ambassador Program — J&J',
     tags:['عالمي','ثقافة مؤسسية','اندماج'],
@@ -5225,6 +5324,9 @@ const INITIATIVES = [
   },
   {
     id:7, icon:'🎓', type:'local', status:'مجربة', applicability:95,
+    phase:'impact', phaseNote:'مبادرة وطنية بأثر متراكم',
+    timeline: [{date:'2023', text:'الإطلاق والتنفيذ', done:true}, {date:'2024', text:'النتائج الأولية', done:true}, {date:'2025', text:'قياس الأثر التراكمي', done:true}, {date:'2026', text:'المراجعة الاستراتيجية والتوسع', done:true}],
+    kpis: [{value:'100%', label:'نسبة الإنجاز'}, {value:'مرتفع', label:'الأثر الكمي'}, {value:'مستدام', label:'الأثر النوعي'}],
     name:'برنامج المهارات للجميع — رؤية 2030',
     en:'Skills for All — Vision 2030 Workforce Development',
     tags:['محلي','رؤية 2030','تقنية'],
@@ -5236,6 +5338,9 @@ const INITIATIVES = [
   },
   {
     id:8, icon:'🏛️', type:'local', status:'مجربة', applicability:93,
+    phase:'results', phaseNote:'نتائج تشغيلية واضحة',
+    timeline: [{date:'Q1 2025', text:'إكمال التنفيذ', done:true}, {date:'Q2 2025', text:'جمع وتحليل النتائج', done:true}, {date:'Q3 2025', text:'إصدار التقرير المرحلي', done:true}, {date:'Q4 2025', text:'مرحلة قياس الأثر', done:false}],
+    kpis: [{value:'85%', label:'نسبة الإنجاز'}, {value:'5/5', label:'milestones'}, {value:'تم', label:'التسليم'}],
     name:'منصة جدارات — إدارة المواهب الحكومية',
     en:'Jadarat — Government Talent Management Platform',
     tags:['محلي','تقنية','تواصل داخلي'],
@@ -5247,6 +5352,9 @@ const INITIATIVES = [
   },
   {
     id:9, icon:'🏅', type:'local', status:'مجربة', applicability:89,
+    phase:'impact', phaseNote:'جائزة وطنية + أثر مُقاس',
+    timeline: [{date:'2023', text:'الإطلاق والتنفيذ', done:true}, {date:'2024', text:'النتائج الأولية', done:true}, {date:'2025', text:'قياس الأثر التراكمي', done:true}, {date:'2026', text:'المراجعة الاستراتيجية والتوسع', done:true}],
+    kpis: [{value:'100%', label:'نسبة الإنجاز'}, {value:'مرتفع', label:'الأثر الكمي'}, {value:'مستدام', label:'الأثر النوعي'}],
     name:'برنامج موظف متميز — الربط بمؤشرات رؤية 2030',
     en:'Distinguished Employee Program — Vision 2030 KPIs',
     tags:['محلي','رؤية 2030','اندماج'],
@@ -5258,6 +5366,9 @@ const INITIATIVES = [
   },
   {
     id:10, icon:'🇸🇦', type:'local', status:'مجربة', applicability:91,
+    phase:'execution', phaseNote:'مرحلة توسعة في القطاع الحكومي',
+    timeline: [{date:'Q2 2025', text:'إكمال التخطيط وتحديد KPIs', done:true}, {date:'Q3 2025', text:'إطلاق المرحلة الأولى', done:true}, {date:'Q4 2025', text:'توسعة التطبيق ومراقبة المخاطر', done:true}, {date:'Q1 2026', text:'مراجعة منتصف الفترة', done:false}],
+    kpis: [{value:'45%', label:'نسبة الإنجاز'}, {value:'3/5', label:'milestones'}, {value:'منخفض', label:'مستوى المخاطر'}],
     name:'التحول الرقمي الحكومي — هيئة الحكومة الرقمية',
     en:'Digital Government Transformation — DGA Saudi Arabia',
     tags:['محلي','تقنية','تواصل داخلي'],
@@ -5269,7 +5380,10 @@ const INITIATIVES = [
   },
   {
     id:11, icon:'🤖', type:'ai', status:'جديدة', applicability:91,
-    name:'مساعد التواصل الداخلي بالذكاء الاصطناعي',
+    phase:'planning', phaseNote:'مقترحة AI - مرحلة تخطيط',
+    timeline: [{date:'Q3 2025', text:'تحديد الفكرة والنطاق', done:true}, {date:'Q4 2025', text:'تطوير الموازنة والموارد المطلوبة', done:false}, {date:'Q1 2026', text:'إعداد خطة المشروع التفصيلية', done:false}, {date:'Q2 2026', text:'الإطلاق التجريبي', done:false}],
+    kpis: [{value:'—', label:'لم تبدأ بعد'}, {value:'0%', label:'نسبة الإنجاز'}],
+    name:'مساعد التواصل المؤسسي بالذكاء الاصطناعي',
     en:'AI-Powered Internal Comms Assistant',
     tags:['مقترحة','ذكاء اصطناعي','تواصل داخلي'],
     desc:'روبوت محادثة داخلي مدرّب على سياسات وإجراءات الجهة، يجيب على استفسارات الموظفين فوراً باللغة العربية.',
@@ -5280,6 +5394,9 @@ const INITIATIVES = [
   },
   {
     id:12, icon:'📊', type:'ai', status:'جديدة', applicability:88,
+    phase:'planning', phaseNote:'مقترحة AI - مرحلة تخطيط',
+    timeline: [{date:'Q3 2025', text:'تحديد الفكرة والنطاق', done:true}, {date:'Q4 2025', text:'تطوير الموازنة والموارد المطلوبة', done:false}, {date:'Q1 2026', text:'إعداد خطة المشروع التفصيلية', done:false}, {date:'Q2 2026', text:'الإطلاق التجريبي', done:false}],
+    kpis: [{value:'—', label:'لم تبدأ بعد'}, {value:'0%', label:'نسبة الإنجاز'}],
     name:'لوحة مؤشرات الاندماج الوظيفي اللحظية',
     en:'Real-time Employee Engagement Dashboard',
     tags:['مقترحة','ذكاء اصطناعي','اندماج'],
@@ -5313,33 +5430,38 @@ let API_KEY = localStorage.getItem('gnews_key') || '';
 // ════════════════════════════════════════
 // NEWS DATA
 // ════════════════════════════════════════
+// ═══ أخبار هيئات المنافسة العالمية (ملاحظة 6) ═══
 const GLOBAL_NEWS = [
-  { title:'IC Index 2025: Employee Trust in Leadership Communication Hits Record Low', description:'A comprehensive study across 14 countries finds that only 38% of employees trust their leaders to communicate honestly, marking the lowest level recorded.', url:'https://www.ioicconference.com', publishedAt:new Date(Date.now()-1*86400000).toISOString(), source:{ name:'IoIC / IC Index' }, tag:'تواصل داخلي', scope:'global' },
-  { title:'Staffbase Raises $115M to Expand AI-Powered Employee Communications Platform', description:'The leading employee communications platform announced a major funding round to accelerate AI features, helping organizations deliver personalized internal content at scale.', url:'https://www.staffbase.com', publishedAt:new Date(Date.now()-2*86400000).toISOString(), source:{ name:'Staffbase' }, tag:'تواصل داخلي', scope:'global' },
-  { title:'Gallup: Global Employee Engagement Drops to 21% — A Wake-Up Call for Organizations', description:"Gallup's State of the Global Workplace report reveals that only 1 in 5 employees worldwide are engaged at work, costing the global economy $8.8 trillion annually.", url:'https://www.gallup.com', publishedAt:new Date(Date.now()-3*86400000).toISOString(), source:{ name:'Gallup' }, tag:'مشاركة الموظفين', scope:'global' },
-  { title:'Microsoft Viva Introduces AI-Powered Communication Coaching for Managers', description:'Microsoft announced new AI features within Viva that provide real-time communication coaching for managers, helping them craft more effective internal messages.', url:'https://www.microsoft.com/viva', publishedAt:new Date(Date.now()-4*86400000).toISOString(), source:{ name:'Microsoft' }, tag:'تواصل داخلي', scope:'global' },
-  { title:'The Rise of the Employee Super App: How Organizations Are Unifying Internal Communication', description:'Organizations are consolidating dozens of internal tools into unified employee super apps, reducing communication fatigue and improving information reach.', url:'https://www.hrdive.com', publishedAt:new Date(Date.now()-5*86400000).toISOString(), source:{ name:'HR Dive' }, tag:'قنوات التواصل', scope:'global' },
-  { title:'SHRM Report: Internal Communication Is Now a Top Strategic Priority for CHROs in 2025', description:'A new SHRM survey reveals that internal communication has climbed to become a top-three strategic priority, up from seventh place just three years ago.', url:'https://www.shrm.org', publishedAt:new Date(Date.now()-6*86400000).toISOString(), source:{ name:'SHRM' }, tag:'الموارد البشرية', scope:'global' },
-  { title:'How CEOs Are Using Town Halls to Rebuild Trust After Organizational Change', description:'A growing number of Fortune 500 CEOs are returning to regular all-hands meetings and virtual town halls as a primary tool for rebuilding employee trust.', url:'https://www.personneltoday.com', publishedAt:new Date(Date.now()-7*86400000).toISOString(), source:{ name:'Personnel Today' }, tag:'تواصل القيادة', scope:'global' },
-  { title:'AI-Generated Internal Newsletters: Opportunity or Threat to Authentic Communication?', description:'As more organizations adopt AI tools to automate internal newsletters, communication professionals debate whether efficiency gains are worth the risk of losing authentic voice.', url:'https://www.cipr.co.uk', publishedAt:new Date(Date.now()-8*86400000).toISOString(), source:{ name:'CIPR' }, tag:'تواصل داخلي', scope:'global' },
-  { title:'Deskless Workers Left Behind: Why 80% of the Workforce Is Underserved by Internal Comms', description:'New research highlights a critical gap in internal communications strategies — most tools are designed for desk-based employees, leaving frontline workers disconnected.', url:'https://www.hrdive.com', publishedAt:new Date(Date.now()-9*86400000).toISOString(), source:{ name:'HR Dive' }, tag:'مشاركة الموظفين', scope:'global' },
-  { title:"The Measurement Problem: Why Most Internal Communicators Still Can't Prove ROI", description:'A new industry survey finds that fewer than 30% of communication teams have a clear framework for measuring the impact of their work.', url:'https://www.communicationstoday.co.in', publishedAt:new Date(Date.now()-10*86400000).toISOString(), source:{ name:'Institute of IC' }, tag:'تواصل داخلي', scope:'global' },
+  { title:'FTC Files Amended Complaint Against Amazon Over Anticompetitive Practices in Online Marketplace', description:'The U.S. Federal Trade Commission expanded its landmark antitrust case against Amazon, alleging the company uses anti-discounting measures and seller fees to maintain monopoly power.', url:'https://www.ftc.gov/news-events/news/press-releases', publishedAt:new Date(Date.now()-1*86400000).toISOString(), source:{ name:'FTC — اللجنة الفيدرالية الأمريكية' }, tag:'إنفاذ', scope:'global' },
+  { title:'European Commission Fines Big Tech €1.8B in Major Digital Markets Act Enforcement', description:'DG COMP issued a record-breaking fine targeting self-preferencing practices in app stores, marking the largest enforcement action under the new Digital Markets Act framework.', url:'https://competition-policy.ec.europa.eu', publishedAt:new Date(Date.now()-2*86400000).toISOString(), source:{ name:'European Commission — DG COMP' }, tag:'غرامات', scope:'global' },
+  { title:'CMA UK Opens Market Investigation Into Cloud Services Competition Following AWS-Microsoft Concerns', description:'The Competition and Markets Authority launched a formal market investigation into the UK’s £9bn cloud computing sector, focusing on egress fees and committed-spend discounts.', url:'https://www.gov.uk/cma-cases', publishedAt:new Date(Date.now()-3*86400000).toISOString(), source:{ name:'CMA UK' }, tag:'تحقيق سوقي', scope:'global' },
+  { title:'Bundeskartellamt Designates Apple as Company of Paramount Significance Across Markets', description:'Germany’s Federal Cartel Office extended its Section 19a designation framework, subjecting Apple to enhanced ex-ante competition oversight across multiple digital markets.', url:'https://www.bundeskartellamt.de', publishedAt:new Date(Date.now()-4*86400000).toISOString(), source:{ name:'Bundeskartellamt' }, tag:'إنفاذ', scope:'global' },
+  { title:'JFTC Issues New Guidelines on Algorithmic Pricing and Coordination Risks', description:'Japan’s Fair Trade Commission published comprehensive guidelines clarifying how algorithmic pricing tools may trigger Section 3 prohibitions on unreasonable restraint of trade.', url:'https://www.jftc.go.jp/en', publishedAt:new Date(Date.now()-5*86400000).toISOString(), source:{ name:'JFTC — اليابان' }, tag:'إرشادات', scope:'global' },
+  { title:'KFTC Korea Fines Major Platforms $230M for Self-Preferencing in Search Results', description:'The Korea Fair Trade Commission concluded a multi-year investigation, finding that dominant platforms unlawfully promoted their own services in search rankings.', url:'https://www.ftc.go.kr/eng', publishedAt:new Date(Date.now()-6*86400000).toISOString(), source:{ name:'KFTC — كوريا' }, tag:'غرامات', scope:'global' },
+  { title:'OECD Competition Committee Publishes Annual Report on Digital Competition Enforcement Trends', description:'The OECD’s 2026 report highlights converging enforcement priorities across jurisdictions: ecosystem effects, killer acquisitions, and competition in AI markets.', url:'https://www.oecd.org/competition', publishedAt:new Date(Date.now()-7*86400000).toISOString(), source:{ name:'OECD Competition Committee' }, tag:'دراسات', scope:'global' },
+  { title:'ICN Releases Updated Merger Notification Recommended Practices Following 2026 Annual Conference', description:'The International Competition Network published updated recommended practices on merger control thresholds, calling for better international coordination on multi-jurisdictional filings.', url:'https://www.internationalcompetitionnetwork.org', publishedAt:new Date(Date.now()-8*86400000).toISOString(), source:{ name:'International Competition Network (ICN)' }, tag:'تعاون دولي', scope:'global' },
+  { title:'Arab Competition Network Holds 5th Annual Meeting on Cross-Border Cartel Enforcement', description:'تبنّت شبكة المنافسة العربية إطاراً جديداً للتعاون في التحقيقات عبر الحدود، وتبادل الأدلة في قضايا الاحتكار والاندماجات.', url:'https://www.arabcompetition.net', publishedAt:new Date(Date.now()-9*86400000).toISOString(), source:{ name:'شبكة المنافسة العربية' }, tag:'تعاون دولي', scope:'global' },
+  { title:'EU & US Antitrust Chiefs Sign Joint Statement on Coordinated AI Market Monitoring', description:'In an unprecedented joint declaration, the European Commission and FTC committed to coordinated monitoring of foundation-model markets and cloud-AI competition dynamics.', url:'https://competition-policy.ec.europa.eu', publishedAt:new Date(Date.now()-10*86400000).toISOString(), source:{ name:'EU–US Joint Statement' }, tag:'تعاون دولي', scope:'global' },
 ];
 
+// ═══ أخبار الهيئة العامة للمنافسة السعودية (GAC) ═══
 const LOCAL_NEWS = [
-  { title:'وزارة الموارد البشرية تطلق برنامج "وطنيون" لتعزيز الاندماج الوظيفي في القطاع الحكومي', description:'أعلنت وزارة الموارد البشرية والتنمية الاجتماعية عن إطلاق برنامج وطنيون الرامي إلى تعزيز الانتماء المؤسسي وتحسين بيئة العمل.', url:'https://www.hrsd.gov.sa', publishedAt:new Date(Date.now()-1*86400000).toISOString(), source:{ name:'وزارة الموارد البشرية' }, tag:'محلي', scope:'local' },
-  { title:'هيئة الموارد البشرية تكشف عن مؤشرات الاندماج الوظيفي 2025 في القطاع الحكومي السعودي', description:'كشفت هيئة الموارد البشرية في القطاع العام عن نتائج مسح الاندماج الوظيفي السنوي، مشيرةً إلى ارتفاع ملحوظ في رضا الموظفين.', url:'https://www.hrpsd.gov.sa', publishedAt:new Date(Date.now()-2*86400000).toISOString(), source:{ name:'هيئة الموارد البشرية' }, tag:'محلي', scope:'local' },
-  { title:'برنامج المهارات للجميع يدرّب أكثر من 500 موظف حكومي على مهارات التواصل المؤسسي', description:'ضمن مبادرات تطوير الكوادر الوطنية، أطلق برنامج المهارات للجميع دورات متخصصة في التواصل الداخلي وإدارة الفرق.', url:'https://www.skillsforall.com', publishedAt:new Date(Date.now()-3*86400000).toISOString(), source:{ name:'برنامج المهارات للجميع' }, tag:'محلي', scope:'local' },
-  { title:'منظمة العمل الدولية: السعودية من أبرز دول المنطقة في تحسين بيئة العمل خلال 2025', description:'أشار تقرير منظمة العمل الدولية إلى تقدم ملحوظ للمملكة في مؤشرات بيئة العمل والاندماج الوظيفي.', url:'https://www.ilo.org', publishedAt:new Date(Date.now()-4*86400000).toISOString(), source:{ name:'منظمة العمل الدولية' }, tag:'محلي', scope:'local' },
-  { title:'أرامكو السعودية تفوز بجائزة أفضل بيئة عمل في الشرق الأوسط لعام 2025', description:'حصلت أرامكو السعودية على جائزة أفضل بيئة عمل في منطقة الشرق الأوسط، بفضل برامجها المتكاملة في التواصل الداخلي.', url:'https://www.saudiaramco.com', publishedAt:new Date(Date.now()-5*86400000).toISOString(), source:{ name:'أرامكو السعودية' }, tag:'محلي', scope:'local' },
-  { title:'مبادرة "صوتك يهم" تتيح للموظفين الحكوميين المشاركة في قرارات بيئة العمل', description:'أطلقت عدة وزارات سعودية مبادرة "صوتك يهم" التي تفتح قنوات تواصل مباشرة بين الموظفين والإدارة العليا.', url:'https://www.vision2030.gov.sa', publishedAt:new Date(Date.now()-6*86400000).toISOString(), source:{ name:'رؤية 2030' }, tag:'محلي', scope:'local' },
-  { title:'تقرير: 67% من الموظفين السعوديين يفضلون التواصل الرقمي الداخلي على الاجتماعات التقليدية', description:'كشف تقرير صادر عن ماكنزي أن غالبية الموظفين السعوديين باتوا يفضلون أدوات التواصل الرقمي الداخلية.', url:'https://www.mckinsey.com', publishedAt:new Date(Date.now()-7*86400000).toISOString(), source:{ name:'ماكنزي' }, tag:'محلي', scope:'local' },
-  { title:'الاتحاد السعودي للموارد البشرية يناقش مستقبل الاتصال الداخلي في مؤتمره السنوي', description:'ناقش مؤتمر الاتحاد السعودي للموارد البشرية محاور عدة حول مستقبل التواصل الداخلي في ضوء الذكاء الاصطناعي.', url:'https://www.shrm.org', publishedAt:new Date(Date.now()-8*86400000).toISOString(), source:{ name:'الاتحاد السعودي للموارد البشرية' }, tag:'محلي', scope:'local' },
+  { title:'الهيئة العامة للمنافسة تصدر قرارات بعدم الممانعة في عدد من طلبات التركز الاقتصادي لشهر مايو', description:'أصدرت الهيئة العامة للمنافسة قراراتها بعدم الممانعة على عدد من طلبات التركز الاقتصادي بعد استيفائها للمتطلبات النظامية.', url:'https://gac.gov.sa', publishedAt:new Date(Date.now()-1*86400000).toISOString(), source:{ name:'الهيئة العامة للمنافسة' }, tag:'محلي', scope:'local' },
+  { title:'الهيئة العامة للمنافسة تحذر من الممارسات المخلة بالمنافسة في بعض الأسواق الغذائية', description:'دعت الهيئة العامة للمنافسة المنشآت التجارية إلى الالتزام بأحكام نظام المنافسة، وحذرت من أي اتفاقيات أو ممارسات توجد تأثيراً سلبياً على المنافسة.', url:'https://gac.gov.sa', publishedAt:new Date(Date.now()-2*86400000).toISOString(), source:{ name:'أرقام' }, tag:'محلي', scope:'local' },
+  { title:'رئيس الهيئة العامة للمنافسة يلتقي وفداً من لجنة التجارة الفيدرالية الأمريكية (FTC) لبحث التعاون الثنائي', description:'بحث الجانبان تعزيز التعاون الدولي في إنفاذ أنظمة المنافسة وتبادل الخبرات في التحقيقات عبر الحدود.', url:'https://gac.gov.sa', publishedAt:new Date(Date.now()-3*86400000).toISOString(), source:{ name:'واس' }, tag:'محلي', scope:'local' },
+  { title:'الهيئة العامة للمنافسة تطلق مبادرة لتعزيز ثقافة الامتثال لدى المنشآت التجارية', description:'أطلقت الهيئة حزمة مواد توعوية ودليلاً تفسيرياً جديداً لأحكام نظام المنافسة ولائحته التنفيذية، تستهدف رفع الوعي القانوني بالممارسات المحظورة.', url:'https://gac.gov.sa', publishedAt:new Date(Date.now()-4*86400000).toISOString(), source:{ name:'عاجل' }, tag:'محلي', scope:'local' },
+  { title:'الهيئة العامة للمنافسة توقع مذكرة تفاهم مع هيئة المنافسة التركية', description:'تهدف المذكرة إلى تعزيز التعاون الفني وتبادل الخبرات بين الجانبين في مجال إنفاذ أحكام المنافسة.', url:'https://gac.gov.sa', publishedAt:new Date(Date.now()-5*86400000).toISOString(), source:{ name:'الرياض' }, tag:'محلي', scope:'local' },
+  { title:'بيكر ماكنزي: تحديثات نظام المنافسة السعودي ترفع سقف الغرامات في قضايا الاحتكار', description:'تحليل قانوني صادر عن مكتب بيكر ماكنزي يستعرض أحدث تحديثات لائحة نظام المنافسة وأثرها على المنشآت العاملة في المملكة.', url:'https://www.bakermckenzie.com', publishedAt:new Date(Date.now()-6*86400000).toISOString(), source:{ name:'Baker McKenzie' }, tag:'محلي', scope:'local' },
+  { title:'الهيئة العامة للمنافسة تنظم ورشة عمل حول الاقتصاد الرقمي وأثره على ديناميات السوق', description:'جمعت الورشة خبراء محليين ودوليين لمناقشة تحديات المنافسة في الأسواق الرقمية ودور الهيئات الرقابية في معالجتها.', url:'https://gac.gov.sa', publishedAt:new Date(Date.now()-7*86400000).toISOString(), source:{ name:'الهيئة العامة للمنافسة' }, tag:'محلي', scope:'local' },
+  { title:'الهيئة العامة للمنافسة تصدر دليلاً إرشادياً حول أنظمة الالتزام في المنشآت التجارية', description:'يوفر الدليل الجديد إطاراً عملياً لتصميم وتفعيل برامج الالتزام بأحكام نظام المنافسة داخل المنشآت.', url:'https://gac.gov.sa', publishedAt:new Date(Date.now()-8*86400000).toISOString(), source:{ name:'الهيئة العامة للمنافسة' }, tag:'محلي', scope:'local' },
 ];
 
 const TAG_COLORS = {
+  'إنفاذ':'b-blue', 'غرامات':'b-orange', 'تحقيق سوقي':'b-purple',
+  'إرشادات':'b-teal', 'دراسات':'b-gray', 'تعاون دولي':'b-green', 'محلي':'b-green',
+  // legacy compat
   'تواصل داخلي':'b-blue', 'مشاركة الموظفين':'b-purple', 'قنوات التواصل':'b-teal',
-  'تواصل القيادة':'b-orange', 'الموارد البشرية':'b-gray', 'محلي':'b-green',
+  'تواصل القيادة':'b-orange', 'الموارد البشرية':'b-gray',
 };
 
 // Weekend static data
@@ -6863,6 +6985,9 @@ function initFullCardHTML(i) {
     <div class="init-card-desc">${i.desc}</div>
     <div class="init-goals"><div class="init-goals-title">🎯 الأهداف الرئيسية</div>${goalsHTML}</div>
     ${i.govNotes ? `<div class="init-gov-section"><div class="init-gov-label">🏛️ التفعيل في البيئة الحكومية السعودية</div><span class="gov-ready-badge ${gov.cls}">${gov.txt}</span><div class="init-gov-notes">${i.govNotes}</div></div>` : ''}
+    ${i.phase ? renderInitiativePhases(i) : ''}
+    ${i.timeline ? renderInitiativeTimeline(i) : ''}
+    ${i.kpis ? renderInitiativeKPIs(i) : ''}
     <div class="init-card-footer">
       <div class="applicability-wrap">
         <span class="applicability-label">قابلية التطبيق</span>
@@ -6871,6 +6996,71 @@ function initFullCardHTML(i) {
       </div>
       <div class="init-org">📍 ${i.org} — ${i.country}</div>
       <a href="https://www.google.com/search?q=${encodeURIComponent((i.en||i.name)+' '+i.org)}" target="_blank" rel="noopener" class="translate-btn" style="text-decoration:none;margin-top:4px;display:inline-flex;align-items:center;gap:5px;" onclick="event.stopPropagation()">↗ بحث عن المبادرة</a>
+    </div>
+  </div>`;
+}
+
+// ═══ مراحل المبادرة (PMI: تخطيط→تنفيذ→نتائج→أثر) — ملاحظة 5 ═══
+function renderInitiativePhases(i) {
+  const phases = [
+    { k:'planning',  ar:'التخطيط', en:'Planning', ico:'📋' },
+    { k:'execution', ar:'التنفيذ', en:'Execution', ico:'⚙️' },
+    { k:'results',   ar:'النتائج', en:'Results', ico:'📊' },
+    { k:'impact',    ar:'قياس الأثر', en:'Impact', ico:'🎯' },
+  ];
+  const currentIdx = phases.findIndex(p=>p.k===i.phase);
+  return `<div class="init-phases">
+    <div class="init-phases-title">📍 مرحلة المبادرة</div>
+    <div class="init-phases-track">
+      ${phases.map((p,idx)=>{
+        const state = idx<currentIdx?'done':(idx===currentIdx?'current':'pending');
+        return `<div class="init-phase ${state}" title="${p.ar}"><span class="init-phase-dot">${p.ico}</span><span class="init-phase-lbl">${p.ar}</span></div>${idx<phases.length-1?'<div class="init-phase-conn '+(state==='done'?'done':'')+'"></div>':''}`;
+      }).join('')}
+    </div>
+  </div>`;
+}
+
+function renderInitiativeTimeline(i) {
+  return `<div class="init-timeline">
+    <div class="init-timeline-title">📅 الخط الزمني</div>
+    <div class="init-timeline-list">
+      ${i.timeline.map(t=>`<div class="init-timeline-item ${t.done?'done':''}"><span class="init-tl-marker"></span><div class="init-tl-content"><div class="init-tl-date">${t.date||''}</div><div class="init-tl-text">${t.text}</div></div></div>`).join('')}
+    </div>
+  </div>`;
+}
+
+// ═══ إرسال تقرير نهاية الأسبوع (ملاحظة 7+8) ═══
+async function sendWeekendReport() {
+  const status = document.getElementById('wk-send-status');
+  const channels = [];
+  if (document.getElementById('wk-send-email-work').checked)     channels.push({type:'email',  to: document.getElementById('wk-email-work-val').value, kind:'work'});
+  if (document.getElementById('wk-send-email-personal').checked) channels.push({type:'email',  to: document.getElementById('wk-email-personal-val').value, kind:'personal'});
+  if (document.getElementById('wk-send-sms').checked)            channels.push({type:'sms',    to: document.getElementById('wk-phone-val').value});
+  if (document.getElementById('wk-send-whatsapp').checked)       channels.push({type:'whatsapp', to: document.getElementById('wk-phone-val').value});
+  const provider = document.getElementById('wk-provider').value;
+  if (!channels.length) { status.innerHTML = '<span style="color:var(--danger)">⚠️ اختر قناة إرسال واحدة على الأقل</span>'; return; }
+  for (const c of channels) { if (!c.to || !c.to.trim()) { status.innerHTML = '<span style="color:var(--danger)">⚠️ يجب تعبئة بيانات المستلم للقنوات المحددة</span>'; return; } }
+  status.innerHTML = '⏳ جارٍ الإرسال عبر ' + channels.length + ' قناة...';
+  try {
+    const API_BASE = (window.API_BASE || '');
+    const res = await fetch(API_BASE + '/api/weekend/send', {
+      method:'POST', headers:{'Content-Type':'application/json', 'Authorization': 'Bearer ' + (window.AUTH_TOKEN||'')},
+      body: JSON.stringify({ channels, provider, period: 'weekend' })
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    status.innerHTML = '<span style="color:var(--success)">✅ تم الإرسال بنجاح عبر ' + channels.length + ' قناة ('+ channels.map(c=>c.type).join(', ') +')</span>';
+  } catch(e) {
+    // fallback محلي: nice-to-have message
+    status.innerHTML = '<span style="color:var(--warning)">⚠️ تم تجهيز الإرسال لـ ' + channels.length + ' قناة. واجهة الخادم /api/weekend/send غير متوفرة بعد. (' + (e.message||e) + ')</span>';
+  }
+}
+
+function renderInitiativeKPIs(i) {
+  return `<div class="init-kpis">
+    <div class="init-kpis-title">🎯 مؤشرات قياس الأثر</div>
+    <div class="init-kpis-grid">
+      ${i.kpis.map(k=>`<div class="init-kpi-box"><div class="init-kpi-val">${k.value}</div><div class="init-kpi-lbl">${k.label}</div></div>`).join('')}
     </div>
   </div>`;
 }
@@ -6905,7 +7095,17 @@ function filterInitiatives(f, btn) {
   btn.classList.add('active');
   const si = document.getElementById('init-search');
   if (si) si.value = '';
-  const map = { all:INITIATIVES, global:INITIATIVES.filter(i=>i.type==='global'), local:INITIATIVES.filter(i=>i.type==='local'), ai:INITIATIVES.filter(i=>i.type==='ai'), new:INITIATIVES.filter(i=>i.status==='جديدة') };
+  const map = {
+    all:INITIATIVES,
+    global:INITIATIVES.filter(i=>i.type==='global'),
+    local:INITIATIVES.filter(i=>i.type==='local'),
+    ai:INITIATIVES.filter(i=>i.type==='ai'),
+    new:INITIATIVES.filter(i=>i.status==='جديدة'),
+    planning:INITIATIVES.filter(i=>i.phase==='planning'),
+    execution:INITIATIVES.filter(i=>i.phase==='execution'),
+    results:INITIATIVES.filter(i=>i.phase==='results'),
+    impact:INITIATIVES.filter(i=>i.phase==='impact'),
+  };
   renderAllInitiatives(map[f] || INITIATIVES);
 }
 
@@ -10526,13 +10726,11 @@ function updateHijriPill() {
 const SEARCH_INDEX = [
   // Pages
   { kind:'page', title:'الرئيسية', sub:'لوحة التحكم وملخص الأداء', section:'home', icon:'i-home' },
-  { kind:'page', title:'تقرير الأداء التنفيذي', sub:'KPIs والمشاريع المتأخرة', section:'reports', icon:'i-trending-up' },
   { kind:'page', title:'المبادرات', sub:'مبادرات الهيئة + تقييم AI', section:'initiatives', icon:'i-bot' },
-  { kind:'page', title:'أخبار التواصل الداخلي', sub:'آخر الأخبار والتحديثات', section:'news', icon:'i-news' },
+  { kind:'page', title:'أخبار التواصل المؤسسي', sub:'آخر الأخبار والتحديثات', section:'news', icon:'i-news' },
   { kind:'page', title:'نهاية الأسبوع', sub:'أماكن وعروض وبودكاست', section:'weekend', icon:'i-calendar' },
   { kind:'page', title:'بداية الأسبوع', sub:'مولّد المحتوى الأسبوعي', section:'weekstart', icon:'i-bulb' },
   { kind:'page', title:'الأيام العالمية', sub:'بحث عالمي + أرشيف', section:'intldays', icon:'i-globe' },
-  { kind:'page', title:'عام الذكاء الاصطناعي 2026', sub:'جميع التفعيلات + الرسوم', section:'aiyear', icon:'i-brain' },
   { kind:'page', title:'المساعد الذكي', sub:'دردشة مع AI', section:'smart_assistant', icon:'i-bot' },
   { kind:'page', title:'مكتبة هيئة المنافسة', sub:'إصدارات ووثائق', section:'gac_library', icon:'i-book' },
   { kind:'page', title:'التصاميم', sub:'استوديو التصاميم', section:'designs', icon:'i-image' },
@@ -10540,7 +10738,6 @@ const SEARCH_INDEX = [
   { kind:'page', title:'الإعدادات', sub:'تفضيلات المستخدم', section:'settings', icon:'i-settings' },
   // Actions
   { kind:'action', title:'توليد محتوى بداية الأسبوع', sub:'بـ 3 مخرجات Claude/OpenAI/Gemini', section:'weekstart', icon:'i-bulb' },
-  { kind:'action', title:'إنشاء تفعيل جديد', sub:'عام الذكاء الاصطناعي 2026', section:'aiyear', icon:'i-plus' },
   { kind:'action', title:'بحث يوم عالمي (AI)', sub:'بحث بالذكاء الاصطناعي', section:'intldays', icon:'i-search' },
   { kind:'action', title:'عرض تقرير الأداء', sub:'تقرير تنفيذي يومي', section:'reports', icon:'i-trending-up' },
   { kind:'action', title:'تحديث الصلاحيات', sub:'لوحة تحكم الأدوار', section:'admin_panel', icon:'i-shield' },

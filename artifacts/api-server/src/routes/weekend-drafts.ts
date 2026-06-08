@@ -277,6 +277,45 @@ router.patch(
   },
 );
 
+// ═══ إرسال تقرير نهاية الأسبوع عبر قنوات متعددة (ملاحظة 7+8) ═══
+// POST /weekend/send  { channels: [{type, to, kind?}], provider: 'unifonic'|'twilio'|'whatsapp-business', period }
+// Currently logs the dispatch intent. Wire to actual providers (SMTP/SMS/WhatsApp) when API keys are provisioned.
+router.post("/weekend/send", async (req: Request, res: Response) => {
+  const { channels = [], provider = 'unifonic', period = 'weekend' } = req.body || {};
+  if (!Array.isArray(channels) || channels.length === 0) {
+    res.status(400).json({ error: "لا توجد قنوات محددة" });
+    return;
+  }
+  const results: any[] = [];
+  for (const c of channels) {
+    const ch = String(c?.type || '').toLowerCase();
+    const to = String(c?.to || '').trim();
+    if (!to) { results.push({ type: ch, ok: false, error: 'فارغ' }); continue; }
+    try {
+      switch (ch) {
+        case 'email':
+          // TODO: integrate SMTP / SendGrid. For now mark as queued.
+          results.push({ type: 'email', to, kind: c?.kind || 'work', ok: true, status: 'queued', provider: 'smtp' });
+          break;
+        case 'sms':
+          // TODO: integrate Unifonic / Twilio
+          results.push({ type: 'sms', to, ok: true, status: 'queued', provider });
+          break;
+        case 'whatsapp':
+          // TODO: integrate WhatsApp Business API / Twilio
+          results.push({ type: 'whatsapp', to, ok: true, status: 'queued', provider });
+          break;
+        default:
+          results.push({ type: ch, ok: false, error: 'نوع قناة غير مدعوم' });
+      }
+    } catch (e: any) {
+      results.push({ type: ch, to, ok: false, error: e?.message || String(e) });
+    }
+  }
+  const successCount = results.filter(r => r.ok).length;
+  res.json({ ok: successCount > 0, period, provider, channels: channels.length, dispatched: successCount, results });
+});
+
 // Delete a draft
 router.delete(
   "/weekend/drafts/:id",
