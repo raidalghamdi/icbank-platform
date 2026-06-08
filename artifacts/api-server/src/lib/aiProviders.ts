@@ -66,21 +66,31 @@ function isTransientGeminiError(err: unknown): boolean {
 }
 
 /**
+ * Errors that should trigger — not retry on the same model — immediate fallback
+ * to the next model in the chain (e.g. model deprecated, 404, permission denied).
+ */
+function isModelLevelError(err: unknown): boolean {
+  const msg = (err instanceof Error ? err.message : String(err || "")).toLowerCase();
+  return (
+    msg.includes("404") ||
+    msg.includes("not_found") ||
+    msg.includes("no longer available") ||
+    msg.includes("is not found") ||
+    msg.includes("permission_denied") ||
+    msg.includes("unsupported")
+  );
+}
+
+/**
  * Fallback chain of models tried in order when the primary returns transient errors
  * (503/UNAVAILABLE/overloaded). Each tier has its own internal retry loop.
  */
 function buildModelChain(primary: string): string[] {
   const chain: string[] = [primary];
-  // If primary is pro/2.5, fall back to 2.5-flash then 2.0-flash
-  if (!primary.includes("flash")) {
-    chain.push("gemini-2.5-flash");
-  }
-  if (!chain.includes("gemini-2.0-flash")) {
-    chain.push("gemini-2.0-flash");
-  }
-  if (!chain.includes("gemini-1.5-flash")) {
-    chain.push("gemini-1.5-flash");
-  }
+  // Fall back to faster/lighter flash variants when primary is overloaded
+  if (!chain.includes("gemini-2.5-flash")) chain.push("gemini-2.5-flash");
+  if (!chain.includes("gemini-2.5-flash-lite")) chain.push("gemini-2.5-flash-lite");
+  if (!chain.includes("gemini-flash-latest")) chain.push("gemini-flash-latest");
   return chain;
 }
 
@@ -122,7 +132,16 @@ export async function geminiText(
       } catch (err) {
         lastErr = err;
         const transient = isTransientGeminiError(err);
-        if (!transient) throw err;
+        const modelErr = isModelLevelError(err);
+        if (!transient && !modelErr) throw err;
+        // Model-level error → jump immediately to next model
+        if (modelErr) {
+          // eslint-disable-next-line no-console
+          console.warn(
+            `[ai] geminiText: model=${model} unavailable (${err instanceof Error ? err.message.slice(0, 120) : String(err)}), falling back`,
+          );
+          break; // breaks inner attempt loop → goes to next model
+        }
         if (attempt < attemptsPerModel) {
           const delay = 1200 * attempt + Math.floor(Math.random() * 400);
           // eslint-disable-next-line no-console
