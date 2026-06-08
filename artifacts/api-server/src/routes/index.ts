@@ -16,6 +16,7 @@ import shorfahRouter from "./shorfah";
 import shorfahCronRouter from "./shorfah-cron";
 import gacRouter from "./gac";
 import mediaMonitoringRouter from "./media-monitoring";
+import finalMediaReportsRouter from "./final-media-reports";
 import { authenticate, requireAuth, requirePageAccess } from "../middleware/auth";
 
 const router: IRouter = Router();
@@ -53,6 +54,7 @@ router.use(gacRouter);
 
 // Media monitoring + Prompt frameworks (mounted with public read, auth for writes via requireAdmin)
 router.use(mediaMonitoringRouter);
+router.use(finalMediaReportsRouter);
 
 router.use(requireAuth);
 
