@@ -38,27 +38,76 @@ export const GEMINI_IMAGE_MODEL =
   process.env.GEMINI_IMAGE_MODEL ?? "gemini-2.5-flash-image";
 
 /**
- * Generate plain text from a single user prompt.
+ * Sleep helper for retry backoff.
+ */
+function sleep(ms: number): Promise<void> {
+  return new Promise((r) => setTimeout(r, ms));
+}
+
+/**
+ * Detect transient Gemini errors that should be retried (503 UNAVAILABLE,
+ * 429 quota, network blips). Returns true if we should retry.
+ */
+function isTransientGeminiError(err: unknown): boolean {
+  const msg = (err instanceof Error ? err.message : String(err || "")).toLowerCase();
+  return (
+    msg.includes("503") ||
+    msg.includes("unavailable") ||
+    msg.includes("overloaded") ||
+    msg.includes("high demand") ||
+    msg.includes("429") ||
+    msg.includes("rate limit") ||
+    msg.includes("deadline") ||
+    msg.includes("timeout") ||
+    msg.includes("econnreset") ||
+    msg.includes("socket hang up") ||
+    msg.includes("fetch failed")
+  );
+}
+
+/**
+ * Generate plain text from a single user prompt. Auto-retries transient errors
+ * (503/UNAVAILABLE, 429, network) with exponential backoff up to 4 attempts.
  */
 export async function geminiText(
   prompt: string,
   opts: { model?: string; maxTokens?: number; system?: string } = {},
 ): Promise<string> {
   const model = opts.model ?? GEMINI_TEXT_MODEL;
-  const result = await gemini.models.generateContent({
-    model,
-    contents: [
-      ...(opts.system
-        ? [{ role: "user", parts: [{ text: opts.system }] }]
-        : []),
-      { role: "user", parts: [{ text: prompt }] },
-    ],
-    config: {
-      maxOutputTokens: opts.maxTokens ?? 2048,
-      temperature: 0.7,
-    },
-  });
-  return result.text ?? "";
+  const maxAttempts = 4;
+  let lastErr: unknown = null;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const result = await gemini.models.generateContent({
+        model,
+        contents: [
+          ...(opts.system
+            ? [{ role: "user", parts: [{ text: opts.system }] }]
+            : []),
+          { role: "user", parts: [{ text: prompt }] },
+        ],
+        config: {
+          maxOutputTokens: opts.maxTokens ?? 2048,
+          temperature: 0.7,
+        },
+      });
+      return result.text ?? "";
+    } catch (err) {
+      lastErr = err;
+      if (attempt < maxAttempts && isTransientGeminiError(err)) {
+        const delay = 1500 * Math.pow(2, attempt - 1) + Math.floor(Math.random() * 500);
+        // eslint-disable-next-line no-console
+        console.warn(
+          `[ai] geminiText transient error (attempt ${attempt}/${maxAttempts}), retrying in ${delay}ms:`,
+          err instanceof Error ? err.message : String(err),
+        );
+        await sleep(delay);
+        continue;
+      }
+      throw err;
+    }
+  }
+  throw lastErr ?? new Error("geminiText: unknown error");
 }
 
 /**
@@ -70,17 +119,51 @@ export async function geminiJSON<T = unknown>(
 ): Promise<T> {
   const sysPrefix =
     "أجب فقط بـ JSON صحيح بدون أي نص إضافي أو markdown أو شروحات. ";
-  const text = await geminiText(prompt, {
-    ...opts,
-    system: (opts.system ? opts.system + "\n" : "") + sysPrefix,
-  });
-  const clean = text
-    .replace(/^```(?:json)?\s*/i, "")
-    .replace(/\s*```$/i, "")
-    .trim();
-  const start = clean.search(/[\[{]/);
-  if (start === -1) throw new Error("Gemini returned no JSON");
-  return JSON.parse(clean.slice(start)) as T;
+  const maxParseAttempts = 3;
+  let lastErr: unknown = null;
+  for (let attempt = 1; attempt <= maxParseAttempts; attempt++) {
+    let text = "";
+    try {
+      text = await geminiText(prompt, {
+        ...opts,
+        system: (opts.system ? opts.system + "\n" : "") + sysPrefix,
+      });
+      const clean = text
+        .replace(/^```(?:json)?\s*/i, "")
+        .replace(/\s*```$/i, "")
+        .trim();
+      const start = clean.search(/[\[{]/);
+      if (start === -1) throw new Error("Gemini returned no JSON");
+      // Find matching closing bracket — Gemini sometimes appends commentary
+      const body = clean.slice(start);
+      try {
+        return JSON.parse(body) as T;
+      } catch {
+        // Try trimming to last } or ]
+        const lastBrace = Math.max(body.lastIndexOf("}"), body.lastIndexOf("]"));
+        if (lastBrace > 0) {
+          return JSON.parse(body.slice(0, lastBrace + 1)) as T;
+        }
+        throw new Error("AI response was not valid JSON");
+      }
+    } catch (err) {
+      lastErr = err;
+      // Retry on transient errors OR on JSON parse failures (Gemini truncation/noise)
+      const msg = err instanceof Error ? err.message : String(err);
+      const isParseError = msg.includes("JSON") || msg.includes("valid JSON");
+      if (attempt < maxParseAttempts && (isTransientGeminiError(err) || isParseError)) {
+        const delay = 1200 * attempt;
+        // eslint-disable-next-line no-console
+        console.warn(
+          `[ai] geminiJSON ${isParseError ? "parse" : "transient"} error (attempt ${attempt}/${maxParseAttempts}), retrying in ${delay}ms`,
+        );
+        await sleep(delay);
+        continue;
+      }
+      throw err;
+    }
+  }
+  throw lastErr ?? new Error("geminiJSON: unknown error");
 }
 
 // ─── Anthropic-compatible adapter ─────────────────────────────────────────────

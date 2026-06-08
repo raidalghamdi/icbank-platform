@@ -11888,6 +11888,10 @@ window.MM = (function(){
             var code = (inner && inner.error && inner.error.code) || (inner && inner.code);
             if (code === 429 || /prepayment|quota|depleted|exceeded/i.test(String(msg))) {
               friendly = '⚠️ نفد رصيد الذكاء الاصطناعي (Gemini API).\n\nيجب على المسؤول تجديد رصيد المفتاح من https://ai.studio/projects ثم المحاولة لاحقاً.';
+            } else if (code === 503 || /unavailable|high demand|overloaded|temporary/i.test(String(msg))) {
+              friendly = '⏱️ خدمة الذكاء الاصطناعي تعاني من ضغط مؤقت الآن.\n\nالرجاء إعادة المحاولة خلال 30 ثانية.';
+            } else if (/valid JSON|no JSON/i.test(String(msg))) {
+              friendly = '⚠️ الذكاء الاصطناعي لم يرجع إجابة صحيحة. أعاد النظام المحاولة 3 مرات.\n\nالرجاء المحاولة مرة أخرى.';
             } else {
               friendly = String(msg).slice(0,300);
             }
