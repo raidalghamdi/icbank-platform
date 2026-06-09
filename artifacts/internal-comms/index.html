@@ -3623,9 +3623,29 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
           </select>
         </div>
       </div>
-      <div id="id-archive-grid" class="id-archive-grid">
-        <div class="ws-empty-state">لا يوجد أيام محفوظة بعد. ابحث وأرشف أول يوم عالمي.</div>
+
+      <!-- Upcoming -->
+      <div class="id-archive-subhead" style="display:flex;align-items:center;gap:8px;margin:18px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border)">
+        <span style="font-weight:700;color:var(--text);font-size:14px">🔜 الأيام القادمة</span>
+        <span class="badge b-green" id="id-archive-upcoming-badge" style="font-size:11px">0</span>
+        <span style="color:var(--text-4);font-size:11px;margin-right:auto">مرتّبة من الأقرب إلى الأبعد</span>
       </div>
+      <div id="id-archive-grid-upcoming" class="id-archive-grid">
+        <div class="ws-empty-state">—</div>
+      </div>
+
+      <!-- Past -->
+      <div class="id-archive-subhead" style="display:flex;align-items:center;gap:8px;margin:24px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border)">
+        <span style="font-weight:700;color:var(--text);font-size:14px">📆 الأيام السابقة</span>
+        <span class="badge b-blue" id="id-archive-past-badge" style="font-size:11px">0</span>
+        <span style="color:var(--text-4);font-size:11px;margin-right:auto">مرتّبة حسب تاريخ المناسبة (تنازلياً)</span>
+      </div>
+      <div id="id-archive-grid-past" class="id-archive-grid">
+        <div class="ws-empty-state">—</div>
+      </div>
+
+      <!-- Legacy hidden container (kept for backward-compat) -->
+      <div id="id-archive-grid" style="display:none"></div>
     </div><!-- /inline-archive -->
 
     </div><!-- /search-view -->
@@ -8641,28 +8661,77 @@ function idSearchArchive() {
   idLoadArchive();
 }
 
+function idRenderArchiveCard(day) {
+  var cat = day.category ? '<span class="id-arc-tag">' + esc(day.category) + '</span>' : '';
+  var date = day.annualDate ? '<span class="id-arc-date">📅 ' + esc(day.annualDate) + '</span>' : '';
+  var actCount = day.activation_count || 0;
+  var updated = day.updatedAt ? new Date(day.updatedAt).toLocaleDateString('ar-SA', { year:'numeric', month:'short', day:'numeric' }) : '';
+  var daysUntilBadge = (typeof day._daysUntil === 'number')
+    ? '<span class="id-arc-tag" style="background:#dcfce7;color:#166534">' + (day._daysUntil === 0 ? 'اليوم' : 'بعد ' + day._daysUntil + ' يوم') + '</span>'
+    : '';
+  return '<div class="id-archive-card" onclick="idOpenDay(' + day.id + ')">' +
+    '<div class="id-archive-card-name">' + esc(day.dayNameAr) + '</div>' +
+    (day.dayNameEn ? '<div class="id-archive-card-en">' + esc(day.dayNameEn) + '</div>' : '') +
+    '<div class="id-archive-card-meta">' + daysUntilBadge + cat + date + '</div>' +
+    '<div class="id-archive-card-footer">' +
+      '<span>⚡ ' + actCount + ' تفعيل · ' + updated + '</span>' +
+      (authCanPerm('intldays', 'delete') ? '<button class="id-archive-card-del" onclick="event.stopPropagation();idDeleteDay(' + day.id + ')" title="حذف">✕</button>' : '') +
+    '</div>' +
+  '</div>';
+}
+
 function idRenderArchiveGrid(days) {
-  var grid = document.getElementById('id-archive-grid');
-  if (!grid) return;
+  var upcomingEl = document.getElementById('id-archive-grid-upcoming');
+  var pastEl     = document.getElementById('id-archive-grid-past');
+  var upBadge    = document.getElementById('id-archive-upcoming-badge');
+  var pastBadge  = document.getElementById('id-archive-past-badge');
+  if (!upcomingEl || !pastEl) return;
+
   if (!days || !days.length) {
-    grid.innerHTML = '<div class="ws-empty-state">لا يوجد أيام محفوظة تطابق البحث.</div>';
+    var emptyHtml = '<div class="ws-empty-state">لا يوجد أيام محفوظة تطابق البحث.</div>';
+    upcomingEl.innerHTML = emptyHtml;
+    pastEl.innerHTML = '';
+    if (upBadge) upBadge.textContent = '0';
+    if (pastBadge) pastBadge.textContent = '0';
     return;
   }
-  grid.innerHTML = days.map(function(day) {
-    var cat = day.category ? '<span class="id-arc-tag">' + esc(day.category) + '</span>' : '';
-    var date = day.annualDate ? '<span class="id-arc-date">📅 ' + esc(day.annualDate) + '</span>' : '';
-    var actCount = day.activation_count || 0;
-    var updated = day.updatedAt ? new Date(day.updatedAt).toLocaleDateString('ar-SA', { year:'numeric', month:'short', day:'numeric' }) : '';
-    return '<div class="id-archive-card" onclick="idOpenDay(' + day.id + ')">' +
-      '<div class="id-archive-card-name">' + esc(day.dayNameAr) + '</div>' +
-      (day.dayNameEn ? '<div class="id-archive-card-en">' + esc(day.dayNameEn) + '</div>' : '') +
-      '<div class="id-archive-card-meta">' + cat + date + '</div>' +
-      '<div class="id-archive-card-footer">' +
-        '<span>⚡ ' + actCount + ' تفعيل · ' + updated + '</span>' +
-        (authCanPerm('intldays', 'delete') ? '<button class="id-archive-card-del" onclick="event.stopPropagation();idDeleteDay(' + day.id + ')" title="حذف">✕</button>' : '') +
-      '</div>' +
-    '</div>';
-  }).join('');
+
+  // Compute daysUntil per day from annualDate (MM-DD), splitting upcoming vs past
+  var now = new Date();
+  var todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  var currentYear = now.getFullYear();
+  var upcoming = [];
+  var past = [];
+
+  days.forEach(function(d) {
+    if (!d.annualDate) { past.push(d); return; }
+    var parts = String(d.annualDate).split('-');
+    if (parts.length < 2) { past.push(d); return; }
+    var mm = parseInt(parts[0], 10);
+    var dd = parseInt(parts[1], 10);
+    if (!mm || !dd) { past.push(d); return; }
+    var thisYearDate = new Date(currentYear, mm - 1, dd);
+    thisYearDate.setHours(0, 0, 0, 0);
+    if (thisYearDate >= todayStart) {
+      var daysUntil = Math.round((thisYearDate.getTime() - todayStart.getTime()) / 86400000);
+      upcoming.push(Object.assign({}, d, { _daysUntil: daysUntil, _occurDate: thisYearDate }));
+    } else {
+      past.push(d);
+    }
+  });
+
+  // Sort: upcoming asc by daysUntil (nearest first), past as-is (already DESC by annualDate from API)
+  upcoming.sort(function(a, b) { return a._daysUntil - b._daysUntil; });
+
+  if (upBadge) upBadge.textContent = upcoming.length;
+  if (pastBadge) pastBadge.textContent = past.length;
+
+  upcomingEl.innerHTML = upcoming.length
+    ? upcoming.map(idRenderArchiveCard).join('')
+    : '<div class="ws-empty-state" style="font-size:12px;padding:14px">لا توجد أيام قادمة في الأرشيف.</div>';
+  pastEl.innerHTML = past.length
+    ? past.map(idRenderArchiveCard).join('')
+    : '<div class="ws-empty-state" style="font-size:12px;padding:14px">لا توجد أيام سابقة.</div>';
 }
 
 async function idOpenDay(id) {
