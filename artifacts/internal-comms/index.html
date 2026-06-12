@@ -3220,19 +3220,6 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
         <div class="wk2-options-grid" id="opts-podcast"></div>
       </div>
 
-      <div class="wk2-section" id="sec-ai">
-        <div class="wk2-sec-header">
-          <div class="wk2-sec-left">
-            <div class="wk2-sec-icon" style="background:var(--success-bg);color:var(--success)">🤖</div>
-            <div>
-              <div class="wk2-sec-title">أداة الذكاء الاصطناعي</div>
-              <div class="wk2-sec-sub">أداة AI مفيدة للحياة والعمل</div>
-            </div>
-          </div>
-        </div>
-        <div class="wk2-options-grid" id="opts-ai"></div>
-      </div>
-
       <div class="wk2-section" id="sec-matches">
         <div class="wk2-sec-header">
           <div class="wk2-sec-left">
@@ -7263,7 +7250,7 @@ async function loadAllWeekendSections() {
     if (data.places?.length) { const s=[...data.places].sort(()=>Math.random()-0.5).slice(0,6); renderOptions('place',s); } else generateSection('place');
     if (data.deals?.length) renderOptions('deals',data.deals); else generateSection('deals');
     if (data.podcasts?.length) renderOptions('podcast',data.podcasts); else generateSection('podcast');
-    if (data.aiTools?.length) renderOptions('ai',data.aiTools); else generateSection('ai');
+    // 'ai' section removed (E4): no aiTools rendering
     if (data.matches?.length) renderOptions('matches',data.matches); else generateSection('matches');
     if (data.movies?.length) renderOptions('movies',data.movies); else generateSection('movies');
   } catch(err) {

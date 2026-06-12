@@ -3,7 +3,7 @@ import { db } from "@workspace/db";
 import { weekendDraftsTable } from "@workspace/db";
 import { eq, desc, and } from "drizzle-orm";
 import { requireAdmin } from "../middleware/auth";
-import { geminiJSON } from "../lib/aiProviders";
+import { geminiJSON, aiJSONWithFallback } from "../lib/aiProviders";
 
 const router = Router();
 
@@ -97,54 +97,59 @@ router.post(
     const weekendDate = (req.body?.weekend_date as string) || nextThursday();
     const userId = (req as any).user?.id ?? null;
 
-    const prompt = `أنت محرر محتوى ترفيهي للموظفين الحكوميين في المملكة العربية السعودية. أنشئ محتوى نهاية أسبوع جاهز للنشر يخص مدينة الرياض ليوم الخميس ${weekendDate} والوينكد بأكمله.
+    const prompt = `أنت محرر محتوى ترفيهي خبير للموظفين الحكوميين في المملكة العربية السعودية. مهمتك إنتاج محتوى نهاية أسبوع جاهز للنشر يخص مدينة الرياض ليوم الخميس ${weekendDate} ولكامل الوينكد.
 
-المطلوب: JSON object يحوي الحقول التالية بالعربية الفصحى ولهجة ودودة احترافية مناسبة لجمهور حكومي:
+الأسلوب المطلوب:
+- عربية فصحى راقية بنبرة ودودة احترافية مناسبة لجمهور حكومي
+- عناوين جذابة وأوصاف ملموسة (لا عبارات عامة)
+- كل وصف 2-3 أسطر يبرز ما يميز الخيار فعلياً
+- استخدام أرقام وتفاصيل دقيقة (مواعيد، أسعار تقريبية، مواقع)
+
+أخرج JSON واحد فقط بهذا الشكل بالضبط:
 
 {
-  "summary": "فقرة قصيرة (٣ أسطر) ترحيبية تلخص أبرز خيارات الوينكد",
+  "summary": "فقرة 3 أسطر ترحيبية تلخص أبرز خيارات الوينكد بأسلوب جذاب",
   "places": [
-    {"title":"اسم المكان","body":"وصف ٢ سطر يبرز ما يميزه للعائلة","maps_query":"بحث خرائط جوجل بالإنجليزية"}
-    // ٤ أماكن في الرياض (متاحف، حدائق، أسواق، فعاليات موسم الرياض)
+    {"title":"اسم المكان","body":"وصف 2-3 أسطر يبرز ما يميزه للعائلة مع تفاصيل ملموسة","maps_query":"Google Maps search query in English"}
   ],
   "deals": [
-    {"title":"فئة العروض (مثل عروض المطاعم)","items":[
-      {"place":"اسم العلامة التجارية","discount":"النسبة أو الميزة","detail":"شرح بسيط","emoji":"🍔"}
+    {"title":"فئة العروض","items":[
+      {"place":"اسم العلامة التجارية","discount":"النسبة أو الميزة","detail":"شرح مفيد للعميل","emoji":"🍔"}
     ]}
-    // ٣ فئات، كل فئة ٣ عروض من علامات معروفة بالسعودية
   ],
   "podcasts": [
-    {"title":"اسم البودكاست","field":"المجال","episode":"اسم الحلقة","body":"وصف","channel":"اسم القناة","tagline":"شعار قصير"}
-    // ٣ بودكاستات عربية معروفة
-  ],
-  "aiTools": [
-    {"title":"اسم الأداة","tagline":"شعار قصير","uses":["استخدام ١","استخدام ٢","استخدام ٣"],"emoji":"🤖"}
-    // ٣ أدوات ذكاء اصطناعي مفيدة
+    {"title":"اسم البودكاست","field":"المجال","episode":"اسم الحلقة","body":"وصف الحلقة وقيمتها","channel":"المنصة (Spotify/YouTube/Anghami)","tagline":"شعار قصير جذاب"}
   ],
   "matches": [
     {"title":"اسم البطولة","teams":"الفريق الأول × الفريق الثاني","time":"وقت المباراة بتوقيت الرياض","channel":"القناة الناقلة"}
-    // ٣ مباريات بارزة في الخميس والجمعة والسبت
   ],
   "movies": [
-    {"title":"اسم الفيلم","genre":"النوع","cinema":"اسم السينما (Muvi أو VOX)","rating":"التصنيف العمري","body":"وصف ١ سطر للعائلة"}
-    // ٣ أفلام عائلية معاصرة
+    {"title":"اسم الفيلم","genre":"النوع","cinema":"اسم السينما (Muvi أو VOX)","rating":"التصنيف العمري","body":"وصف سطر للعائلة"}
   ]
 }
 
+الأعداد المطلوبة بالضبط:
+- places: 4 أماكن متنوعة (متحف/حديقة/سوق/فعالية موسمية)
+- deals: 3 فئات، كل فئة 3 عروض من علامات معروفة في السعودية
+- podcasts: 3 بودكاستات عربية معروفة فعلياً
+- matches: 3 مباريات بارزة (دوري روشن/بطولات إقليمية)
+- movies: 3 أفلام عائلية معاصرة
+
 ⚠️ تنبيهات حرجة:
-- المدينة: الرياض فقط
-- جميع الأماكن والعروض حقيقية ومتاحة فعلياً في الرياض
-- اذكر علامات تجارية معروفة (Shake Shack, Starbucks, H&M, VOX, Muvi, Fitness Time...)
-- يجب أن يكون JSON صالحاً 100% بدون أي نص قبله أو بعده
+- المدينة: الرياض حصراً
+- جميع الخيارات حقيقية ومتاحة فعلياً
+- علامات معروفة بالسعودية (Shake Shack, Starbucks, H&M, VOX, Muvi, Fitness Time, Almosafer...)
+- لا تذكر أدوات ذكاء اصطناعي مطلقاً
+- JSON صالح 100% بدون أي نص أو markdown قبله أو بعده
 `;
 
     let content: any;
     try {
-      content = await geminiJSON(prompt, { maxTokens: 4096 });
+      // Multi-provider fallback: Gemini chain → Perplexity
+      content = await aiJSONWithFallback<any>(prompt, { maxTokens: 4096 });
     } catch (err: any) {
       res.status(502).json({
-        error: "فشل التوليد من Gemini",
-        detail: String(err?.message || err),
+        error: err?.message || "تعذّر توليد مسودة نهاية الأسبوع",
       });
       return;
     }
