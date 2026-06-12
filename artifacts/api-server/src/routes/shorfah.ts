@@ -1060,4 +1060,190 @@ router.post("/shorfah/issues/:id/publish", requireAdmin, async (req: Request, re
   res.json({ issue: updated });
 });
 
+// ────────────────────────────────────────────────────────────────────────
+// B1: Word export (DOCX) — alternative to PDF, no Chromium needed
+// ────────────────────────────────────────────────────────────────────────
+router.get("/shorfah/issues/:id/docx", requireAuth, async (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+  const arabicMonths = ["يناير","فبراير","مارس","أبريل","مايو","يونيو",
+    "يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
+
+  try {
+    const [issue] = await db
+      .select()
+      .from(shorfahIssuesTable)
+      .where(eq(shorfahIssuesTable.id, id))
+      .limit(1);
+    if (!issue) return res.status(404).json({ error: "العدد غير موجود" });
+
+    const isPreview =
+      String(req.query.preview ?? "") === "1" ||
+      String(req.query.preview ?? "") === "true";
+    const whereClause = isPreview
+      ? and(
+          eq(shorfahSectionsTable.issueId, id),
+          eq(shorfahSectionsTable.includeInPdf, true),
+        )
+      : and(
+          eq(shorfahSectionsTable.issueId, id),
+          eq(shorfahSectionsTable.includeInPdf, true),
+          eq(shorfahSectionsTable.workflowStatus, "approved"),
+        );
+
+    const sections = await db
+      .select()
+      .from(shorfahSectionsTable)
+      .where(whereClause)
+      .orderBy(asc(shorfahSectionsTable.displayOrder));
+
+    const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } = await import("docx");
+
+    // Helper: strip markdown to plain text
+    const stripMd = (md: string | null | undefined): string => {
+      if (!md) return "";
+      return String(md)
+        .replace(/!\[[^\]]*\]\([^)]+\)/g, "")  // images
+        .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")  // links
+        .replace(/[*_`~#>]/g, "")
+        .replace(/\n{3,}/g, "\n\n")
+        .trim();
+    };
+
+    const docChildren: any[] = [];
+
+    // Title page
+    docChildren.push(
+      new Paragraph({
+        children: [new TextRun({ text: issue.titleAr || "شُرفة", bold: true, size: 48, font: "Cairo" })],
+        alignment: AlignmentType.CENTER,
+        spacing: { before: 400, after: 200 },
+        bidirectional: true,
+      }),
+    );
+    if (issue.subtitleAr) {
+      docChildren.push(
+        new Paragraph({
+          children: [new TextRun({ text: issue.subtitleAr, size: 28, font: "Cairo", color: "555555" })],
+          alignment: AlignmentType.CENTER,
+          spacing: { after: 200 },
+          bidirectional: true,
+        }),
+      );
+    }
+    docChildren.push(
+      new Paragraph({
+        children: [new TextRun({
+          text: `العدد ${issue.issueNo} · ${arabicMonths[(issue.month || 1) - 1]} ${issue.year}`,
+          size: 24, font: "Cairo", color: "888888",
+        })],
+        alignment: AlignmentType.CENTER,
+        spacing: { after: 600 },
+        bidirectional: true,
+      }),
+    );
+
+    // Editor letter
+    if (issue.editorLetter) {
+      docChildren.push(
+        new Paragraph({
+          children: [new TextRun({ text: "رسالة رئيس التحرير", bold: true, size: 32, font: "Cairo", color: "0069A7" })],
+          heading: HeadingLevel.HEADING_1,
+          spacing: { before: 400, after: 200 },
+          bidirectional: true,
+        }),
+      );
+      stripMd(issue.editorLetter).split(/\n\n+/).forEach((para) => {
+        if (para.trim()) {
+          docChildren.push(
+            new Paragraph({
+              children: [new TextRun({ text: para.trim(), size: 24, font: "Cairo" })],
+              spacing: { after: 160, line: 360 },
+              bidirectional: true,
+            }),
+          );
+        }
+      });
+    }
+
+    // Sections
+    for (const s of sections) {
+      docChildren.push(
+        new Paragraph({
+          children: [new TextRun({ text: s.titleAr || "(بلا عنوان)", bold: true, size: 32, font: "Cairo", color: "0069A7" })],
+          heading: HeadingLevel.HEADING_1,
+          spacing: { before: 360, after: 160 },
+          bidirectional: true,
+        }),
+      );
+      if (s.descriptionAr) {
+        docChildren.push(
+          new Paragraph({
+            children: [new TextRun({ text: s.descriptionAr, italics: true, size: 22, font: "Cairo", color: "666666" })],
+            spacing: { after: 200 },
+            bidirectional: true,
+          }),
+        );
+      }
+      if (s.contentMd) {
+        stripMd(s.contentMd).split(/\n\n+/).forEach((para) => {
+          if (para.trim()) {
+            docChildren.push(
+              new Paragraph({
+                children: [new TextRun({ text: para.trim(), size: 24, font: "Cairo" })],
+                spacing: { after: 160, line: 360 },
+                bidirectional: true,
+              }),
+            );
+          }
+        });
+      }
+    }
+
+    // Footer page
+    docChildren.push(
+      new Paragraph({
+        children: [new TextRun({ text: "· · ·", size: 32, color: "888888" })],
+        alignment: AlignmentType.CENTER,
+        spacing: { before: 600, after: 200 },
+      }),
+    );
+    docChildren.push(
+      new Paragraph({
+        children: [new TextRun({
+          text: `شُرفة · العدد ${issue.issueNo} · ${arabicMonths[(issue.month || 1) - 1]} ${issue.year}`,
+          size: 20, font: "Cairo", color: "888888",
+        })],
+        alignment: AlignmentType.CENTER,
+        bidirectional: true,
+      }),
+    );
+
+    const doc = new Document({
+      creator: "GAC",
+      title: issue.titleAr || "شُرفة",
+      description: `العدد ${issue.issueNo} — ${arabicMonths[(issue.month || 1) - 1]} ${issue.year}`,
+      styles: {
+        default: {
+          document: { run: { font: "Cairo", size: 24 } },
+        },
+      },
+      sections: [{
+        properties: { page: { margin: { top: 1000, right: 1200, bottom: 1000, left: 1200 } } },
+        children: docChildren,
+      }],
+    });
+
+    const buffer = await Packer.toBuffer(doc);
+    const monthNum = String(issue.month).padStart(2, "0");
+    const filename = `shorfah-issue-${issue.issueNo}-${issue.year}-${monthNum}.docx`;
+    res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+    res.setHeader("Content-Length", String(buffer.length));
+    res.end(buffer);
+  } catch (err: any) {
+    console.error("[shorfah/docx] error:", err);
+    res.status(500).json({ error: err?.message || "تعذّر توليد ملف Word" });
+  }
+});
+
 export default router;

@@ -1737,9 +1737,9 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
 }
 
 /* ═══ WEEK START — بداية الأسبوع ═══ */
-.ws-layout{display:grid;grid-template-columns:290px 1fr;gap:20px;align-items:start}
-.ws-sidebar-panel{display:flex;flex-direction:column;gap:16px}
-.ws-main-panel{display:flex;flex-direction:column;gap:16px}
+.ws-layout{display:flex;flex-direction:column;gap:20px}
+.ws-sidebar-panel{display:flex;flex-direction:column;gap:16px;order:2}
+.ws-main-panel{display:flex;flex-direction:column;gap:16px;order:1}
 .ws-upload-zone{margin-top:10px}
 .ws-drop-area{border:2px dashed var(--border-strong);border-radius:8px;padding:22px;text-align:center;cursor:pointer;transition:all .2s;background:var(--bg)}
 .ws-drop-area:hover,.ws-drop-area.dragover{border-color:var(--primary);background:rgba(30,64,175,.05)}
@@ -1910,7 +1910,7 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
 .id-compare-select{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg);font-family:var(--sans);font-size:13px;color:var(--text);direction:rtl;margin-bottom:8px}
 .id-compare-result{background:var(--surface-2);border-radius:8px;padding:12px;font-size:13px;min-height:80px}
 .ws-progress-msg{font-size:12px;display:flex;align-items:center;gap:6px;margin-top:8px}
-@media(max-width:1100px){.ws-layout{grid-template-columns:1fr}.ws-output-grid{grid-template-columns:1fr}}
+@media(max-width:1100px){.ws-output-grid{grid-template-columns:1fr}}
 @media(max-width:800px){.ws-form-row{grid-template-columns:1fr}}
 
 /* ══════════════════════════════════════════════
@@ -3152,32 +3152,34 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
       </div>
     </div>
 
-    <!-- ═══ قنوات الإرسال (ملاحظة 7+8) ═══ -->
-    <div class="wk2-send-panel" style="background:#fff;border:1px solid var(--border-subtle);border-radius:12px;padding:16px;margin-bottom:16px;box-shadow:var(--shadow-sm);">
+    <!-- ═══ قناة الإرسال — واتساب فقط (E1) ═══ -->
+    <div class="wk2-send-panel" style="background:linear-gradient(135deg,#25D366 0%,#128C7E 100%);color:#fff;border-radius:12px;padding:16px;margin-bottom:16px;box-shadow:var(--shadow-sm);">
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:14px;">
-        <div>
-          <div style="font-size:15px;font-weight:700;color:var(--text);">📤 إرسال تقرير نهاية الأسبوع</div>
-          <div style="font-size:12px;color:var(--text-3);margin-top:3px;">اختر القنوات المناسبة لإرسال التقرير إلى المستلمين</div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="width:42px;height:42px;background:rgba(255,255,255,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;">💬</div>
+          <div>
+            <div style="font-size:15px;font-weight:700;color:#fff;">قناة الإرسال: واتساب الرسمية</div>
+            <div style="font-size:12px;color:rgba(255,255,255,.85);margin-top:3px;">تقرير نهاية الأسبوع يُرسَل عبر <strong>واتساب فقط</strong> — لا يوجد قنوات أخرى مفعّلة</div>
+          </div>
         </div>
-        <button class="btn btn-primary" onclick="sendWeekendReport()" style="padding:8px 18px;font-weight:700;">🚀 إرسال الآن</button>
+        <button class="btn" onclick="sendWeekendReport()" style="background:#fff;color:#128C7E;padding:8px 18px;font-weight:700;border:none;">📤 إرسال الآن</button>
       </div>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;">
-        <label class="wk2-send-opt"><input type="checkbox" id="wk-send-email-work" checked> <span>📧 البريد الرسمي (الهيئة)</span></label>
-        <label class="wk2-send-opt"><input type="checkbox" id="wk-send-email-personal"> <span>📨 البريد الشخصي</span></label>
-        <label class="wk2-send-opt"><input type="checkbox" id="wk-send-sms"> <span>📱 SMS</span></label>
-        <label class="wk2-send-opt"><input type="checkbox" id="wk-send-whatsapp"> <span>💬 WhatsApp</span></label>
-      </div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:12px;">
-        <input id="wk-email-work-val" placeholder="name@gac.gov.sa" class="wk-send-input" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;">
-        <input id="wk-email-personal-val" placeholder="name@gmail.com" class="wk-send-input" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;">
-        <input id="wk-phone-val" placeholder="+966 5XX XXX XXX" class="wk-send-input" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;">
-        <select id="wk-provider" class="wk-send-input" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;">
-          <option value="unifonic">مزود: Unifonic (سعودي)</option>
-          <option value="twilio">مزود: Twilio</option>
-          <option value="whatsapp-business">WhatsApp Business API</option>
+        <input id="wk-phone-val" placeholder="+966 5XX XXX XXX (رقم القروب/المستلم)" class="wk-send-input" style="padding:9px 12px;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.15);color:#fff;border-radius:8px;font-size:13px;">
+        <select id="wk-provider" class="wk-send-input" style="padding:9px 12px;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.15);color:#fff;border-radius:8px;font-size:13px;">
+          <option value="whatsapp-business" style="color:#000;">WhatsApp Business API (موصى به)</option>
+          <option value="unifonic" style="color:#000;">Unifonic (سعودي)</option>
+          <option value="twilio" style="color:#000;">Twilio</option>
         </select>
       </div>
-      <div id="wk-send-status" style="font-size:12px;color:var(--text-3);margin-top:10px;"></div>
+      <!-- Hidden checkboxes to preserve send logic (only WhatsApp) -->
+      <input type="checkbox" id="wk-send-whatsapp" checked style="display:none;">
+      <input type="checkbox" id="wk-send-email-work" style="display:none;">
+      <input type="checkbox" id="wk-send-email-personal" style="display:none;">
+      <input type="checkbox" id="wk-send-sms" style="display:none;">
+      <input id="wk-email-work-val" type="hidden" value="">
+      <input id="wk-email-personal-val" type="hidden" value="">
+      <div id="wk-send-status" style="font-size:12px;color:rgba(255,255,255,.9);margin-top:10px;"></div>
     </div>
 
     <!-- SECTIONS -->
@@ -4640,6 +4642,10 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
             <svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             تحميل PDF
           </a>
+          <a id="shorfah-docx-download-btn" class="btn btn-ghost btn-sm" href="#" download style="flex:1 1 140px;justify-content:center;">
+            <svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            تحميل Word
+          </a>
           <button id="shorfah-start-review-btn" class="btn btn-ghost btn-sm" onclick="shorfahStartReview()" style="display:none;flex:1 1 140px;justify-content:center;">
             <svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
             بدء المراجعة النهائية
@@ -5538,21 +5544,25 @@ const STATIC_DATA = {
     { title:'موسم الرياض', body:'فعاليات عائلية متجددة أسبوعياً مع عروض مسرحية وألعاب وأجواء احتفالية مميزة.', maps_query:'Riyadh Season Entertainment City' },
     { title:'الرياض زو', body:'وجهة عائلية رائعة يعشقها الأطفال — تضم أكثر من 200 نوع من الحيوانات في بيئات طبيعية.', maps_query:'Riyadh Zoo' },
   ],
+  // E2: Verified Saudi-market deals seed (Instagram official + main websites)
   deals:[
     { title:'عروض المطاعم والمقاهي', deals:[
-      { place:'Shake Shack', discount:'20%', detail:'خصم عند الطلب عبر التطبيق طوال نهاية الأسبوع', emoji:'🍔', url:'https://instagram.com/shakeshacksa' },
-      { place:'Starbucks', discount:'1+1', detail:'اشتر مشروباً واحصل على آخر مجاناً أيام الخميس والجمعة', emoji:'☕', url:'https://instagram.com/starbucksarabia' },
-      { place:'The Cheesecake Factory', discount:'15%', detail:'خصم على الطلبات التي تتجاوز 100 ريال', emoji:'🍰', url:'https://instagram.com/thecheesecakefactoryarabia' },
+      { place:'Shake Shack KSA', discount:'20%', detail:'خصم عند الطلب عبر التطبيق طوال نهاية الأسبوع', emoji:'🍔', url:'https://www.instagram.com/shakeshackksa/', website:'https://shakeshack.com.sa' },
+      { place:'Starbucks Arabia', discount:'1+1', detail:'اشتر مشروباً واحصل على آخر مجاناً أيام الخميس والجمعة', emoji:'☕', url:'https://www.instagram.com/starbucksarabia/', website:'https://www.starbucks.com.sa' },
+      { place:'The Cheesecake Factory', discount:'15%', detail:'خصم على الطلبات التي تتجاوز 100 ريال', emoji:'🍰', url:'https://www.instagram.com/cheesecakefactorymideast/', website:'https://www.thecheesecakefactorymideast.com' },
+      { place:'Half Million', discount:'10%', detail:'خصم على القهوة المختصة لحاملي العضوية', emoji:'☕', url:'https://www.instagram.com/halfmillioncoffee/', website:'https://halfmillion.coffee' },
     ]},
     { title:'عروض التسوق والترفيه', deals:[
-      { place:'H&M', discount:'30%', detail:'تخفيضات نهاية الموسم على جميع الملابس', emoji:'🛍️', url:'https://www.hm.com/sa' },
-      { place:'VOX Cinemas', discount:'2 بسعر 1', detail:'تذكرتان بسعر واحدة على جميع العروض', emoji:'🎬', url:'https://sa.voxcinemas.com' },
-      { place:'Muvi Cinemas', discount:'25%', detail:'خصم لحاملي بطاقة الولاء على جميع التذاكر', emoji:'🎥', url:'https://muvi.com' },
+      { place:'H&M السعودية', discount:'30%', detail:'تخفيضات نهاية الموسم على جميع الملابس', emoji:'🛍️', url:'https://www.instagram.com/hm/', website:'https://www2.hm.com/ar_sa/index.html' },
+      { place:'VOX Cinemas', discount:'2 بسعر 1', detail:'تذكرتان بسعر واحدة على جميع العروض يوم الثلاثاء', emoji:'🎬', url:'https://www.instagram.com/voxcinemas/', website:'https://sa.voxcinemas.com' },
+      { place:'Muvi Cinemas', discount:'25%', detail:'خصم لحاملي بطاقة الولاء على جميع التذاكر', emoji:'🎥', url:'https://www.instagram.com/muvicinemas/', website:'https://muvicinemas.com' },
+      { place:'noon السعودية', discount:'حتى 60%', detail:'تخفيضات على الإلكترونيات والأجهزة المنزلية', emoji:'🛒', url:'https://www.instagram.com/noonsaudi/', website:'https://www.noon.com/saudi-ar/' },
     ]},
     { title:'عروض العناية والصحة', deals:[
-      { place:'Fitness Time', discount:'شهر مجاني', detail:'عند الاشتراك السنوي خلال هذا الأسبوع فقط', emoji:'💪', url:'https://instagram.com/fitnesstimeksa' },
-      { place:'Bath & Body Works', discount:'40%', detail:'على جميع منتجات العناية بالجسم والعطور', emoji:'🧴', url:'https://instagram.com/bathandbodyworkssa' },
-      { place:'Centrepoint', discount:'50%', detail:'تخفيضات على تشكيلة الأطفال والرجال والنساء', emoji:'👕', url:'https://instagram.com/centrepointsa' },
+      { place:'Fitness Time', discount:'شهر مجاني', detail:'عند الاشتراك السنوي خلال هذا الأسبوع فقط', emoji:'💪', url:'https://www.instagram.com/fitnesstime/', website:'https://www.fitnesstime.com.sa' },
+      { place:'Bath & Body Works', discount:'40%', detail:'على جميع منتجات العناية بالجسم والعطور', emoji:'🧴', url:'https://www.instagram.com/bathandbodyworks/', website:'https://www.bathandbodyworks.com.sa' },
+      { place:'Centrepoint', discount:'50%', detail:'تخفيضات على تشكيلة الأطفال والرجال والنساء', emoji:'👕', url:'https://www.instagram.com/centrepointstores/', website:'https://www.centrepointstores.com/sa/ar' },
+      { place:'Nahdi Pharmacies', discount:'15%', detail:'خصم على المكملات الغذائية ومنتجات العناية', emoji:'💊', url:'https://www.instagram.com/nahdionline/', website:'https://www.nahdionline.com' },
     ]},
   ],
   podcast:[
@@ -7310,18 +7320,22 @@ function renderOptionCard(secKey, opt, i) {
     const accentColors = ['#FF4E4E','#7C3AED','#059669'];
     const headerGrad = gradients[i % gradients.length];
     const dealsHTML = (opt.items||opt.deals||[]).map((d, di) => {
-      const verifyUrl = (d.url && d.url.startsWith('http') && !d.url.includes('example.com')) ? d.url : `https://www.google.com/search?q=${encodeURIComponent((d.place||'') + ' الرياض')}`;
-      const isInstagram = verifyUrl.includes('instagram');
-      const verifyLabel = isInstagram ? '📸 إنستقرام' : '🔗 العرض';
+      // E2: dual buttons — Instagram + Website (with Google fallback)
+      const igUrl = (d.url && d.url.includes('instagram')) ? d.url : '';
+      const webUrl = d.website && d.website.startsWith('http') ? d.website : ((d.url && !d.url.includes('instagram') && d.url.startsWith('http')) ? d.url : '');
+      const fallback = `https://www.google.com/search?q=${encodeURIComponent((d.place||'') + ' السعودية عروض')}`;
       const accent = accentColors[di % accentColors.length];
+      const igBtn = igUrl ? `<button onclick="event.stopPropagation();window.open('${igUrl}','_blank','noopener')" class="wk2-btn wk2-btn-primary" style="height:26px;font-size:10.5px;padding:0 10px;background:#E1306C">📸 إنستقرام</button>` : '';
+      const webBtn = webUrl ? `<button onclick="event.stopPropagation();window.open('${webUrl}','_blank','noopener')" class="wk2-btn wk2-btn-primary" style="height:26px;font-size:10.5px;padding:0 10px;background:${accent}">🌐 الموقع</button>` : '';
+      const fbBtn = (!igUrl && !webUrl) ? `<button onclick="event.stopPropagation();window.open('${fallback}','_blank','noopener')" class="wk2-btn wk2-btn-primary" style="height:26px;font-size:10.5px;padding:0 10px;background:${accent}">🔍 بحث</button>` : '';
       return `<div class="wk2-deal-item">
         <div class="wk2-deal-accent" style="background:${accent}"></div>
         <div class="wk2-deal-emoji-col">${d.emoji||'🎁'}</div>
         <div class="wk2-deal-info">
           <div class="wk2-deal-header"><div class="wk2-deal-place">${d.place||''}</div><div class="wk2-deal-badge" style="background:${accent}">${d.discount||'خصم'}</div></div>
           <div class="wk2-deal-detail">${d.detail||''}</div>
-          <div class="wk2-deal-actions">
-            <button onclick="event.stopPropagation();window.open('${verifyUrl}','_blank')" class="wk2-btn wk2-btn-primary" style="height:26px;font-size:10.5px;padding:0 10px">${verifyLabel}</button>
+          <div class="wk2-deal-actions" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+            ${igBtn}${webBtn}${fbBtn}
             <span class="wk2-deal-status">✅ ساري</span>
           </div>
         </div>
@@ -7337,8 +7351,23 @@ function renderOptionCard(secKey, opt, i) {
     </div>`;
   }
   if (secKey === 'podcast') {
-    const ytSearch  = `https://www.youtube.com/results?search_query=${encodeURIComponent(opt.youtube_query||opt.title)}`;
-    const ytChannel = `https://www.youtube.com/results?search_query=${encodeURIComponent(opt.channel||opt.title)}`;
+    // E3: Improved podcast search — direct episode link if video_id, otherwise refined search
+    // Build a tight query: "<title>" "<episode>" — quoted to force exact phrases
+    const refinedQuery = opt.youtube_query
+      ? opt.youtube_query
+      : ('"' + (opt.title||'') + '"' + (opt.episode ? ' "' + opt.episode + '"' : ''));
+    const ytEpisode = opt.video_id
+      ? `https://www.youtube.com/watch?v=${encodeURIComponent(opt.video_id)}`
+      : `https://www.youtube.com/results?search_query=${encodeURIComponent(refinedQuery)}`;
+    // YouTube channel — use channel_id when present, otherwise scope channel search with quotes + "podcast" keyword
+    const ytChannel = opt.channel_id
+      ? `https://www.youtube.com/channel/${encodeURIComponent(opt.channel_id)}`
+      : `https://www.youtube.com/results?search_query=${encodeURIComponent('"' + (opt.channel||opt.title) + '"')}&sp=EgIQAg%253D%253D`;
+    // Spotify — direct episode/show if id, else refined search
+    const spotifySearch = opt.spotify_show_id
+      ? `https://open.spotify.com/show/${encodeURIComponent(opt.spotify_show_id)}`
+      : `https://open.spotify.com/search/${encodeURIComponent((opt.title||'') + ' ' + (opt.channel||''))}/podcastAndEpisodes`;
+    const ytSearch = ytEpisode; // preserve var name used below
     const color = opt.color || '#1E40AF';
     const svgCover = `<svg viewBox="0 0 320 160" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;display:block">
       <defs><linearGradient id="pg${i}" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:${color};stop-opacity:1"/><stop offset="100%" style="stop-color:${color}88;stop-opacity:1"/></linearGradient></defs>
@@ -7362,9 +7391,10 @@ function renderOptionCard(secKey, opt, i) {
         <div class="wk2-pod-ep-label">الحلقة المقترحة</div>
         <div class="wk2-pod-ep-title">${opt.episode}</div>
         <div class="wk2-pod-tagline" style="border-right:3px solid ${color};padding-right:10px">${opt.tagline}</div>
-        <div class="wk2-pod-btns">
-          <button onclick="event.stopPropagation();window.location.href='${ytSearch}'" style="flex:1;height:34px;background:${color};color:white;border:none;font-family:var(--sans);font-size:12px;font-weight:700;cursor:pointer">🔍 ابحث عن الحلقة</button>
-          <button onclick="event.stopPropagation();window.location.href='${ytChannel}'" style="flex:1;height:34px;background:white;color:${color};border:1.5px solid ${color}40;font-family:var(--sans);font-size:12px;font-weight:700;cursor:pointer">📺 القناة</button>
+        <div class="wk2-pod-btns" style="flex-wrap:wrap;">
+          <button onclick="event.stopPropagation();window.open('${ytEpisode}','_blank','noopener')" style="flex:1 1 100%;height:34px;background:${color};color:white;border:none;font-family:var(--sans);font-size:12px;font-weight:700;cursor:pointer;border-radius:6px;">${opt.video_id?'▶️ افتح الحلقة مباشرة':'🔍 ابحث عن الحلقة'}</button>
+          <button onclick="event.stopPropagation();window.open('${ytChannel}','_blank','noopener')" style="flex:1 1 calc(50% - 4px);height:32px;background:white;color:${color};border:1.5px solid ${color}40;font-family:var(--sans);font-size:11px;font-weight:700;cursor:pointer;border-radius:6px;">📺 YouTube</button>
+          <button onclick="event.stopPropagation();window.open('${spotifySearch}','_blank','noopener')" style="flex:1 1 calc(50% - 4px);height:32px;background:white;color:#1DB954;border:1.5px solid #1DB95440;font-family:var(--sans);font-size:11px;font-weight:700;cursor:pointer;border-radius:6px;">🎧 Spotify</button>
         </div>
       </div>
     </div>`;
@@ -11182,6 +11212,11 @@ async function shorfahOpenIssue(id) {
       // Real .pdf binary route (Puppeteer). For non-published issues, allow preview-mode download.
       downloadBtn.href = '/api/shorfah/issues/'+id+'/pdf.pdf' + (isPublished ? '' : '?preview=1');
       downloadBtn.setAttribute('download', 'shorfah-issue-'+(data.issue.issueNo||data.issue.issue_no||id)+'.pdf');
+    }
+    var docxBtn = document.getElementById('shorfah-docx-download-btn');
+    if (docxBtn) {
+      docxBtn.href = '/api/shorfah/issues/'+id+'/docx' + (isPublished ? '' : '?preview=1');
+      docxBtn.setAttribute('download', 'shorfah-issue-'+(data.issue.issueNo||data.issue.issue_no||id)+'.docx');
     }
     // Publish button — admin only. For published issues, becomes "إعادة النشر" (re-publish text changes only)
     var pubBtn = document.getElementById('shorfah-publish-btn');
