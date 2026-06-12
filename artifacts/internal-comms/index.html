@@ -2709,6 +2709,11 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
           <span class="ico"><svg><use href="#i-globe"/></svg></span>
           <span>أخبار هيئات المنافسة</span>
         </a>
+        <a class="nav-item" data-page="campaigns_analytics" onclick="showSection('campaigns_analytics')">
+          <span class="ico"><svg><use href="#i-chart"/></svg></span>
+          <span>تحليلات الحملات</span>
+          <span class="nav-item-count" id="camp-nav-count">معاينة</span>
+        </a>
       </div>
     </div>
 
@@ -3129,6 +3134,79 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
       <div class="loading-wrap"><div class="spinner"></div><div class="loading-text">جارٍ تحميل الأخبار...</div></div>
     </div>
 
+  </div>
+
+  <!-- ══ Campaigns Analytics (MVP — Task 13) ══ -->
+  <div class="page-section" id="section-campaigns_analytics">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title">📊 تحليلات الحملات</h1>
+        <p class="page-sub">تتبّع أداء حملات التواصل المؤسسي (X / LinkedIn / واتساب / إيميل) مع إدخال يدوي للمؤشرات وتصدير تقارير.</p>
+      </div>
+      <div class="page-actions">
+        <button class="btn btn-primary" onclick="campOpenNewModal()">➕ حملة جديدة</button>
+        <button class="btn btn-ghost" onclick="campExportReport('md')">📄 Markdown</button>
+        <button class="btn btn-ghost" onclick="campExportReport('pdf')">📑 PDF</button>
+      </div>
+    </div>
+
+    <div id="camp-kpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:20px;">
+      <div style="background:linear-gradient(135deg,#0069A7,#003C5A);color:#fff;padding:18px;border-radius:12px;"><div style="font-size:12px;opacity:.85;margin-bottom:6px;">إجمالي الحملات</div><div id="camp-kpi-total" style="font-size:32px;font-weight:800;">0</div></div>
+      <div style="background:linear-gradient(135deg,#61A60E,#005A2E);color:#fff;padding:18px;border-radius:12px;"><div style="font-size:12px;opacity:.85;margin-bottom:6px;">إجمالي المشاهدات</div><div id="camp-kpi-impressions" style="font-size:32px;font-weight:800;">0</div></div>
+      <div style="background:linear-gradient(135deg,#46BCCD,#0069A7);color:#fff;padding:18px;border-radius:12px;"><div style="font-size:12px;opacity:.85;margin-bottom:6px;">إجمالي التفاعل</div><div id="camp-kpi-engagement" style="font-size:32px;font-weight:800;">0</div></div>
+      <div style="background:linear-gradient(135deg,#9DC41A,#61A60E);color:#fff;padding:18px;border-radius:12px;"><div style="font-size:12px;opacity:.85;margin-bottom:6px;">متوسط معدل التفاعل</div><div id="camp-kpi-engagement-rate" style="font-size:32px;font-weight:800;">0%</div></div>
+    </div>
+
+    <div class="adm-card" style="padding:0;overflow:hidden;background:#fff;border:1px solid var(--border);border-radius:12px;">
+      <div style="padding:14px 18px;border-bottom:1px solid var(--border);background:var(--surface-2);display:flex;justify-content:space-between;align-items:center;">
+        <strong style="font-size:14px;">سجل الحملات</strong>
+        <div style="font-size:12px;color:var(--text-3);">جميع المنصّات تدخل يدوياً في هذه النسخة التجريبية</div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table id="camp-table" style="width:100%;border-collapse:collapse;font-size:13px;">
+          <thead style="background:#f8fafc;"><tr>
+            <th style="padding:10px;text-align:right;border-bottom:1px solid var(--border);">الحملة</th>
+            <th style="padding:10px;text-align:right;border-bottom:1px solid var(--border);">المنصّة</th>
+            <th style="padding:10px;text-align:right;border-bottom:1px solid var(--border);">التاريخ</th>
+            <th style="padding:10px;text-align:right;border-bottom:1px solid var(--border);">المشاهدات</th>
+            <th style="padding:10px;text-align:right;border-bottom:1px solid var(--border);">إعجابات</th>
+            <th style="padding:10px;text-align:right;border-bottom:1px solid var(--border);">تعليقات</th>
+            <th style="padding:10px;text-align:right;border-bottom:1px solid var(--border);">مشاركات</th>
+            <th style="padding:10px;text-align:right;border-bottom:1px solid var(--border);">معدل التفاعل</th>
+            <th style="padding:10px;text-align:right;border-bottom:1px solid var(--border);"></th>
+          </tr></thead>
+          <tbody id="camp-tbody"><tr><td colspan="9" style="padding:30px;text-align:center;color:var(--text-3);">لا توجد حملات بعد. اضغط “حملة جديدة” لتبدأ.</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="camp-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center;">
+      <div style="background:#fff;padding:24px;border-radius:14px;width:min(580px,90vw);max-height:90vh;overflow:auto;">
+        <h3 style="margin:0 0 16px;">إضافة حملة جديدة</h3>
+        <div style="display:grid;gap:12px;">
+          <input id="camp-name" placeholder="اسم الحملة" style="padding:10px;border:1px solid var(--border);border-radius:8px;">
+          <select id="camp-platform" style="padding:10px;border:1px solid var(--border);border-radius:8px;">
+            <option value="X">X (تويتر)</option>
+            <option value="LinkedIn">LinkedIn</option>
+            <option value="WhatsApp">واتساب</option>
+            <option value="Email">إيميل</option>
+            <option value="Instagram">Instagram</option>
+          </select>
+          <input id="camp-date" type="date" style="padding:10px;border:1px solid var(--border);border-radius:8px;">
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">
+            <input id="camp-impr" type="number" placeholder="مشاهدات" style="padding:10px;border:1px solid var(--border);border-radius:8px;">
+            <input id="camp-likes" type="number" placeholder="إعجابات" style="padding:10px;border:1px solid var(--border);border-radius:8px;">
+            <input id="camp-comments" type="number" placeholder="تعليقات" style="padding:10px;border:1px solid var(--border);border-radius:8px;">
+            <input id="camp-shares" type="number" placeholder="مشاركات" style="padding:10px;border:1px solid var(--border);border-radius:8px;">
+          </div>
+          <textarea id="camp-notes" placeholder="ملاحظات (رابط الحملة/الجمهور المستهدف)" style="padding:10px;border:1px solid var(--border);border-radius:8px;min-height:60px;"></textarea>
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px;">
+          <button class="btn btn-ghost" onclick="campCloseModal()">إلغاء</button>
+          <button class="btn btn-primary" onclick="campSaveNew()">حفظ</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- ══════════════════════════════════
@@ -4315,6 +4393,9 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
           </button>
           <button class="btn btn-primary" style="font-size:13px;" onclick="DES.seedTemplatesV2()">
             <span class="ico"><svg><use href="#i-plus"/></svg></span> زرع قوالب V2 (Social Media)
+          </button>
+          <button class="btn btn-primary" style="font-size:13px;background:linear-gradient(135deg,#0069A7,#61A60E);" onclick="DES.seedTemplates2026()">
+            <span class="ico"><svg><use href="#i-plus"/></svg></span> زرع قوالب 2026 (Hybrid)
           </button>
           <button class="btn btn-primary" style="font-size:13px;" onclick="DES.seedGacLogos()">
             <span class="ico"><svg><use href="#i-plus"/></svg></span> زرع شعارات GAC
@@ -9815,6 +9896,29 @@ var DES = (function() {
     }
   }
 
+  // ── Seed Templates 2026 (Announcement 16:9 + Workshop 4:5 + Social Modern 1:1) ──
+  async function seedTemplates2026() {
+    if (!confirm('سيتم إضافة أو تحديث 3 قوالب 2026 (إعلان مؤسسي + ورشة + سوشيال حديث). متابعة؟')) return;
+    try {
+      var r = await apiFetch('/api/designs/templates/reseed-2026', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: '{}'
+      });
+      var text = await r.text();
+      var d = null;
+      try { d = text ? JSON.parse(text) : null; } catch(_) {}
+      if (r.ok && d && d.ok) {
+        alert('تم بنجاح: ' + (d.count || 0) + ' قالب 2026 (Hybrid Engine). تحديث العرض…');
+        loadTemplates();
+      } else {
+        alert('تعذّر زرع قوالب 2026 (HTTP ' + r.status + '): ' + (text || '').slice(0, 300));
+      }
+    } catch(e) {
+      alert('خطأ في الشبكة: ' + (e && e.message ? e.message : String(e)));
+    }
+  }
+
   // ── Seed GAC official brand logos (horizontal + vertical from PDF) ──
   async function seedGacLogos() {
     if (!confirm('سيتم رفع شعاري GAC (أفقي + عمودي) إلى التخزين. متابعة؟')) return;
@@ -10389,6 +10493,7 @@ var DES = (function() {
     selectTemplate: selectTemplate, seedTestTemplate: seedTestTemplate,
     seedPresentationTemplates: seedPresentationTemplates,
     seedTemplatesV2: seedTemplatesV2,
+    seedTemplates2026: seedTemplates2026,
     seedGacLogos: seedGacLogos,
     edOpen: edOpen, edUpdate: edUpdate, edToggleLogo: edToggleLogo, edZoom: edZoom,
     edGenerateBg: edGenerateBg, edSelectBg: edSelectBg,
@@ -12834,7 +12939,143 @@ document.addEventListener('DOMContentLoaded', () => {
   renderNotifications();
   // Start API-backed notification polling after auth is ready
   setTimeout(startNotifPolling, 1500);
+  // Initial render of campaigns analytics (loads from localStorage)
+  try { if (typeof campRender === 'function') campRender(); } catch(_) {}
 });
+
+// ═══ Campaigns Analytics (Task 13 — Manual MVP) ═══
+// Stored in localStorage. Real backend integration TBD.
+function campLoad() {
+  try { return JSON.parse(localStorage.getItem('icbank.campaigns') || '[]'); } catch(_) { return []; }
+}
+function campSave(list) {
+  localStorage.setItem('icbank.campaigns', JSON.stringify(list));
+}
+function campEngagementRate(c) {
+  const impressions = Number(c.impressions || 0);
+  if (!impressions) return 0;
+  const total = Number(c.likes||0) + Number(c.comments||0) + Number(c.shares||0);
+  return (total / impressions) * 100;
+}
+function campOpenNewModal() {
+  document.getElementById('camp-modal').style.display = 'flex';
+  document.getElementById('camp-name').value = '';
+  document.getElementById('camp-date').value = new Date().toISOString().slice(0,10);
+  ['camp-impr','camp-likes','camp-comments','camp-shares','camp-notes'].forEach(id => document.getElementById(id).value = '');
+}
+function campCloseModal() {
+  document.getElementById('camp-modal').style.display = 'none';
+}
+function campSaveNew() {
+  const name = document.getElementById('camp-name').value.trim();
+  if (!name) { alert('أدخل اسم الحملة'); return; }
+  const row = {
+    id: 'c_' + Date.now(),
+    name: name,
+    platform: document.getElementById('camp-platform').value,
+    date: document.getElementById('camp-date').value,
+    impressions: Number(document.getElementById('camp-impr').value || 0),
+    likes: Number(document.getElementById('camp-likes').value || 0),
+    comments: Number(document.getElementById('camp-comments').value || 0),
+    shares: Number(document.getElementById('camp-shares').value || 0),
+    notes: document.getElementById('camp-notes').value.trim(),
+  };
+  const list = campLoad();
+  list.push(row);
+  campSave(list);
+  campCloseModal();
+  campRender();
+}
+function campDelete(id) {
+  if (!confirm('حذف الحملة؟')) return;
+  campSave(campLoad().filter(c => c.id !== id));
+  campRender();
+}
+function campRender() {
+  const list = campLoad();
+  const tbody = document.getElementById('camp-tbody');
+  if (!tbody) return;
+  const platformIcons = { X:'𝕏', LinkedIn:'💼', WhatsApp:'💬', Email:'📧', Instagram:'📸' };
+  const platformColors = { X:'#000', LinkedIn:'#0A66C2', WhatsApp:'#25D366', Email:'#0069A7', Instagram:'#E1306C' };
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="9" style="padding:30px;text-align:center;color:var(--text-3);">لا توجد حملات بعد. اضغط “حملة جديدة” لتبدأ.</td></tr>';
+  } else {
+    tbody.innerHTML = list.map(c => {
+      const rate = campEngagementRate(c).toFixed(2);
+      const color = platformColors[c.platform] || '#666';
+      return '<tr>' +
+        '<td style="padding:10px;border-bottom:1px solid var(--border-subtle);font-weight:600;">'+escapeHtml(c.name)+'</td>' +
+        '<td style="padding:10px;border-bottom:1px solid var(--border-subtle);"><span style="background:'+color+'15;color:'+color+';padding:3px 8px;border-radius:6px;font-size:11px;font-weight:700;">'+(platformIcons[c.platform]||'')+' '+c.platform+'</span></td>' +
+        '<td style="padding:10px;border-bottom:1px solid var(--border-subtle);color:var(--text-3);">'+(c.date||'—')+'</td>' +
+        '<td style="padding:10px;border-bottom:1px solid var(--border-subtle);">'+(c.impressions||0).toLocaleString('ar')+'</td>' +
+        '<td style="padding:10px;border-bottom:1px solid var(--border-subtle);">'+(c.likes||0).toLocaleString('ar')+'</td>' +
+        '<td style="padding:10px;border-bottom:1px solid var(--border-subtle);">'+(c.comments||0).toLocaleString('ar')+'</td>' +
+        '<td style="padding:10px;border-bottom:1px solid var(--border-subtle);">'+(c.shares||0).toLocaleString('ar')+'</td>' +
+        '<td style="padding:10px;border-bottom:1px solid var(--border-subtle);font-weight:700;color:'+(rate>2?'#61A60E':rate>0.5?'#9DC41A':'#76777A')+';">'+rate+'%</td>' +
+        '<td style="padding:10px;border-bottom:1px solid var(--border-subtle);"><button onclick="campDelete(\''+c.id+'\')" style="background:none;border:none;color:#dc2626;cursor:pointer;font-size:13px;">🗑️</button></td>' +
+      '</tr>';
+    }).join('');
+  }
+  // Update KPIs
+  const total = list.length;
+  const totalImpr = list.reduce((s,c) => s + Number(c.impressions||0), 0);
+  const totalEng = list.reduce((s,c) => s + Number(c.likes||0) + Number(c.comments||0) + Number(c.shares||0), 0);
+  const avgRate = total ? (list.reduce((s,c) => s + campEngagementRate(c), 0) / total) : 0;
+  document.getElementById('camp-kpi-total').textContent = total.toLocaleString('ar');
+  document.getElementById('camp-kpi-impressions').textContent = totalImpr.toLocaleString('ar');
+  document.getElementById('camp-kpi-engagement').textContent = totalEng.toLocaleString('ar');
+  document.getElementById('camp-kpi-engagement-rate').textContent = avgRate.toFixed(2) + '%';
+}
+function escapeHtml(s) { return String(s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+function campExportReport(format) {
+  const list = campLoad();
+  if (!list.length) { alert('لا توجد حملات لتصديرها'); return; }
+  const totalImpr = list.reduce((s,c) => s + Number(c.impressions||0), 0);
+  const totalEng = list.reduce((s,c) => s + Number(c.likes||0) + Number(c.comments||0) + Number(c.shares||0), 0);
+  const avgRate = list.length ? (list.reduce((s,c) => s + campEngagementRate(c), 0) / list.length) : 0;
+  const today = new Date().toLocaleDateString('ar-SA');
+  if (format === 'md') {
+    let md = '# تقرير تحليلات الحملات — الهيئة العامة للمنافسة\n\n';
+    md += '**تاريخ التقرير:** ' + today + '\n\n';
+    md += '## ملخص تنفيذي\n\n';
+    md += '- **إجمالي الحملات:** ' + list.length + '\n';
+    md += '- **إجمالي المشاهدات:** ' + totalImpr.toLocaleString('ar') + '\n';
+    md += '- **إجمالي التفاعل:** ' + totalEng.toLocaleString('ar') + '\n';
+    md += '- **متوسط معدل التفاعل:** ' + avgRate.toFixed(2) + '%\n\n';
+    md += '## تفاصيل الحملات\n\n';
+    md += '| الحملة | المنصّة | التاريخ | مشاهدات | إعجابات | تعليقات | مشاركات | معدل التفاعل |\n';
+    md += '|---|---|---|---|---|---|---|---|\n';
+    list.forEach(c => {
+      md += '| ' + c.name + ' | ' + c.platform + ' | ' + (c.date||'—') + ' | ' + (c.impressions||0) + ' | ' + (c.likes||0) + ' | ' + (c.comments||0) + ' | ' + (c.shares||0) + ' | ' + campEngagementRate(c).toFixed(2) + '% |\n';
+    });
+    md += '\n---\n*تم التوليد تلقائياً من منصة التواصل المؤسسي*\n';
+    const blob = new Blob([md], { type:'text/markdown;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'campaigns-report-' + new Date().toISOString().slice(0,10) + '.md';
+    a.click();
+  } else {
+    // PDF — use print-to-pdf via window.print on a temporary print container
+    const w = window.open('', '_blank');
+    if (!w) { alert('يجب السماح بفتح نوافذ منبثقة'); return; }
+    let html = '<!doctype html><html dir="rtl" lang="ar"><head><meta charset="utf-8"><title>تقرير الحملات</title>';
+    html += '<style>body{font-family:"Cairo",sans-serif;padding:30px;color:#333;}h1{color:#0069A7;border-bottom:3px solid #61A60E;padding-bottom:8px;}table{width:100%;border-collapse:collapse;margin:20px 0;font-size:12px;}th{background:#0069A7;color:#fff;padding:8px;text-align:right;}td{padding:6px;border-bottom:1px solid #eee;}.kpi{display:inline-block;background:#f0f9ff;padding:12px 18px;border-radius:8px;margin:5px;border-right:3px solid #0069A7;}</style></head><body>';
+    html += '<h1>📊 تقرير تحليلات الحملات</h1>';
+    html += '<p><strong>تاريخ التقرير:</strong> ' + today + '</p>';
+    html += '<div><div class="kpi">إجمالي الحملات: <strong>' + list.length + '</strong></div>';
+    html += '<div class="kpi">المشاهدات: <strong>' + totalImpr.toLocaleString('ar') + '</strong></div>';
+    html += '<div class="kpi">التفاعل: <strong>' + totalEng.toLocaleString('ar') + '</strong></div>';
+    html += '<div class="kpi">متوسط التفاعل: <strong>' + avgRate.toFixed(2) + '%</strong></div></div>';
+    html += '<table><thead><tr><th>الحملة</th><th>المنصّة</th><th>التاريخ</th><th>مشاهدات</th><th>إعجابات</th><th>تعليقات</th><th>مشاركات</th><th>معدل التفاعل</th></tr></thead><tbody>';
+    list.forEach(c => {
+      html += '<tr><td>' + escapeHtml(c.name) + '</td><td>' + c.platform + '</td><td>' + (c.date||'—') + '</td><td>' + (c.impressions||0) + '</td><td>' + (c.likes||0) + '</td><td>' + (c.comments||0) + '</td><td>' + (c.shares||0) + '</td><td>' + campEngagementRate(c).toFixed(2) + '%</td></tr>';
+    });
+    html += '</tbody></table><p style="text-align:center;color:#999;font-size:11px;margin-top:30px;">تم التوليد تلقائياً — منصة التواصل المؤسسي</p>';
+    html += '<script>window.print();<\/script></body></html>';
+    w.document.write(html);
+    w.document.close();
+  }
+}
 </script>
 
 </body>

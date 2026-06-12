@@ -14,6 +14,7 @@ import { ObjectStorageService } from "../lib/objectStorage";
 import { composeDesign } from "../composer/composer";
 import { SEED_PRESENTATION_TEMPLATES } from "../composer/seed-presentation";
 import { SEED_TEMPLATES_V2 } from "../composer/seed-templates-v2";
+import { SEED_TEMPLATES_2026 } from "../composer/seed-templates-2026";
 import { GAC_LOGOS } from "../composer/seed-gac-assets";
 
 const router = Router();
@@ -122,6 +123,40 @@ router.post("/designs/templates/reseed-v2", async (_req: Request, res: Response)
   const inserted: unknown[] = [];
   const skipped: string[] = [];
   for (const tpl of SEED_TEMPLATES_V2) {
+    const existing = await db
+      .select()
+      .from(designTemplatesTable)
+      .where(eq(designTemplatesTable.templateNameAr, tpl.templateNameAr))
+      .limit(1);
+    if (existing.length > 0) {
+      const [updated] = await db
+        .update(designTemplatesTable)
+        .set({
+          category: tpl.category,
+          canvasWidth: tpl.canvasWidth,
+          canvasHeight: tpl.canvasHeight,
+          backgroundPanelConfig: tpl.backgroundPanelConfig,
+          textSlots: tpl.textSlots,
+          logoSlots: tpl.logoSlots,
+          promptHint: tpl.promptHint,
+        })
+        .where(eq(designTemplatesTable.id, existing[0].id))
+        .returning();
+      inserted.push(updated);
+      skipped.push(`updated: ${tpl.templateNameAr}`);
+    } else {
+      const [row] = await db.insert(designTemplatesTable).values(tpl).returning();
+      inserted.push(row);
+    }
+  }
+  res.json({ ok: true, count: inserted.length, templates: inserted, notes: skipped });
+});
+
+// ─── Seed Templates 2026 (Announcement 16:9 + Workshop 4:5 + Social Modern 1:1) ───
+router.post("/designs/templates/reseed-2026", async (_req: Request, res: Response) => {
+  const inserted: unknown[] = [];
+  const skipped: string[] = [];
+  for (const tpl of SEED_TEMPLATES_2026) {
     const existing = await db
       .select()
       .from(designTemplatesTable)
