@@ -25,7 +25,7 @@ import { and, desc, eq, gte, lte, sql, ilike, or } from "drizzle-orm";
 import { z } from "zod";
 import * as crypto from "crypto";
 import { requireAdmin } from "../middleware/auth";
-import { geminiText, geminiJSON } from "../lib/aiProviders";
+import { geminiText, geminiJSON, aiJSONWithFallback } from "../lib/aiProviders";
 import { buildFinalReportHtml } from "./final-media-reports-html";
 
 const router = Router();
@@ -362,11 +362,17 @@ router.post("/final-media-reports/generate", async (req: Request, res: Response)
 
     let parsed: any;
     try {
-      parsed = await geminiJSON(prompt, { maxTokens: 8000 });
+      // Multi-provider fallback: gemini-pro → flash → flash-lite → Perplexity
+      parsed = await aiJSONWithFallback<any>(prompt, { maxTokens: 8000 });
     } catch (err) {
-      // Fallback: try raw text + manual parse
-      const raw = await geminiText(prompt, { maxTokens: 8000 });
-      parsed = parseAIJson(raw);
+      // Last-ditch: raw geminiText + manual parse (in case the unified wrapper itself failed)
+      try {
+        const raw = await geminiText(prompt, { maxTokens: 8000 });
+        parsed = parseAIJson(raw);
+      } catch {
+        // Surface the friendly Arabic message from aiJSONWithFallback
+        throw err;
+      }
     }
 
     // Build the report draft (not yet saved if autoSave=false)
@@ -472,14 +478,27 @@ router.post("/final-media-reports/:id/export-pdf", async (req: Request, res: Res
 
     const html = buildFinalReportHtml(row);
 
-    const chromium = await import("@sparticuz/chromium-min");
+    // Prefer system chromium (Dockerfile installs /usr/bin/chromium).
+    // Fallback to @sparticuz/chromium-min download if not present (local dev).
     const puppeteer = await import("puppeteer-core");
-    const CHROMIUM_URL = process.env.CHROMIUM_URL ||
-      "https://github.com/Sparticuz/chromium/releases/download/v131.0.1/chromium-v131.0.1-pack.tar";
-    const executablePath = await chromium.default.executablePath(CHROMIUM_URL);
+    const systemChromium = process.env.PUPPETEER_EXECUTABLE_PATH;
+    const fs = await import("node:fs");
+    let executablePath: string;
+    let extraArgs: string[] = [];
+    let defaultViewport: any = { width: 1240, height: 1754, deviceScaleFactor: 1 };
+    if (systemChromium && fs.existsSync(systemChromium)) {
+      executablePath = systemChromium;
+    } else {
+      const chromium = await import("@sparticuz/chromium-min");
+      const CHROMIUM_URL = process.env.CHROMIUM_URL ||
+        "https://github.com/Sparticuz/chromium/releases/download/v131.0.1/chromium-v131.0.1-pack.tar";
+      executablePath = await chromium.default.executablePath(CHROMIUM_URL);
+      extraArgs = chromium.default.args;
+      defaultViewport = chromium.default.defaultViewport;
+    }
     const browser = await puppeteer.default.launch({
-      args: [...chromium.default.args, "--no-sandbox", "--disable-setuid-sandbox"],
-      defaultViewport: chromium.default.defaultViewport,
+      args: [...extraArgs, "--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
+      defaultViewport,
       executablePath,
       headless: true,
     });

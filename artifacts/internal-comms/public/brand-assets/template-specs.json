@@ -1,0 +1,244 @@
+{
+  "templates": [
+    {
+      "id": "announcement",
+      "name_ar": "إعلان داخلي",
+      "name_en": "Internal Announcement",
+      "source_reference": "/brand-assets/reference-templates/internal-announcement.pptx",
+      "canvas": {
+        "width": 1920,
+        "height": 1080,
+        "aspect": "16:9",
+        "format": ["PNG", "PDF", "PPTX"]
+      },
+      "structure": {
+        "header": {
+          "height_pct": 22,
+          "background": "linear-gradient(270deg, #003C5A 0%, #005A2E 100%)",
+          "slots": [
+            {
+              "name": "dept_badge",
+              "label_ar": "اسم الإدارة التنفيذية",
+              "type": "text",
+              "position": "top-left",
+              "max_chars": 30,
+              "style": "rounded chip · semi-transparent green · 14px"
+            },
+            {
+              "name": "logo",
+              "type": "fixed_asset",
+              "asset": "/brand-assets/logos/gac-white.png",
+              "position": "top-right",
+              "size_pct": 12,
+              "adjustable": true
+            }
+          ]
+        },
+        "body": {
+          "layout": "two_column_rtl",
+          "left_column_pct": 40,
+          "left_slot": {
+            "name": "visual",
+            "label_ar": "مكان الصور",
+            "type": "image_or_ai_generated",
+            "ai_prompt_template": "Professional photograph related to {{title}}, corporate style, soft lighting, no text, no logos, brand colors blue and green"
+          },
+          "right_column_pct": 60,
+          "right_slots": [
+            {
+              "name": "title",
+              "label_ar": "العنوان الرئيسي",
+              "type": "text",
+              "max_chars": 60,
+              "style": "color: #003C5A · weight: 700 · size: 36px"
+            },
+            {
+              "name": "subheading",
+              "label_ar": "عنوان فرعي",
+              "type": "text",
+              "max_chars": 40,
+              "style": "color: #9DC41A · weight: 600 · size: 22px",
+              "repeatable": true,
+              "max_repeats": 3
+            },
+            {
+              "name": "body",
+              "label_ar": "نص الإعلان",
+              "type": "rich_text",
+              "max_chars": 600,
+              "style": "color: #76777A · weight: 400 · size: 16px"
+            }
+          ]
+        }
+      },
+      "variants": [
+        {
+          "id": "text_only",
+          "name_ar": "نصي",
+          "description": "عنوان + 2-3 فقرات نصية"
+        },
+        {
+          "id": "icon_grid",
+          "name_ar": "شبكة أيقونات 2×2",
+          "description": "عنوان + 4 نقاط مع أيقونات"
+        }
+      ]
+    },
+    {
+      "id": "workshop_event",
+      "name_ar": "ورشة عمل / فعالية",
+      "name_en": "Workshop / Event",
+      "source_reference": "derived from master-template.pptx + Eid card example",
+      "canvas": {
+        "width": 1920,
+        "height": 1080,
+        "aspect": "16:9",
+        "format": ["PNG", "PDF", "PPTX"]
+      },
+      "structure": {
+        "header": {
+          "height_pct": 25,
+          "background": "linear-gradient(270deg, #003C5A 0%, #005A2E 100%)",
+          "slots": [
+            {
+              "name": "logo",
+              "type": "fixed_asset",
+              "asset": "/brand-assets/logos/gac-white.png",
+              "position": "top-right",
+              "size_pct": 14,
+              "adjustable": true
+            }
+          ]
+        },
+        "body": {
+          "layout": "centered_with_watermark",
+          "slots": [
+            {
+              "name": "event_title",
+              "label_ar": "اسم الفعالية / ورشة العمل",
+              "type": "text",
+              "position": "center-top",
+              "max_chars": 80,
+              "style": "color: #003C5A · weight: 700 · size: 48px"
+            },
+            {
+              "name": "event_subtitle",
+              "label_ar": "موضوع / محور الورشة",
+              "type": "text",
+              "max_chars": 120,
+              "style": "color: #76777A · weight: 400 · size: 22px"
+            },
+            {
+              "name": "details_strip",
+              "label_ar": "شريط التفاصيل (تاريخ · مكان · متحدث)",
+              "type": "composite",
+              "fields": [
+                {"name": "date", "label_ar": "التاريخ والوقت", "icon": "📅"},
+                {"name": "location", "label_ar": "المكان", "icon": "📍"},
+                {"name": "speaker", "label_ar": "المتحدث", "icon": "🎤"}
+              ],
+              "style": "background: #9DC41A · padding: 18px · rounded: 8px"
+            },
+            {
+              "name": "cta",
+              "label_ar": "دعوة للتسجيل (اختياري)",
+              "type": "text",
+              "max_chars": 40,
+              "style": "color: #FFFFFF · background: #009845 · button-style"
+            },
+            {
+              "name": "watermark",
+              "type": "fixed_asset",
+              "asset": "/brand-assets/logos/gac-white.png",
+              "opacity": 0.08,
+              "position": "bottom-left",
+              "size_pct": 30
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "social_post",
+      "name_ar": "منشور سوشيال",
+      "name_en": "Social Media Post",
+      "source_reference": "derived from Eid card + Brand Manual §7.23",
+      "canvas_variants": [
+        {"id": "square", "width": 1080, "height": 1080, "aspect": "1:1", "platform": "Instagram/X"},
+        {"id": "story", "width": 1080, "height": 1920, "aspect": "9:16", "platform": "Instagram Story"},
+        {"id": "x_header", "width": 1500, "height": 500, "aspect": "3:1", "platform": "X header"}
+      ],
+      "structure": {
+        "header": {
+          "height_pct": 18,
+          "background": "linear-gradient(270deg, #003C5A 0%, #005A2E 100%)",
+          "slots": [
+            {
+              "name": "logo",
+              "type": "fixed_asset",
+              "asset": "/brand-assets/logos/gac-white.png",
+              "position": "top-right",
+              "size_pct": 22,
+              "adjustable": true
+            }
+          ]
+        },
+        "body": {
+          "layout": "centered",
+          "background": "white_with_subtle_pattern",
+          "slots": [
+            {
+              "name": "headline",
+              "label_ar": "العبارة الرئيسية",
+              "type": "text",
+              "max_chars": 70,
+              "style": "color: #003C5A · weight: 700 · size: 56px · text-align: center"
+            },
+            {
+              "name": "subtext",
+              "label_ar": "نص توضيحي / تهنئة",
+              "type": "text",
+              "max_chars": 150,
+              "style": "color: #76777A · weight: 400 · size: 20px · text-align: center"
+            },
+            {
+              "name": "highlight_strip",
+              "label_ar": "شريط تأكيد (اختياري)",
+              "type": "text",
+              "max_chars": 50,
+              "style": "background: #9DC41A · color: #FFFFFF · weight: 700 · padding: 16px · rounded: 6px"
+            },
+            {
+              "name": "ai_background",
+              "type": "ai_generated_optional",
+              "ai_prompt_template": "Subtle abstract background relating to {{topic}}, GAC brand identity, blue and green palette, no text, no logos, professional, minimalist",
+              "opacity_overlay": 0.85
+            },
+            {
+              "name": "watermark",
+              "type": "fixed_asset",
+              "asset": "/brand-assets/logos/gac-white.png",
+              "opacity": 0.06,
+              "position": "bottom-center",
+              "size_pct": 25
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "post_generation_controls": {
+    "logo": {
+      "size_steps": ["S (8%)", "M (12% — default)", "L (16%)", "XL (20%)"],
+      "positions_9grid": [
+        "top-left", "top-center", "top-right (default)",
+        "middle-left", "middle-center", "middle-right",
+        "bottom-left", "bottom-center", "bottom-right"
+      ]
+    },
+    "margins": {
+      "presets": ["compact (24px)", "normal (40px — default)", "spacious (64px)"]
+    },
+    "element_alignment": ["right (RTL default)", "center", "left"]
+  }
+}

@@ -734,18 +734,25 @@ router.get("/shorfah/issues/:id/pdf.pdf", requireAuth, async (req: Request, res:
 
   try {
     // Attempt Puppeteer PDF generation
-    const chromium = await import("@sparticuz/chromium-min");
     const puppeteer = await import("puppeteer-core");
-
-    // Use a public CDN for the chromium binary to avoid large bundle issues on Railway
-    const CHROMIUM_URL = process.env.CHROMIUM_URL || 
-      "https://github.com/Sparticuz/chromium/releases/download/v131.0.1/chromium-v131.0.1-pack.tar";
-    
-    const executablePath = await chromium.default.executablePath(CHROMIUM_URL);
-    
+    const fs = await import("node:fs");
+    const systemChromium = process.env.PUPPETEER_EXECUTABLE_PATH;
+    let executablePath: string;
+    let extraArgs: string[] = [];
+    let defaultViewport: any = { width: 1240, height: 1754, deviceScaleFactor: 1 };
+    if (systemChromium && fs.existsSync(systemChromium)) {
+      executablePath = systemChromium;
+    } else {
+      const chromium = await import("@sparticuz/chromium-min");
+      const CHROMIUM_URL = process.env.CHROMIUM_URL ||
+        "https://github.com/Sparticuz/chromium/releases/download/v131.0.1/chromium-v131.0.1-pack.tar";
+      executablePath = await chromium.default.executablePath(CHROMIUM_URL);
+      extraArgs = chromium.default.args;
+      defaultViewport = chromium.default.defaultViewport;
+    }
     const browser = await puppeteer.default.launch({
-      args: [...chromium.default.args, "--no-sandbox", "--disable-setuid-sandbox"],
-      defaultViewport: chromium.default.defaultViewport,
+      args: [...extraArgs, "--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
+      defaultViewport,
       executablePath,
       headless: true,
     });

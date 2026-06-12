@@ -388,103 +388,156 @@ ${audience ? `الجمهور: ${audience}` : ""}
     sendEvent({ type: "start", models, outputIds: savedIds });
 
     await Promise.all([
-      // Claude
+      // Claude (with retry + graceful fallback)
       (async () => {
-        try {
-          const stream = anthropic.messages.stream({
-            model: "claude-sonnet-4-6",
-            max_tokens: 8192,
-            messages: [{ role: "user", content: prompt }],
-          });
-          let full = "";
-          for await (const event of stream) {
-            if (
-              event.type === "content_block_delta" &&
-              event.delta.type === "text_delta"
-            ) {
-              full += event.delta.text;
-              sendEvent({ model: "claude", chunk: event.delta.text });
+        const maxAttempts = 2;
+        let lastErr: any = null;
+        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+          try {
+            const stream = anthropic.messages.stream({
+              model: "claude-sonnet-4-6",
+              max_tokens: 8192,
+              messages: [{ role: "user", content: prompt }],
+            });
+            let full = "";
+            for await (const event of stream) {
+              if (
+                event.type === "content_block_delta" &&
+                event.delta.type === "text_delta"
+              ) {
+                full += event.delta.text;
+                sendEvent({ model: "claude", chunk: event.delta.text });
+              }
             }
+            await db
+              .update(generatedOutputsTable)
+              .set({ outputText: full })
+              .where(eq(generatedOutputsTable.id, savedIds.claude));
+            sendEvent({
+              model: "claude",
+              done: true,
+              wordCount: full.split(/\s+/).filter(Boolean).length,
+              outputId: savedIds.claude,
+            });
+            return;
+          } catch (err) {
+            lastErr = err;
+            const msg = (err as Error).message || "";
+            const transient = /503|overload|unavailable|high demand|429|rate.?limit|timeout|ECONNRESET/i.test(msg);
+            if (transient && attempt < maxAttempts) {
+              await new Promise((r) => setTimeout(r, 1500 * attempt));
+              continue;
+            }
+            break;
           }
-          await db
-            .update(generatedOutputsTable)
-            .set({ outputText: full })
-            .where(eq(generatedOutputsTable.id, savedIds.claude));
-          sendEvent({
-            model: "claude",
-            done: true,
-            wordCount: full.split(/\s+/).filter(Boolean).length,
-            outputId: savedIds.claude,
-          });
-        } catch (err) {
-          sendEvent({ model: "claude", error: (err as Error).message });
         }
+        // All Claude attempts failed — surface friendly Arabic message
+        const errMsg = (lastErr as Error)?.message || "";
+        const friendly = /503|overload|unavailable|high demand|429|rate.?limit/i.test(errMsg)
+          ? "نموذج Claude مشغول حالياً. يمكنك الاعتماد على نتائج النماذج الأخرى."
+          : "تعذّر تشغيل Claude مؤقتاً. النماذج الأخرى ستظهر نتائجها.";
+        sendEvent({ model: "claude", error: friendly });
       })(),
 
-      // OpenAI
+      // OpenAI (with retry + friendly fallback message)
       (async () => {
-        try {
-          const stream = await openai.chat.completions.create({
-            model: "gpt-4o",
-            messages: [{ role: "user", content: prompt }],
-            stream: true,
-            max_tokens: 8192,
-          });
-          let full = "";
-          for await (const chunk of stream) {
-            const text = chunk.choices[0]?.delta?.content ?? "";
-            if (text) {
-              full += text;
-              sendEvent({ model: "openai", chunk: text });
+        const maxAttempts = 2;
+        let lastErr: any = null;
+        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+          try {
+            const stream = await openai.chat.completions.create({
+              model: "gpt-4o",
+              messages: [{ role: "user", content: prompt }],
+              stream: true,
+              max_tokens: 8192,
+            });
+            let full = "";
+            for await (const chunk of stream) {
+              const text = chunk.choices[0]?.delta?.content ?? "";
+              if (text) {
+                full += text;
+                sendEvent({ model: "openai", chunk: text });
+              }
             }
+            await db
+              .update(generatedOutputsTable)
+              .set({ outputText: full })
+              .where(eq(generatedOutputsTable.id, savedIds.openai));
+            sendEvent({
+              model: "openai",
+              done: true,
+              wordCount: full.split(/\s+/).filter(Boolean).length,
+              outputId: savedIds.openai,
+            });
+            return;
+          } catch (err) {
+            lastErr = err;
+            const msg = (err as Error).message || "";
+            const transient = /503|overload|unavailable|high demand|429|rate.?limit|timeout|ECONNRESET/i.test(msg);
+            if (transient && attempt < maxAttempts) {
+              await new Promise((r) => setTimeout(r, 1500 * attempt));
+              continue;
+            }
+            break;
           }
-          await db
-            .update(generatedOutputsTable)
-            .set({ outputText: full })
-            .where(eq(generatedOutputsTable.id, savedIds.openai));
-          sendEvent({
-            model: "openai",
-            done: true,
-            wordCount: full.split(/\s+/).filter(Boolean).length,
-            outputId: savedIds.openai,
-          });
-        } catch (err) {
-          sendEvent({ model: "openai", error: (err as Error).message });
         }
+        const errMsg = (lastErr as Error)?.message || "";
+        const friendly = /503|overload|unavailable|high demand|429|rate.?limit/i.test(errMsg)
+          ? "نموذج GPT-4o مشغول حالياً. يمكنك الاعتماد على نتائج النماذج الأخرى."
+          : "تعذّر تشغيل GPT-4o مؤقتاً. النماذج الأخرى ستظهر نتائجها.";
+        sendEvent({ model: "openai", error: friendly });
       })(),
 
-      // Gemini
+      // Gemini (with model-chain fallback)
       (async () => {
-        try {
-          const response = geminiAI.models.generateContentStream({
-            model: "gemini-2.5-pro",
-            contents: [{ role: "user", parts: [{ text: prompt }] }],
-          });
-          let full = "";
-          for await (const chunk of await response) {
-            const text =
-              (chunk as { text?: string }).text ??
-              (chunk as { candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }> })
-                .candidates?.[0]?.content?.parts?.[0]?.text ??
-              "";
-            if (text) {
-              full += text;
-              sendEvent({ model: "gemini", chunk: text });
+        const geminiModels = ["gemini-2.5-pro", "gemini-2.5-flash", "gemini-2.5-flash-lite"];
+        let lastErr: any = null;
+        for (let mi = 0; mi < geminiModels.length; mi++) {
+          const model = geminiModels[mi];
+          try {
+            const response = geminiAI.models.generateContentStream({
+              model,
+              contents: [{ role: "user", parts: [{ text: prompt }] }],
+            });
+            let full = "";
+            for await (const chunk of await response) {
+              const text =
+                (chunk as { text?: string }).text ??
+                (chunk as { candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }> })
+                  .candidates?.[0]?.content?.parts?.[0]?.text ??
+                "";
+              if (text) {
+                full += text;
+                sendEvent({ model: "gemini", chunk: text });
+              }
             }
+            await db
+              .update(generatedOutputsTable)
+              .set({ outputText: full })
+              .where(eq(generatedOutputsTable.id, savedIds.gemini));
+            sendEvent({
+              model: "gemini",
+              done: true,
+              wordCount: full.split(/\s+/).filter(Boolean).length,
+              outputId: savedIds.gemini,
+            });
+            return;
+          } catch (err) {
+            lastErr = err;
+            const msg = (err as Error).message || "";
+            const transient = /503|overload|unavailable|high demand|429|rate.?limit|timeout|ECONNRESET/i.test(msg);
+            if (transient && mi < geminiModels.length - 1) {
+              await new Promise((r) => setTimeout(r, 1000));
+              continue;
+            }
+            break;
           }
-          await db
-            .update(generatedOutputsTable)
-            .set({ outputText: full })
-            .where(eq(generatedOutputsTable.id, savedIds.gemini));
-          sendEvent({
-            model: "gemini",
-            done: true,
-            wordCount: full.split(/\s+/).filter(Boolean).length,
-            outputId: savedIds.gemini,
-          });
-        } catch (err) {
-          sendEvent({ model: "gemini", error: (err as Error).message });
         }
+        const errMsg = (lastErr as Error)?.message || "";
+        const friendly = /503|overload|unavailable|high demand|429|rate.?limit/i.test(errMsg)
+          ? "نماذج Gemini مشغولة حالياً. يمكنك الاعتماد على نتائج النماذج الأخرى."
+          : "تعذّر تشغيل Gemini مؤقتاً. النماذج الأخرى ستظهر نتائجها.";
+        sendEvent({ model: "gemini", error: friendly });
       })(),
     ]);
 

@@ -367,3 +367,89 @@ export async function perplexitySearch(
 
 export const hasGemini = !!GEMINI_API_KEY;
 export const hasPerplexity = !!PERPLEXITY_API_KEY;
+
+// ─── Cross-provider JSON fallback ─────────────────────────────────────────────
+/**
+ * Robust JSON generation with cross-provider fallback:
+ *   1. geminiJSON (which itself walks gemini-2.5-pro → flash → flash-lite → flash-latest)
+ *   2. geminiText raw → manual parse (handles markdown noise)
+ *   3. Perplexity sonar-pro → manual parse (only if PERPLEXITY_API_KEY set)
+ *
+ * Throws a user-friendly Arabic error if EVERY provider exhausts.
+ */
+export async function aiJSONWithFallback<T = unknown>(
+  prompt: string,
+  opts: { model?: string; maxTokens?: number; system?: string } = {},
+): Promise<T> {
+  // Helper: extract JSON object/array from possibly noisy text
+  const extractJson = (raw: string): T => {
+    const clean = raw
+      .replace(/^```(?:json)?\s*/i, "")
+      .replace(/\s*```$/i, "")
+      .trim();
+    const start = clean.search(/[\[{]/);
+    if (start === -1) throw new Error("AI response had no JSON");
+    const body = clean.slice(start);
+    try {
+      return JSON.parse(body) as T;
+    } catch {
+      const lastBrace = Math.max(body.lastIndexOf("}"), body.lastIndexOf("]"));
+      if (lastBrace > 0) return JSON.parse(body.slice(0, lastBrace + 1)) as T;
+      throw new Error("AI response was not valid JSON");
+    }
+  };
+
+  // Tier 1: geminiJSON (already has internal model chain + retries)
+  try {
+    return await geminiJSON<T>(prompt, opts);
+  } catch (e1) {
+    console.warn("[ai] aiJSONWithFallback: geminiJSON failed:", (e1 instanceof Error ? e1.message : String(e1)).slice(0, 200));
+  }
+
+  // Tier 2: geminiText raw → manual extraction
+  try {
+    const raw = await geminiText(prompt, opts);
+    return extractJson(raw);
+  } catch (e2) {
+    console.warn("[ai] aiJSONWithFallback: geminiText raw failed:", (e2 instanceof Error ? e2.message : String(e2)).slice(0, 200));
+  }
+
+  // Tier 3: Perplexity (only if configured)
+  if (hasPerplexity) {
+    try {
+      const raw = await perplexitySearch(prompt, { maxTokens: opts.maxTokens ?? 4000 });
+      return extractJson(raw);
+    } catch (e3) {
+      console.warn("[ai] aiJSONWithFallback: Perplexity failed:", (e3 instanceof Error ? e3.message : String(e3)).slice(0, 200));
+    }
+  }
+
+  // All exhausted — throw a friendly Arabic error
+  throw new Error(
+    "تعذّر توليد المحتوى حالياً بسبب ضغط مؤقت على نماذج الذكاء الاصطناعي. يرجى المحاولة بعد دقيقتين."
+  );
+}
+
+/**
+ * Robust text generation with cross-provider fallback.
+ */
+export async function aiTextWithFallback(
+  prompt: string,
+  opts: { model?: string; maxTokens?: number; system?: string } = {},
+): Promise<string> {
+  try {
+    return await geminiText(prompt, opts);
+  } catch (e1) {
+    console.warn("[ai] aiTextWithFallback: geminiText failed:", (e1 instanceof Error ? e1.message : String(e1)).slice(0, 200));
+  }
+  if (hasPerplexity) {
+    try {
+      return await perplexitySearch(prompt, { maxTokens: opts.maxTokens ?? 2048 });
+    } catch (e2) {
+      console.warn("[ai] aiTextWithFallback: Perplexity failed:", (e2 instanceof Error ? e2.message : String(e2)).slice(0, 200));
+    }
+  }
+  throw new Error(
+    "تعذّر توليد المحتوى حالياً بسبب ضغط مؤقت على نماذج الذكاء الاصطناعي. يرجى المحاولة بعد دقيقتين."
+  );
+}

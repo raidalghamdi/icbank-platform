@@ -4784,7 +4784,7 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
       </div>
       <div id="mm-wiz-step"></div>
       <div style="display:flex;justify-content:space-between;margin-top:24px;">
-        <button type="button" class="btn btn-ghost" id="mm-wiz-back" onclick="event.preventDefault(); MM.wizPrev(); return false;" style="color:#fff;border-color:rgba(255,255,255,.3);">← السابق</button>
+        <button type="button" class="btn" id="mm-wiz-back" onclick="event.preventDefault(); MM.wizPrev(); return false;" style="background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.35);font-weight:600;">← السابق</button>
         <button type="button" class="btn" id="mm-wiz-next" onclick="event.preventDefault(); MM.wizNext(); return false;" style="background:#fbbf24;color:#0e3b4a;font-weight:700;">التالي →</button>
       </div>
     </div>
@@ -5108,6 +5108,50 @@ async function apiFetch(url, opts) {
   }
   // Retry original request with new token
   return authFetchWithToken(url, opts);
+}
+
+// ─── Friendly error translator ──────────────────────────────────
+// Converts raw JSON/stack errors from server into clean Arabic messages.
+// Recognises common patterns: 503 AI overload, Chromium PDF failure,
+// network errors, timeouts, auth errors, validation errors.
+function friendlyError(err, fallback) {
+  fallback = fallback || 'حدث خطأ غير متوقع. حاول مرة أخرى.';
+  if (!err) return fallback;
+  var msg = typeof err === 'string' ? err : (err.message || err.error || err.toString());
+  if (!msg || typeof msg !== 'string') return fallback;
+
+  // Strip JSON wrapper if message contains a nested JSON error
+  var lower = msg.toLowerCase();
+
+  // AI model overload (Claude 503, OpenAI 429, etc.)
+  if (/503|unavailable|high demand|overloaded|rate.?limit|429|temporarily/i.test(msg)) {
+    return 'نموذج الذكاء الاصطناعي يستقبل عدداً كبيراً من الطلبات حالياً. سنحاول تلقائياً بنموذج بديل، أو حاول مجدداً بعد دقيقة.';
+  }
+  // Puppeteer/Chromium failures
+  if (/libnss3|chromium|puppeteer|launch the browser|code: 127|shared libraries/i.test(msg)) {
+    return 'تعذّر إنشاء ملف PDF على الخادم حالياً. تم تسجيل المشكلة وستُحلّ قريباً.';
+  }
+  // Network / timeout
+  if (/network|fetch|failed to fetch|load failed|timeout|aborted/i.test(msg)) {
+    return 'تعذّر الاتصال بالخادم. تحقّق من اتصال الإنترنت وحاول مجدداً.';
+  }
+  // Auth
+  if (/unauthorized|unauthenticated|forbidden|401|403/i.test(msg)) {
+    return 'انتهت صلاحية الجلسة أو لا تملك صلاحية تنفيذ هذا الإجراء.';
+  }
+  // Validation
+  if (/validation|invalid|required|missing/i.test(msg)) {
+    return 'بيانات الإدخال غير مكتملة أو غير صحيحة. راجع الحقول وحاول مجدداً.';
+  }
+  // Server 5xx
+  if (/500|internal server|server error/i.test(msg)) {
+    return 'حدث خلل في الخادم. تم تسجيل الخطأ وسنعمل على إصلاحه.';
+  }
+  // Already Arabic message — return as-is (trim long ones)
+  if (/[\u0600-\u06FF]/.test(msg)) {
+    return msg.length > 200 ? msg.slice(0, 200) + '…' : msg;
+  }
+  return fallback;
 }
 
 async function authRefresh() {
@@ -5918,30 +5962,30 @@ window.adminSaveUser = function() {
     adminCloseUserModal();
     adminLoadUsers();
     admApi('/admin/roles').then(function(r) { ADM.roles = r.roles || []; admPopulateRoleFilters(); });
-  }).catch(function(e) { alert('خطأ: ' + e.message); });
+  }).catch(function(e) { alert(friendlyError(e, 'حدث خطأ غير متوقع')); });
 };
 
 window.adminSuspend = function(id) {
   admJson('/admin/users/' + id + '/suspend', 'POST').then(function() { adminLoadUsers(); })
-    .catch(function(e) { alert('خطأ: ' + e.message); });
+    .catch(function(e) { alert(friendlyError(e, 'حدث خطأ غير متوقع')); });
 };
 
 window.adminUnlock = function(id) {
   admJson('/admin/users/' + id + '/unlock', 'POST').then(function() { adminLoadUsers(); })
-    .catch(function(e) { alert('خطأ: ' + e.message); });
+    .catch(function(e) { alert(friendlyError(e, 'حدث خطأ غير متوقع')); });
 };
 
 window.adminResetPw = function(id, name) {
   if (!confirm('إعادة تعيين كلمة مرور ' + name + '؟ ستُولَّد كلمة مرور جديدة عشوائية.')) return;
   admJson('/admin/users/' + id + '/reset-password', 'POST').then(function(d) {
     alert('✓ كلمة المرور الجديدة لـ ' + name + ':\n\n' + d.tempPassword + '\n\nاحرص على مشاركتها فوراً.');
-  }).catch(function(e) { alert('خطأ: ' + e.message); });
+  }).catch(function(e) { alert(friendlyError(e, 'حدث خطأ غير متوقع')); });
 };
 
 window.adminDeleteUser = function(id, name) {
   if (!confirm('حذف المستخدم "' + name + '" بشكل نهائي؟ لا يمكن التراجع.')) return;
   admJson('/admin/users/' + id, 'DELETE').then(function() { adminLoadUsers(); })
-    .catch(function(e) { alert('خطأ: ' + e.message); });
+    .catch(function(e) { alert(friendlyError(e, 'حدث خطأ غير متوقع')); });
 };
 
 // ── Roles tab ─────────────────────────────────────────────────────────────────
@@ -6102,13 +6146,13 @@ window.adminSaveRole = function() {
   }).then(function() {
     adminCloseRoleModal();
     adminLoadRoles();
-  }).catch(function(e) { alert('خطأ: ' + e.message); });
+  }).catch(function(e) { alert(friendlyError(e, 'حدث خطأ غير متوقع')); });
 };
 
 window.adminDeleteRole = function(id, name) {
   if (!confirm('حذف الدور "' + name + '" نهائياً؟')) return;
   admJson('/admin/roles/' + id, 'DELETE').then(function() { adminLoadRoles(); })
-    .catch(function(e) { alert('خطأ: ' + e.message); });
+    .catch(function(e) { alert(friendlyError(e, 'حدث خطأ غير متوقع')); });
 };
 
 // ── Matrix tab ────────────────────────────────────────────────────────────────
@@ -6235,7 +6279,7 @@ window.admMxSetLevel = function(userId, pageSlug, level) {
     });
   });
   chain.then(function() { adminLoadMatrix(); })
-    .catch(function(e) { alert('خطأ: ' + e.message); });
+    .catch(function(e) { alert(friendlyError(e, 'حدث خطأ غير متوقع')); });
 };
 
 function admClosePopup() {
@@ -6316,7 +6360,7 @@ window.adminDoBulkApply = function() {
   }).then(function() {
     document.getElementById('adm-bulk-modal').classList.remove('open');
     adminLoadMatrix();
-  }).catch(function(e) { alert('خطأ: ' + e.message); });
+  }).catch(function(e) { alert(friendlyError(e, 'حدث خطأ غير متوقع')); });
 };
 
 // ── Logs tab ──────────────────────────────────────────────────────────────────
@@ -6409,7 +6453,7 @@ window.adminExportLogs = function() {
     return r.text();
   }).then(function(csv) {
     admDownloadCsv(csv, 'activity-log.csv');
-  }).catch(function(e) { alert('خطأ: ' + e.message); });
+  }).catch(function(e) { alert(friendlyError(e, 'حدث خطأ غير متوقع')); });
 };
 
 function admDownloadCsv(csv, filename) {
@@ -6476,7 +6520,7 @@ window.adminSaveSettings = function() {
   });
   admJson('/admin/settings', 'PUT', { settings: settings }).then(function() {
     alert('✓ تم حفظ الإعدادات بنجاح');
-  }).catch(function(e) { alert('خطأ: ' + e.message); });
+  }).catch(function(e) { alert(friendlyError(e, 'حدث خطأ غير متوقع')); });
 };
 
 })(); // end admin IIFE
@@ -7548,7 +7592,7 @@ async function wk2AdminApprove(id) {
     var res = await apiFetch('/api/weekend/drafts/' + id + '/approve', { method:'POST' });
     if (!res.ok) { var e = await res.json(); throw new Error(e.error || res.status); }
     await wk2AdminLoadDrafts();
-  } catch (e) { alert('فشل الاعتماد: ' + e.message); }
+  } catch (e) { alert('فشل الاعتماد: ' + friendlyError(e)); }
 }
 
 async function wk2AdminPublish(id) {
@@ -7558,7 +7602,7 @@ async function wk2AdminPublish(id) {
     if (!res.ok) { var e = await res.json(); throw new Error(e.error || res.status); }
     alert('تم النشر. حدّث الصفحة لعرض المحتوى الجديد للموظفين.');
     await wk2AdminLoadDrafts();
-  } catch (e) { alert('فشل النشر: ' + e.message); }
+  } catch (e) { alert('فشل النشر: ' + friendlyError(e)); }
 }
 
 async function wk2AdminReject(id) {
@@ -7570,7 +7614,7 @@ async function wk2AdminReject(id) {
     });
     if (!res.ok) { var e = await res.json(); throw new Error(e.error || res.status); }
     await wk2AdminLoadDrafts();
-  } catch (e) { alert('فشل الرفض: ' + e.message); }
+  } catch (e) { alert('فشل الرفض: ' + friendlyError(e)); }
 }
 
 async function wk2AdminDelete(id) {
@@ -7579,7 +7623,7 @@ async function wk2AdminDelete(id) {
     var res = await apiFetch('/api/weekend/drafts/' + id, { method:'DELETE' });
     if (!res.ok) { var e = await res.json(); throw new Error(e.error || res.status); }
     await wk2AdminLoadDrafts();
-  } catch (e) { alert('فشل الحذف: ' + e.message); }
+  } catch (e) { alert('فشل الحذف: ' + friendlyError(e)); }
 }
 
 function wk2AdminPreview(id) {
@@ -8263,7 +8307,7 @@ async function idDeepSearch(forceRefresh) {
     if (sseError) throw new Error(sseError);
   } catch(err) {
     document.getElementById('id-progress').style.display = 'none';
-    alert('حدث خطأ: ' + err.message);
+    alert(friendlyError(err));
   } finally {
     if (btn) btn.disabled = false;
     if (lbl) lbl.textContent = 'بحث عميق';
@@ -8604,7 +8648,7 @@ async function idSave() {
     }
   } catch(err) {
     if (btn) { btn.disabled = false; btn.textContent = '💾 حفظ في الأرشيف'; }
-    alert('خطأ في الحفظ: ' + err.message);
+    alert('خطأ في الحفظ: ' + friendlyError(err));
   }
 }
 
@@ -8762,7 +8806,7 @@ async function idOpenDay(id) {
     var searchSection = document.getElementById('id-search-view');
     if (searchSection) searchSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch(err) {
-    alert('خطأ في تحميل اليوم: ' + err.message);
+    alert('خطأ في تحميل اليوم: ' + friendlyError(err));
   }
 }
 
@@ -9203,13 +9247,13 @@ async function aiyLBDelete() {
     });
     var body = await res.json();
     if (!res.ok) {
-      alert(body.error || 'فشل الحذف');
+      alert(friendlyError(body, 'فشل الحذف'));
       return;
     }
     aiyCloseLB();
     await aiyLoadActivations();
     await aiyLoadStats();
-  } catch(e) { alert('فشل الحذف: ' + e.message); }
+  } catch(e) { alert('فشل الحذف: ' + friendlyError(e)); }
 }
 
 // ── Add / Edit Modal ─────────────────────────────────────────────
@@ -9381,7 +9425,7 @@ async function aiySaveActivation() {
     await aiyLoadActivations();
     await aiyLoadStats();
   } catch(err) {
-    alert('فشل الحفظ: ' + err.message);
+    alert('فشل الحفظ: ' + friendlyError(err));
   } finally {
     if (btn) btn.disabled = false;
     if (lbl) lbl.textContent = 'حفظ التفعيل';
@@ -9476,14 +9520,14 @@ var DES = (function() {
       document.getElementById('des-logo-width').value = '';
       document.getElementById('des-logo-transparent').checked = false;
       loadLogos();
-    }).catch(function(e) { alert('خطأ: ' + e.message); })
+    }).catch(function(e) { alert(friendlyError(e, 'حدث خطأ غير متوقع')); })
     .finally(function() { hideOverlay(); });
   }
 
   function deleteLogo(id) {
     if (!confirm('هل تريد حذف هذا الشعار؟')) return;
     apiFetch('/api/designs/logos/' + id, { method: 'DELETE' })
-      .then(function() { loadLogos(); }).catch(function(e) { alert('خطأ: ' + e.message); });
+      .then(function() { loadLogos(); }).catch(function(e) { alert(friendlyError(e, 'حدث خطأ غير متوقع')); });
   }
 
   // ── Fonts ───────────────────────────────────────────────────────
@@ -9534,19 +9578,19 @@ var DES = (function() {
     .then(function() {
       input.value = ''; document.getElementById('des-font-name').value = '';
       loadFonts();
-    }).catch(function(e) { alert('خطأ: ' + e.message); })
+    }).catch(function(e) { alert(friendlyError(e, 'حدث خطأ غير متوقع')); })
     .finally(function() { hideOverlay(); });
   }
 
   function setDefaultFont(id) {
     apiFetch('/api/designs/fonts/' + id + '/default', { method: 'PATCH' })
-      .then(function() { loadFonts(); }).catch(function(e) { alert('خطأ: ' + e.message); });
+      .then(function() { loadFonts(); }).catch(function(e) { alert(friendlyError(e, 'حدث خطأ غير متوقع')); });
   }
 
   function deleteFont(id) {
     if (!confirm('هل تريد حذف هذا الخط؟')) return;
     apiFetch('/api/designs/fonts/' + id, { method: 'DELETE' })
-      .then(function() { loadFonts(); }).catch(function(e) { alert('خطأ: ' + e.message); });
+      .then(function() { loadFonts(); }).catch(function(e) { alert(friendlyError(e, 'حدث خطأ غير متوقع')); });
   }
 
   // ── Templates ───────────────────────────────────────────────────
@@ -9703,7 +9747,7 @@ var DES = (function() {
       .then(function(d) {
         if (d.skipped) alert('قالب موجود مسبقاً — تم تحديث العرض.');
         loadTemplates();
-      }).catch(function(e) { alert('خطأ: ' + e.message); });
+      }).catch(function(e) { alert(friendlyError(e, 'حدث خطأ غير متوقع')); });
   }
 
   // ── Seed presentation templates (server-rendered with sharp+Pango) ──
@@ -10535,7 +10579,7 @@ var PLCS = (function() {
       closeForm();
       loadPlaces();
     }).catch(function(e) {
-      alert('خطأ: ' + e.message);
+      alert(friendlyError(e, 'حدث خطأ غير متوقع'));
     }).finally(function() {
       _hideOverlay();
     });
@@ -10547,7 +10591,7 @@ var PLCS = (function() {
     if (!confirm('هل تريد حذف "' + (p ? p.name : id) + '"؟ لا يمكن التراجع.')) return;
     apiFetch('/api/weekend-places/' + id, { method: 'DELETE' })
       .then(function() { loadPlaces(); })
-      .catch(function(e) { alert('خطأ: ' + e.message); });
+      .catch(function(e) { alert(friendlyError(e, 'حدث خطأ غير متوقع')); });
   }
 
   return {
@@ -11340,7 +11384,7 @@ async function shorfahUploadMedia(ev) {
       });
       var data = await res.json();
       if (!res.ok) { alert('خطأ في رفع ' + f.name + ': ' + (data.error || res.status)); }
-    } catch(e) { alert('خطأ: ' + e.message); }
+    } catch(e) { alert(friendlyError(e, 'حدث خطأ غير متوقع')); }
   }
   status.textContent = '';
   await shorfahLoadMedia(sid);
@@ -11354,7 +11398,7 @@ async function shorfahDeleteMedia(mediaId) {
     var res = await apiFetch('/api/shorfah/media/'+mediaId, { method: 'DELETE' });
     if (!res.ok) { var d = await res.json(); alert('خطأ: ' + (d.error || res.status)); return; }
     await shorfahLoadMedia(sid);
-  } catch(e) { alert('خطأ: ' + e.message); }
+  } catch(e) { alert(friendlyError(e, 'حدث خطأ غير متوقع')); }
 }
 function shorfahCloseEditor() { document.getElementById('shorfah-editor-modal').style.display = 'none'; }
 
