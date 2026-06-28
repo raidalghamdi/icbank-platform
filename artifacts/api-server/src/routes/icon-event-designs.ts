@@ -3,8 +3,8 @@
  * توليد تصاميم الفعاليات بالأيقونات تلقائياً باستخدام AI
  *
  * Endpoints:
- *   POST /api/designs/icon-event/generate  → يولّد 3 تنويعات (AI يقترح + composer يرسم)
- *   POST /api/designs/icon-event/render    → يحول HTML إلى PNG ويحفظه
+ *   POST /api/designs/icon-event/generate  → AI يحلل البيانات الخام ويولّد 3 تنويعات
+ *   POST /api/designs/icon-event/render    → HTML → PNG عالي الجودة (3x HD)
  *   GET  /api/designs/icon-event/icons     → قائمة الأيقونات المتاحة
  */
 
@@ -15,6 +15,7 @@ import { ICON_LIBRARY, iconListForAI } from "../composer/icon-library";
 import {
   renderIconEventDesign,
   type IconEventInput,
+  type IconEventStat,
   type LayoutType,
   type SizePreset,
   type ColorScheme,
@@ -40,19 +41,25 @@ router.get("/designs/icon-event/icons", async (_req: Request, res: Response) => 
   });
 });
 
-// ─── POST generate: AI يولّد 3 تنويعات ───────────────────────────────────────
+// ─── POST generate ──────────────────────────────────────────────────────────
 router.post("/designs/icon-event/generate", async (req: Request, res: Response) => {
   const {
-    headline,
+    raw_data,          // البيانات الخام (نص حر يكتبه المستخدم)
+    headline,          // عنوان (اختياري — يستخدمه AI كمرجع)
     subtitle,
+    department,        // اسم الإدارة (اختياري)
+    hashtag,
     date,
     time,
     location,
     event_type,
     size,
   } = req.body as {
+    raw_data?: string;
     headline?: string;
     subtitle?: string;
+    department?: string;
+    hashtag?: string;
     date?: string;
     time?: string;
     location?: string;
@@ -60,8 +67,9 @@ router.post("/designs/icon-event/generate", async (req: Request, res: Response) 
     size?: SizePreset;
   };
 
-  if (!headline || headline.trim().length < 3) {
-    res.status(400).json({ error: "العنوان مطلوب" });
+  // يحتاج إما raw_data أو headline على الأقل
+  if ((!raw_data || raw_data.trim().length < 5) && (!headline || headline.trim().length < 3)) {
+    res.status(400).json({ error: "يجب إدخال بيانات خام أو عنوان للفعالية" });
     return;
   }
   if (!size || !SIZE_MAP[size]) {
@@ -69,101 +77,125 @@ router.post("/designs/icon-event/generate", async (req: Request, res: Response) 
     return;
   }
 
-  // === AI Prompt ===
+  // === AI Prompt — يفهم البيانات الخام ويستخرج كل شيء ===
   const prompt = `
-أنت مصمم بصري ذكي. ستحلّل بيانات فعالية وتختار:
-1. أيقونة رئيسية مناسبة للفكرة
-2. 3 أيقونات داعمة (تاريخ/وقت/مكان أو فكرة مكملة)
-3. نظام ألوان من هوية GAC: blue | green | cyan | navy
-4. تخطيط لكل تنويعة (hero, grid, split)
-5. صياغة عنوان قصير محسّن (5-8 كلمات بحد أقصى)
+أنت مصمم بصري ذكي للهيئة العامة للمنافسة (GAC). ستحلل بيانات الفعالية (قد تكون نصاً خاماً غير منظم) وتستخرج منها:
+1. عنوان رئيسي قصير (2-4 كلمات)
+2. عنوان فرعي (سطر واحد يصف الفعالية)
+3. اسم الإدارة (إن لم يُذكر اتركه فارغاً)
+4. هاشتاج (إن لم يوجد ابتكر واحداً مناسباً)
+5. ثلاث إحصائيات (الأهم) — كل واحدة: أيقونة + قيمة + وصف قصير
+6. أيقونة رئيسية (للتخطيطات الأخرى) + 3 أيقونات داعمة
+7. نظام ألوان من: teal | blue | green | cyan | navy (افتراضي teal للتصميم الرسمي)
 
-البيانات:
-- العنوان الأصلي: "${headline}"
-- الوصف: "${subtitle || "-"}"
-- التاريخ: "${date || "-"}"
-- الوقت: "${time || "-"}"
-- المكان: "${location || "-"}"
-- نوع الفعالية: "${event_type || "غير محدد"}"
-- المقاس: "${size}"
+البيانات (قد تكون خاماً):
+"""
+${raw_data || `العنوان: ${headline}\nالوصف: ${subtitle || "-"}\nالإدارة: ${department || "-"}\nالتاريخ: ${date || "-"}\nالوقت: ${time || "-"}\nالمكان: ${location || "-"}\nالنوع: ${event_type || "-"}`}
+"""
 
-الأيقونات المتاحة (50 أيقونة Lucide — اختر من هذه القائمة فقط):
+${department ? `ملاحظة: اسم الإدارة المؤكد هو "${department}" — استخدمه كما هو.` : ""}
+${hashtag ? `ملاحظة: الهاشتاج المؤكد هو "${hashtag}".` : ""}
+
+الأيقونات المتاحة (اختر فقط من هذه القائمة):
 ${iconListForAI()}
 
-أعد JSON دقيق بهذا الشكل (3 تنويعات مختلفة):
+أعد JSON بهذا الشكل بالضبط (3 تنويعات — أولها stats-hero مطابق للهوية الرسمية):
 {
+  "extracted": {
+    "headline": "<عنوان قصير 2-4 كلمات>",
+    "subtitle": "<سطر فرعي>",
+    "department": "<اسم الإدارة أو سلسلة فارغة>",
+    "hashtag": "<#هاشتاج>",
+    "stats": [
+      { "icon": "<اسم أيقونة>", "value": "<رقم/قيمة مثل 135+ أو 20>", "label": "<وصف قصير سطرين كحد أقصى>" },
+      { "icon": "...", "value": "...", "label": "..." },
+      { "icon": "...", "value": "...", "label": "..." }
+    ]
+  },
   "variants": [
     {
-      "layout": "hero",
-      "main_icon": "<اسم من القائمة>",
-      "supporting_icons": ["<اسم>", "<اسم>", "<اسم>"],
-      "headline": "<عنوان محسّن قصير>",
-      "subtitle": "<وصف موجز سطر واحد>",
-      "color_scheme": "blue",
-      "rationale": "<سطر يشرح الاختيار>"
+      "layout": "stats-hero",
+      "color_scheme": "teal",
+      "main_icon": "<أيقونة من القائمة>",
+      "supporting_icons": ["<اسم>","<اسم>","<اسم>"],
+      "rationale": "<سطر يشرح لماذا هذا الاختيار>"
     },
     {
-      "layout": "grid",
+      "layout": "hero",
+      "color_scheme": "blue",
       "main_icon": "...",
       "supporting_icons": ["...","...","..."],
-      "headline": "...",
-      "subtitle": "...",
-      "color_scheme": "green",
       "rationale": "..."
     },
     {
       "layout": "split",
+      "color_scheme": "green",
       "main_icon": "...",
       "supporting_icons": ["...","...","..."],
-      "headline": "...",
-      "subtitle": "...",
-      "color_scheme": "cyan",
       "rationale": "..."
     }
   ]
 }
 
 قواعد صارمة:
-- استخدم فقط أسماء أيقونات من القائمة أعلاه (مثل "rocket", "users", "calendar"...).
-- color_scheme فقط من: blue, green, cyan, navy.
-- layout فقط من: hero, grid, split (تنويعة لكل تخطيط).
-- العنوان لا يتجاوز 8 كلمات.
-- الوصف سطر واحد فقط.
+- TODO: استخرج كل إحصائية من البيانات (الأرقام، النسب، الأعداد) واختر أيقونة مناسبة لكل واحدة.
+- استخدم فقط أسماء أيقونات من القائمة (مثل "users", "building", "brain", "graduation-cap"...).
+- color_scheme فقط من: teal, blue, green, cyan, navy.
+- layout فقط من: stats-hero, hero, grid, split.
+- العنوان الرئيسي 2-4 كلمات بحد أقصى.
+- إن لم توجد إحصائيات في البيانات، اقترح إحصائيات منطقية حسب نوع الفعالية.
 - لا تضف أي شرح خارج JSON.
 `.trim();
 
   try {
-    const parsed: any = await aiJSONWithFallback(prompt, { maxTokens: 2000 });
+    const parsed: any = await aiJSONWithFallback(prompt, { maxTokens: 3000 });
 
-    if (!parsed?.variants || !Array.isArray(parsed.variants) || parsed.variants.length === 0) {
+    if (!parsed?.variants || !Array.isArray(parsed.variants)) {
       throw new Error("AI لم يُرجع تنويعات صالحة");
     }
 
-    // التحقق وتطبيع الأيقونات
     const validIconNames = new Set(ICON_LIBRARY.map((i) => i.name));
-    const validLayouts: LayoutType[] = ["hero", "grid", "split"];
-    const validColors: ColorScheme[] = ["blue", "green", "cyan", "navy"];
+    const validLayouts: LayoutType[] = ["stats-hero", "hero", "grid", "split"];
+    const validColors: ColorScheme[] = ["teal", "blue", "green", "cyan", "navy"];
 
     const logoUrl = "/brand-assets/logos/gac-white.png";
+    const extracted = parsed.extracted || {};
+
+    // تطبيع الإحصائيات
+    const rawStats: any[] = Array.isArray(extracted.stats) ? extracted.stats : [];
+    const stats: IconEventStat[] = rawStats.slice(0, 3).map((s: any) => ({
+      icon: validIconNames.has(s.icon) ? s.icon : "sparkles",
+      value: String(s.value || "—"),
+      label: String(s.label || ""),
+    }));
+
+    // استخدام القيم المقدّمة من المستخدم إن وُجدت، وإلا المستخرجة من AI
+    const finalHeadline = headline?.trim() || extracted.headline || "عنوان الفعالية";
+    const finalSubtitle = subtitle?.trim() || extracted.subtitle || "";
+    const finalDepartment = department?.trim() || extracted.department || "";
+    const finalHashtag = hashtag?.trim() || extracted.hashtag || "";
 
     const variants = parsed.variants.slice(0, 3).map((v: any, idx: number) => {
-      const layout: LayoutType = validLayouts.includes(v.layout) ? v.layout : validLayouts[idx % 3];
+      const layout: LayoutType = validLayouts.includes(v.layout) ? v.layout : validLayouts[idx % 4];
       const color_scheme: ColorScheme = validColors.includes(v.color_scheme)
         ? v.color_scheme
-        : (["blue", "green", "cyan"] as ColorScheme[])[idx % 3];
+        : (["teal", "blue", "green"] as ColorScheme[])[idx % 3];
       const main_icon = validIconNames.has(v.main_icon) ? v.main_icon : "sparkles";
       const supporting = (Array.isArray(v.supporting_icons) ? v.supporting_icons : [])
         .filter((s: string) => validIconNames.has(s))
         .slice(0, 3);
 
       const input: IconEventInput = {
-        headline: v.headline?.trim() || headline,
-        subtitle: v.subtitle?.trim() || subtitle,
+        headline: finalHeadline,
+        subtitle: finalSubtitle,
+        department: finalDepartment || undefined,
+        hashtag: finalHashtag || undefined,
         date,
         time,
         location,
         main_icon,
         supporting_icons: supporting,
+        stats: stats.length > 0 ? stats : undefined,
         color_scheme,
         layout,
         size: size!,
@@ -180,13 +212,16 @@ ${iconListForAI()}
         color_scheme,
         headline: input.headline,
         subtitle: input.subtitle,
+        department: input.department,
+        hashtag: input.hashtag,
+        stats: input.stats,
         rationale: v.rationale || "",
         html,
         input,
       };
     });
 
-    res.json({ ok: true, variants, count: variants.length });
+    res.json({ ok: true, variants, count: variants.length, extracted });
   } catch (e: any) {
     req.log?.error({ err: e?.message }, "icon-event generate failed");
 
@@ -197,17 +232,29 @@ ${iconListForAI()}
       event_type === "launch" ? "rocket" :
       event_type === "social" ? "party-popper" : "sparkles";
 
-    const fallbackVariants = (["hero", "grid", "split"] as LayoutType[]).map((layout, idx) => {
-      const color: ColorScheme = (["blue", "green", "cyan"] as ColorScheme[])[idx];
+    const fallbackHeadline = headline || (raw_data ? raw_data.split("\n")[0].slice(0, 60) : "فعالية");
+    const fallbackStats: IconEventStat[] = [
+      { icon: "users", value: "—", label: "مشاركة" },
+      { icon: "building", value: "—", label: "إدارة" },
+      { icon: "calendar", value: "—", label: "فعالية" },
+    ];
+
+    const layouts: LayoutType[] = ["stats-hero", "hero", "split"];
+    const colors: ColorScheme[] = ["teal", "blue", "green"];
+
+    const fallbackVariants = layouts.map((layout, idx) => {
       const input: IconEventInput = {
-        headline,
+        headline: fallbackHeadline,
         subtitle,
+        department,
+        hashtag,
         date,
         time,
         location,
         main_icon: fallbackIcon,
         supporting_icons: ["calendar", "clock", "map-pin"],
-        color_scheme: color,
+        stats: fallbackStats,
+        color_scheme: colors[idx],
         layout,
         size: size!,
         logo_url: "/brand-assets/logos/gac-white.png",
@@ -217,9 +264,12 @@ ${iconListForAI()}
         layout,
         main_icon: fallbackIcon,
         supporting_icons: ["calendar", "clock", "map-pin"],
-        color_scheme: color,
-        headline,
+        color_scheme: colors[idx],
+        headline: fallbackHeadline,
         subtitle: subtitle || "",
+        department,
+        hashtag,
+        stats: fallbackStats,
         rationale: "تنويعة افتراضية (تعذّر الاتصال بـ AI)",
         html: renderIconEventDesign(input),
         input,
@@ -230,14 +280,14 @@ ${iconListForAI()}
       ok: true,
       variants: fallbackVariants,
       count: 3,
-      warning: "تم استخدام التنويعات الافتراضية لتعذّر الاتصال بـ AI",
+      warning: "تم استخدام التنويعات الافتراضية لتعذّر الاتصال بـ AI — يمكنك إعادة المحاولة",
     });
   }
 });
 
-// ─── POST render: HTML → PNG ────────────────────────────────────────────────
+// ─── POST render: HTML → PNG (HD 3x) ────────────────────────────────────────
 router.post("/designs/icon-event/render", async (req: Request, res: Response) => {
-  const { html, size } = req.body as { html?: string; size?: SizePreset };
+  const { html, size, quality } = req.body as { html?: string; size?: SizePreset; quality?: "hd" | "ultra" };
 
   if (!html || !size || !SIZE_MAP[size]) {
     res.status(400).json({ error: "html و size مطلوبان" });
@@ -245,6 +295,8 @@ router.post("/designs/icon-event/render", async (req: Request, res: Response) =>
   }
 
   const { width, height } = SIZE_MAP[size];
+  // HD = 3x device scale factor (افتراضي)، ultra = 4x
+  const deviceScaleFactor = quality === "ultra" ? 4 : 3;
 
   try {
     const puppeteer = await import("puppeteer-core");
@@ -266,31 +318,61 @@ router.post("/designs/icon-event/render", async (req: Request, res: Response) =>
 
     const browser = await puppeteer.default.launch({
       args: [...extraArgs, "--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
-      defaultViewport: { width, height, deviceScaleFactor: 2 },
+      defaultViewport: { width, height, deviceScaleFactor },
       executablePath,
       headless: true,
     });
 
     const page = await browser.newPage();
-    await page.setViewport({ width, height, deviceScaleFactor: 2 });
+    await page.setViewport({ width, height, deviceScaleFactor });
     await page.setContent(html, { waitUntil: "networkidle0", timeout: 30000 });
 
-    // إعطاء وقت كافٍ للخطوط
-    await new Promise((r) => setTimeout(r, 800));
+    // إعطاء وقت كافٍ للخطوط والصور (الشعار)
+    await new Promise((r) => setTimeout(r, 1500));
+
+    // محاولة انتظار جاهزية الصور (الشعار)
+    try {
+      await page.evaluate(async () => {
+        const imgs = Array.from(document.images);
+        await Promise.all(
+          imgs.map((img) => {
+            if (img.complete) return Promise.resolve();
+            return new Promise((resolve) => {
+              img.addEventListener("load", () => resolve(null));
+              img.addEventListener("error", () => resolve(null));
+            });
+          })
+        );
+      });
+    } catch {}
 
     const posterHandle = await page.$(".poster");
     const screenshot = posterHandle
-      ? await posterHandle.screenshot({ type: "png", omitBackground: false })
-      : await page.screenshot({ type: "png", fullPage: false, clip: { x: 0, y: 0, width, height } });
+      ? await posterHandle.screenshot({
+          type: "png",
+          omitBackground: false,
+          captureBeyondViewport: true,
+        })
+      : await page.screenshot({
+          type: "png",
+          fullPage: false,
+          clip: { x: 0, y: 0, width, height },
+          captureBeyondViewport: true,
+        });
 
     await browser.close();
 
     const buffer = Buffer.from(screenshot);
-
-    // حفظ في object storage
     const url = await objectStorage.saveComposedDesign(buffer);
 
-    res.json({ ok: true, url, size, width, height });
+    res.json({
+      ok: true,
+      url,
+      size,
+      width: width * deviceScaleFactor,
+      height: height * deviceScaleFactor,
+      quality: quality === "ultra" ? "ultra (4x)" : "hd (3x)",
+    });
   } catch (e: any) {
     req.log?.error({ err: e?.message, stack: e?.stack }, "icon-event render failed");
     res.status(500).json({

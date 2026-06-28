@@ -4331,42 +4331,96 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
       </div>
     </div>
 
+    <!-- Responsive CSS for IES -->
+    <style>
+      .ies-grid-2col { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+      .ies-grid-3col { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+      .ies-variants-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
+      .ies-input { width:100%; padding:12px; border:2px solid #DCDDDE; border-radius:10px; font-size:15px; font-family:inherit; box-sizing:border-box; }
+      .ies-input:focus { outline:none; border-color:#46BCCD; }
+      .ies-label { display:block; margin-bottom:6px; font-weight:700; color:#003C5A; font-size:14px; }
+      @media (max-width: 1024px) {
+        .ies-variants-grid { grid-template-columns:repeat(2,1fr); }
+      }
+      @media (max-width: 768px) {
+        .ies-grid-2col { grid-template-columns:1fr; gap:14px; }
+        .ies-grid-3col { grid-template-columns:1fr; gap:10px; }
+        .ies-variants-grid { grid-template-columns:1fr; gap:16px; }
+        #section-icon_event_studio .card { padding:18px !important; }
+        #section-icon_event_studio .page-title { font-size:22px !important; flex-wrap:wrap; }
+      }
+      @media (max-width: 480px) {
+        #section-icon_event_studio .page-title { font-size:18px !important; }
+      }
+    </style>
+
     <div class="card" style="padding:28px;">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
-        <div>
-          <label style="display:block;margin-bottom:6px;font-weight:700;color:#003C5A;">عنوان الفعالية *</label>
-          <input id="ies-headline" type="text" placeholder="مثال: ورشة الذكاء الاصطناعي" style="width:100%;padding:12px;border:2px solid #DCDDDE;border-radius:10px;font-size:15px;" />
+      <!-- Quick toggle: raw vs structured -->
+      <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;">
+        <button type="button" id="ies-tab-raw" onclick="iesSwitchMode('raw')" style="flex:1;min-width:140px;padding:12px 18px;border:2px solid #0069A7;background:#0069A7;color:#fff;border-radius:10px;font-weight:800;cursor:pointer;font-size:14px;">✍️ إدخال حر (بيانات خام)</button>
+        <button type="button" id="ies-tab-structured" onclick="iesSwitchMode('structured')" style="flex:1;min-width:140px;padding:12px 18px;border:2px solid #DCDDDE;background:#fff;color:#003C5A;border-radius:10px;font-weight:800;cursor:pointer;font-size:14px;">📝 حقول منظّمة</button>
+      </div>
+
+      <!-- RAW mode -->
+      <div id="ies-mode-raw">
+        <label class="ies-label">💡 بيانات الفعالية (اكتب أي شيء — AI سيفهم)</label>
+        <textarea id="ies-raw-data" rows="6" placeholder="مثال:&#10;الورش التفاعلية لعرض استراتيجية الهيئة 2026-2030.&#10;شارك فيها 135 موظف من 20 إدارة في 10 جلسات تفاعلية.&#10;الإدارة المنظّمة: الإدارة التنفيذية للاستراتيجية وتميز الأعمال.&#10;الهاشتاغ: #أنا_مشارك" class="ies-input" style="resize:vertical;min-height:120px;line-height:1.6;"></textarea>
+        <p style="color:#76777A;font-size:12px;margin:8px 0 0;line-height:1.5;">🤖 الذكاء سيستخرج تلقائيّاً: العنوان والإحصائيات والإدارة والهاشتاغ والأيقونات المناسبة.</p>
+      </div>
+
+      <!-- STRUCTURED mode -->
+      <div id="ies-mode-structured" style="display:none;">
+        <div class="ies-grid-2col">
+          <div>
+            <label class="ies-label">عنوان الفعالية *</label>
+            <input id="ies-headline" type="text" placeholder="مثال: الورش التفاعلية" class="ies-input" />
+          </div>
+          <div>
+            <label class="ies-label">نوع الفعالية</label>
+            <select id="ies-event-type" class="ies-input">
+              <option value="workshop">ورشة / تدريب</option>
+              <option value="meeting">اجتماع / مؤتمر</option>
+              <option value="launch">إعلان / إطلاق</option>
+              <option value="social">فعالية اجتماعية</option>
+            </select>
+          </div>
+          <div style="grid-column:1/-1;">
+            <label class="ies-label">وصف موجز / عنوان فرعي (اختياري)</label>
+            <input id="ies-subtitle" type="text" placeholder="مثال: لعرض استراتيجية الهيئة 2026-2030" class="ies-input" />
+          </div>
         </div>
-        <div>
-          <label style="display:block;margin-bottom:6px;font-weight:700;color:#003C5A;">نوع الفعالية</label>
-          <select id="ies-event-type" style="width:100%;padding:12px;border:2px solid #DCDDDE;border-radius:10px;font-size:15px;">
-            <option value="workshop">ورشة / تدريب</option>
-            <option value="meeting">اجتماع / مؤتمر</option>
-            <option value="launch">إعلان / إطلاق</option>
-            <option value="social">فعالية اجتماعية</option>
-          </select>
-        </div>
-        <div style="grid-column:1/-1;">
-          <label style="display:block;margin-bottom:6px;font-weight:700;color:#003C5A;">وصف موجز (اختياري)</label>
-          <input id="ies-subtitle" type="text" placeholder="سطر واحد يوضّح الفعالية" style="width:100%;padding:12px;border:2px solid #DCDDDE;border-radius:10px;font-size:15px;" />
-        </div>
-        <div>
-          <label style="display:block;margin-bottom:6px;font-weight:700;color:#003C5A;">التاريخ</label>
-          <input id="ies-date" type="text" placeholder="مثال: 15 يوليو 2026" style="width:100%;padding:12px;border:2px solid #DCDDDE;border-radius:10px;font-size:15px;" />
-        </div>
-        <div>
-          <label style="display:block;margin-bottom:6px;font-weight:700;color:#003C5A;">الوقت</label>
-          <input id="ies-time" type="text" placeholder="مثال: 10:00 صباحاً" style="width:100%;padding:12px;border:2px solid #DCDDDE;border-radius:10px;font-size:15px;" />
-        </div>
-        <div style="grid-column:1/-1;">
-          <label style="display:block;margin-bottom:6px;font-weight:700;color:#003C5A;">المكان</label>
-          <input id="ies-location" type="text" placeholder="مثال: قاعة الاجتماعات الرئيسية" style="width:100%;padding:12px;border:2px solid #DCDDDE;border-radius:10px;font-size:15px;" />
+      </div>
+
+      <!-- Common fields (both modes) -->
+      <div style="margin-top:20px;padding-top:20px;border-top:2px dashed #E8E8E8;">
+        <div class="ies-grid-2col">
+          <div>
+            <label class="ies-label">🏢 اسم الإدارة (اختياري)</label>
+            <input id="ies-department" type="text" placeholder="مثال: الإدارة التنفيذية للاستراتيجية" class="ies-input" />
+            <p style="color:#76777A;font-size:11px;margin:4px 0 0;">إن تركته فارغاً ستختفي شارة الإدارة من التصميم</p>
+          </div>
+          <div>
+            <label class="ies-label"># هاشتاغ (اختياري)</label>
+            <input id="ies-hashtag" type="text" placeholder="مثال: #أنا_مشارك" class="ies-input" />
+          </div>
+          <div>
+            <label class="ies-label">التاريخ (اختياري)</label>
+            <input id="ies-date" type="text" placeholder="مثال: 15 يوليو 2026" class="ies-input" />
+          </div>
+          <div>
+            <label class="ies-label">الوقت (اختياري)</label>
+            <input id="ies-time" type="text" placeholder="مثال: 10:00 صباحاً" class="ies-input" />
+          </div>
+          <div style="grid-column:1/-1;">
+            <label class="ies-label">المكان (اختياري)</label>
+            <input id="ies-location" type="text" placeholder="مثال: قاعة الاجتماعات الرئيسية" class="ies-input" />
+          </div>
         </div>
       </div>
 
       <div style="margin-top:24px;">
-        <label style="display:block;margin-bottom:10px;font-weight:700;color:#003C5A;">المقاس</label>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+        <label class="ies-label">📏 المقاس</label>
+        <div class="ies-grid-3col">
           <label class="ies-size-card" data-size="square" style="cursor:pointer;border:2px solid #46BCCD;background:#E8F7FA;border-radius:12px;padding:16px;text-align:center;transition:all 0.2s;">
             <input type="radio" name="ies-size" value="square" checked style="display:none;" />
             <div style="width:60px;height:60px;background:#0069A7;border-radius:8px;margin:0 auto 10px;"></div>
@@ -4395,11 +4449,12 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
     </div>
 
     <div id="ies-variants-container" style="display:none;margin-top:24px;">
-      <h2 style="color:#003C5A;margin-bottom:16px;display:flex;align-items:center;gap:10px;">
+      <h2 style="color:#003C5A;margin-bottom:16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
         <span>التنويعات المقترحة</span>
-        <span style="font-size:14px;color:#76777A;font-weight:400;">اختر التصميم الأنسب ونزّله</span>
+        <span style="font-size:14px;color:#76777A;font-weight:400;">اختر التصميم الأنسب ونزّله بجودة HD</span>
       </h2>
-      <div id="ies-variants-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;"></div>
+      <div id="ies-extracted-preview" style="display:none;background:#F4FAFD;border:1px solid #B8D9E8;border-radius:10px;padding:14px;margin-bottom:16px;font-size:13px;color:#003C5A;"></div>
+      <div id="ies-variants-grid" class="ies-variants-grid"></div>
     </div>
   </div>
 
@@ -13184,37 +13239,90 @@ document.addEventListener('click', function(e) {
   if (radio) radio.checked = true;
 });
 
-async function iesGenerate() {
-  const headline = document.getElementById('ies-headline').value.trim();
-  if (!headline || headline.length < 3) {
-    alert('يرجى إدخال عنوان الفعالية (3 أحرف على الأقل)');
-    return;
-  }
-  const eventType = document.getElementById('ies-event-type').value;
-  const subtitle = document.getElementById('ies-subtitle').value.trim();
-  const date = document.getElementById('ies-date').value.trim();
-  const time = document.getElementById('ies-time').value.trim();
-  const location = document.getElementById('ies-location').value.trim();
-  const sizeRadio = document.querySelector('input[name=ies-size]:checked');
-  const size = sizeRadio ? sizeRadio.value : 'square';
+// Current input mode: 'raw' (default) or 'structured'
+var iesCurrentMode = 'raw';
 
-  const btn = document.getElementById('ies-generate-btn');
-  const btnText = document.getElementById('ies-btn-text');
+function iesSwitchMode(mode) {
+  iesCurrentMode = mode;
+  var rawDiv = document.getElementById('ies-mode-raw');
+  var structDiv = document.getElementById('ies-mode-structured');
+  var rawBtn = document.getElementById('ies-tab-raw');
+  var structBtn = document.getElementById('ies-tab-structured');
+  if (mode === 'raw') {
+    if (rawDiv) rawDiv.style.display = '';
+    if (structDiv) structDiv.style.display = 'none';
+    if (rawBtn) { rawBtn.style.background = '#0069A7'; rawBtn.style.color = '#fff'; rawBtn.style.borderColor = '#0069A7'; }
+    if (structBtn) { structBtn.style.background = '#fff'; structBtn.style.color = '#003C5A'; structBtn.style.borderColor = '#DCDDDE'; }
+  } else {
+    if (rawDiv) rawDiv.style.display = 'none';
+    if (structDiv) structDiv.style.display = '';
+    if (structBtn) { structBtn.style.background = '#0069A7'; structBtn.style.color = '#fff'; structBtn.style.borderColor = '#0069A7'; }
+    if (rawBtn) { rawBtn.style.background = '#fff'; rawBtn.style.color = '#003C5A'; rawBtn.style.borderColor = '#DCDDDE'; }
+  }
+}
+
+async function iesGenerate() {
+  // Determine current mode and validate input
+  var rawData = '';
+  var headline = '';
+  var subtitle = '';
+  var eventType = 'meeting';
+
+  if (iesCurrentMode === 'raw') {
+    rawData = (document.getElementById('ies-raw-data') || {}).value || '';
+    rawData = rawData.trim();
+    if (!rawData || rawData.length < 10) {
+      alert('يرجى إدخال البيانات الخام (10 أحرف على الأقل) — مثلاً وصف الفعالية والأرقام والإدارة المنظّمة');
+      return;
+    }
+  } else {
+    headline = (document.getElementById('ies-headline') || {}).value || '';
+    headline = headline.trim();
+    if (!headline || headline.length < 3) {
+      alert('يرجى إدخال عنوان الفعالية (3 أحرف على الأقل)');
+      return;
+    }
+    eventType = (document.getElementById('ies-event-type') || {}).value || 'meeting';
+    subtitle = ((document.getElementById('ies-subtitle') || {}).value || '').trim();
+  }
+
+  var department = ((document.getElementById('ies-department') || {}).value || '').trim();
+  var hashtag = ((document.getElementById('ies-hashtag') || {}).value || '').trim();
+  var date = ((document.getElementById('ies-date') || {}).value || '').trim();
+  var time = ((document.getElementById('ies-time') || {}).value || '').trim();
+  var location = ((document.getElementById('ies-location') || {}).value || '').trim();
+  var sizeRadio = document.querySelector('input[name=ies-size]:checked');
+  var size = sizeRadio ? sizeRadio.value : 'square';
+
+  var btn = document.getElementById('ies-generate-btn');
+  var btnText = document.getElementById('ies-btn-text');
   btn.disabled = true;
   btn.style.opacity = '0.7';
   btnText.textContent = 'جارٍ التوليد بالذكاء الاصطناعي...';
 
+  // Hide previous extracted preview
+  var prevExtracted = document.getElementById('ies-extracted-preview');
+  if (prevExtracted) prevExtracted.style.display = 'none';
+
   try {
-    const _API_BASE = (window.API_BASE || '');
-    const res = await fetch(_API_BASE + '/api/designs/icon-event/generate', {
+    var _API_BASE = (window.API_BASE || '');
+    var body = { size: size, department: department, hashtag: hashtag, date: date, time: time, location: location };
+    if (iesCurrentMode === 'raw') {
+      body.raw_data = rawData;
+    } else {
+      body.headline = headline;
+      body.subtitle = subtitle;
+      body.event_type = eventType;
+    }
+    var res = await fetch(_API_BASE + '/api/designs/icon-event/generate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authGetToken() },
-      body: JSON.stringify({ headline, subtitle, date, time, location, event_type: eventType, size })
+      body: JSON.stringify(body)
     });
-    const data = await res.json();
+    var data = await res.json();
     if (!res.ok || !data.variants) throw new Error(data.error || 'فشل التوليد');
     iesVariants = data.variants;
-    iesRenderVariants(size, data.warning);
+    iesRenderVariants(size, data.warning, data.extracted);
   } catch (err) {
     alert('تعذر توليد التصاميم: ' + err.message);
   } finally {
@@ -13224,14 +13332,32 @@ async function iesGenerate() {
   }
 }
 
-function iesRenderVariants(size, warning) {
+function iesRenderVariants(size, warning, extracted) {
   const container = document.getElementById('ies-variants-container');
   const grid = document.getElementById('ies-variants-grid');
   container.style.display = 'block';
 
+  // Show what AI extracted (helpful when raw mode is used)
+  var preview = document.getElementById('ies-extracted-preview');
+  if (preview && extracted) {
+    var parts = [];
+    if (extracted.headline) parts.push('<div><strong>العنوان:</strong> ' + escapeHtml(extracted.headline) + '</div>');
+    if (extracted.subtitle) parts.push('<div><strong>العنوان الفرعي:</strong> ' + escapeHtml(extracted.subtitle) + '</div>');
+    if (extracted.department) parts.push('<div><strong>الإدارة:</strong> ' + escapeHtml(extracted.department) + '</div>');
+    if (extracted.hashtag) parts.push('<div><strong>الهاشتاغ:</strong> ' + escapeHtml(extracted.hashtag) + '</div>');
+    if (Array.isArray(extracted.stats) && extracted.stats.length) {
+      var statsHtml = extracted.stats.map(function(s){
+        return '<span style="display:inline-block;background:#fff;border:1px solid #B8D9E8;padding:4px 10px;border-radius:6px;margin:2px 4px 2px 0;">' + escapeHtml(String(s.value || '')) + ' — ' + escapeHtml(String(s.label || '')) + '</span>';
+      }).join('');
+      parts.push('<div style="margin-top:6px;"><strong>الإحصائيات:</strong><br>' + statsHtml + '</div>');
+    }
+    preview.innerHTML = '<div style="font-weight:800;margin-bottom:6px;color:#0069A7;">🤖 ما استخرجه الذكاء الاصطناعي:</div>' + parts.join('');
+    preview.style.display = 'block';
+  }
+
   // Adjust grid for size
   const aspectRatio = size === 'square' ? '1/1' : size === 'story' ? '9/16' : '16/9';
-  const layoutLabels = { hero: 'بطل (Hero)', grid: 'شبكة (Grid)', split: 'تقسيم (Split)' };
+  const layoutLabels = { 'stats-hero': 'بطل + إحصائيات', hero: 'بطل (Hero)', grid: 'شبكة (Grid)', split: 'تقسيم (Split)' };
 
   let html = '';
   if (warning) {
@@ -13293,7 +13419,7 @@ async function iesDownloadPNG(idx, size) {
     const res = await fetch(_API_BASE + '/api/designs/icon-event/render', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authGetToken() },
-      body: JSON.stringify({ html: v.html, size })
+      body: JSON.stringify({ html: v.html, size: size, quality: 'hd' })
     });
     const data = await res.json();
     if (!res.ok || !data.url) throw new Error(data.error || 'فشل التصدير');
