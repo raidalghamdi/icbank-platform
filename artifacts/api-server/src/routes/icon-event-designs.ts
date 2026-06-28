@@ -363,6 +363,26 @@ router.post("/designs/icon-event/render", async (req: Request, res: Response) =>
     await browser.close();
 
     const buffer = Buffer.from(screenshot);
+
+    // وضع التنزيل المباشر: يرجع PNG في الاستجابة مع Content-Disposition
+    // هذا يتجنب مشاكل CORS/blob/cache على iOS Safari
+    const wantsDownload =
+      req.query.download === "1" ||
+      req.query.download === "true" ||
+      (req.body && (req.body as any).download === true);
+
+    if (wantsDownload) {
+      const filename = `gac-design-${size}-${Date.now()}.png`;
+      res.setHeader("Content-Type", "image/png");
+      res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+      res.setHeader("Content-Length", buffer.length.toString());
+      res.setHeader("Cache-Control", "no-store");
+      res.setHeader("X-Render-Width", String(width * deviceScaleFactor));
+      res.setHeader("X-Render-Height", String(height * deviceScaleFactor));
+      res.status(200).end(buffer);
+      return;
+    }
+
     const url = await objectStorage.saveComposedDesign(buffer);
 
     res.json({

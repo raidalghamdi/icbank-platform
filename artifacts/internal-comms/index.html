@@ -1,9 +1,13 @@
 <!DOCTYPE html>
+<!-- build: 2026-06-28-v5-png-direct-download -->
 <html dir="rtl" lang="ar">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
 <meta name="theme-color" content="#25935F">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>التواصل المؤسسي الذكي</title>
 <link rel="preload" as="font" type="font/ttf" href="/fonts/cairo/Cairo-Variable.ttf" crossorigin>
 <link rel="preload" as="font" type="font/woff2" href="/fonts/plex/IBMPlexSans-Regular.woff2" crossorigin>
@@ -13416,41 +13420,40 @@ async function iesDownloadPNG(idx, size) {
   btn.textContent = '... جارٍ التصدير';
   try {
     const _API_BASE = (window.API_BASE || '');
-    // (1) طلب رسم التصميم
-    const res = await fetch(_API_BASE + '/api/designs/icon-event/render', {
+
+    // وضع التنزيل المباشر: الخادم يرجع PNG في الاستجابة مع Content-Disposition
+    // بدل حفظه في object storage ثم تنزيله في خطوة ثانية (يتجنب مشاكل iOS Safari)
+    const res = await fetch(_API_BASE + '/api/designs/icon-event/render?download=1', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authGetToken() },
       body: JSON.stringify({ html: v.html, size: size, quality: 'hd' })
     });
-    const data = await res.json();
-    if (!res.ok || !data.url) throw new Error(data.error || 'فشل التصدير');
 
-    // (2) تحويل /objects/... إلى absolute URL عبر /api/storage/objects/...
-    let url = data.url;
-    if (url.startsWith('/objects/')) {
-      url = _API_BASE + '/api/storage' + url;
-    } else if (url.startsWith('/')) {
-      url = _API_BASE + url;
+    if (!res.ok) {
+      let msg = 'فشل التصدير (' + res.status + ')';
+      try { const j = await res.json(); if (j && j.error) msg = j.error; } catch(_) {}
+      throw new Error(msg);
     }
 
-    // (3) جلب الصورة كـ blob مع التوثيق
     btn.textContent = '... جارٍ التنزيل';
-    const imgRes = await fetch(url, {
-      headers: { 'Authorization': 'Bearer ' + authGetToken() }
-    });
-    if (!imgRes.ok) throw new Error('تعذر تحميل الصورة (' + imgRes.status + ')');
-    const blob = await imgRes.blob();
+    const blob = await res.blob();
 
-    // (4) إنشاء رابط تنزيل محلي بواسطة object URL
-    const blobUrl = URL.createObjectURL(blob);
+    // التحقق: يجب أن تكون صورة PNG
+    if (blob.type && blob.type.indexOf('image/') !== 0 && blob.type !== 'application/octet-stream') {
+      throw new Error('الاستجابة ليست صورة (' + blob.type + ')');
+    }
+
+    // إنشاء رابط تنزيل محلي بواسطة object URL
+    const pngBlob = blob.type ? blob : new Blob([blob], { type: 'image/png' });
+    const blobUrl = URL.createObjectURL(pngBlob);
     const a = document.createElement('a');
     a.href = blobUrl;
     a.download = 'gac-design-' + (idx+1) + '-' + size + '.png';
+    a.rel = 'noopener';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    // تنظيف object URL بعد لحظة
-    setTimeout(function() { URL.revokeObjectURL(blobUrl); }, 1000);
+    setTimeout(function() { URL.revokeObjectURL(blobUrl); }, 2000);
   } catch (err) {
     alert('تعذر تصدير PNG: ' + err.message);
   } finally {
