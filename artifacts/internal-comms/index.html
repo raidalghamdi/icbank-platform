@@ -2735,6 +2735,11 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
           <span class="ico"><svg><use href="#i-image"/></svg></span>
           <span>إنشاء التصاميم</span>
         </a>
+        <a class="nav-item" data-page="icon_event_studio" onclick="showSection('icon_event_studio')">
+          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg></span>
+          <span>تصميم سريع بالأيقونات</span>
+          <span class="nav-item-badge" style="background:linear-gradient(135deg,#0069A7,#46BCCD);color:#fff;font-size:10px;padding:2px 6px;border-radius:8px;margin-right:auto;">جديد</span>
+        </a>
         <a class="nav-item" id="nav-places" data-page="places" onclick="showSection('places')" style="display:none;">
           <span class="ico"><svg><use href="#i-bookmark"/></svg></span>
           <span>مكتبة الأماكن</span>
@@ -4310,6 +4315,91 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
         <button class="btn btn-ghost" onclick="document.getElementById('adm-bulk-modal').classList.remove('open')">إلغاء</button>
         <button class="btn btn-primary" onclick="adminDoBulkApply()">تطبيق</button>
       </div>
+    </div>
+  </div>
+
+  <!-- ══ Icon Event Studio (Quick Design with Icons) ══ -->
+  <div class="page-section" id="section-icon_event_studio">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title" style="display:flex;align-items:center;gap:12px;">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#0069A7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
+          تصميم سريع بالأيقونات
+          <span style="background:linear-gradient(135deg,#0069A7,#46BCCD);color:#fff;font-size:11px;padding:3px 10px;border-radius:10px;">مولّد بالذكاء</span>
+        </h1>
+        <p class="page-subtitle">أدخل بيانات الفعالية وسيتولّد 3 تصاميم بالأيقونات تلقائيّاً — تختار الأجمل وتنزّله</p>
+      </div>
+    </div>
+
+    <div class="card" style="padding:28px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+        <div>
+          <label style="display:block;margin-bottom:6px;font-weight:700;color:#003C5A;">عنوان الفعالية *</label>
+          <input id="ies-headline" type="text" placeholder="مثال: ورشة الذكاء الاصطناعي" style="width:100%;padding:12px;border:2px solid #DCDDDE;border-radius:10px;font-size:15px;" />
+        </div>
+        <div>
+          <label style="display:block;margin-bottom:6px;font-weight:700;color:#003C5A;">نوع الفعالية</label>
+          <select id="ies-event-type" style="width:100%;padding:12px;border:2px solid #DCDDDE;border-radius:10px;font-size:15px;">
+            <option value="workshop">ورشة / تدريب</option>
+            <option value="meeting">اجتماع / مؤتمر</option>
+            <option value="launch">إعلان / إطلاق</option>
+            <option value="social">فعالية اجتماعية</option>
+          </select>
+        </div>
+        <div style="grid-column:1/-1;">
+          <label style="display:block;margin-bottom:6px;font-weight:700;color:#003C5A;">وصف موجز (اختياري)</label>
+          <input id="ies-subtitle" type="text" placeholder="سطر واحد يوضّح الفعالية" style="width:100%;padding:12px;border:2px solid #DCDDDE;border-radius:10px;font-size:15px;" />
+        </div>
+        <div>
+          <label style="display:block;margin-bottom:6px;font-weight:700;color:#003C5A;">التاريخ</label>
+          <input id="ies-date" type="text" placeholder="مثال: 15 يوليو 2026" style="width:100%;padding:12px;border:2px solid #DCDDDE;border-radius:10px;font-size:15px;" />
+        </div>
+        <div>
+          <label style="display:block;margin-bottom:6px;font-weight:700;color:#003C5A;">الوقت</label>
+          <input id="ies-time" type="text" placeholder="مثال: 10:00 صباحاً" style="width:100%;padding:12px;border:2px solid #DCDDDE;border-radius:10px;font-size:15px;" />
+        </div>
+        <div style="grid-column:1/-1;">
+          <label style="display:block;margin-bottom:6px;font-weight:700;color:#003C5A;">المكان</label>
+          <input id="ies-location" type="text" placeholder="مثال: قاعة الاجتماعات الرئيسية" style="width:100%;padding:12px;border:2px solid #DCDDDE;border-radius:10px;font-size:15px;" />
+        </div>
+      </div>
+
+      <div style="margin-top:24px;">
+        <label style="display:block;margin-bottom:10px;font-weight:700;color:#003C5A;">المقاس</label>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+          <label class="ies-size-card" data-size="square" style="cursor:pointer;border:2px solid #46BCCD;background:#E8F7FA;border-radius:12px;padding:16px;text-align:center;transition:all 0.2s;">
+            <input type="radio" name="ies-size" value="square" checked style="display:none;" />
+            <div style="width:60px;height:60px;background:#0069A7;border-radius:8px;margin:0 auto 10px;"></div>
+            <div style="font-weight:800;color:#003C5A;">مربع 1:1</div>
+            <div style="font-size:12px;color:#76777A;">1080×1080 — Instagram</div>
+          </label>
+          <label class="ies-size-card" data-size="story" style="cursor:pointer;border:2px solid #DCDDDE;background:#fff;border-radius:12px;padding:16px;text-align:center;transition:all 0.2s;">
+            <input type="radio" name="ies-size" value="story" style="display:none;" />
+            <div style="width:34px;height:60px;background:#76777A;border-radius:8px;margin:0 auto 10px;"></div>
+            <div style="font-weight:800;color:#003C5A;">ستوري 9:16</div>
+            <div style="font-size:12px;color:#76777A;">1080×1920 — WhatsApp/Stories</div>
+          </label>
+          <label class="ies-size-card" data-size="landscape" style="cursor:pointer;border:2px solid #DCDDDE;background:#fff;border-radius:12px;padding:16px;text-align:center;transition:all 0.2s;">
+            <input type="radio" name="ies-size" value="landscape" style="display:none;" />
+            <div style="width:80px;height:45px;background:#76777A;border-radius:8px;margin:0 auto 10px;"></div>
+            <div style="font-weight:800;color:#003C5A;">عريض 16:9</div>
+            <div style="font-size:12px;color:#76777A;">1920×1080 — LinkedIn</div>
+          </label>
+        </div>
+      </div>
+
+      <button id="ies-generate-btn" onclick="iesGenerate()" style="margin-top:24px;background:linear-gradient(135deg,#0069A7,#46BCCD);color:#fff;border:none;padding:16px 32px;border-radius:12px;font-size:17px;font-weight:800;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 4px 16px rgba(0,105,167,0.3);">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
+        <span id="ies-btn-text">توليد 3 تصاميم بالذكاء</span>
+      </button>
+    </div>
+
+    <div id="ies-variants-container" style="display:none;margin-top:24px;">
+      <h2 style="color:#003C5A;margin-bottom:16px;display:flex;align-items:center;gap:10px;">
+        <span>التنويعات المقترحة</span>
+        <span style="font-size:14px;color:#76777A;font-weight:400;">اختر التصميم الأنسب ونزّله</span>
+      </h2>
+      <div id="ies-variants-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;"></div>
     </div>
   </div>
 
@@ -13075,6 +13165,160 @@ function campExportReport(format) {
     w.document.write(html);
     w.document.close();
   }
+}
+
+// ===== Icon Event Studio (IES) =====
+let iesVariants = [];
+
+// size card selection visual
+document.addEventListener('click', function(e) {
+  const card = e.target.closest('.ies-size-card');
+  if (!card) return;
+  document.querySelectorAll('.ies-size-card').forEach(c => {
+    c.style.borderColor = '#DCDDDE';
+    c.style.background = '#fff';
+  });
+  card.style.borderColor = '#46BCCD';
+  card.style.background = '#E8F7FA';
+  const radio = card.querySelector('input[type=radio]');
+  if (radio) radio.checked = true;
+});
+
+async function iesGenerate() {
+  const headline = document.getElementById('ies-headline').value.trim();
+  if (!headline || headline.length < 3) {
+    alert('يرجى إدخال عنوان الفعالية (3 أحرف على الأقل)');
+    return;
+  }
+  const eventType = document.getElementById('ies-event-type').value;
+  const subtitle = document.getElementById('ies-subtitle').value.trim();
+  const date = document.getElementById('ies-date').value.trim();
+  const time = document.getElementById('ies-time').value.trim();
+  const location = document.getElementById('ies-location').value.trim();
+  const sizeRadio = document.querySelector('input[name=ies-size]:checked');
+  const size = sizeRadio ? sizeRadio.value : 'square';
+
+  const btn = document.getElementById('ies-generate-btn');
+  const btnText = document.getElementById('ies-btn-text');
+  btn.disabled = true;
+  btn.style.opacity = '0.7';
+  btnText.textContent = 'جارٍ التوليد بالذكاء الاصطناعي...';
+
+  try {
+    const _API_BASE = (window.API_BASE || '');
+    const res = await fetch(_API_BASE + '/api/designs/icon-event/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authGetToken() },
+      body: JSON.stringify({ headline, subtitle, date, time, location, event_type: eventType, size })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.variants) throw new Error(data.error || 'فشل التوليد');
+    iesVariants = data.variants;
+    iesRenderVariants(size, data.warning);
+  } catch (err) {
+    alert('تعذر توليد التصاميم: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    btnText.textContent = 'توليد 3 تصاميم بالذكاء';
+  }
+}
+
+function iesRenderVariants(size, warning) {
+  const container = document.getElementById('ies-variants-container');
+  const grid = document.getElementById('ies-variants-grid');
+  container.style.display = 'block';
+
+  // Adjust grid for size
+  const aspectRatio = size === 'square' ? '1/1' : size === 'story' ? '9/16' : '16/9';
+  const layoutLabels = { hero: 'بطل (Hero)', grid: 'شبكة (Grid)', split: 'تقسيم (Split)' };
+
+  let html = '';
+  if (warning) {
+    html += '<div style="grid-column:1/-1;background:#FFF3CD;border:1px solid #FFE082;color:#7D5A00;padding:12px;border-radius:10px;margin-bottom:8px;font-size:13px;">⚠️ ' + warning + '</div>';
+  }
+  iesVariants.forEach((v, idx) => {
+    const previewId = 'ies-preview-' + idx;
+    html += '<div class="card" style="padding:16px;">';
+    html += '  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">';
+    html += '    <h3 style="margin:0;color:#003C5A;font-size:16px;">تنويعة ' + (idx+1) + ' — ' + (layoutLabels[v.layout] || v.layout) + '</h3>';
+    html += '    <span style="background:#E8F7FA;color:#003C5A;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;">' + v.color_scheme + '</span>';
+    html += '  </div>';
+    html += '  <div id="' + previewId + '" style="aspect-ratio:' + aspectRatio + ';overflow:hidden;border:1px solid #DCDDDE;border-radius:10px;background:#f8f8f8;position:relative;">';
+    // iframe to isolate styles
+    html += '    <iframe srcdoc="' + v.html.replace(/"/g, '&quot;') + '" style="width:100%;height:100%;border:0;transform-origin:top right;" sandbox="allow-same-origin"></iframe>';
+    html += '  </div>';
+    if (v.rationale) {
+      html += '  <p style="margin:10px 0 0;color:#76777A;font-size:12px;line-height:1.5;">💡 ' + escapeHtml(v.rationale) + '</p>';
+    }
+    html += '  <div style="margin-top:12px;display:flex;gap:8px;">';
+    html += '    <button onclick="iesDownloadPNG(' + idx + ',\'' + size + '\')" style="flex:1;background:#0069A7;color:#fff;border:none;padding:10px;border-radius:8px;font-weight:700;cursor:pointer;font-size:13px;">⬇ تنزيل PNG</button>';
+    html += '    <button onclick="iesPreviewFullscreen(' + idx + ')" style="background:#fff;color:#0069A7;border:2px solid #0069A7;padding:10px 14px;border-radius:8px;font-weight:700;cursor:pointer;font-size:13px;">معاينة</button>';
+    html += '  </div>';
+    html += '</div>';
+  });
+  grid.innerHTML = html;
+
+  // Scale iframes to fit
+  setTimeout(() => {
+    iesVariants.forEach((v, idx) => {
+      const previewEl = document.getElementById('ies-preview-' + idx);
+      if (!previewEl) return;
+      const iframe = previewEl.querySelector('iframe');
+      if (!iframe) return;
+      const containerWidth = previewEl.offsetWidth;
+      const designWidth = size === 'landscape' ? 1920 : 1080;
+      const scale = containerWidth / designWidth;
+      const designHeight = size === 'square' ? 1080 : size === 'story' ? 1920 : 1080;
+      iframe.style.width = designWidth + 'px';
+      iframe.style.height = designHeight + 'px';
+      iframe.style.transform = 'scale(' + scale + ')';
+      iframe.style.transformOrigin = 'top right';
+    });
+  }, 100);
+
+  // Scroll to results
+  container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+async function iesDownloadPNG(idx, size) {
+  const v = iesVariants[idx];
+  if (!v) return;
+  const btn = event.target;
+  const originalText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = '... جارٍ التصدير';
+  try {
+    const _API_BASE = (window.API_BASE || '');
+    const res = await fetch(_API_BASE + '/api/designs/icon-event/render', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authGetToken() },
+      body: JSON.stringify({ html: v.html, size })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.url) throw new Error(data.error || 'فشل التصدير');
+    // Open in new tab for download
+    const a = document.createElement('a');
+    a.href = data.url;
+    a.download = 'icon-event-' + (idx+1) + '-' + size + '.png';
+    a.target = '_blank';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  } catch (err) {
+    alert('تعذر تصدير PNG: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = originalText;
+  }
+}
+
+function iesPreviewFullscreen(idx) {
+  const v = iesVariants[idx];
+  if (!v) return;
+  const w = window.open('', '_blank');
+  w.document.write(v.html);
+  w.document.close();
 }
 </script>
 
