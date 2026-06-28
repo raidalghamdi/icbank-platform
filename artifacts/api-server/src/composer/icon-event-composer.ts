@@ -153,9 +153,11 @@ function statsHeroLayout(input: IconEventInput): string {
     deptFont: 18,
     titleTop: 235,
     titleSize: 87, // نقطة 4: -5%
+    titleMaxWidth: 1680, // عرض أقصى للعنوان (يسمح بالالتفاف)
     subtitleTop: 370,
     subtitleSize: 44,
-    statsTop: 510,
+    subtitleMaxWidth: 1640,
+    statsTop: 530,
     statsWidth: 1480,
     statPadding: 28,
     iconSize: 104,
@@ -183,13 +185,15 @@ function statsHeroLayout(input: IconEventInput): string {
     deptLeft: 60,
     deptPadding: "22px 38px",
     deptFont: 22,
-    titleTop: 460,
-    titleSize: 110,
-    subtitleTop: 620,
-    subtitleSize: 52,
-    statsTop: 850,
-    statsWidth: 920,
-    statPadding: 18,
+    titleTop: 440,
+    titleSize: 88, // خفض من 110 لمنع القص + يلتف على سطرين عند الحاجة
+    titleMaxWidth: 960,
+    subtitleTop: 660,
+    subtitleSize: 38, // خفض من 52
+    subtitleMaxWidth: 940,
+    statsTop: 980,
+    statsWidth: 1000,
+    statPadding: 14,
     iconSize: 96,
     iconMb: 22,
     lineWidth: 170,
@@ -216,10 +220,12 @@ function statsHeroLayout(input: IconEventInput): string {
     deptPadding: "14px 26px",
     deptFont: 16,
     titleTop: 200,
-    titleSize: 78,
+    titleSize: 64, // خفض من 78 لمنع القص
+    titleMaxWidth: 940,
     subtitleTop: 320,
-    subtitleSize: 38,
-    statsTop: 460,
+    subtitleSize: 32, // خفض من 38
+    subtitleMaxWidth: 920,
+    statsTop: 480,
     statsWidth: 940,
     statPadding: 20,
     iconSize: 88,
@@ -273,13 +279,13 @@ function statsHeroLayout(input: IconEventInput): string {
       : ""
   }
 
-  <!-- (4) Title — reduced 5%, no shadow, more whitespace -->
-  <div style="position:absolute;top:${T.titleTop}px;left:50%;transform:translateX(-50%);color:${WHITE};font-weight:900;font-size:${T.titleSize}px;line-height:1;text-align:center;white-space:nowrap;letter-spacing:-0.5px;">${input.headline}</div>
+  <!-- (4) Title — reduced 5%, no shadow, more whitespace, wraps within max-width -->
+  <div style="position:absolute;top:${T.titleTop}px;left:50%;transform:translateX(-50%);width:${T.titleMaxWidth}px;color:${WHITE};font-weight:900;font-size:${T.titleSize}px;line-height:1.05;text-align:center;letter-spacing:-0.5px;word-wrap:break-word;overflow-wrap:break-word;">${input.headline}</div>
 
-  <!-- (5) Subtitle — lime, en-dash preserved -->
+  <!-- (5) Subtitle — lime, en-dash preserved, wraps within max-width -->
   ${
     input.subtitle
-      ? `<div style="position:absolute;top:${T.subtitleTop}px;left:50%;transform:translateX(-50%);color:${ACCENT};font-weight:700;font-size:${T.subtitleSize}px;line-height:1;text-align:center;white-space:nowrap;">${input.subtitle}</div>`
+      ? `<div style="position:absolute;top:${T.subtitleTop}px;left:50%;transform:translateX(-50%);width:${T.subtitleMaxWidth}px;color:${ACCENT};font-weight:700;font-size:${T.subtitleSize}px;line-height:1.25;text-align:center;word-wrap:break-word;overflow-wrap:break-word;">${input.subtitle}</div>`
       : ""
   }
 
