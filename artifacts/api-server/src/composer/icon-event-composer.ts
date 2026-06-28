@@ -10,6 +10,7 @@
 
 import { GAC } from "./gac-palette";
 import { renderIcon } from "./icon-library";
+import { BG_STATS_HERO_DATA_URI, GAC_LOGO_WHITE_DATA_URI } from "./assets-v5";
 
 export type LayoutType = "stats-hero" | "hero" | "grid" | "split";
 export type SizePreset = "square" | "story" | "landscape";
@@ -119,128 +120,200 @@ function diamondMeshPattern(color: string, opacity: number = 0.08): string {
   return `data:image/svg+xml;utf8,${encoded}`;
 }
 
-/** ============ LAYOUT 0: STATS HERO (المرجعي الرسمي) ============
- *  - شارة إدارة أعلى يمين + شعار GAC أعلى يسار
- *  - عنوان رئيسي ضخم + فرعي بلون مميز
- *  - 3 إحصائيات بأيقونات + خطوط فاصلة
- *  - هاشتاج أسفل يسار + زخرفة معينات في الخلفية
+/** ============ LAYOUT 0: STATS HERO (v5 — مطابق للمواصفات النهائية) ============
+ *  - خلفية رسمية من PPTX الأصلي (تيل + زخرفة معينات أصلية)
+ *  - اللوقو الرسمي الأبيض الكامل (الهيئة + GAC) بدون مستطيل خلفه
+ *  - شارة إدارة أعلى يسار + ثلاث إحصائيات + هاشتاج أسفل يسار
+ *  - تطبيق نقاط التحسين الـ 14 بدقة
  */
 function statsHeroLayout(input: IconEventInput): string {
-  const colors = COLOR_MAP[input.color_scheme] || COLOR_MAP.teal;
   const { width, height } = SIZE_MAP[input.size];
   const isStory = input.size === "story";
   const isSquare = input.size === "square";
   const isLandscape = input.size === "landscape";
 
-  // ضبط الأحجام حسب المقاس
-  const titleSize = isStory ? 130 : isLandscape ? 140 : 110;
-  const subtitleSize = isStory ? 56 : isLandscape ? 56 : 48;
-  const statValueSize = isStory ? 96 : isLandscape ? 100 : 90;
-  const statLabelSize = isStory ? 30 : isLandscape ? 28 : 28;
-  const statIconSize = isStory ? 100 : isLandscape ? 110 : 100;
-  const logoHeight = isStory ? 110 : isLandscape ? 95 : 90;
-  const deptBadgeFont = isStory ? 26 : isLandscape ? 22 : 22;
-  const hashtagSize = isStory ? 38 : isLandscape ? 34 : 32;
+  // ─── الألوان النهائية (v5) ───
+  // اللون يأتي من الخلفية مباشرة؛ هذه الألوان للنصوص فقط
+  const ACCENT = "#9DC41A"; // ليموني — الأرقام/الأيقونات/الفواصل/الهاشتاق/الشارة
+  const BADGE_TEXT = "#0A3D4A"; // تيل داكن لنص الشارة
+  const WHITE = "#FFFFFF";
 
-  // ضبط هوامش وزخرفة
-  const padding = isStory ? 80 : isLandscape ? 70 : 70;
-  const statsTopOffset = isStory ? "58%" : isLandscape ? "54%" : "55%";
+  // ─── الأحجام النسبية (مرجع landscape 1920x1080 — يُقاس عليه) ───
+  // landscape هو المرجع الأساسي من v5؛ نسب البقية مشتقة
+  const scale = isLandscape ? 1 : isStory ? 1 : 1; // ثابت — كل مقاس مرئي مستقل
 
-  // الإحصائيات: نضمن 3 إحصائيات (نملأ بقيم افتراضية إن نقصت)
+  // landscape (1920×1080) — قيم v5 بالضبط
+  const L = {
+    logoTop: 58,
+    logoRight: 70,
+    logoWidth: 266, // 95% من 280 (نقطة 1)
+    deptTop: 90, // نقطة 3: +20px
+    deptLeft: 80,
+    deptPadding: "18px 34px",
+    deptFont: 18,
+    titleTop: 235,
+    titleSize: 87, // نقطة 4: -5%
+    subtitleTop: 370,
+    subtitleSize: 44,
+    statsTop: 510,
+    statsWidth: 1480,
+    statPadding: 28,
+    iconSize: 104,
+    iconMb: 24,
+    lineWidth: 200,
+    lineHeight: 2.5,
+    lineMb: 30,
+    valueSize: 146,
+    valueMb: 28, // نقطة 9: +10px
+    labelSize: 26,
+    dividerTop: 8,
+    dividerHeight: 380, // نقطة 10: +20px
+    dividerOpacity: 0.35, // نقطة 10: +10%
+    hashtagBottom: 105, // نقطة 11: +15px
+    hashtagLeft: 110, // نقطة 11: +15px
+    hashtagSize: 38,
+  };
+
+  // story (1080×1920) — نسب رأسية
+  const S = {
+    logoTop: 70,
+    logoRight: 60,
+    logoWidth: 280,
+    deptTop: 110,
+    deptLeft: 60,
+    deptPadding: "22px 38px",
+    deptFont: 22,
+    titleTop: 460,
+    titleSize: 110,
+    subtitleTop: 620,
+    subtitleSize: 52,
+    statsTop: 850,
+    statsWidth: 920,
+    statPadding: 18,
+    iconSize: 96,
+    iconMb: 22,
+    lineWidth: 170,
+    lineHeight: 2.5,
+    lineMb: 26,
+    valueSize: 130,
+    valueMb: 26,
+    labelSize: 28,
+    dividerTop: 8,
+    dividerHeight: 400,
+    dividerOpacity: 0.35,
+    hashtagBottom: 110,
+    hashtagLeft: 80,
+    hashtagSize: 42,
+  };
+
+  // square (1080×1080) — تخطيط مدمج
+  const Q = {
+    logoTop: 50,
+    logoRight: 55,
+    logoWidth: 220,
+    deptTop: 75,
+    deptLeft: 55,
+    deptPadding: "14px 26px",
+    deptFont: 16,
+    titleTop: 200,
+    titleSize: 78,
+    subtitleTop: 320,
+    subtitleSize: 38,
+    statsTop: 460,
+    statsWidth: 940,
+    statPadding: 20,
+    iconSize: 88,
+    iconMb: 20,
+    lineWidth: 150,
+    lineHeight: 2,
+    lineMb: 24,
+    valueSize: 110,
+    valueMb: 22,
+    labelSize: 22,
+    dividerTop: 6,
+    dividerHeight: 340,
+    dividerOpacity: 0.35,
+    hashtagBottom: 70,
+    hashtagLeft: 75,
+    hashtagSize: 30,
+  };
+
+  const T = isLandscape ? L : isStory ? S : Q;
+
+  // ─── الإحصائيات: نضمن 3 إحصائيات ───
+  // (نقطة 6) الترتيب من العميل: أول عنصر في المصفوفة = يمين بصرياً في RTL
   const stats: IconEventStat[] = (input.stats && input.stats.length > 0
     ? input.stats
     : [
-        { icon: "users", value: "—", label: "مشاركة" },
         { icon: "building", value: "—", label: "إدارة" },
-        { icon: "calendar", value: "—", label: "فعالية" },
+        { icon: "users", value: "—", label: "مشاركة" },
+        { icon: "presentation", value: "—", label: "جلسة" },
       ]
   ).slice(0, 3);
   while (stats.length < 3) {
     stats.push({ icon: "sparkles", value: "—", label: "" });
   }
 
+  // ─── HTML — مطابق لـ v5 ───
+  // اللوقو يستخدم input.logo_url إن مُرّر، وإلا الـ data URI المضمن الافتراضي
+  const logoSrc = input.logo_url && input.logo_url.startsWith("http") ? input.logo_url : GAC_LOGO_WHITE_DATA_URI;
+
   return `
-<div class="poster stats-hero-layout" style="width:${width}px;height:${height}px;background:${colors.primary};position:relative;overflow:hidden;font-family:'Tajawal','Cairo',sans-serif;direction:rtl;color:#fff;">
+<div class="poster stats-hero-layout" style="width:${width}px;height:${height}px;position:relative;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;direction:rtl;color:${WHITE};background-image:url('${BG_STATS_HERO_DATA_URI}');background-size:cover;background-position:center;">
 
-  <!-- Diamond Mesh Pattern (decorative — bottom left like reference) -->
-  <div style="position:absolute;left:-150px;bottom:-100px;width:900px;height:900px;background-image:url('${diamondMeshPattern("#ffffff", 0.08)}');background-size:600px 600px;background-repeat:no-repeat;"></div>
-
-  <!-- Subtle right-side mesh too -->
-  <div style="position:absolute;right:-100px;top:30%;width:500px;height:500px;background-image:url('${diamondMeshPattern("#ffffff", 0.04)}');background-size:600px 600px;background-repeat:no-repeat;"></div>
-
-  <!-- Department Badge (top right, only if provided) -->
-  ${
-    input.department
-      ? `<div style="position:absolute;top:${padding}px;right:${padding}px;background:${colors.accent};color:${colors.secondary};padding:${isStory ? "14px 32px" : "10px 24px"};border-radius:8px;font-weight:800;font-size:${deptBadgeFont}px;max-width:50%;line-height:1.4;">${input.department}</div>`
-      : ""
-  }
-
-  <!-- GAC Logo (top left) -->
-  ${
-    input.logo_url
-      ? `<img src="${input.logo_url}" style="position:absolute;top:${padding}px;left:${padding}px;height:${logoHeight}px;z-index:5;" crossorigin="anonymous" />`
-      : ""
-  }
-
-  <!-- Main Title Block (center upper) -->
-  <div style="position:absolute;top:${isStory ? "22%" : isLandscape ? "20%" : "22%"};left:0;right:0;text-align:center;padding:0 ${padding}px;">
-    <h1 style="font-size:${titleSize}px;font-weight:900;margin:0;line-height:1.05;letter-spacing:-2px;color:#fff;">${input.headline}</h1>
-    ${
-      input.subtitle
-        ? `<h2 style="font-size:${subtitleSize}px;font-weight:800;margin:${isStory ? 30 : 20}px 0 0;line-height:1.2;color:${colors.accent};">${input.subtitle}</h2>`
-        : ""
-    }
+  <!-- (1) Official GAC Logo — exact, transparent, no rect (top right) -->
+  <div style="position:absolute;top:${T.logoTop}px;right:${T.logoRight}px;width:${T.logoWidth}px;height:auto;line-height:0;background:transparent;">
+    <img src="${logoSrc}" style="width:100%;height:auto;display:block;background:transparent;" crossorigin="anonymous" alt="GAC" />
   </div>
 
-  <!-- 3 Stats Row (center lower) -->
-  <div style="position:absolute;top:${statsTopOffset};left:0;right:0;display:flex;justify-content:center;align-items:flex-start;gap:0;padding:0 ${padding}px;">
+  <!-- (3) Department Badge — moved 20px lower (top left) -->
+  ${
+    input.department
+      ? `<div style="position:absolute;top:${T.deptTop}px;left:${T.deptLeft}px;background:${ACCENT};color:${BADGE_TEXT};padding:${T.deptPadding};border-radius:8px;font-weight:800;font-size:${T.deptFont}px;line-height:1.1;white-space:nowrap;box-shadow:0 1px 2px rgba(0,0,0,0.05);">${input.department}</div>`
+      : ""
+  }
+
+  <!-- (4) Title — reduced 5%, no shadow, more whitespace -->
+  <div style="position:absolute;top:${T.titleTop}px;left:50%;transform:translateX(-50%);color:${WHITE};font-weight:900;font-size:${T.titleSize}px;line-height:1;text-align:center;white-space:nowrap;letter-spacing:-0.5px;">${input.headline}</div>
+
+  <!-- (5) Subtitle — lime, en-dash preserved -->
+  ${
+    input.subtitle
+      ? `<div style="position:absolute;top:${T.subtitleTop}px;left:50%;transform:translateX(-50%);color:${ACCENT};font-weight:700;font-size:${T.subtitleSize}px;line-height:1;text-align:center;white-space:nowrap;">${input.subtitle}</div>`
+      : ""
+  }
+
+  <!-- (5-10) Stats Grid — RTL grid, 3 columns, first array element rightmost -->
+  <div style="position:absolute;top:${T.statsTop}px;left:50%;transform:translateX(-50%);display:grid;grid-template-columns:1fr 1fr 1fr;width:${T.statsWidth}px;align-items:start;justify-items:center;">
     ${stats
       .map(
         (s, idx) => `
-      <div style="flex:1;text-align:center;position:relative;padding:0 ${isStory ? 20 : 30}px;${idx < 2 ? `border-left:2px solid rgba(255,255,255,0.15);` : ""}">
-        <!-- Icon -->
-        <div style="display:flex;justify-content:center;margin-bottom:${isStory ? 20 : 16}px;color:${colors.accent};">
-          ${renderIcon(s.icon, statIconSize, colors.accent)}
+      <div style="display:flex;flex-direction:column;align-items:center;position:relative;width:100%;padding:0 ${T.statPadding}px;">
+        ${
+          idx < 2
+            ? `<div style="content:'';position:absolute;left:0;top:${T.dividerTop}px;height:${T.dividerHeight}px;width:1.5px;background:rgba(255,255,255,${T.dividerOpacity});"></div>`
+            : ""
+        }
+        <!-- (7) Icon — lime, 104px, presentation aligned -->
+        <div style="width:${T.iconSize}px;height:${T.iconSize}px;color:${ACCENT};display:flex;align-items:center;justify-content:center;margin-bottom:${T.iconMb}px;">
+          ${renderIcon(s.icon, T.iconSize, ACCENT)}
         </div>
-        <!-- Separator line -->
-        <div style="width:${isStory ? 180 : 200}px;height:2px;background:${colors.accent};margin:0 auto ${isStory ? 18 : 14}px;"></div>
-        <!-- Value -->
-        <div style="font-size:${statValueSize}px;font-weight:900;line-height:1;color:#fff;letter-spacing:-2px;">${s.value}</div>
-        <!-- Label -->
-        ${s.label ? `<div style="font-size:${statLabelSize}px;font-weight:600;margin-top:${isStory ? 14 : 10}px;color:#fff;line-height:1.3;opacity:0.95;">${s.label}</div>` : ""}
+        <!-- Lime horizontal line -->
+        <div style="width:${T.lineWidth}px;height:${T.lineHeight}px;background:${ACCENT};margin-bottom:${T.lineMb}px;border-radius:2px;"></div>
+        <!-- (8) Value — large bold white -->
+        <div style="color:${WHITE};font-weight:900;font-size:${T.valueSize}px;line-height:1;margin-bottom:${T.valueMb}px;direction:ltr;font-variant-numeric:tabular-nums;letter-spacing:-3px;">${s.value}</div>
+        <!-- (9) Label — +10px gap to value -->
+        ${s.label ? `<div style="color:${WHITE};font-weight:500;font-size:${T.labelSize}px;line-height:1.4;text-align:center;max-width:260px;">${s.label.replace(/\n/g, "<br>")}</div>` : ""}
       </div>
     `
       )
       .join("")}
   </div>
 
-  <!-- Hashtag (bottom left) -->
+  <!-- (11) Hashtag — 15px up, 15px inward -->
   ${
     input.hashtag
-      ? `<div style="position:absolute;bottom:${padding}px;left:${padding}px;color:${colors.accent};font-size:${hashtagSize}px;font-weight:800;letter-spacing:0.5px;">${input.hashtag.startsWith("#") ? input.hashtag : "#" + input.hashtag}</div>`
-      : ""
-  }
-
-  <!-- Optional Date/Time/Location strip (bottom right, only if present) -->
-  ${
-    input.date || input.time || input.location
-      ? `<div style="position:absolute;bottom:${padding}px;right:${padding}px;display:flex;gap:${isStory ? 24 : 20}px;align-items:center;color:#fff;font-size:${isStory ? 24 : 20}px;font-weight:600;opacity:0.9;">
-      ${
-        input.date
-          ? `<div style="display:flex;align-items:center;gap:8px;">${renderIcon("calendar", isStory ? 26 : 22, colors.accent)}<span>${input.date}</span></div>`
-          : ""
-      }
-      ${
-        input.time
-          ? `<div style="display:flex;align-items:center;gap:8px;">${renderIcon("clock", isStory ? 26 : 22, colors.accent)}<span>${input.time}</span></div>`
-          : ""
-      }
-      ${
-        input.location
-          ? `<div style="display:flex;align-items:center;gap:8px;">${renderIcon("map-pin", isStory ? 26 : 22, colors.accent)}<span>${input.location}</span></div>`
-          : ""
-      }
-    </div>`
+      ? `<div style="position:absolute;bottom:${T.hashtagBottom}px;left:${T.hashtagLeft}px;color:${ACCENT};font-weight:800;font-size:${T.hashtagSize}px;letter-spacing:0;">${input.hashtag.startsWith("#") ? input.hashtag : "#" + input.hashtag}</div>`
       : ""
   }
 </div>

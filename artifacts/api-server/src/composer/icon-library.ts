@@ -48,7 +48,8 @@ export const ICON_LIBRARY: IconDef[] = [
     label_ar: "عرض تقديمي",
     category: "workshop",
     keywords: ["عرض", "بريزنتيشن", "محاضرة", "شرح"],
-    svg: SVG_WRAP(`<path d="M2 3h20"/><path d="M21 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3"/><path d="m7 21 5-5 5 5"/>`),
+    // v5: رفع الحافة العلوية بصرياً لتتحاذى مع أيقونات building و users
+    svg: SVG_WRAP(`<path d="M1 2h22"/><path d="M21 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V2"/><path d="m7 22 5-5 5 5"/>`),
   },
   {
     name: "code",
