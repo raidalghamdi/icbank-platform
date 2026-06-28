@@ -135,7 +135,7 @@ function statsHeroLayout(input: IconEventInput): string {
   // ─── الألوان النهائية (v5) ───
   // اللون يأتي من الخلفية مباشرة؛ هذه الألوان للنصوص فقط
   const ACCENT = "#9DC41A"; // ليموني — الأرقام/الأيقونات/الفواصل/الهاشتاق/الشارة
-  const BADGE_TEXT = "#0A3D4A"; // تيل داكن لنص الشارة
+  const BADGE_TEXT = "#FFFFFF"; // أبيض لنص بادج الإدارة (على خلفية ليمونية)
   const WHITE = "#FFFFFF";
 
   // ─── الأحجام النسبية (مرجع landscape 1920x1080 — يُقاس عليه) ───
