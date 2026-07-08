@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: 2026-06-28-v5-png-direct-download -->
+<!-- build: 2026-07-08-phase1-restructure -->
 <html dir="rtl" lang="ar">
 <head>
 <meta charset="UTF-8">
@@ -8,7 +8,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>التواصل المؤسسي الذكي</title>
+<title>منصة التواصل المؤسسي</title>
 <link rel="preload" as="font" type="font/ttf" href="/fonts/cairo/Cairo-Variable.ttf" crossorigin>
 <link rel="preload" as="font" type="font/woff2" href="/fonts/plex/IBMPlexSans-Regular.woff2" crossorigin>
 <link rel="stylesheet" href="/css/dga.css">
@@ -2636,6 +2636,8 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
     <symbol id="i-log-out" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></symbol>
     <symbol id="i-lock"    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
     <symbol id="i-image"   viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></symbol>
+    <symbol id="i-inbox" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></symbol>
+    <symbol id="i-file-text" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></symbol>
   </defs>
 </svg>
 
@@ -2661,7 +2663,7 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
     <div class="sidebar-brand">
       <div class="brand-logo">IC</div>
       <div class="brand-info">
-        <div class="brand-title">التواصل المؤسسي الذكي</div>
+        <div class="brand-title">منصة التواصل المؤسسي</div>
         <div class="brand-sub en">INTERNAL COMMS · 2026</div>
       </div>
     </div>
@@ -2814,7 +2816,7 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
       <div class="search-wrap">
         <div class="search-bar">
           <span class="ico"><svg><use href="#i-search"/></svg></span>
-          <input type="text" id="search-input" placeholder="بحث عالمي في كل الصفحات..." oninput="globalSearch(this.value)" onfocus="if(this.value) globalSearch(this.value)">
+          <input type="text" id="search-input" placeholder="ابحث داخل المنصة..." oninput="globalSearch(this.value)" onfocus="if(this.value) globalSearch(this.value)">
         </div>
         <div class="search-results" id="search-results-dd"></div>
       </div>
@@ -2898,23 +2900,27 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
       <div class="dash-context-msg" id="dash-context-msg">جارٍ التحميل...</div>
     </div>
 
-    <!-- ── KPI Strip ── -->
+    <!-- ── KPI Strip — مؤشرات عمل الفريق ── -->
     <div class="dash-kpi-strip">
-      <div class="dash-kpi-card">
-        <div class="dash-kpi-val" id="dash-kpi-ws">—</div>
-        <div class="dash-kpi-label">إجمالي محتوى بداية الأسبوع</div>
+      <div class="dash-kpi-card" onclick="showSection('internal_requests')" style="cursor:pointer">
+        <div class="dash-kpi-val" id="dash-kpi-req-internal">—</div>
+        <div class="dash-kpi-label">إجمالي طلبات التصاميم الداخلية</div>
       </div>
-      <div class="dash-kpi-card">
-        <div class="dash-kpi-val" id="dash-kpi-mm">—</div>
-        <div class="dash-kpi-label">تقارير الرصد الإعلامي</div>
+      <div class="dash-kpi-card" onclick="showSection('external_requests')" style="cursor:pointer">
+        <div class="dash-kpi-val" id="dash-kpi-req-external">—</div>
+        <div class="dash-kpi-label">إجمالي طلبات التصاميم الخارجية</div>
       </div>
-      <div class="dash-kpi-card">
-        <div class="dash-kpi-val" id="dash-kpi-intl">—</div>
-        <div class="dash-kpi-label">أيام عالمية قادمة خلال ٣٠ يوم</div>
+      <div class="dash-kpi-card" onclick="showSection('internal_campaigns')" style="cursor:pointer">
+        <div class="dash-kpi-val" id="dash-kpi-camp-internal">—</div>
+        <div class="dash-kpi-label">إجمالي الحملات الداخلية</div>
       </div>
-      <div class="dash-kpi-card">
-        <div class="dash-kpi-val" id="dash-kpi-news">—</div>
-        <div class="dash-kpi-label">أخبار التواصل المؤسسي المتاحة</div>
+      <div class="dash-kpi-card" onclick="showSection('external_campaigns')" style="cursor:pointer">
+        <div class="dash-kpi-val" id="dash-kpi-camp-external">—</div>
+        <div class="dash-kpi-label">إجمالي الحملات الخارجية</div>
+      </div>
+      <div class="dash-kpi-card" onclick="showSection('shorfah')" style="cursor:pointer">
+        <div class="dash-kpi-val" id="dash-kpi-shorfah-pct">—</div>
+        <div class="dash-kpi-label">نسبة اكتمال نشرة شرفة</div>
       </div>
     </div>
 
@@ -2955,34 +2961,12 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
       </div>
     </div>
 
-    <!-- ── AI Executive Summary ── -->
-    <div class="dash-section">
-      <div class="dash-ai-card">
-        <div class="dash-ai-header">
-          <div>
-            <div class="dash-ai-title">🤖 الملخص التنفيذي الذكي</div>
-            <div class="dash-ai-subtitle">تحليل فوري لنشاط التواصل المؤسسي</div>
-          </div>
-          <div style="display:flex;gap:8px;align-items:center">
-            <button class="btn btn-ghost" id="dash-ai-gen-btn" onclick="dashGenerateAISummary()">✨ توليد ملخص</button>
-            <button class="btn btn-ghost" id="dash-ai-copy-btn" onclick="dashCopyAISummary()" style="display:none">📋 نسخ</button>
-          </div>
-        </div>
-        <div class="dash-ai-body" id="dash-ai-body">
-          <div style="color:var(--text-4);font-size:13px;padding:4px 0">اضغط "توليد ملخص" للحصول على تحليل ذكي لنشاط الأسبوع.</div>
-        </div>
-        <div class="dash-ai-footer" id="dash-ai-footer" style="display:none">
-          تم التوليد في <span id="dash-ai-gentime">—</span>
-        </div>
-      </div>
-    </div>
-
     <!-- ── Two-Column: Intl Days + Recent Activations ── -->
     <div class="dash-two-col">
       <div class="dash-col-card">
         <div class="dash-col-head">
           <span class="dash-col-title">🗓️ الأيام العالمية القادمة</span>
-          <button class="link-action" onclick="showSection('intldays')">عرض الكل <span class="ico"><svg><use href="#i-arrow-left"/></svg></span></button>
+          <button class="link-action" onclick="showSection('intldays')">عرض الخطة <span class="ico"><svg><use href="#i-arrow-left"/></svg></span></button>
         </div>
         <div id="dash-intl-days">
           <div class="loading-wrap"><div class="spinner"></div></div>
@@ -2999,14 +2983,14 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
       </div>
     </div>
 
-    <!-- ── News Pulse ── -->
+    <!-- ── Shorfah Newsletter Preview ── -->
     <div class="dash-section">
       <div class="dash-section-head">
-        <h2 class="dash-section-title">📡 نبض الأخبار العالمية</h2>
-        <button class="link-action" onclick="showSection('news')">كل الأخبار <span class="ico"><svg><use href="#i-arrow-left"/></svg></span></button>
+        <h2 class="dash-section-title">📰 نشرة شرفة</h2>
+        <button class="link-action" onclick="showSection('shorfah')">فتح النشرة <span class="ico"><svg><use href="#i-arrow-left"/></svg></span></button>
       </div>
-      <div class="dash-news-grid" id="home-news">
-        <div class="loading-wrap"><div class="spinner"></div><div class="loading-text">جارٍ تحميل الأخبار...</div></div>
+      <div class="dash-news-grid" id="home-shorfah-preview">
+        <div class="loading-wrap"><div class="spinner"></div><div class="loading-text">جارٍ تحميل نشرة شرفة...</div></div>
       </div>
     </div>
 
@@ -3055,22 +3039,6 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
           </div>
         </div>
       </div>
-    </div>
-
-    <!-- ── Quick Actions Bar ── -->
-    <div class="dash-quick-bar">
-      <button class="dash-qa-btn" onclick="showSection('weekstart')">
-        <span class="dash-qa-icon">✨</span><span>إنتاج محتوى جديد</span>
-      </button>
-      <button class="dash-qa-btn" onclick="showSection('intldays')">
-        <span class="dash-qa-icon">📅</span><span>إضافة يوم عالمي</span>
-      </button>
-      <button class="dash-qa-btn" onclick="showSection('aiyear')">
-        <span class="dash-qa-icon">📸</span><span>رفع تفعيل</span>
-      </button>
-      <button class="dash-qa-btn" onclick="showSection('smart_assistant')">
-        <span class="dash-qa-icon">🤖</span><span>المساعد الذكي</span>
-      </button>
     </div>
 
   </div>
@@ -5224,6 +5192,94 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
     </div>
   </div><!-- /section-prompts_lib -->
 
+  <!-- ══ Phase 1 Stub Sections (Phase 2 will populate) ══ -->
+  <div class="page-section" id="section-internal_requests">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title"><span class="ico" style="vertical-align:middle;margin-left:8px;"><svg width="24" height="24"><use href="#i-inbox"/></svg></span> الطلبات الداخلية</h1>
+        <p class="page-sub">طلبات المحتوى والتصاميم والنشرات الداخلية القادمة من فرق الهيئة.</p>
+      </div>
+    </div>
+    <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:60px 24px;text-align:center;">
+      <div style="font-size:56px;margin-bottom:12px;opacity:.5;">📥</div>
+      <div style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:6px;">قيد التطوير</div>
+      <div style="font-size:13px;color:var(--text-3);">سيتم تفعيل نظام الطلبات الداخلية في المرحلة القادمة.</div>
+    </div>
+  </div>
+
+  <div class="page-section" id="section-external_requests">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title"><span class="ico" style="vertical-align:middle;margin-left:8px;">📬</span> الطلبات الخارجية</h1>
+        <p class="page-sub">طلبات الجهات الخارجية والشركاء والإعلام.</p>
+      </div>
+    </div>
+    <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:60px 24px;text-align:center;">
+      <div style="font-size:56px;margin-bottom:12px;opacity:.5;">📮</div>
+      <div style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:6px;">قيد التطوير</div>
+      <div style="font-size:13px;color:var(--text-3);">سيتم تفعيل نظام الطلبات الخارجية في المرحلة القادمة.</div>
+    </div>
+  </div>
+
+  <div class="page-section" id="section-internal_campaigns">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title">📣 الحملات الداخلية</h1>
+        <p class="page-sub">حملات التواصل والتوعية الموجهة لموظفي الهيئة.</p>
+      </div>
+    </div>
+    <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:60px 24px;text-align:center;">
+      <div style="font-size:56px;margin-bottom:12px;opacity:.5;">🎯</div>
+      <div style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:6px;">قيد التطوير</div>
+      <div style="font-size:13px;color:var(--text-3);">سيتم بناء هذا القسم في المرحلة الثانية — بدايةً ستُنقل بيانات <a href="#" onclick="showSection('campaigns_analytics');return false;">تحليلات الحملات</a> إلى هنا.</div>
+    </div>
+  </div>
+
+  <div class="page-section" id="section-external_campaigns">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title">🌐 الحملات الخارجية</h1>
+        <p class="page-sub">حملات التواصل مع الجمهور والشركاء الخارجيين.</p>
+      </div>
+    </div>
+    <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:60px 24px;text-align:center;">
+      <div style="font-size:56px;margin-bottom:12px;opacity:.5;">🌍</div>
+      <div style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:6px;">قيد التطوير</div>
+      <div style="font-size:13px;color:var(--text-3);">سيتم تفعيل الحملات الخارجية في المرحلة القادمة.</div>
+    </div>
+  </div>
+
+  <div class="page-section" id="section-performance_reports">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title"><span class="ico" style="vertical-align:middle;margin-left:8px;"><svg width="24" height="24"><use href="#i-trending-up"/></svg></span> تقارير الأداء</h1>
+        <p class="page-sub">تقارير أداء الحملات والطلبات والمنصات — شهرية وربع سنوية.</p>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-bottom:20px;">
+      <a href="#" onclick="showSection('campaigns_analytics');return false;" style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px;text-decoration:none;color:inherit;transition:all .2s;" onmouseover="this.style.borderColor='var(--accent)';this.style.transform='translateY(-2px)';" onmouseout="this.style.borderColor='var(--border)';this.style.transform='';">
+        <div style="font-size:28px;margin-bottom:8px;">📊</div>
+        <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px;">أداء الحملات</div>
+        <div style="font-size:12px;color:var(--text-3);">تحليلات مفصّلة لجميع الحملات</div>
+      </a>
+      <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px;opacity:.6;">
+        <div style="font-size:28px;margin-bottom:8px;">📥</div>
+        <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px;">أداء الطلبات</div>
+        <div style="font-size:12px;color:var(--text-3);">قيد التطوير</div>
+      </div>
+      <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px;opacity:.6;">
+        <div style="font-size:28px;margin-bottom:8px;">📱</div>
+        <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px;">أداء المنصات</div>
+        <div style="font-size:12px;color:var(--text-3);">قيد التطوير</div>
+      </div>
+      <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px;opacity:.6;">
+        <div style="font-size:28px;margin-bottom:8px;">📅</div>
+        <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px;">التقارير الدورية</div>
+        <div style="font-size:12px;color:var(--text-3);">شهرية وربع سنوية</div>
+      </div>
+    </div>
+  </div>
+
   <!-- ══ 403 Forbidden Section ══ -->
   <div class="page-section" id="section-403" style="display:none;">
     <div style="text-align:center;padding:80px 20px;">
@@ -5510,6 +5566,9 @@ function authCanView(pageName) {
   if (pageName === 'shorfah') return !!AUTH_USER;
   if (pageName === 'media_monitoring') return !!AUTH_USER;
   if (pageName === 'prompts_lib') return !!AUTH_USER;
+  if (pageName === 'internal_requests' || pageName === 'external_requests') return !!AUTH_USER;
+  if (pageName === 'internal_campaigns' || pageName === 'external_campaigns') return !!AUTH_USER;
+  if (pageName === 'performance_reports') return !!AUTH_USER;
   var permKey = PAGE_PERM_MAP[pageName] || pageName;
   var pagePerms = (AUTH_USER.permissions || {})[permKey] || [];
   return pagePerms.includes('view');
@@ -6769,6 +6828,11 @@ const PAGE_LABELS = {
   shorfah:'شُرفة — مجلة شهرية',
   media_monitoring:'الرصد الإعلامي',
   prompts_lib:'مكتبة الأوامر',
+  internal_requests:'الطلبات الداخلية',
+  external_requests:'الطلبات الخارجية',
+  internal_campaigns:'الحملات الداخلية',
+  external_campaigns:'الحملات الخارجية',
+  performance_reports:'تقارير الأداء',
 };
 
 function showSection(name) {
@@ -6827,6 +6891,61 @@ function closeMobileSidebar() {
 // ════════════════════════════════════════
 var dashSummaryData = null;
 
+// رسائل أسبوعية ملهمة — يتغير تلقائياً حسب الأسبوع من السنة (52 رسالة)
+var WEEKLY_MESSAGES = [
+  '«الجودة ليست فعلاً، إنما عادة.» — أرسطو',
+  '«أفضل طريقة لتوقع المستقبل هي صنعه.» — بيتر دراكر',
+  '«الإتقان في التفاصيل، والإبداع في الفكرة.»',
+  'دعونا نجعل هذا الأسبوع مليئاً بالإنجاز ✨',
+  '«الرسالة الواضحة هي أقوى أدوات التأثير.»',
+  'خطة جيدة اليوم خير من خطة ممتازة غداً.',
+  '«ما يميزنا ليس ما نقوله، بل كيف نقوله.»',
+  'تواصلنا هو مرآتنا، فليكن واضحاً وملهماً.',
+  '«الانضباط هو الجسر بين الأهداف والإنجاز.» — جيم رون',
+  'أسبوع جديد، فرص جديدة 🌟',
+  '«الاحتراف موقف، وليس موقعاً.»',
+  'معاً نبني رواية الهيئة بثقة وتميز.',
+  '«الفرق الرائعة تصنع الفرق الرائع.»',
+  'التواصل الفعّال يبدأ بالإنصات الجيد 👂',
+  '«أصعب شيء في العالم هو أن تقول أفكاراً معقدة بالطريقة الأبسط.»',
+  'من الفكرة إلى الأثر — الطريق يبدأ بخطوة.',
+  '«الإبداع هو الذكاء حين يلهو.» — أينشتاين',
+  'ثقتنا تبدأ بجودة ما نقدمه.',
+  'الخميس موعد مع الإنجاز ✅',
+  '«النجاح هو مجموع جهود صغيرة تتكرر يومياً.» — روبرت كوليير',
+  'تميّزنا يبدأ من تفاصيلنا 🌟',
+  '«افعل القليل ولكن أتقنه.» — ستيف جوبز',
+  'الرسالة الجيدة تصنع أثراً — فلتكن رسائلنا اليوم أثراً يدوم.',
+  '«المهنية ليست ملابس فقط، إنما موقف وتصرف.»',
+  'أفكار جديدة تنتظرنا هذا الأسبوع 💡',
+  '«التلطّف ليس ضعفاً، بل قوة.»',
+  'معاً نرسم ملامح منافسة عادلة.',
+  '«التخطيط يجلب المستقبل إلى الحاضر.» — ألان لاكين',
+  'تواصلنا مرآة الهيئة أمام المجتمع.',
+  '«أفضل الفريق هو الذي يجعل كل فرد فيه أفضل.»',
+  'خطوة بخطوة، والوصول مؤكد ✅',
+  '«الابتكار هو رؤية ما يراه الجميع لكن بطريقة مختلفة.»',
+  'وراء كل حملة ناجحة، فريق متميز.',
+  '«افعل ما تحبه أو أحب ما تفعله.»',
+  'منافسة عادلة — مجتمع مزدهر.',
+  '«الجودة تجلب القيمة، والقيمة تبقى.»',
+  'ثقة الجمهور تُبنى بالتواصل المستمر والواضح.',
+  '«الطريق إلى النجاح مملوء دائماً بفرص.»',
+  'تواصل جيد + إنجاز متقن = تميّز.',
+  '«الإبداع يبدأ حين تتجرأ على الاختلاف.»',
+  'الأرقام تحكي قصة، ونحن رواة قصتنا.',
+  '«ما تقوم به اليوم يحدد ما تراه غداً.»',
+  'الأفكار الكبيرة تبدأ بمحادثات صغيرة.',
+  '«الاجتهاد يفوق الموهبة حين لا تعمل الموهبة.»',
+  'أسبوع جديد = فرصة جديدة للتميّز 🚀',
+  '«أفضل القرارات هي تلك التي تستند إلى بيانات.»',
+  'لن نتوقف عن التطور — لأن الجمهور يستحق الأفضل.',
+  '«الرواية الجيدة أقوى من أي إحصائية.»',
+  'معاً نصنع ثقة تدوم 🤝',
+  '«المثابرة تحوّل الفشل إلى درجة جديدة من النجاح.»',
+  'لكل تفصيل قصة، ولكل قصة أثر.'
+];
+
 function dashSetGreeting() {
   // User name
   var nameEl = document.getElementById('dash-user-name');
@@ -6835,26 +6954,35 @@ function dashSetGreeting() {
     var firstName = u.name.split(' ')[0] || u.name;
     nameEl.textContent = firstName;
   }
-  // Gregorian date
+  // Gregorian date — force gregory calendar to avoid Islamic default on iOS
   var gregEl = document.getElementById('dash-date-gregorian');
   if (gregEl) {
     var now = new Date();
-    gregEl.textContent = now.toLocaleDateString('ar-SA-u-nu-latn', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+    try {
+      var greg = new Intl.DateTimeFormat('ar-SA-u-ca-gregory-nu-latn', { weekday:'long', year:'numeric', month:'long', day:'numeric' }).format(now);
+      gregEl.textContent = greg;
+    } catch(e) {
+      gregEl.textContent = now.toLocaleDateString('ar', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+    }
   }
   // Hijri date via Intl
   var hijriEl = document.getElementById('dash-date-hijri');
   if (hijriEl) {
     try {
       var hijri = new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura-nu-latn', { year:'numeric', month:'long', day:'numeric' }).format(new Date());
-      hijriEl.textContent = hijri;
+      hijriEl.textContent = hijri.replace(/\s+هـ?$/,'') + ' هـ';
     } catch(e) { hijriEl.textContent = ''; }
   }
-  // Context message based on day
+  // Rotating weekly inspiration message — index by ISO week number
   var ctxEl = document.getElementById('dash-context-msg');
   if (ctxEl) {
-    var day = new Date().getDay(); // 0=Sun,1=Mon,...,4=Thu,5=Fri,6=Sat
-    var msgs = { 5:'نتمنى لك إجازة سعيدة 🌴', 6:'نتمنى لك إجازة سعيدة 🌴', 4:'نهاية أسبوع موفقة ✨' };
-    ctxEl.textContent = msgs[day] || 'أسبوع منتج بانتظارك 🚀';
+    var now2 = new Date();
+    var d = new Date(Date.UTC(now2.getFullYear(), now2.getMonth(), now2.getDate()));
+    d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+    var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    var weekNum = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+    var idx = ((weekNum - 1) % WEEKLY_MESSAGES.length + WEEKLY_MESSAGES.length) % WEEKLY_MESSAGES.length;
+    ctxEl.textContent = WEEKLY_MESSAGES[idx];
   }
 }
 
@@ -6872,6 +7000,62 @@ async function homeDashboardInit() {
   } catch(e) { /* silent — page still functional */ }
   // Load media-monitoring count for KPI + service card
   dashLoadMediaMonitoring();
+  // Load Shorfah preview + completion %
+  dashLoadShorfahPreview();
+}
+
+async function dashLoadShorfahPreview() {
+  var el = document.getElementById('home-shorfah-preview');
+  if (!el) return;
+  try {
+    var res = await apiFetch('/api/shorfah/issues');
+    if (!res.ok) throw new Error('load-fail');
+    var data = await res.json();
+    var issues = data.issues || [];
+    if (!issues.length) {
+      el.innerHTML = '<div style="grid-column:1/-1;background:#fff;border:1px solid var(--border);border-radius:12px;padding:32px;text-align:center;color:var(--text-3);">لا توجد أعداد بعد</div>';
+      var pctEl0 = document.getElementById('dash-kpi-shorfah-pct');
+      if (pctEl0) pctEl0.textContent = '—';
+      return;
+    }
+    // Latest issue first
+    var latest = issues[0];
+    // Try to fetch sections for completion %
+    var pct = null;
+    try {
+      var det = await apiFetch('/api/shorfah/issues/' + latest.id);
+      if (det.ok) {
+        var detData = await det.json();
+        var secs = (detData.issue && detData.issue.sections) || detData.sections || [];
+        if (secs.length) {
+          var done = secs.filter(function(s) { return s.status === 'approved' || s.status === 'submitted' || s.status === 'ready'; }).length;
+          pct = Math.round((done / secs.length) * 100);
+        }
+      }
+    } catch(_) {}
+    var pctEl = document.getElementById('dash-kpi-shorfah-pct');
+    if (pctEl) pctEl.textContent = (pct !== null ? pct + '%' : (latest.status === 'published' ? '100%' : '—'));
+    var monthNames = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+    var top3 = issues.slice(0, 3);
+    el.innerHTML = top3.map(function(iss) {
+      var month = monthNames[iss.month - 1] || iss.month;
+      var statusBadge, badgeColor, badgeBg;
+      if (iss.status === 'published') { statusBadge = 'منشور'; badgeColor = '#15803d'; badgeBg = '#dcfce7'; }
+      else if (iss.status === 'in_review') { statusBadge = 'قيد المراجعة'; badgeColor = '#92400e'; badgeBg = '#fef3c7'; }
+      else { statusBadge = 'جاري العمل'; badgeColor = '#6b7280'; badgeBg = '#f3f4f6'; }
+      return '<div onclick="showSection(\'shorfah\')" style="cursor:pointer;background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:transform .15s,box-shadow .15s;" onmouseover="this.style.transform=\'translateY(-2px)\';this.style.boxShadow=\'0 6px 18px rgba(0,0,0,.08)\'" onmouseout="this.style.transform=\'\';this.style.boxShadow=\'\'">'+
+        '<div style="background:linear-gradient(135deg,#1a6e7a,#2a8d9b);color:#fff;padding:18px;text-align:center;">'+
+        '<div style="font-size:11px;letter-spacing:1.5px;opacity:.9;">العدد '+(iss.issueNo || iss.issue_no || '?')+'</div>'+
+        '<div style="font-size:24px;font-weight:900;margin:2px 0;">شُرفة</div>'+
+        '<div style="font-size:12px;opacity:.9;">'+month+' '+iss.year+'</div>'+
+        '</div>'+
+        '<div style="padding:12px 14px;">'+
+        '<span style="display:inline-block;padding:3px 8px;border-radius:20px;background:'+badgeBg+';color:'+badgeColor+';font-weight:700;font-size:11px;">'+statusBadge+'</span>'+
+        '</div></div>';
+    }).join('');
+  } catch(e) {
+    el.innerHTML = '<div style="grid-column:1/-1;background:#fff;border:1px solid var(--border);border-radius:12px;padding:24px;text-align:center;color:var(--text-3);">تعذر تحميل نشرة شرفة</div>';
+  }
 }
 
 async function dashLoadMediaMonitoring() {
@@ -6899,6 +7083,26 @@ function dashRenderKPIs(data) {
   set('dash-kpi-aiy', data.kpi.aiYearActivations ?? '—');
   set('dash-kpi-ws',  data.kpi.weekStartTotal ?? data.kpi.weekStartThisMonth ?? '—');
   set('dash-kpi-intl', data.kpi.intlDaysUpcomingCount ?? '—');
+
+  // Phase 1: New KPI strip — count campaigns from localStorage split by scope
+  try {
+    var camps = JSON.parse(localStorage.getItem('icbank.campaigns') || '[]');
+    var internal = 0, external = 0;
+    camps.forEach(function(c) {
+      var scope = (c.scope || c.type || c.audience || '').toString();
+      // Best-effort: mark internal if scope mentions داخلي / internal / employees / موظف; otherwise external
+      if (/داخل|internal|employee|موظف|موظفي/i.test(scope)) internal++;
+      else external++;
+    });
+    set('dash-kpi-camp-internal', internal || '—');
+    set('dash-kpi-camp-external', external || '—');
+  } catch(_) {
+    set('dash-kpi-camp-internal', '—');
+    set('dash-kpi-camp-external', '—');
+  }
+  // Requests: not implemented yet — keep as "—" placeholder (Phase 2)
+  set('dash-kpi-req-internal', '—');
+  set('dash-kpi-req-external', '—');
 }
 
 function dashRenderServiceCards(data) {
@@ -11088,25 +11292,17 @@ async function aiyGenerateReport() {
 <!-- ═══ QUICK ACTIONS FAB ═══ -->
 <div class="fab-wrap" id="fab-wrap">
   <div class="fab-menu">
-    <button class="fab-action" onclick="fabGo('weekstart')">
-      <span class="fab-icon"><span class="ico"><svg><use href="#i-bulb"/></svg></span></span>
-      <span>توليد محتوى بداية أسبوع</span>
-    </button>
-    <button class="fab-action" onclick="fabGo('intldays')">
-      <span class="fab-icon"><span class="ico"><svg><use href="#i-globe"/></svg></span></span>
-      <span>بحث يوم عالمي</span>
-    </button>
-    <button class="fab-action" onclick="fabGo('aiyear')">
-      <span class="fab-icon"><span class="ico"><svg><use href="#i-bot"/></svg></span></span>
-      <span>تفعيل جديد لعام AI</span>
-    </button>
-    <button class="fab-action" onclick="fabGo('reports')">
+    <button class="fab-action" onclick="fabGo('performance_reports')">
       <span class="fab-icon"><span class="ico"><svg><use href="#i-trending-up"/></svg></span></span>
-      <span>عرض تقرير الأداء</span>
+      <span>تقرير الأداء</span>
     </button>
-    <button class="fab-action" onclick="fabGo('weekend')">
-      <span class="fab-icon"><span class="ico"><svg><use href="#i-calendar"/></svg></span></span>
-      <span>تجهيز نهاية الأسبوع</span>
+    <button class="fab-action" onclick="fabGo('internal_requests')">
+      <span class="fab-icon"><span class="ico"><svg><use href="#i-inbox"/></svg></span></span>
+      <span>الطلبات</span>
+    </button>
+    <button class="fab-action" onclick="fabGo('shorfah')">
+      <span class="fab-icon"><span class="ico"><svg><use href="#i-file-text"/></svg></span></span>
+      <span>نشرة شرفة</span>
     </button>
   </div>
   <button class="fab-main" onclick="toggleFab(event)" title="إجراءات سريعة">
