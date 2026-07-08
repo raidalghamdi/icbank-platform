@@ -4901,17 +4901,18 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
         <div id="shorfah-issue-meta" style="font-size:13px;color:var(--text-3);margin-top:6px;"></div>
         <!-- Action buttons row (full-width on mobile) -->
         <div id="shorfah-issue-actions" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;">
-          <a id="shorfah-pdf-preview-btn" class="btn btn-ghost btn-sm" href="#" target="_blank" style="flex:1 1 140px;justify-content:center;">
+          <!-- Phase 7: PDF preview & PDF download hidden — Word is the only official export -->
+          <a id="shorfah-pdf-preview-btn" class="btn btn-ghost btn-sm" href="#" target="_blank" style="display:none;flex:1 1 140px;justify-content:center;">
             <svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
             معاينة
           </a>
-          <a id="shorfah-pdf-download-btn" class="btn btn-secondary btn-sm" href="#" download style="flex:1 1 140px;justify-content:center;">
+          <a id="shorfah-pdf-download-btn" class="btn btn-secondary btn-sm" href="#" download style="display:none;flex:1 1 140px;justify-content:center;">
             <svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             تحميل PDF
           </a>
-          <a id="shorfah-docx-download-btn" class="btn btn-ghost btn-sm" href="#" download style="flex:1 1 140px;justify-content:center;">
+          <a id="shorfah-docx-download-btn" class="btn btn-primary btn-sm" href="#" download style="flex:1 1 200px;justify-content:center;font-weight:800;">
             <svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-            تحميل Word
+            تحميل ملف Word
           </a>
           <button id="shorfah-start-review-btn" class="btn btn-ghost btn-sm" onclick="shorfahStartReview()" style="display:none;flex:1 1 140px;justify-content:center;">
             <svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
@@ -4977,28 +4978,16 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
         <div id="shorfah-editor-meta" style="font-size:12px;color:var(--text-3);margin-bottom:10px;"></div>
         <label style="display:block;font-weight:700;margin-bottom:6px;">المحتوى (Markdown):</label>
         <textarea id="shorfah-editor-content" style="width:100%;height:300px;padding:12px;border:1px solid var(--border);border-radius:8px;font-family:'Tajawal',system-ui,sans-serif;font-size:15px;line-height:1.7;resize:vertical;" dir="rtl"></textarea>
-        <!-- Media uploader — more prominent -->
-        <div id="shorfah-media-panel" style="margin-top:16px;padding:14px;border:2px solid #1a6e7a;border-radius:10px;background:#f0f7f8;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
-            <div style="font-weight:900;font-size:15px;color:#0e3b4a;">
-              <span class="ico" style="vertical-align:middle;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></span>
-              صور القسم
-            </div>
-            <div style="font-size:11px;color:var(--text-3);">حتى 6 صور · 8مب للصورة</div>
-          </div>
-          <div id="shorfah-media-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin-bottom:12px;">
-            <!-- thumbnails inserted by JS -->
-          </div>
-          <label class="btn btn-primary" style="cursor:pointer;display:inline-flex;align-items:center;gap:8px;font-weight:700;padding:10px 16px;">
-            <input type="file" id="shorfah-media-file-input" accept="image/*" multiple style="display:none;" onchange="shorfahUploadMedia(event)">
-            <span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></span>
-            ارفع صورًا لهذا القسم
-          </label>
-          <span id="shorfah-media-status" style="margin-right:10px;font-size:12px;color:var(--text-3);"></span>
+        <!-- Phase 7: Media UI removed — images are managed only in the Word export template.
+             (Kept hidden inputs for backward compatibility with existing JS.) -->
+        <div id="shorfah-media-panel" style="display:none;">
+          <div id="shorfah-media-grid"></div>
+          <input type="file" id="shorfah-media-file-input" accept="image/*" multiple style="display:none;" onchange="shorfahUploadMedia(event)">
+          <span id="shorfah-media-status"></span>
         </div>
         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:14px;flex-wrap:wrap;">
           <label style="display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer;">
-            <input type="checkbox" id="shorfah-editor-include" checked> عرض هذا القسم في PDF النهائي
+            <input type="checkbox" id="shorfah-editor-include" checked> عرض هذا القسم في ملف Word النهائي
           </label>
           <div style="display:flex;gap:8px;">
             <button id="shorfah-editor-generate" class="btn btn-secondary btn-sm" onclick="shorfahGenerateAI()" style="display:none;">
@@ -11755,22 +11744,43 @@ document.addEventListener('click', (e) => {
 
 // ═══ SHORFAH — Monthly Publication ═══
 var SHORFAH_STATE = { currentIssueId: null, issue: null, sections: [] };
+// Phase 7 — 11-section canonical order per user spec
 var SHORFAH_SECTION_LABELS = {
-  news: { ar: 'أخبارنا', icon: '📰', color: '#1a6e7a', desc: 'أبرز أخبار الهيئة' },
-  office_interview: { ar: 'في مكتبهم', icon: '🎙️', color: '#2a8d9b', desc: 'حوار مع قيادي' },
-  competition_culture: { ar: 'ثقافة المنافسة', icon: '📊', color: '#0e3b4a', desc: 'مؤشرات وأرقام' },
-  outside_box: { ar: 'خارج الصندوق', icon: '💡', color: '#0e3b4a', desc: 'مقال موظف' },
-  events: { ar: 'فعالياتنا', icon: '🎉', color: '#1a6e7a', desc: 'صور الفعاليات' },
-  employee_qa: { ar: 'عطنا علومك', icon: '💬', color: '#2a8d9b', desc: 'حوار سريع' },
-  editor: { ar: 'كلمة افتتاحية', icon: '✍️', color: '#5a8c96', desc: '' },
-  local_news: { ar: 'أخبار محلية', icon: '🇸🇦', color: '#1a6e7a', desc: '' },
-  regional_news: { ar: 'أخبار خليجية/عربية', icon: '🌍', color: '#2a8d9b', desc: '' },
-  global_news: { ar: 'أخبار عالمية', icon: '🌐', color: '#0e3b4a', desc: '' },
-  stakeholder: { ar: 'مساهمة جهة', icon: '🏢', color: '#5a8c96', desc: '' },
-  custom: { ar: 'قسم مخصص', icon: '➕', color: '#5a8c96', desc: '' }
+  global_news:           { ar: 'أخبار دولية',        icon: '🌐', color: '#0e3b4a', desc: 'أبرز الأخبار الدولية ذات الصلة' },
+  news:                  { ar: 'أخبارنا',           icon: '📰', color: '#1a6e7a', desc: 'أبرز أخبار الهيئة' },
+  intl_participation:    { ar: 'مشاركاتنا الدولية',   icon: '🤝', color: '#1a6e7a', desc: 'مشاركات الهيئة في المحافل والفعاليات الدولية' },
+  our_comms:             { ar: 'تواصلنا',           icon: '💬', color: '#2a8d9b', desc: 'حملات ومبادرات التواصل المؤسسي' },
+  economic_observatory:  { ar: 'المرصد الاقتصادي',     icon: '📈', color: '#0e3b4a', desc: 'مؤشرات وأرقام اقتصادية' },
+  system_index:          { ar: 'مؤشر النظام',        icon: '📊', color: '#2a8d9b', desc: 'مؤشرات أداء المنظومة' },
+  legal_window:          { ar: 'نافذة قانونية',       icon: '⚖️', color: '#5a8c96', desc: 'إطلالة على التشريعات والأنظمة' },
+  office_interview:      { ar: 'في مكتبهم',         icon: '🎙️', color: '#2a8d9b', desc: 'حوار مع قيادي' },
+  competition_culture:   { ar: 'ثقافة المنافسة',       icon: '🏳️', color: '#0e3b4a', desc: 'توعية بثقافة المنافسة' },
+  outside_box:           { ar: 'خارج الصندوق',        icon: '💡', color: '#0e3b4a', desc: 'مقال موظف' },
+  events:                { ar: 'فعالياتنا',           icon: '🎉', color: '#1a6e7a', desc: 'فعاليات الهيئة' },
+  // Legacy / optional — not part of the 11-section order but kept for backward compat
+  employee_qa:           { ar: 'عطنا علومك',          icon: '💬', color: '#2a8d9b', desc: 'حوار سريع' },
+  editor:                { ar: 'كلمة افتتاحية',       icon: '✍️', color: '#5a8c96', desc: '' },
+  local_news:            { ar: 'أخبار محلية',        icon: '🇸🇦', color: '#1a6e7a', desc: '' },
+  regional_news:         { ar: 'أخبار خليجية/عربية', icon: '🌍', color: '#2a8d9b', desc: '' },
+  stakeholder:           { ar: 'مساهمة جهة',         icon: '🏢', color: '#5a8c96', desc: '' },
+  custom:                { ar: 'قسم مخصص',           icon: '➕', color: '#5a8c96', desc: '' }
 };
+// Canonical order used for rendering & Word export
+var SHORFAH_CANONICAL_ORDER = [
+  'global_news',
+  'news',
+  'intl_participation',
+  'our_comms',
+  'economic_observatory',
+  'system_index',
+  'legal_window',
+  'office_interview',
+  'competition_culture',
+  'outside_box',
+  'events'
+];
 var SHORFAH_STATUS_LABELS = {
-  pending_contribution: { ar: 'قيد المساهمة', color: '#9ca3af', bg: '#f3f4f6' },
+  pending_contribution: { ar: 'جاري العمل', color: '#9ca3af', bg: '#f3f4f6' },
   submitted: { ar: 'تم التسليم', color: '#0369a1', bg: '#dbeafe' },
   in_review: { ar: 'قيد المراجعة', color: '#a16207', bg: '#fef3c7' },
   approved: { ar: 'معتمد', color: '#15803d', bg: '#dcfce7' },
@@ -11933,15 +11943,14 @@ function shorfahRenderBoard() {
           '<span style="font-size:11px;padding:3px 8px;border-radius:10px;background:'+status.bg+';color:'+status.color+';font-weight:700;">'+status.ar+'</span>'+
         '</div>'+
         (s.descriptionAr ? '<div style="font-size:12px;color:var(--text-3);margin-bottom:8px;">'+s.descriptionAr+'</div>' : '')+
-        // SLA badge (read-only) + media count badge
+        // SLA badge (read-only) — media count removed (Phase 7: images are export-only)
         '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">'+
           '<span style="font-size:11px;padding:3px 10px;border-radius:10px;background:#fef3c7;color:#92400e;font-weight:700;" title="أيام SLA تُدار مركزيًا من إدارة شُرفة">⏱ SLA: ' + (s.slaDays || 7) + ' يوم</span>'+
-          '<span id="media-count-'+s.id+'" style="font-size:11px;padding:3px 10px;border-radius:10px;background:#dbeafe;color:#1e40af;font-weight:700;">📷 صور: <span data-count="'+s.id+'">…</span></span>'+
         '</div>'+
         '<div style="font-size:13px;color:var(--text-2);line-height:1.7;padding:10px;background:#f9fafb;border-radius:8px;border-right:3px solid '+meta.color+';">'+contentPreview+'</div>'+
         '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px;">'+
           '<label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text-2);cursor:'+(canToggle?'pointer':'not-allowed')+';opacity:'+(canToggle?1:0.6)+';">'+
-            '<input type="checkbox" '+(includeChecked?'checked':'')+' '+(canToggle?'':'disabled')+' onchange="shorfahToggleInclude('+s.id+', this.checked)"> عرض في PDF'+
+            '<input type="checkbox" '+(includeChecked?'checked':'')+' '+(canToggle?'':'disabled')+' onchange="shorfahToggleInclude('+s.id+', this.checked)"> عرض في التصدير'+
           '</label>'+
           (canEdit ? '<button class="btn btn-ghost btn-sm" onclick="shorfahOpenEditor('+s.id+')">✏️ تحرير</button>' : '')+
           (canEditTextOnly ? '<button class="btn btn-ghost btn-sm" onclick="shorfahOpenEditor('+s.id+')">✏️ تعديل النص</button>' : '')+
@@ -11953,13 +11962,7 @@ function shorfahRenderBoard() {
       '</div>'+
     '</div>';
   }).join('');
-  // Fill media counts asynchronously (one call per section)
-  sections.forEach(function(s) {
-    apiFetch('/api/shorfah/sections/'+s.id+'/media').then(function(r) { return r.json(); }).then(function(d) {
-      var el = document.querySelector('span[data-count="'+s.id+'"]');
-      if (el) el.textContent = (d.media && d.media.length) || 0;
-    }).catch(function(){ var el = document.querySelector('span[data-count="'+s.id+'"]'); if (el) el.textContent='?'; });
-  });
+  // Phase 7: media counts removed from UI (images are export-only)
 }
 
 function shorfahBackToList() {
@@ -12308,16 +12311,26 @@ function shorfahAdminTab(tab) {
   }
 }
 
-// Round 3 Task 1: SLA templates by section type (not per section)
+// Phase 7: SLA templates & admin ordering aligned with 11-section canonical order
 var SHORFAH_SECTION_TYPE_LABELS = {
-  news: 'الأخبار',
-  office_interview: 'مقابلة مكتب المحافظ',
+  global_news: 'أخبار دولية',
+  news: 'أخبارنا',
+  intl_participation: 'مشاركاتنا الدولية',
+  our_comms: 'تواصلنا',
+  economic_observatory: 'المرصد الاقتصادي',
+  system_index: 'مؤشر النظام',
+  legal_window: 'نافذة قانونية',
+  office_interview: 'في مكتبهم',
   competition_culture: 'ثقافة المنافسة',
   outside_box: 'خارج الصندوق',
-  events: 'الفعاليات',
-  employee_qa: 'الحوار مع الموظف'
+  events: 'فعالياتنا',
+  employee_qa: 'عطنا علومك'
 };
-var SHORFAH_SECTION_TYPE_ORDER = ['news','office_interview','competition_culture','outside_box','events','employee_qa'];
+var SHORFAH_SECTION_TYPE_ORDER = [
+  'global_news','news','intl_participation','our_comms',
+  'economic_observatory','system_index','legal_window',
+  'office_interview','competition_culture','outside_box','events'
+];
 function shorfahSectionTypeLabel(t) { return SHORFAH_SECTION_TYPE_LABELS[t] || t; }
 
 // Round 3 Task 2: contributor role labels in Arabic

@@ -20,9 +20,15 @@ const OFFWHITE = "#f0f7f8";
 const TEAL_DARK = "#155a64";
 const DEEPNAVY = "#0a2c38";
 
-// Map section type -> inline SVG string (self-contained, no external deps)
+// Phase 7 — Map section type -> inline SVG icon key (11-section canonical order)
 export const SECTION_ICON: Record<string, string> = {
+  global_news: "newspaper",
   news: "newspaper",
+  intl_participation: "bunting",
+  our_comms: "speech",
+  economic_observatory: "monitor",
+  system_index: "monitor",
+  legal_window: "box",
   office_interview: "microphone",
   competition_culture: "monitor",
   outside_box: "box",

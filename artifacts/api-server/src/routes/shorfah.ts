@@ -118,19 +118,24 @@ router.get("/shorfah/issues/:id", requireAuth, async (req: Request, res: Respons
   res.json({ issue, sections: sectionsEnriched });
 });
 
-// Canonical Shorfah issue template — keep in sync with the published issue 1 structure.
+// Phase 7 — Canonical 11-section Shorfah issue template per user spec.
 const SHORFAH_DEFAULT_SECTIONS: Array<{
   sectionType: string;
   titleAr: string;
   descriptionAr: string;
   displayOrder: number;
 }> = [
-  { sectionType: "news", titleAr: "أخبارنا", descriptionAr: "أبرز أخبار الهيئة هذا الشهر", displayOrder: 10 },
-  { sectionType: "office_interview", titleAr: "في مكتبهم", descriptionAr: "حوار شهري مع أحد القياديين", displayOrder: 20 },
-  { sectionType: "competition_culture", titleAr: "ثقافة المنافسة", descriptionAr: "مفاهيم ومقالات في ثقافة المنافسة", displayOrder: 30 },
-  { sectionType: "outside_box", titleAr: "خارج الصندوق", descriptionAr: "مقال شهري من موظف", displayOrder: 40 },
-  { sectionType: "events", titleAr: "فعالياتنا", descriptionAr: "فعاليات الشهر", displayOrder: 50 },
-  { sectionType: "employee_qa", titleAr: "عطنا علومك", descriptionAr: "ست أسئلة سريعة مع أحد الزملاء", displayOrder: 60 },
+  { sectionType: "global_news", titleAr: "أخبار دولية", descriptionAr: "أبرز الأخبار الدولية ذات الصلة", displayOrder: 10 },
+  { sectionType: "news", titleAr: "أخبارنا", descriptionAr: "أبرز أخبار الهيئة هذا الشهر", displayOrder: 20 },
+  { sectionType: "intl_participation", titleAr: "مشاركاتنا الدولية", descriptionAr: "مشاركات الهيئة في المحافل والفعاليات الدولية", displayOrder: 30 },
+  { sectionType: "our_comms", titleAr: "تواصلنا", descriptionAr: "حملات ومبادرات التواصل المؤسسي", displayOrder: 40 },
+  { sectionType: "economic_observatory", titleAr: "المرصد الاقتصادي", descriptionAr: "مؤشرات وأرقام اقتصادية", displayOrder: 50 },
+  { sectionType: "system_index", titleAr: "مؤشر النظام", descriptionAr: "مؤشرات أداء المنظومة", displayOrder: 60 },
+  { sectionType: "legal_window", titleAr: "نافذة قانونية", descriptionAr: "إطلالة على التشريعات والأنظمة", displayOrder: 70 },
+  { sectionType: "office_interview", titleAr: "في مكتبهم", descriptionAr: "حوار شهري مع أحد القياديين", displayOrder: 80 },
+  { sectionType: "competition_culture", titleAr: "ثقافة المنافسة", descriptionAr: "توعية بثقافة المنافسة", displayOrder: 90 },
+  { sectionType: "outside_box", titleAr: "خارج الصندوق", descriptionAr: "مقال شهري من موظف", displayOrder: 100 },
+  { sectionType: "events", titleAr: "فعالياتنا", descriptionAr: "فعاليات الهيئة", displayOrder: 110 },
 ];
 
 async function seedShorfahSections(issueId: number) {
