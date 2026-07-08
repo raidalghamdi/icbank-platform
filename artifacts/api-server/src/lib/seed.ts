@@ -11,24 +11,48 @@ import {
 import { eq } from "drizzle-orm";
 import { logger } from "./logger";
 
+// Phase 8 — Roles include original 5 + 4 new user types aligned with the login form
 const ROLES = [
-  { name: "super_admin", nameAr: "مدير النظام", description: "صلاحيات كاملة غير قابلة للتقييد", isSystem: true },
-  { name: "admin", nameAr: "مدير", description: "إدارة المستخدمين والمحتوى", isSystem: true },
-  { name: "editor", nameAr: "محرر", description: "إنشاء وتعديل المحتوى", isSystem: false },
-  { name: "viewer", nameAr: "مشاهد", description: "عرض المحتوى فقط", isSystem: false },
-  { name: "guest", nameAr: "ضيف", description: "وصول محدود", isSystem: false },
+  { name: "super_admin",       nameAr: "مدير النظام",              description: "صلاحيات كاملة غير قابلة للتقييد", isSystem: true },
+  { name: "admin",             nameAr: "مدير",                    description: "إدارة المستخدمين والمحتوى", isSystem: true },
+  // — Phase 6 login user types —
+  { name: "system_admin",      nameAr: "مسؤول النظام",              description: "مسؤول تقني يدير المستخدمين والأدوار والصلاحيات", isSystem: true },
+  { name: "approved_manager",  nameAr: "مدير معتمد",               description: "يعتمد الطلبات والحملات ويراجع المحتوى", isSystem: false },
+  { name: "team_member",       nameAr: "عضو فريق التواصل المؤسسي", description: "فريق التواصل المؤسسي — ينشئ ويحرر ويتابع الحملات والطلبات", isSystem: false },
+  { name: "requester",         nameAr: "موظف مقدم طلب",             description: "يقدم طلبات داخلية/خارجية ويتابع حالتها", isSystem: false },
+  // — Legacy —
+  { name: "editor",            nameAr: "محرر",                    description: "إنشاء وتعديل المحتوى", isSystem: false },
+  { name: "viewer",            nameAr: "مشاهد",                   description: "عرض المحتوى فقط", isSystem: false },
+  { name: "guest",             nameAr: "ضيف",                     description: "وصول محدود", isSystem: false },
 ] as const;
 
-// Exactly 8 RBAC-controlled pages as specified in the task contract
+// Phase 8 — RBAC-controlled pages aligned with the 6 sidebar sections + shorfah + admin
 const PAGES = [
-  { slug: "dashboard",          nameAr: "الأداء التنفيذي",       icon: "i-dashboard", sortOrder: 1 },
-  { slug: "weekend",            nameAr: "نهاية الأسبوع",         icon: "i-calendar",  sortOrder: 2 },
-  { slug: "world_news",         nameAr: "الأخبار العالمية",      icon: "i-news",      sortOrder: 3 },
-  { slug: "initiatives",        nameAr: "المبادرات",             icon: "i-bulb",      sortOrder: 4 },
-  { slug: "international_days", nameAr: "الأيام العالمية",       icon: "i-globe",     sortOrder: 5 },
-  { slug: "ai_year",            nameAr: "عام الذكاء الاصطناعي", icon: "i-bot",       sortOrder: 6 },
-  { slug: "smart_assistant",    nameAr: "المساعد الذكي",         icon: "i-sparkle",   sortOrder: 7 },
-  { slug: "settings",           nameAr: "الإعدادات",             icon: "i-settings",  sortOrder: 8 },
+  { slug: "dashboard",             nameAr: "الأداء التنفيذي",           icon: "i-dashboard", sortOrder: 1 },
+  // تواصل داخلي
+  { slug: "internal_requests",     nameAr: "الطلبات الداخلية",         icon: "i-inbox",     sortOrder: 2 },
+  { slug: "internal_campaigns",    nameAr: "الحملات الداخلية",         icon: "i-megaphone", sortOrder: 3 },
+  { slug: "weekend",               nameAr: "نهاية الأسبوع",             icon: "i-calendar",  sortOrder: 4 },
+  { slug: "weekstart",             nameAr: "بداية الأسبوع",             icon: "i-calendar",  sortOrder: 5 },
+  { slug: "international_days",    nameAr: "الأيام العالمية",           icon: "i-globe",     sortOrder: 6 },
+  // تواصل خارجي
+  { slug: "external_requests",     nameAr: "الطلبات الخارجية",         icon: "i-inbox",     sortOrder: 7 },
+  { slug: "external_campaigns",    nameAr: "الحملات الخارجية",         icon: "i-megaphone", sortOrder: 8 },
+  { slug: "shorfah",               nameAr: "نشرة شُرفة",               icon: "i-newspaper", sortOrder: 9 },
+  // الرصد الإعلامي
+  { slug: "media_monitoring",      nameAr: "الرصد الإعلامي",           icon: "i-eye",       sortOrder: 10 },
+  { slug: "world_news",            nameAr: "الأخبار العالمية",           icon: "i-news",      sortOrder: 11 },
+  // تقارير الأداء
+  { slug: "performance_reports",   nameAr: "تقارير الأداء",             icon: "i-file-text", sortOrder: 12 },
+  // المبادرات
+  { slug: "initiatives",           nameAr: "المبادرات",                 icon: "i-bulb",      sortOrder: 13 },
+  { slug: "ai_year",               nameAr: "عام الذكاء الاصطناعي",     icon: "i-bot",       sortOrder: 14 },
+  // ستوديو المحتوى
+  { slug: "design_studio",         nameAr: "ستوديو المحتوى",             icon: "i-image",     sortOrder: 15 },
+  { slug: "smart_assistant",       nameAr: "المساعد الذكي",             icon: "i-sparkle",   sortOrder: 16 },
+  // الإعدادات ولوحة التحكم
+  { slug: "admin_panel",           nameAr: "لوحة التحكم",                icon: "i-shield",    sortOrder: 17 },
+  { slug: "settings",              nameAr: "الإعدادات",                 icon: "i-settings",  sortOrder: 18 },
 ] as const;
 
 const PERMISSIONS = [
@@ -39,6 +63,7 @@ const PERMISSIONS = [
   { name: "export", nameAr: "تصدير" },
 ] as const;
 
+// Phase 8 — Role Matrix aligned with expanded page list and new user-type roles
 const ROLE_PERMISSIONS: Record<string, { pages: string[]; perms: string[] }[]> = {
   super_admin: [
     { pages: ["*"], perms: ["view", "create", "edit", "delete", "export"] },
@@ -46,17 +71,52 @@ const ROLE_PERMISSIONS: Record<string, { pages: string[]; perms: string[] }[]> =
   admin: [
     { pages: ["*"], perms: ["view", "create", "edit", "delete", "export"] },
   ],
+  // مسؤول النظام — رمزياً أقوى دور: إدارة المستخدمين والأدوار والصلاحيات
+  system_admin: [
+    { pages: ["*"], perms: ["view", "create", "edit", "delete", "export"] },
+  ],
+  // مدير معتمد — يراجع/يعتمد المحتوى ويرى كل شيء ما عدا لوحة التحكم
+  approved_manager: [
+    {
+      pages: [
+        "dashboard","internal_requests","internal_campaigns","weekend","weekstart","international_days",
+        "external_requests","external_campaigns","shorfah","media_monitoring","world_news",
+        "performance_reports","initiatives","ai_year","design_studio","smart_assistant","settings"
+      ],
+      perms: ["view", "edit", "export"],
+    },
+  ],
+  // عضو فريق التواصل — ينشئ ويحرر المحتوى
+  team_member: [
+    {
+      pages: [
+        "dashboard","internal_requests","internal_campaigns","weekend","weekstart","international_days",
+        "external_requests","external_campaigns","shorfah","media_monitoring","world_news",
+        "performance_reports","initiatives","ai_year","design_studio","smart_assistant"
+      ],
+      perms: ["view", "create", "edit", "export"],
+    },
+  ],
+  // موظف مقدم طلب — يرى طلباته فقط وينشئها
+  requester: [
+    {
+      pages: ["dashboard","internal_requests","external_requests","international_days","smart_assistant"],
+      perms: ["view", "create"],
+    },
+  ],
+  // — Legacy —
   editor: [
     {
-      pages: ["dashboard", "weekend", "world_news", "initiatives", "international_days", "ai_year", "smart_assistant"],
+      pages: [
+        "dashboard","internal_requests","internal_campaigns","weekend","weekstart",
+        "international_days","external_requests","external_campaigns","shorfah",
+        "world_news","initiatives","ai_year","design_studio","smart_assistant"
+      ],
       perms: ["view", "create", "edit", "export"],
     },
   ],
   viewer: [
-    {
-      pages: ["dashboard", "weekend", "world_news"],
-      perms: ["view"],
-    },
+    { pages: ["dashboard","weekend","world_news","shorfah"], perms: ["view"] },
   ],
   guest: [
     { pages: ["dashboard"], perms: ["view"] },
@@ -87,6 +147,39 @@ const TEST_USERS = [
     department: "التخطيط والتطوير",
     password: "Manager@2026",
     role: "admin",
+  },
+  // — Phase 8 test users for the 4 login user types —
+  {
+    email: "team@internal.sa",
+    name: "عضو الفريق",
+    title: "أخصائي تواصل مؤسسي",
+    department: "التواصل المؤسسي",
+    password: "Team@2026",
+    role: "team_member",
+  },
+  {
+    email: "approver@internal.sa",
+    name: "مدير معتمد",
+    title: "مدير إدارة",
+    department: "التواصل المؤسسي",
+    password: "Approver@2026",
+    role: "approved_manager",
+  },
+  {
+    email: "sysadmin@internal.sa",
+    name: "مسؤول النظام",
+    title: "مدير نظم وتقنية",
+    department: "تقنية المعلومات",
+    password: "SysAdmin@2026",
+    role: "system_admin",
+  },
+  {
+    email: "requester@internal.sa",
+    name: "موظف مقدم طلب",
+    title: "موظف",
+    department: "الخدمات المساندة",
+    password: "Request@2026",
+    role: "requester",
   },
 ];
 
