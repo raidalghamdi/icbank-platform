@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: 2026-07-08-phase1-restructure -->
+<!-- build: 2026-07-08-phase4-sidebar -->
 <html dir="rtl" lang="ar">
 <head>
 <meta charset="UTF-8">
@@ -2678,10 +2678,24 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
       </div>
     </div>
 
+    <!-- ═ 1. التواصل الداخلي ═ -->
     <div class="sidebar-section">
-      <div class="sidebar-section-title">التواصل المؤسسي</div>
+      <div class="sidebar-section-title">التواصل الداخلي</div>
       <div class="sidebar-nav">
-        <div style="font-size:11px;font-weight:700;color:var(--text-muted);padding:8px 16px 4px;letter-spacing:.5px;">• رسائل داخلية</div>
+        <a class="nav-item" data-page="internal_requests" onclick="showSection('internal_requests')">
+          <span class="ico"><svg><use href="#i-inbox"/></svg></span>
+          <span>الطلبات الداخلية</span>
+        </a>
+        <a class="nav-item" data-page="internal_campaigns" onclick="showSection('internal_campaigns')">
+          <span class="ico"><svg><use href="#i-trending-up"/></svg></span>
+          <span>الحملات الداخلية</span>
+        </a>
+        <a class="nav-item" data-page="shorfah" onclick="showSection('shorfah')">
+          <span class="ico"><svg><use href="#i-book"/></svg></span>
+          <span>نشرة شُرفة</span>
+          <span class="nav-item-count" id="shorfah-nav-count">—</span>
+        </a>
+        <div style="font-size:11px;font-weight:700;color:var(--text-muted);padding:12px 16px 4px;letter-spacing:.5px;">• رسائل أسبوعية</div>
         <a class="nav-item" data-page="weekstart" onclick="showSection('weekstart')">
           <span class="ico"><svg><use href="#i-star"/></svg></span>
           <span>بداية الأسبوع</span>
@@ -2690,30 +2704,51 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
           <span class="ico"><svg><use href="#i-calendar"/></svg></span>
           <span>نهاية الأسبوع</span>
         </a>
-        <div style="font-size:11px;font-weight:700;color:var(--text-muted);padding:12px 16px 4px;letter-spacing:.5px;">• فعاليات ومحتوى</div>
+      </div>
+    </div>
+
+    <!-- ═ 2. التواصل الخارجي ═ -->
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">التواصل الخارجي</div>
+      <div class="sidebar-nav">
+        <a class="nav-item" data-page="external_requests" onclick="showSection('external_requests')">
+          <span class="ico"><svg><use href="#i-inbox"/></svg></span>
+          <span>الطلبات الخارجية</span>
+        </a>
+        <a class="nav-item" data-page="external_campaigns" onclick="showSection('external_campaigns')">
+          <span class="ico"><svg><use href="#i-globe"/></svg></span>
+          <span>الحملات الخارجية</span>
+        </a>
         <a class="nav-item" data-page="intldays" onclick="showSection('intldays')">
           <span class="ico"><svg><use href="#i-globe"/></svg></span>
           <span>الأيام العالمية</span>
         </a>
-        <a class="nav-item" data-page="shorfah" onclick="showSection('shorfah')">
-          <span class="ico"><svg><use href="#i-book"/></svg></span>
-          <span>شُرفة</span>
-          <span class="nav-item-count" id="shorfah-nav-count">—</span>
+        <a class="nav-item" data-page="news" onclick="showSection('news')">
+          <span class="ico"><svg><use href="#i-news"/></svg></span>
+          <span>أخبار هيئات المنافسة</span>
         </a>
       </div>
     </div>
 
+    <!-- ═ 3. الرصد الإعلامي ═ -->
     <div class="sidebar-section">
-      <div class="sidebar-section-title">الرصد والتحليل</div>
+      <div class="sidebar-section-title">الرصد الإعلامي</div>
       <div class="sidebar-nav">
         <a class="nav-item" data-page="media_monitoring" onclick="showSection('media_monitoring')">
           <span class="ico"><svg><use href="#i-news"/></svg></span>
           <span>الرصد الإعلامي</span>
           <span class="nav-item-count" id="mm-nav-count">—</span>
         </a>
-        <a class="nav-item" data-page="news" onclick="showSection('news')">
-          <span class="ico"><svg><use href="#i-globe"/></svg></span>
-          <span>أخبار هيئات المنافسة</span>
+      </div>
+    </div>
+
+    <!-- ═ 4. تقارير الأداء ═ -->
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">تقارير الأداء</div>
+      <div class="sidebar-nav">
+        <a class="nav-item" data-page="performance_reports" onclick="showSection('performance_reports')">
+          <span class="ico"><svg><use href="#i-trending-up"/></svg></span>
+          <span>تقارير الأداء</span>
         </a>
         <a class="nav-item" data-page="campaigns_analytics" onclick="showSection('campaigns_analytics')">
           <span class="ico"><svg><use href="#i-chart"/></svg></span>
@@ -2723,6 +2758,7 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
       </div>
     </div>
 
+    <!-- ═ 5. المبادرات ═ -->
     <div class="sidebar-section">
       <div class="sidebar-section-title">المبادرات</div>
       <div class="sidebar-nav">
@@ -2731,11 +2767,16 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
           <span>المبادرات</span>
           <span class="nav-item-count">42</span>
         </a>
+        <a class="nav-item" data-page="aiyear" onclick="showSection('aiyear')">
+          <span class="ico"><svg><use href="#i-brain"/></svg></span>
+          <span>عام الذكاء الاصطناعي</span>
+        </a>
       </div>
     </div>
 
+    <!-- ═ 6. ستوديو المحتوى ═ -->
     <div class="sidebar-section">
-      <div class="sidebar-section-title">الاستوديو الإبداعي</div>
+      <div class="sidebar-section-title">ستوديو المحتوى</div>
       <div class="sidebar-nav">
         <a class="nav-item" id="nav-designs" data-page="designs" onclick="showSection('designs')" style="display:none;">
           <span class="ico"><svg><use href="#i-image"/></svg></span>
@@ -2746,13 +2787,13 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
           <span>تصميم سريع بالأيقونات</span>
           <span class="nav-item-badge" style="background:linear-gradient(135deg,#0069A7,#46BCCD);color:#fff;font-size:10px;padding:2px 6px;border-radius:8px;margin-right:auto;">جديد</span>
         </a>
-        <a class="nav-item" id="nav-places" data-page="places" onclick="showSection('places')" style="display:none;">
-          <span class="ico"><svg><use href="#i-bookmark"/></svg></span>
-          <span>مكتبة الأماكن</span>
-        </a>
         <a class="nav-item" data-page="gac_library" onclick="showSection('gac_library')">
           <span class="ico"><svg><use href="#i-book"/></svg></span>
           <span>مكتبة الهيئة</span>
+        </a>
+        <a class="nav-item" id="nav-places" data-page="places" onclick="showSection('places')" style="display:none;">
+          <span class="ico"><svg><use href="#i-bookmark"/></svg></span>
+          <span>مكتبة الأماكن</span>
         </a>
         <a class="nav-item" data-page="smart_assistant" onclick="showSection('smart_assistant')">
           <span class="ico"><svg><use href="#i-bot"/></svg></span>
@@ -2991,6 +3032,17 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
       </div>
       <div class="dash-news-grid" id="home-shorfah-preview">
         <div class="loading-wrap"><div class="spinner"></div><div class="loading-text">جارٍ تحميل نشرة شرفة...</div></div>
+      </div>
+    </div>
+
+    <!-- ── Upcoming Events ── -->
+    <div class="dash-section">
+      <div class="dash-section-head">
+        <h2 class="dash-section-title">📅 الفعاليات القادمة</h2>
+        <button class="link-action" onclick="showSection('external_requests')">إدارة الفعاليات <span class="ico"><svg><use href="#i-arrow-left"/></svg></span></button>
+      </div>
+      <div id="home-upcoming-events" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;">
+        <div class="loading-wrap"><div class="spinner"></div><div class="loading-text">جارٍ تحميل الفعاليات...</div></div>
       </div>
     </div>
 
@@ -7002,6 +7054,70 @@ async function homeDashboardInit() {
   dashLoadMediaMonitoring();
   // Load Shorfah preview + completion %
   dashLoadShorfahPreview();
+  // Load Upcoming Events
+  dashLoadUpcomingEvents();
+}
+
+function dashLoadUpcomingEvents() {
+  var el = document.getElementById('home-upcoming-events');
+  if (!el) return;
+  // Phase 1: derive events from Intl days data already fetched (الفعاليات = الأيام/التفعيلات القادمة للهيئة)
+  try {
+    var events = [];
+    // Pull upcoming intl days from dashSummaryData (if available)
+    if (typeof dashSummaryData !== 'undefined' && dashSummaryData && dashSummaryData.intlDaysUpcoming) {
+      dashSummaryData.intlDaysUpcoming.slice(0, 3).forEach(function(d) {
+        events.push({
+          type: 'intl',
+          title: d.name,
+          date: d.date,
+          daysUntil: d.daysUntil,
+          badge: 'يوم عالمي',
+          color: '#25935F'
+        });
+      });
+    }
+    // Pull upcoming AI year activations if scheduled
+    if (typeof dashSummaryData !== 'undefined' && dashSummaryData && dashSummaryData.aiYear && dashSummaryData.aiYear.recentActivations) {
+      dashSummaryData.aiYear.recentActivations.slice(0, 2).forEach(function(a) {
+        if (!a.activationDate) return;
+        var d = new Date(a.activationDate);
+        var now = new Date(); now.setHours(0,0,0,0);
+        var daysUntil = Math.round((d.getTime() - now.getTime()) / 86400000);
+        if (daysUntil < 0 || daysUntil > 60) return;
+        events.push({
+          type: 'aiy',
+          title: a.title,
+          date: a.activationDate,
+          daysUntil: daysUntil,
+          badge: 'تفعيل ذكاء اصطناعي',
+          color: '#0069A7'
+        });
+      });
+    }
+    events.sort(function(a, b) { return a.daysUntil - b.daysUntil; });
+    if (!events.length) {
+      el.innerHTML = '<div style="grid-column:1/-1;background:#fff;border:1px solid var(--border);border-radius:12px;padding:28px;text-align:center;color:var(--text-3);">لا توجد فعاليات قادمة خلال الفترة القريبة</div>';
+      return;
+    }
+    el.innerHTML = events.slice(0, 6).map(function(ev) {
+      var dateStr;
+      try {
+        dateStr = new Date(ev.date).toLocaleDateString('ar-SA-u-nu-latn', { day:'numeric', month:'long', year:'numeric' });
+      } catch(_) { dateStr = ev.date; }
+      var daysLabel = ev.daysUntil === 0 ? 'اليوم' : (ev.daysUntil === 1 ? 'غداً' : 'بعد ' + ev.daysUntil + ' يوم');
+      return '<div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px;border-inline-start:4px solid '+ev.color+';">'+
+        '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px;">'+
+        '<span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:14px;background:'+ev.color+'15;color:'+ev.color+';">'+ev.badge+'</span>'+
+        '<span style="font-size:11px;color:var(--text-3);white-space:nowrap;">'+daysLabel+'</span>'+
+        '</div>'+
+        '<div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:6px;line-height:1.4;">'+escHtml(ev.title || '')+'</div>'+
+        '<div style="font-size:12px;color:var(--text-3);">📅 '+dateStr+'</div>'+
+        '</div>';
+    }).join('');
+  } catch(e) {
+    el.innerHTML = '<div style="grid-column:1/-1;background:#fff;border:1px solid var(--border);border-radius:12px;padding:24px;text-align:center;color:var(--text-3);">تعذر تحميل الفعاليات</div>';
+  }
 }
 
 async function dashLoadShorfahPreview() {
