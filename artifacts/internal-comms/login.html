@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#1E40AF">
-<title>تسجيل الدخول — بنك التواصل الداخلي</title>
+<title>تسجيل الدخول — منصة التواصل المؤسسي</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -277,14 +277,14 @@ body {
 
 <div class="login-wrap">
   <div class="login-brand">
-    <div class="brand-logo">IC</div>
-    <div class="brand-title">بنك التواصل الداخلي</div>
-    <div class="brand-sub">INTERNAL COMMS · 2026</div>
+    <div class="brand-logo">GAC</div>
+    <div class="brand-title">منصة التواصل المؤسسي</div>
+    <div class="brand-sub">CORPORATE COMMS · 2026</div>
   </div>
 
   <div class="login-card">
     <div class="login-heading">مرحباً بك</div>
-    <div class="login-sub">سجّل دخولك للوصول إلى البوابة الداخلية</div>
+    <div class="login-sub">سجّل دخولك للوصول إلى منصة التواصل المؤسسي</div>
 
     <div class="alert error" id="alert-error">
       <span class="alert-icon">
@@ -294,6 +294,21 @@ body {
     </div>
 
     <form id="login-form" novalidate>
+      <div class="field">
+        <label for="user-type">نوع المستخدم</label>
+        <div class="field-input-wrap">
+          <select id="user-type" name="userType" style="width:100%;padding:12px 44px 12px 14px;font-size:14px;border:1px solid var(--border);border-radius:8px;font-family:inherit;background:#fff;appearance:none;cursor:pointer;">
+            <option value="team_member">عضو فريق التواصل المؤسسي</option>
+            <option value="approved_manager">مدير معتمد</option>
+            <option value="system_admin">مسؤول النظام</option>
+            <option value="requester">موظف مقدّم طلب</option>
+          </select>
+          <span class="field-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </span>
+        </div>
+      </div>
+
       <div class="field">
         <label for="email">البريد الإلكتروني</label>
         <div class="field-input-wrap">
@@ -431,6 +446,9 @@ body {
 
       localStorage.setItem('access_token', data.accessToken);
       localStorage.setItem('user_info', JSON.stringify(data.user));
+      // Persist selected user-type hint for role-based UI (Phase 6)
+      var userTypeEl = document.getElementById('user-type');
+      if (userTypeEl) localStorage.setItem('user_type_hint', userTypeEl.value);
       // Set JS-readable cookies so the frontend server can detect auth state.
       // access_token: mirrors the JWT (15 min) for immediate access-gating.
       // has_session:  long-lived (7 days) indicator mirroring the httpOnly

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: 2026-07-08-phase4-sidebar -->
+<!-- build: 2026-07-08-phase6-usertype -->
 <html dir="rtl" lang="ar">
 <head>
 <meta charset="UTF-8">
@@ -2289,6 +2289,23 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
   font-weight: 700;
   margin-bottom: 6px;
   letter-spacing: -0.3px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.dash-role-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.14);
+  border: 1px solid rgba(255,255,255,0.22);
+  color: #fff;
+  letter-spacing: 0;
+  line-height: 1.6;
+  backdrop-filter: blur(6px);
 }
 .dash-dates {
   font-size: 12.5px;
@@ -2932,7 +2949,7 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
 
     <!-- ── Hero Header ── -->
     <div class="dash-hero">
-      <div class="dash-greeting">أهلاً، <span id="dash-user-name">—</span> 👋</div>
+      <div class="dash-greeting"><span id="dash-user-name">—</span> <span id="dash-user-role-badge" class="dash-role-badge" style="display:none"></span></div>
       <div class="dash-dates">
         <span id="dash-date-hijri">—</span>
         <span class="dash-date-sep">·</span>
@@ -6998,14 +7015,60 @@ var WEEKLY_MESSAGES = [
   'لكل تفصيل قصة، ولكل قصة أثر.'
 ];
 
+// User type labels (Arabic) — matches login.html select values
+var USER_TYPE_LABELS = {
+  team_member: 'عضو فريق التواصل المؤسسي',
+  approved_manager: 'مدير معتمد',
+  system_admin: 'مسؤول النظام',
+  requester: 'موظف مقدم طلب'
+};
+
+// Short role badge labels
+var USER_TYPE_BADGE = {
+  team_member: 'فريق التواصل',
+  approved_manager: 'مدير معتمد',
+  system_admin: 'مسؤول النظام',
+  requester: 'مقدم طلب'
+};
+
+function getTimeGreeting() {
+  var h = new Date().getHours();
+  if (h >= 5 && h < 12) return 'صباح الخير';
+  if (h >= 12 && h < 17) return 'مساء الخير';
+  if (h >= 17 && h < 22) return 'مساء الخير';
+  return 'أهلاً بك';
+}
+
 function dashSetGreeting() {
-  // User name
+  // User name — with time-based greeting prefix
   var nameEl = document.getElementById('dash-user-name');
   var u = AUTH_USER;
-  if (nameEl && u && u.name) {
-    var firstName = u.name.split(' ')[0] || u.name;
-    nameEl.textContent = firstName;
+  var firstName = '';
+  if (u && u.name) {
+    firstName = u.name.split(' ')[0] || u.name;
   }
+  if (nameEl) {
+    var greetingPrefix = getTimeGreeting();
+    if (firstName) {
+      nameEl.textContent = greetingPrefix + '، ' + firstName;
+    } else {
+      nameEl.textContent = 'أهلاً بك';
+    }
+  }
+  // User type badge — next to name
+  try {
+    var userType = localStorage.getItem('user_type_hint');
+    var badgeEl = document.getElementById('dash-user-role-badge');
+    if (badgeEl) {
+      if (userType && USER_TYPE_BADGE[userType]) {
+        badgeEl.textContent = USER_TYPE_BADGE[userType];
+        badgeEl.title = USER_TYPE_LABELS[userType] || '';
+        badgeEl.style.display = '';
+      } else {
+        badgeEl.style.display = 'none';
+      }
+    }
+  } catch(e) {}
   // Gregorian date — force gregory calendar to avoid Islamic default on iOS
   var gregEl = document.getElementById('dash-date-gregorian');
   if (gregEl) {
@@ -7038,8 +7101,41 @@ function dashSetGreeting() {
   }
 }
 
+// Role-based dashboard visibility — hides KPI cards not relevant to the user's role
+function dashApplyRoleFilters() {
+  try {
+    var userType = localStorage.getItem('user_type_hint') || '';
+    // Map of card element id -> array of roles allowed to see it
+    var visibility = {
+      'dash-kpi-req-internal':   ['team_member','approved_manager','system_admin','requester'],
+      'dash-kpi-req-external':   ['team_member','approved_manager','system_admin','requester'],
+      'dash-kpi-camp-internal':  ['team_member','approved_manager','system_admin'],
+      'dash-kpi-camp-external':  ['team_member','approved_manager','system_admin'],
+      'dash-kpi-shorfah-pct':    ['team_member','approved_manager','system_admin']
+    };
+    Object.keys(visibility).forEach(function(id) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      // If no user_type_hint stored, show all (backward compat)
+      if (!userType) { el.style.display = ''; return; }
+      var allowed = visibility[id];
+      el.style.display = (allowed.indexOf(userType) !== -1) ? '' : 'none';
+    });
+    // Show "my requests" hint for requesters — tag the requests cards
+    var isRequester = (userType === 'requester');
+    ['dash-kpi-req-internal','dash-kpi-req-external'].forEach(function(id){
+      var el = document.getElementById(id);
+      if (!el) return;
+      var lbl = el.querySelector('.kpi-label, .dash-kpi-label, [data-role="label"]');
+      // Non-destructive: just add a data attribute the CSS/JS can use later
+      el.setAttribute('data-my-requests', isRequester ? '1' : '0');
+    });
+  } catch(e) {}
+}
+
 async function homeDashboardInit() {
   dashSetGreeting();
+  dashApplyRoleFilters();
   try {
     var res = await apiFetch('/api/dashboard/summary');
     if (!res.ok) return;
