@@ -249,6 +249,107 @@ router.post(
   },
 );
 
+// ─── ADMIN: seed sample Twitter/X posts (Review Round 3) ─────────────────
+// The real X API v2 requires paid Bearer Token — until wired to n8n/cron this
+// gives the UI realistic data so users can see how the platform looks.
+router.post(
+  "/gac/social-feed/seed-twitter",
+  requireAdmin,
+  async (_req: Request, res: Response) => {
+    const now = new Date();
+    const samplePosts = [
+      {
+        platform: "twitter" as const,
+        externalId: "tw-gac-2026-07-08-launch",
+        contentAr:
+          "أطلقت #الهيئة_العامة_للمنافسة مبادرة جديدة لتعزيز الشفافية في السوق السعودي، بما يخدم مستهدفات #رؤية_السعودية_2030 ويعزز بيئة المنافسة العادلة.",
+        postUrl: "https://twitter.com/GACOMPKSA/status/1",
+        mediaType: "none" as const,
+        postedAt: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+        metrics: { likes: 342, reach: 15800, retweets: 87, replies: 24 },
+        account: "GACOMPKSA",
+      },
+      {
+        platform: "twitter" as const,
+        externalId: "tw-gac-2026-07-05-report",
+        contentAr:
+          "صدر تقرير #الهيئة_العامة_للمنافسة عن الربع الثاني، ويكشف عن معالجة 68 طلب تركز اقتصادي بمتوسط 3.5 يوم لكل طلب — نقلة نوعية في الأداء التنظيمي.",
+        postUrl: "https://twitter.com/GACOMPKSA/status/2",
+        mediaType: "none" as const,
+        postedAt: new Date(now.getTime() - 4 * 24 * 60 * 60 * 1000).toISOString(),
+        metrics: { likes: 512, reach: 22400, retweets: 134, replies: 41 },
+        account: "GACOMPKSA",
+      },
+      {
+        platform: "twitter" as const,
+        externalId: "tw-gac-2026-07-02-oecd",
+        contentAr:
+          "شاركت #الهيئة_العامة_للمنافسة في اجتماعات لجنة المنافسة بمنظمة #OECD، وقدمت تجربة المملكة الرائدة في الإصلاح التنظيمي لسوق المنافسة.",
+        postUrl: "https://twitter.com/GACOMPKSA/status/3",
+        mediaType: "image" as const,
+        mediaUrl: "https://pbs.twimg.com/media/sample.jpg",
+        postedAt: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+        metrics: { likes: 687, reach: 31200, retweets: 189, replies: 58 },
+        account: "GACOMPKSA",
+      },
+      {
+        platform: "twitter" as const,
+        externalId: "tw-gac-2026-06-28-workshop",
+        contentAr:
+          "نظّمت #الهيئة_العامة_للمنافسة ورشة عمل تدريبية لأكثر من 120 مسؤولاً حكومياً حول تطبيق نظام المنافسة، تعزيزاً لثقافة الامتثال في القطاع العام.",
+        postUrl: "https://twitter.com/GACOMPKSA/status/4",
+        mediaType: "none" as const,
+        postedAt: new Date(now.getTime() - 11 * 24 * 60 * 60 * 1000).toISOString(),
+        metrics: { likes: 234, reach: 9800, retweets: 45, replies: 18 },
+        account: "GACOMPKSA",
+      },
+      {
+        platform: "twitter" as const,
+        externalId: "tw-gac-2026-06-25-decision",
+        contentAr:
+          "أصدرت #الهيئة_العامة_للمنافسة قراراً بعدم الممانعة على صفقة تركز اقتصادي كبرى في قطاع التقنية بقيمة تتجاوز 8 مليارات ريال — دعماً للاستثمار وتحفيز الابتكار.",
+        postUrl: "https://twitter.com/GACOMPKSA/status/5",
+        mediaType: "none" as const,
+        postedAt: new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000).toISOString(),
+        metrics: { likes: 891, reach: 42500, retweets: 267, replies: 74 },
+        account: "GACOMPKSA",
+      },
+    ];
+    let inserted = 0;
+    let skipped = 0;
+    for (const p of samplePosts) {
+      const existing = await db
+        .select({ id: gacSocialPostsTable.id })
+        .from(gacSocialPostsTable)
+        .where(
+          and(
+            eq(gacSocialPostsTable.platform, p.platform),
+            eq(gacSocialPostsTable.externalId, p.externalId),
+          ),
+        )
+        .limit(1);
+      if (existing.length > 0) {
+        skipped++;
+        continue;
+      }
+      await db.insert(gacSocialPostsTable).values({
+        platform: p.platform,
+        externalId: p.externalId,
+        contentAr: p.contentAr,
+        postUrl: p.postUrl,
+        mediaUrl: p.mediaUrl ?? null,
+        mediaType: p.mediaType,
+        postedAt: new Date(p.postedAt),
+        metrics: p.metrics,
+        account: p.account,
+        fetchedAt: new Date(),
+      });
+      inserted++;
+    }
+    res.json({ ok: true, inserted, skipped, total: samplePosts.length });
+  },
+);
+
 router.get("/gac/social-feed", async (req: Request, res: Response) => {
   const platform =
     typeof req.query["platform"] === "string" ? req.query["platform"].trim() : "";

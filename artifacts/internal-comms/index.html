@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: 2026-07-09-review-round1 -->
+<!-- build: 2026-07-09-review-round3-content-studio-smart-assistant-x-seed -->
 <html dir="rtl" lang="ar">
 <head>
 <meta charset="UTF-8">
@@ -115,6 +115,13 @@
 .sub-tab:hover { color: var(--text); background: var(--surface-2); }
 .sub-tab.active { color: var(--primary); background:#fff; border-color: var(--border); border-bottom-color:#fff; margin-bottom:-1px; }
 .chip { display:inline-flex; align-items:center; gap:6px; background: var(--surface-2); border:1px solid var(--border); border-radius:20px; padding:6px 12px; font-size:12px; color: var(--text); font-weight:500; }
+/* Smart Assistant tools */
+.sa-tool { background:#fff; border:1px solid var(--border); border-radius:12px; padding:18px; cursor:pointer; transition: all .2s; text-align:center; }
+.sa-tool:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,.06); }
+.sa-tool.active { border-color: var(--primary); background: var(--primary-50); }
+.sa-tool-icon { font-size:34px; margin-bottom:8px; }
+.sa-tool-title { font-size:14px; font-weight:700; color: var(--text); margin-bottom:4px; }
+.sa-tool-sub { font-size:11px; color: var(--text-3); line-height:1.5; }
 .btn-primary, button.primary { background: var(--primary) !important; color:#fff !important; }
 .btn-primary:hover { background: var(--primary-hover) !important; }
 /* ═══ مراحل المبادرة + خط زمني + KPIs (ملاحظة 5) ═══ */
@@ -3240,6 +3247,14 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
       </div>
     </div>
 
+    <!-- Review Round 2: Places library moved here from Content Studio -->
+    <div style="display:flex;justify-content:flex-end;margin-bottom:16px;">
+      <button class="btn btn-secondary" onclick="showSection('places')" style="display:inline-flex;align-items:center;gap:8px;">
+        <span style="font-size:16px;">📍</span>
+        <span>فتح مكتبة الأماكن</span>
+      </button>
+    </div>
+
     <!-- ═══ قناة الإرسال — واتساب فقط (E1) ═══ -->
     <div class="wk2-send-panel" style="background:linear-gradient(135deg,#25D366 0%,#128C7E 100%);color:#fff;border-radius:12px;padding:16px;margin-bottom:16px;box-shadow:var(--shadow-sm);">
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:14px;">
@@ -3970,10 +3985,73 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
     <div class="page-head">
       <div>
         <h1 class="page-title">المساعد الذكي</h1>
-        <p class="page-sub">الوصول المباشر لأدوات الذكاء الاصطناعي المعتمدة.</p>
+        <p class="page-sub">جميع أدوات مكتبة الأوامر في مكان واحد — توليد، نبرة، إعادة صياغة، عناوين، تلخيص، تحسين الرسائل.</p>
       </div>
     </div>
-    <div id="smart-assistant-content"></div>
+
+    <!-- Tools grid -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:20px;" id="sa-tools-grid">
+      <div class="sa-tool" data-tool="generate" onclick="saPickTool('generate')">
+        <div class="sa-tool-icon">✍️</div>
+        <div class="sa-tool-title">توليد المحتوى</div>
+        <div class="sa-tool-sub">إنشاء محتوى مخصص من فكرة أو موضوع</div>
+      </div>
+      <div class="sa-tool" data-tool="tone" onclick="saPickTool('tone')">
+        <div class="sa-tool-icon">🎭</div>
+        <div class="sa-tool-title">تحديد النبرة</div>
+        <div class="sa-tool-sub">اختر نبرة رسمية / ودودة / إعلامية</div>
+      </div>
+      <div class="sa-tool" data-tool="rephrase" onclick="saPickTool('rephrase')">
+        <div class="sa-tool-icon">🔄</div>
+        <div class="sa-tool-title">تحسين الصياغة</div>
+        <div class="sa-tool-sub">إعادة صياغة فقرة موجودة</div>
+      </div>
+      <div class="sa-tool" data-tool="rewrite" onclick="saPickTool('rewrite')">
+        <div class="sa-tool-icon">✏️</div>
+        <div class="sa-tool-title">إعادة كتابة</div>
+        <div class="sa-tool-sub">أعد كتابة النص بشكل مختلف</div>
+      </div>
+      <div class="sa-tool" data-tool="headlines" onclick="saPickTool('headlines')">
+        <div class="sa-tool-icon">📰</div>
+        <div class="sa-tool-title">اقتراح عناوين</div>
+        <div class="sa-tool-sub">ولّد 5–10 عناوين للمحتوى</div>
+      </div>
+      <div class="sa-tool" data-tool="summary" onclick="saPickTool('summary')">
+        <div class="sa-tool-icon">📝</div>
+        <div class="sa-tool-title">تلخيص</div>
+        <div class="sa-tool-sub">اختصر نصّاً طويلاً إلى فقرة / نقاط</div>
+      </div>
+      <div class="sa-tool" data-tool="messages" onclick="saPickTool('messages')">
+        <div class="sa-tool-icon">💬</div>
+        <div class="sa-tool-title">تحسين الرسائل</div>
+        <div class="sa-tool-sub">حسّن رسائل الإيميل أو الواتساب</div>
+      </div>
+      <div class="sa-tool" data-tool="library" onclick="showSection('prompts_lib')">
+        <div class="sa-tool-icon">📚</div>
+        <div class="sa-tool-title">مكتبة الأوامر الكاملة</div>
+        <div class="sa-tool-sub">افتح المكتبة التفصيلية</div>
+      </div>
+    </div>
+
+    <!-- Active tool panel -->
+    <div id="sa-panel" style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:24px;">
+      <div id="sa-panel-empty" style="text-align:center;padding:40px 20px;color:var(--text-3);">
+        <div style="font-size:40px;margin-bottom:10px;opacity:.5;">🧮</div>
+        <div style="font-size:14px;">اختر أداة من الأعلى للبدء</div>
+      </div>
+      <div id="sa-panel-body" style="display:none;">
+        <div style="font-weight:700;font-size:16px;margin-bottom:14px;" id="sa-panel-title"></div>
+        <div id="sa-panel-fields"></div>
+        <div style="display:flex;gap:8px;margin-top:16px;">
+          <button class="btn btn-primary" onclick="saRun()">
+            <span class="ico"><svg width="16" height="16"><use href="#i-bulb"/></svg></span>
+            <span>تشغيل</span>
+          </button>
+          <button class="btn btn-ghost" onclick="saClear()">مسح</button>
+        </div>
+        <div id="sa-output" style="margin-top:20px;"></div>
+      </div>
+    </div>
   </div>
 
   <!-- ══ Settings ══ -->
@@ -4476,6 +4554,7 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
       <button class="adm-tab active" data-tab="assets" onclick="desSwitchTab('assets')">إدارة الأصول</button>
       <button class="adm-tab" data-tab="templates" onclick="desSwitchTab('templates')">القوالب</button>
       <button class="adm-tab" data-tab="editor" onclick="desSwitchTab('editor')">المحرّر</button>
+      <button class="adm-tab" data-tab="icons" onclick="desSwitchTab('icons'); showSection('icon_event_studio');">التصميم السريع بالأيقونات</button>
     </div>
 
     <!-- ── Tab: Assets ─────────────────────────────────────────── -->
@@ -14233,10 +14312,17 @@ function socialRender() {
   if (!host) return;
   var p = SOCIAL_STATE.platform, v = SOCIAL_STATE.view;
 
-  // Handle LinkedIn performance/posts specially — pull from existing feed API
-  if (p === 'linkedin' && (v === 'posts' || v === 'performance')) {
-    host.innerHTML = '<div style="font-weight:700;font-size:15px;margin-bottom:14px;color:var(--text);">'+PLATFORM_LABEL[p]+' · '+VIEW_LABEL[v]+'</div><div id="soc-linkedin-body" style="min-height:300px;"><div style="text-align:center;padding:40px;color:var(--text-3);">جارٍ التحميل…</div></div>';
-    socialLoadLinkedIn(v);
+  // Handle LinkedIn and X (twitter) performance/posts — pull from feed API
+  if ((p === 'linkedin' || p === 'x') && (v === 'posts' || v === 'performance')) {
+    var apiPlatform = p === 'x' ? 'twitter' : 'linkedin';
+    var statusBanner = '';
+    if (p === 'x') {
+      statusBanner = '<div style="padding:14px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;margin-bottom:16px;font-size:13px;"><b>حالة الربط:</b> X API v2 يتطلب Bearer Token مدفوع (Basic tier من $100/شهرياً). ' +
+        (window.AUTH_USER && (AUTH_USER.role==='admin'||AUTH_USER.role==='sysadmin') ? '<button class="btn btn-secondary" style="margin-right:8px;" onclick="socialSeedTwitter()">🌱 توليد بيانات تجريبية</button>' : '') +
+        '</div>';
+    }
+    host.innerHTML = '<div style="font-weight:700;font-size:15px;margin-bottom:14px;color:var(--text);">'+PLATFORM_LABEL[p]+' · '+VIEW_LABEL[v]+'</div>'+statusBanner+'<div id="soc-linkedin-body" style="min-height:300px;"><div style="text-align:center;padding:40px;color:var(--text-3);">جارٍ التحميل…</div></div>';
+    socialLoadFeed(apiPlatform, v);
     return;
   }
 
@@ -14249,30 +14335,56 @@ function socialRender() {
   host.innerHTML = '<div style="font-weight:700;font-size:15px;margin-bottom:14px;color:var(--text);">'+PLATFORM_LABEL[p]+' · '+VIEW_LABEL[v]+'</div>'+stubMsg+'<div style="text-align:center;padding:40px;color:var(--text-3);"><div style="font-size:40px;margin-bottom:8px;opacity:.5;">📅</div><div style="font-size:14px;">'+VIEW_LABEL[v]+' — لا توجد بيانات للعرض</div></div>';
 }
 
-async function socialLoadLinkedIn(view) {
+async function socialSeedTwitter() {
+  if (!confirm('سيتم إضافة 5 منشورات تجريبية لحساب X — للاختبار فقط. المتابعة؟')) return;
+  try {
+    var res = await apiFetch('/api/gac/social-feed/seed-twitter', {method:'POST'});
+    var data = await res.json();
+    if (data.ok) {
+      alert('تمت إضافة ' + (data.inserted||0) + ' منشور (تم تجاوز ' + (data.skipped||0) + ' موجود مسبقاً).');
+      socialRender();
+    } else {
+      alert('تعذر التنفيذ: ' + (data.error||'خطأ غير معروف'));
+    }
+  } catch (e) {
+    alert('تعذر الاتصال بالخادم');
+  }
+}
+
+async function socialLoadFeed(platform, view) {
   var host = document.getElementById('soc-linkedin-body');
   if (!host) return;
   try {
-    var res = await apiFetch('/api/gac/social-feed?platform=linkedin&limit=20');
+    var res = await apiFetch('/api/gac/social-feed?platform='+platform+'&limit=20');
     var data = await res.json();
-    var posts = data.posts || data.items || [];
+    var posts = data.items || data.posts || [];
     if (!posts.length) {
-      host.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-3);">لا توجد منشورات</div>';
+      var hint = platform === 'twitter'
+        ? '<div style="font-size:12px;margin-top:8px;">لا توجد منشورات — استخدم زر «توليد بيانات تجريبية» أعلاه لإضافة عينة.</div>'
+        : '';
+      host.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-3);">لا توجد منشورات'+hint+'</div>';
       return;
     }
     if (view === 'performance') {
-      var totalLikes = posts.reduce(function(a,p){ return a + (p.likes||p.reactions||0); }, 0);
-      var totalComments = posts.reduce(function(a,p){ return a + (p.comments||0); }, 0);
-      host.innerHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px;"><div class="kpi-card"><div class="kpi-label">إجمالي المنشورات</div><div class="kpi-value">'+posts.length+'</div></div><div class="kpi-card"><div class="kpi-label">إجمالي التفاعل</div><div class="kpi-value">'+totalLikes+'</div></div><div class="kpi-card"><div class="kpi-label">إجمالي التعليقات</div><div class="kpi-value">'+totalComments+'</div></div></div>';
+      var totalLikes = posts.reduce(function(a,p){ return a + (p.metrics?.likes||p.likes||p.reactions||0); }, 0);
+      var totalComments = posts.reduce(function(a,p){ return a + (p.metrics?.comments||p.metrics?.replies||p.comments||0); }, 0);
+      var totalReach = posts.reduce(function(a,p){ return a + (p.metrics?.reach||0); }, 0);
+      host.innerHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px;"><div class="kpi-card"><div class="kpi-label">إجمالي المنشورات</div><div class="kpi-value">'+posts.length+'</div></div><div class="kpi-card"><div class="kpi-label">إجمالي التفاعل</div><div class="kpi-value">'+totalLikes.toLocaleString('ar')+'</div></div><div class="kpi-card"><div class="kpi-label">إجمالي التعليقات</div><div class="kpi-value">'+totalComments.toLocaleString('ar')+'</div></div><div class="kpi-card"><div class="kpi-label">إجمالي الوصول</div><div class="kpi-value">'+totalReach.toLocaleString('ar')+'</div></div></div>';
     } else {
       host.innerHTML = posts.map(function(p){
-        return '<div style="padding:14px;border-bottom:1px solid var(--border);"><div style="font-size:13px;color:var(--text);line-height:1.6;">'+(p.text||p.content||'').substring(0,240)+'…</div><div style="font-size:11px;color:var(--text-3);margin-top:6px;">👍 '+(p.likes||p.reactions||0)+' · 💬 '+(p.comments||0)+'</div></div>';
+        var text = (p.contentAr||p.text||p.content||'').substring(0,240);
+        var likes = p.metrics?.likes || p.likes || p.reactions || 0;
+        var comments = p.metrics?.comments || p.metrics?.replies || p.comments || 0;
+        var date = p.postedAt ? new Date(p.postedAt).toLocaleDateString('ar-SA') : '';
+        return '<div style="padding:14px;border-bottom:1px solid var(--border);"><div style="font-size:13px;color:var(--text);line-height:1.6;">'+text+'…</div><div style="font-size:11px;color:var(--text-3);margin-top:6px;">👍 '+likes+' · 💬 '+comments+' · 📅 '+date+'</div></div>';
       }).join('');
     }
   } catch (e) {
-    host.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-3);">تعذر تحميل بيانات لينكدإن</div>';
+    host.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-3);">تعذر تحميل بيانات المنصة</div>';
   }
 }
+// Backward-compat wrapper
+async function socialLoadLinkedIn(view) { return socialLoadFeed('linkedin', view); }
 
 function socialRefresh() { socialRender(); }
 
@@ -14286,6 +14398,64 @@ function prSwitch(t) {
 }
 
 function mcNew() { alert('قريباً: نموذج طلب تغطية إعلامية مع: تفاصيل الفعالية · رفع صور/فيديو · تقرير التغطية.'); }
+
+/* Smart Assistant — unified tools */
+var SA_TOOL = null;
+var SA_SPECS = {
+  generate:  { title:'✍️ توليد المحتوى', fields:[ {type:'textarea', key:'input', label:'الموضوع / الفكرة', ph:'اكتب موضوع المحتوى…'}, {type:'tone'} ] },
+  tone:      { title:'⚙️ تحديد النبرة', fields:[ {type:'textarea', key:'input', label:'النص الأصلي', ph:'الصق النص…'}, {type:'tone'} ] },
+  rephrase:  { title:'✨ تحسين الصياغة', fields:[ {type:'textarea', key:'input', label:'الفقرة المراد تحسينها', ph:'الصق الفقرة…'} ] },
+  rewrite:   { title:'✏️ إعادة كتابة', fields:[ {type:'textarea', key:'input', label:'النص الأصلي', ph:'الصق النص…'} ] },
+  headlines: { title:'📰 اقتراح عناوين', fields:[ {type:'textarea', key:'input', label:'موضوع المحتوى', ph:'مثال: حملة توعوية عن المنافسة العادلة…'}, {type:'number', key:'count', label:'عدد العناوين', val:8} ] },
+  summary:   { title:'📝 تلخيص', fields:[ {type:'textarea', key:'input', label:'النص المراد تلخيصه', ph:'الصق النص…', rows:8} ] },
+  messages:  { title:'💬 تحسين الرسائل', fields:[ {type:'textarea', key:'input', label:'الرسالة', ph:'الصق رسالة الإيميل/الواتساب…'}, {type:'tone'} ] }
+};
+function saPickTool(t) {
+  SA_TOOL = t;
+  document.querySelectorAll('.sa-tool').forEach(function(el){ el.classList.remove('active'); });
+  var btn = document.querySelector('.sa-tool[data-tool="'+t+'"]');
+  if (btn) btn.classList.add('active');
+  var spec = SA_SPECS[t];
+  if (!spec) return;
+  document.getElementById('sa-panel-empty').style.display = 'none';
+  document.getElementById('sa-panel-body').style.display = 'block';
+  document.getElementById('sa-panel-title').textContent = spec.title;
+  var html = '';
+  spec.fields.forEach(function(f){
+    if (f.type === 'textarea') html += '<label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;">'+f.label+'</label><textarea id="sa-fld-'+f.key+'" rows="'+(f.rows||5)+'" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:13px;margin-bottom:14px;" placeholder="'+(f.ph||'')+'"></textarea>';
+    else if (f.type === 'number') html += '<label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;">'+f.label+'</label><input type="number" id="sa-fld-'+f.key+'" value="'+(f.val||1)+'" style="width:120px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;margin-bottom:14px;">';
+    else if (f.type === 'tone') html += '<label style="display:block;font-size:13px;font-weight:600;margin-bottom:6px;">النبرة</label><select id="sa-fld-tone" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;margin-bottom:14px;"><option value="رسمية">رسمية</option><option value="ودودة">ودودة</option><option value="إعلامية">إعلامية</option><option value="حماسية">حماسية</option><option value="تحفيزية">تحفيزية</option><option value="توعوية">توعوية</option></select>';
+  });
+  document.getElementById('sa-panel-fields').innerHTML = html;
+  document.getElementById('sa-output').innerHTML = '';
+}
+async function saRun() {
+  if (!SA_TOOL) return;
+  var input = (document.getElementById('sa-fld-input')||{}).value || '';
+  if (!input.trim()) { alert('الرجاء إدخال النص أولاً'); return; }
+  var tone = (document.getElementById('sa-fld-tone')||{}).value || '';
+  var count = parseInt((document.getElementById('sa-fld-count')||{}).value || '0');
+  var out = document.getElementById('sa-output');
+  out.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-3);">جارٍ التحليل…</div>';
+  try {
+    var body = { tool: SA_TOOL, input: input };
+    if (tone) body.tone = tone;
+    if (count) body.count = count;
+    var res = await apiFetch('/api/ai/quick', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+    var data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'فشل التشغيل');
+    var textOut = data.output || '';
+    out.innerHTML = '<div style="background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:16px;white-space:pre-wrap;font-size:14px;line-height:1.7;color:var(--text);">'+textOut.replace(/</g,'&lt;')+'</div><div style="margin-top:10px;"><button class="btn btn-ghost btn-sm" onclick="navigator.clipboard.writeText('+JSON.stringify(textOut)+')">📋 نسخ</button></div>';
+  } catch (e) {
+    out.innerHTML = '<div style="background:#FEF2F2;border:1px solid #FCA5A5;border-radius:8px;padding:14px;color:#991B1B;font-size:13px;">تعذر التشغيل: '+(e.message||e)+'</div>';
+  }
+}
+function saClear() {
+  SA_TOOL = null;
+  document.querySelectorAll('.sa-tool').forEach(function(el){ el.classList.remove('active'); });
+  document.getElementById('sa-panel-empty').style.display = 'block';
+  document.getElementById('sa-panel-body').style.display = 'none';
+}
 
 /* Init these pages on first show */
 document.addEventListener('DOMContentLoaded', function() {

@@ -477,4 +477,46 @@ router.post("/prompts/:id/run", async (req: Request, res: Response) => {
   }
 });
 
+// Review Round 2: quick smart-assistant endpoint — direct prompt without saving
+router.post("/ai/quick", async (req: Request, res: Response) => {
+  try {
+    const { tool, input, tone, count } = (req.body ?? {}) as { tool?: string; input?: string; tone?: string; count?: number };
+    if (!tool || !input) {
+      res.status(400).json({ error: "tool and input are required" });
+      return;
+    }
+    let prompt = "";
+    switch (tool) {
+      case "generate":
+        prompt = `أنت محرر محتوى محترف في هيئة حكومية. اكتب محتوى عربي واضح ومتماسك عن الموضوع التالي${tone?` بنبرة ${tone}`:""}:\n\n${input}`;
+        break;
+      case "tone":
+        prompt = `أعد صياغة النص التالي بنبرة ${tone||"رسمية"}، مع الحفاظ على المعنى:\n\n${input}`;
+        break;
+      case "rephrase":
+        prompt = `حسّن صياغة هذه الفقرة لتكون أكثر وضوحاً واحترافية:\n\n${input}`;
+        break;
+      case "rewrite":
+        prompt = `أعد كتابة النص التالي بأسلوب مختلف مع الحفاظ على الرسالة الأساسية:\n\n${input}`;
+        break;
+      case "headlines":
+        prompt = `اقترح ${count||8} عناوين إعلامية جذّابة ومولحة لمحتوى عن:\n\n${input}\n\nرتّبها في قائمة مرقّمة.`;
+        break;
+      case "summary":
+        prompt = `لخّص النص التالي في 3–5 نقاط رئيسية:\n\n${input}`;
+        break;
+      case "messages":
+        prompt = `حسّن رسالة التواصل التالية لتكون أكثر احترافية ووضوحاً${tone?` وبنبرة ${tone}`:""}:\n\n${input}`;
+        break;
+      default:
+        res.status(400).json({ error: "Unknown tool: " + tool });
+        return;
+    }
+    const output = await geminiText(prompt, { maxTokens: 2048 });
+    res.json({ ok: true, output, tool });
+  } catch (err) {
+    res.status(500).json({ error: "Failed", details: err instanceof Error ? err.message : String(err) });
+  }
+});
+
 export default router;
