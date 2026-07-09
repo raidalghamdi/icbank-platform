@@ -106,6 +106,15 @@
 .nav-item.active { background: var(--primary-50) !important; color: var(--primary) !important; border-inline-start: 3px solid var(--primary); }
 .brand-logo { background: linear-gradient(135deg, var(--primary), var(--primary-hover)) !important; }
 .kpi-card, .dash-kpi-card, .card { border:1px solid var(--border-subtle); border-radius: 12px; box-shadow: var(--shadow-sm); }
+/* Review Round 2 — shared components */
+.kpi-card { background:#fff; padding:14px 16px; }
+.kpi-card .kpi-label { font-size:12px; color: var(--text-3); margin-bottom:6px; font-weight:600; }
+.kpi-card .kpi-value { font-size:22px; font-weight:800; color: var(--text); }
+.sub-tabs { display:flex; gap:6px; flex-wrap:wrap; border-bottom:1px solid var(--border); padding-bottom:2px; }
+.sub-tab { background:transparent; border:1px solid transparent; padding:8px 14px; border-radius:8px 8px 0 0; font-size:13px; font-weight:600; color: var(--text-3); cursor:pointer; transition: all .15s; }
+.sub-tab:hover { color: var(--text); background: var(--surface-2); }
+.sub-tab.active { color: var(--primary); background:#fff; border-color: var(--border); border-bottom-color:#fff; margin-bottom:-1px; }
+.chip { display:inline-flex; align-items:center; gap:6px; background: var(--surface-2); border:1px solid var(--border); border-radius:20px; padding:6px 12px; font-size:12px; color: var(--text); font-weight:500; }
 .btn-primary, button.primary { background: var(--primary) !important; color:#fff !important; }
 .btn-primary:hover { background: var(--primary-hover) !important; }
 /* ═══ مراحل المبادرة + خط زمني + KPIs (ملاحظة 5) ═══ */
@@ -2756,17 +2765,18 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
           <span class="ico"><svg><use href="#i-globe"/></svg></span>
           <span>الحملات الخارجية</span>
         </a>
-        <a class="nav-item" data-page="intldays" onclick="showSection('intldays')">
+        <a class="nav-item" data-page="social_platforms" onclick="showSection('social_platforms')">
           <span class="ico"><svg><use href="#i-globe"/></svg></span>
-          <span>الأيام العالمية</span>
+          <span>إدارة منصات التواصل</span>
         </a>
-      </div>
-    </div>
-
-    <!-- ═ 3. الرصد الإعلامي ═ -->
-    <div class="sidebar-section">
-      <div class="sidebar-section-title">الرصد الإعلامي</div>
-      <div class="sidebar-nav">
+        <a class="nav-item" data-page="press_releases" onclick="showSection('press_releases')">
+          <span class="ico"><svg><use href="#i-file-text"/></svg></span>
+          <span>البيانات الصحفية</span>
+        </a>
+        <a class="nav-item" data-page="media_coverage" onclick="showSection('media_coverage')">
+          <span class="ico"><svg><use href="#i-image"/></svg></span>
+          <span>التغطيات الإعلامية</span>
+        </a>
         <a class="nav-item" data-page="media_monitoring" onclick="showSection('media_monitoring')">
           <span class="ico"><svg><use href="#i-news"/></svg></span>
           <span>الرصد الإعلامي</span>
@@ -5209,62 +5219,293 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
     </div>
   </div><!-- /section-prompts_lib -->
 
-  <!-- ══ Phase 1 Stub Sections (Phase 2 will populate) ══ -->
+  <!-- ══ Review Round 1 — التواصل الداخلي (5 subs) + التواصل الخارجي (6 subs) ══ -->
+
+  <!-- ═══════ التواصل الداخلي ═══════ -->
+
+  <!-- 1. الطلبات الداخلية -->
   <div class="page-section" id="section-internal_requests">
     <div class="page-head">
       <div>
         <h1 class="page-title"><span class="ico" style="vertical-align:middle;margin-left:8px;"><svg width="24" height="24"><use href="#i-inbox"/></svg></span> الطلبات الداخلية</h1>
-        <p class="page-sub">طلبات المحتوى والتصاميم والنشرات الداخلية القادمة من فرق الهيئة.</p>
+        <p class="page-sub">جميع الطلبات الداخلية من فرق الهيئة — تصاميم، أخبار، إعلانات، اعتماد بريد، شاشات، تغطيات فعاليات.</p>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-primary" onclick="reqOpenNew('internal')">
+          <span class="ico"><svg width="16" height="16"><use href="#i-plus"/></svg></span>
+          <span>طلب جديد</span>
+        </button>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:60px 24px;text-align:center;">
-      <div style="font-size:56px;margin-bottom:12px;opacity:.5;">📥</div>
-      <div style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:6px;">قيد التطوير</div>
-      <div style="font-size:13px;color:var(--text-3);">سيتم تفعيل نظام الطلبات الداخلية في المرحلة القادمة.</div>
+
+    <!-- KPI strip -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px;" id="req-int-kpi">
+      <div class="kpi-card"><div class="kpi-label">قيد المعالجة</div><div class="kpi-value" style="color:#F59E0B;">—</div></div>
+      <div class="kpi-card"><div class="kpi-label">مكتملة</div><div class="kpi-value" style="color:#059669;">—</div></div>
+      <div class="kpi-card"><div class="kpi-label">متأخرة</div><div class="kpi-value" style="color:#DC2626;">—</div></div>
+      <div class="kpi-card"><div class="kpi-label">هذا الشهر</div><div class="kpi-value">—</div></div>
+    </div>
+
+    <!-- Sub-tabs: types + متابعة + أرشيف -->
+    <div class="sub-tabs" role="tablist" style="margin-bottom:16px;">
+      <button class="sub-tab active" data-tab="all" onclick="reqSwitchTab('internal','all')">الكل</button>
+      <button class="sub-tab" data-tab="design" onclick="reqSwitchTab('internal','design')">طلب تصميم</button>
+      <button class="sub-tab" data-tab="news" onclick="reqSwitchTab('internal','news')">طلب خبر</button>
+      <button class="sub-tab" data-tab="announcement" onclick="reqSwitchTab('internal','announcement')">طلب إعلان</button>
+      <button class="sub-tab" data-tab="email_approval" onclick="reqSwitchTab('internal','email_approval')">اعتماد بريد</button>
+      <button class="sub-tab" data-tab="screens" onclick="reqSwitchTab('internal','screens')">شاشات</button>
+      <button class="sub-tab" data-tab="event_coverage" onclick="reqSwitchTab('internal','event_coverage')">تغطية فعالية</button>
+      <button class="sub-tab" data-tab="tracking" onclick="reqSwitchTab('internal','tracking')">متابعة الطلبات</button>
+      <button class="sub-tab" data-tab="archive" onclick="reqSwitchTab('internal','archive')">الأرشيف</button>
+    </div>
+
+    <div id="req-int-list" style="background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;">
+      <div style="padding:40px 24px;text-align:center;color:var(--text-3);">
+        <div style="font-size:40px;margin-bottom:8px;opacity:.5;">📥</div>
+        <div style="font-size:14px;">لا توجد طلبات — أنشئ أول طلب باستخدام زر «طلب جديد»</div>
+      </div>
     </div>
   </div>
 
+  <!-- 2. الحملات الداخلية -->
+  <div class="page-section" id="section-internal_campaigns">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title"><span class="ico" style="vertical-align:middle;margin-left:8px;">📣</span> الحملات الداخلية</h1>
+        <p class="page-sub">حملات التواصل والتوعية الموجهة لموظفي الهيئة — من التخطيط إلى التقرير الختامي.</p>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-primary" onclick="campaignOpenNew('internal')">
+          <span class="ico"><svg width="16" height="16"><use href="#i-plus"/></svg></span>
+          <span>حملة جديدة</span>
+        </button>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:20px;">
+      <div class="kpi-card"><div class="kpi-label">حملات نشطة</div><div class="kpi-value">—</div></div>
+      <div class="kpi-card"><div class="kpi-label">قيد التخطيط</div><div class="kpi-value">—</div></div>
+      <div class="kpi-card"><div class="kpi-label">منتهية</div><div class="kpi-value">—</div></div>
+      <div class="kpi-card"><div class="kpi-label">مؤشرات مجمعة</div><div class="kpi-value">—</div></div>
+    </div>
+
+    <!-- Campaign fields spec -->
+    <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px;">
+      <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:12px;">حقول الحملة</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;">
+        <div class="chip">📝 نبذة عن الحملة</div>
+        <div class="chip">🎯 الهدف</div>
+        <div class="chip">👥 الفئة المستهدفة</div>
+        <div class="chip">💬 الرسائل الرئيسية</div>
+        <div class="chip">🎨 المواد الإبداعية</div>
+        <div class="chip">📋 خطة التنفيذ</div>
+        <div class="chip">📅 الجدول الزمني</div>
+        <div class="chip">🔄 حالة الحملة</div>
+        <div class="chip">📊 مؤشرات الأداء</div>
+        <div class="chip">📑 التقرير الختامي</div>
+      </div>
+    </div>
+
+    <div id="camp-int-list" style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:40px 24px;text-align:center;color:var(--text-3);">
+      <div style="font-size:40px;margin-bottom:8px;opacity:.5;">🎯</div>
+      <div style="font-size:14px;">لا توجد حملات داخلية بعد — أنشئ أول حملة</div>
+    </div>
+  </div>
+
+  <!-- 3. Shorfah stays as its own section (already exists) -->
+  <!-- 4. weekstart already exists -->
+  <!-- 5. weekend already exists -->
+
+  <!-- ═══════ التواصل الخارجي ═══════ -->
+
+  <!-- 1. الطلبات الخارجية -->
   <div class="page-section" id="section-external_requests">
     <div class="page-head">
       <div>
         <h1 class="page-title"><span class="ico" style="vertical-align:middle;margin-left:8px;">📬</span> الطلبات الخارجية</h1>
-        <p class="page-sub">طلبات الجهات الخارجية والشركاء والإعلام.</p>
+        <p class="page-sub">طلبات الجهات الخارجية والشركاء والإعلام — تصاميم، بيانات صحفية، مشاركات، دعم إعلامي، نشر تواصل.</p>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-primary" onclick="reqOpenNew('external')">
+          <span class="ico"><svg width="16" height="16"><use href="#i-plus"/></svg></span>
+          <span>طلب جديد</span>
+        </button>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:60px 24px;text-align:center;">
-      <div style="font-size:56px;margin-bottom:12px;opacity:.5;">📮</div>
-      <div style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:6px;">قيد التطوير</div>
-      <div style="font-size:13px;color:var(--text-3);">سيتم تفعيل نظام الطلبات الخارجية في المرحلة القادمة.</div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px;">
+      <div class="kpi-card"><div class="kpi-label">قيد المعالجة</div><div class="kpi-value" style="color:#F59E0B;">—</div></div>
+      <div class="kpi-card"><div class="kpi-label">مكتملة</div><div class="kpi-value" style="color:#059669;">—</div></div>
+      <div class="kpi-card"><div class="kpi-label">متأخرة</div><div class="kpi-value" style="color:#DC2626;">—</div></div>
+      <div class="kpi-card"><div class="kpi-label">هذا الشهر</div><div class="kpi-value">—</div></div>
+    </div>
+
+    <div class="sub-tabs" role="tablist" style="margin-bottom:16px;">
+      <button class="sub-tab active" data-tab="all" onclick="reqSwitchTab('external','all')">الكل</button>
+      <button class="sub-tab" data-tab="design" onclick="reqSwitchTab('external','design')">طلب تصميم</button>
+      <button class="sub-tab" data-tab="press_release" onclick="reqSwitchTab('external','press_release')">بيان صحفي</button>
+      <button class="sub-tab" data-tab="event_participation" onclick="reqSwitchTab('external','event_participation')">مشاركة فعالية</button>
+      <button class="sub-tab" data-tab="media_support" onclick="reqSwitchTab('external','media_support')">دعم إعلامي</button>
+      <button class="sub-tab" data-tab="social_post" onclick="reqSwitchTab('external','social_post')">نشر تواصل</button>
+      <button class="sub-tab" data-tab="tracking" onclick="reqSwitchTab('external','tracking')">متابعة الطلبات</button>
+      <button class="sub-tab" data-tab="archive" onclick="reqSwitchTab('external','archive')">الأرشيف</button>
+    </div>
+
+    <div id="req-ext-list" style="background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;">
+      <div style="padding:40px 24px;text-align:center;color:var(--text-3);">
+        <div style="font-size:40px;margin-bottom:8px;opacity:.5;">📮</div>
+        <div style="font-size:14px;">لا توجد طلبات خارجية — أنشئ أول طلب</div>
+      </div>
     </div>
   </div>
 
-  <div class="page-section" id="section-internal_campaigns">
-    <div class="page-head">
-      <div>
-        <h1 class="page-title">📣 الحملات الداخلية</h1>
-        <p class="page-sub">حملات التواصل والتوعية الموجهة لموظفي الهيئة.</p>
-      </div>
-    </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:60px 24px;text-align:center;">
-      <div style="font-size:56px;margin-bottom:12px;opacity:.5;">🎯</div>
-      <div style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:6px;">قيد التطوير</div>
-      <div style="font-size:13px;color:var(--text-3);">سيتم بناء هذا القسم في المرحلة الثانية — بدايةً ستُنقل بيانات <a href="#" onclick="showSection('campaigns_analytics');return false;">تحليلات الحملات</a> إلى هنا.</div>
-    </div>
-  </div>
-
+  <!-- 2. الحملات الخارجية -->
   <div class="page-section" id="section-external_campaigns">
     <div class="page-head">
       <div>
-        <h1 class="page-title">🌐 الحملات الخارجية</h1>
-        <p class="page-sub">حملات التواصل مع الجمهور والشركاء الخارجيين.</p>
+        <h1 class="page-title"><span class="ico" style="vertical-align:middle;margin-left:8px;">🌐</span> الحملات الخارجية</h1>
+        <p class="page-sub">حملات التواصل مع الجمهور والشركاء الخارجيين — من التخطيط إلى قياس الأثر.</p>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-primary" onclick="campaignOpenNew('external')">
+          <span class="ico"><svg width="16" height="16"><use href="#i-plus"/></svg></span>
+          <span>حملة جديدة</span>
+        </button>
       </div>
     </div>
-    <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:60px 24px;text-align:center;">
-      <div style="font-size:56px;margin-bottom:12px;opacity:.5;">🌍</div>
-      <div style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:6px;">قيد التطوير</div>
-      <div style="font-size:13px;color:var(--text-3);">سيتم تفعيل الحملات الخارجية في المرحلة القادمة.</div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:20px;">
+      <div class="kpi-card"><div class="kpi-label">حملات نشطة</div><div class="kpi-value">—</div></div>
+      <div class="kpi-card"><div class="kpi-label">قيد التخطيط</div><div class="kpi-value">—</div></div>
+      <div class="kpi-card"><div class="kpi-label">منتهية</div><div class="kpi-value">—</div></div>
+      <div class="kpi-card"><div class="kpi-label">مؤشرات مجمعة</div><div class="kpi-value">—</div></div>
+    </div>
+
+    <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px;">
+      <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:12px;">حقول الحملة</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;">
+        <div class="chip">📝 نبذة عن الحملة</div>
+        <div class="chip">🎯 الهدف</div>
+        <div class="chip">👥 الفئة المستهدفة</div>
+        <div class="chip">💬 الرسائل الرئيسية</div>
+        <div class="chip">🎨 المواد الإبداعية</div>
+        <div class="chip">📋 خطة التنفيذ</div>
+        <div class="chip">📅 الجدول الزمني</div>
+        <div class="chip">🔄 حالة الحملة</div>
+        <div class="chip">📊 مؤشرات الأداء</div>
+        <div class="chip">📑 التقرير الختامي</div>
+      </div>
+    </div>
+
+    <div id="camp-ext-list" style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:40px 24px;text-align:center;color:var(--text-3);">
+      <div style="font-size:40px;margin-bottom:8px;opacity:.5;">🌍</div>
+      <div style="font-size:14px;">لا توجد حملات خارجية بعد — أنشئ أول حملة</div>
     </div>
   </div>
+
+  <!-- 3. إدارة منصات التواصل -->
+  <div class="page-section" id="section-social_platforms">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title"><span class="ico" style="vertical-align:middle;margin-left:8px;"><svg width="24" height="24"><use href="#i-globe"/></svg></span> إدارة منصات التواصل</h1>
+        <p class="page-sub">لينكدإن · X · سناب شات · يوتيوب — لكل منصة: محتوى مجدول، منشورات، تقويم تحريري، أداء.</p>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-secondary" onclick="socialRefresh()">
+          <span class="ico"><svg width="16" height="16"><use href="#i-refresh"/></svg></span>
+          <span>تحديث البيانات</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Platform tabs -->
+    <div class="sub-tabs" role="tablist" style="margin-bottom:16px;">
+      <button class="sub-tab active" data-platform="linkedin" onclick="socialSwitchPlatform('linkedin')">💼 لينكدإن</button>
+      <button class="sub-tab" data-platform="x" onclick="socialSwitchPlatform('x')">✖ X (تويتر)</button>
+      <button class="sub-tab" data-platform="snapchat" onclick="socialSwitchPlatform('snapchat')">👻 سناب شات</button>
+      <button class="sub-tab" data-platform="youtube" onclick="socialSwitchPlatform('youtube')">▶ يوتيوب</button>
+    </div>
+
+    <!-- Per-platform view tabs -->
+    <div class="sub-tabs" role="tablist" style="margin-bottom:16px;">
+      <button class="sub-tab active" data-view="scheduled" onclick="socialSwitchView('scheduled')">🗓 محتوى مجدول</button>
+      <button class="sub-tab" data-view="posts" onclick="socialSwitchView('posts')">📝 المنشورات</button>
+      <button class="sub-tab" data-view="calendar" onclick="socialSwitchView('calendar')">📅 التقويم التحريري</button>
+      <button class="sub-tab" data-view="performance" onclick="socialSwitchView('performance')">📊 أداء المنصة</button>
+    </div>
+
+    <div id="social-content-body" style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:24px;min-height:400px;">
+      <div style="padding:40px 20px;text-align:center;color:var(--text-3);" id="social-empty">
+        <div style="font-size:40px;margin-bottom:8px;opacity:.5;">📱</div>
+        <div style="font-size:14px;">اختر منصة وعرض لبدء الإدارة</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. البيانات الصحفية -->
+  <div class="page-section" id="section-press_releases">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title"><span class="ico" style="vertical-align:middle;margin-left:8px;"><svg width="24" height="24"><use href="#i-file-text"/></svg></span> البيانات الصحفية</h1>
+        <p class="page-sub">إنشاء البيانات الصحفية ومراجعتها واعتمادها ونشرها وأرشفتها.</p>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-primary" onclick="prNew()">
+          <span class="ico"><svg width="16" height="16"><use href="#i-plus"/></svg></span>
+          <span>بيان جديد</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="sub-tabs" role="tablist" style="margin-bottom:16px;">
+      <button class="sub-tab active" data-tab="all" onclick="prSwitch('all')">الكل</button>
+      <button class="sub-tab" data-tab="draft" onclick="prSwitch('draft')">إنشاء (مسودة)</button>
+      <button class="sub-tab" data-tab="review" onclick="prSwitch('review')">قيد المراجعة</button>
+      <button class="sub-tab" data-tab="approved" onclick="prSwitch('approved')">معتمد</button>
+      <button class="sub-tab" data-tab="published" onclick="prSwitch('published')">منشور</button>
+      <button class="sub-tab" data-tab="archive" onclick="prSwitch('archive')">أرشيف</button>
+    </div>
+
+    <div id="pr-list" style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:40px 24px;text-align:center;color:var(--text-3);">
+      <div style="font-size:40px;margin-bottom:8px;opacity:.5;">📰</div>
+      <div style="font-size:14px;">لا توجد بيانات صحفية — أنشئ أول بيان</div>
+    </div>
+  </div>
+
+  <!-- 5. التغطيات الإعلامية -->
+  <div class="page-section" id="section-media_coverage">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title"><span class="ico" style="vertical-align:middle;margin-left:8px;"><svg width="24" height="24"><use href="#i-image"/></svg></span> التغطيات الإعلامية</h1>
+        <p class="page-sub">إدارة التغطيات — الطلب، التفاصيل، الصور، الفيديو، المخرجات، والتقرير النهائي.</p>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-primary" onclick="mcNew()">
+          <span class="ico"><svg width="16" height="16"><use href="#i-plus"/></svg></span>
+          <span>طلب تغطية جديد</span>
+        </button>
+      </div>
+    </div>
+
+    <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px;">
+      <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:12px;">مراحل التغطية</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;">
+        <div class="chip">📥 طلب التغطية</div>
+        <div class="chip">📋 تفاصيل الفعالية</div>
+        <div class="chip">📸 الصور</div>
+        <div class="chip">🎥 الفيديو</div>
+        <div class="chip">📦 المخرجات النهائية</div>
+        <div class="chip">📑 تقرير التغطية</div>
+      </div>
+    </div>
+
+    <div id="mc-list" style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:40px 24px;text-align:center;color:var(--text-3);">
+      <div style="font-size:40px;margin-bottom:8px;opacity:.5;">🎬</div>
+      <div style="font-size:14px;">لا توجد تغطيات مسجلة — سجّل أول تغطية</div>
+    </div>
+  </div>
+
+  <!-- 6. الرصد الإعلامي stays as its own section (already exists at line ~4964) -->
 
   <div class="page-section" id="section-performance_reports">
     <div class="page-head">
@@ -5585,6 +5826,7 @@ function authCanView(pageName) {
   if (pageName === 'prompts_lib') return !!AUTH_USER;
   if (pageName === 'internal_requests' || pageName === 'external_requests') return !!AUTH_USER;
   if (pageName === 'internal_campaigns' || pageName === 'external_campaigns') return !!AUTH_USER;
+  if (pageName === 'social_platforms' || pageName === 'press_releases' || pageName === 'media_coverage') return !!AUTH_USER;
   if (pageName === 'performance_reports') return !!AUTH_USER;
   var permKey = PAGE_PERM_MAP[pageName] || pageName;
   var pagePerms = (AUTH_USER.permissions || {})[permKey] || [];
@@ -6849,6 +7091,9 @@ const PAGE_LABELS = {
   external_requests:'الطلبات الخارجية',
   internal_campaigns:'الحملات الداخلية',
   external_campaigns:'الحملات الخارجية',
+  social_platforms:'إدارة منصات التواصل',
+  press_releases:'البيانات الصحفية',
+  media_coverage:'التغطيات الإعلامية',
   performance_reports:'تقارير الأداء',
 };
 
@@ -13907,6 +14152,154 @@ function iesPreviewFullscreen(idx) {
   w.document.write(v.html);
   w.document.close();
 }
+
+/* ══════ Review Round 2 — Requests / Campaigns / Social / PR / Coverage stubs ══════ */
+var REQ_STATE = { internal:{ tab:'all', items:[] }, external:{ tab:'all', items:[] } };
+var SOCIAL_STATE = { platform:'linkedin', view:'scheduled' };
+
+function reqSwitchTab(scope, tab) {
+  REQ_STATE[scope].tab = tab;
+  var pageId = scope === 'internal' ? 'section-internal_requests' : 'section-external_requests';
+  var page = document.getElementById(pageId);
+  if (page) {
+    page.querySelectorAll('.sub-tab').forEach(function(b){ b.classList.remove('active'); });
+    var btn = page.querySelector('.sub-tab[data-tab="'+tab+'"]');
+    if (btn) btn.classList.add('active');
+  }
+  reqRender(scope);
+}
+
+function reqRender(scope) {
+  var listId = scope === 'internal' ? 'req-int-list' : 'req-ext-list';
+  var host = document.getElementById(listId);
+  if (!host) return;
+  var items = REQ_STATE[scope].items || [];
+  var tab = REQ_STATE[scope].tab;
+  if (tab !== 'all' && tab !== 'tracking' && tab !== 'archive') {
+    items = items.filter(function(x){ return x.type === tab; });
+  } else if (tab === 'archive') {
+    items = items.filter(function(x){ return x.status === 'archived'; });
+  } else if (tab === 'tracking') {
+    items = items.filter(function(x){ return x.status !== 'archived'; });
+  }
+  if (items.length === 0) {
+    host.innerHTML = '<div style="padding:40px 24px;text-align:center;color:var(--text-3);"><div style="font-size:40px;margin-bottom:8px;opacity:.5;">'+(scope==='internal'?'📥':'📮')+'</div><div style="font-size:14px;">لا توجد طلبات في هذا التصنيف</div></div>';
+    return;
+  }
+  host.innerHTML = items.map(function(r){
+    return '<div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;"><div><div style="font-weight:600;">'+r.title+'</div><div style="font-size:12px;color:var(--text-3);margin-top:4px;">'+(r.type||'')+' · '+(r.requester||'')+'</div></div><span class="chip">'+(r.status||'جديد')+'</span></div>';
+  }).join('');
+}
+
+function reqOpenNew(scope) {
+  var t = prompt('عنوان الطلب ال'+(scope==='internal'?'داخلي':'خارجي'));
+  if (!t) return;
+  var types = scope==='internal' ? ['design','news','announcement','email_approval','screens','event_coverage'] : ['design','press_release','event_participation','media_support','social_post'];
+  var ty = prompt('نوع الطلب (' + types.join(' / ') + ')', types[0]);
+  if (!ty) return;
+  REQ_STATE[scope].items.push({ title:t, type:ty, requester:(AUTH_USER&&AUTH_USER.name)||'المستخدم', status:'جديد', createdAt: new Date().toISOString() });
+  reqRender(scope);
+}
+
+function campaignOpenNew(scope) {
+  alert('قريباً: نموذج حملة '+(scope==='internal'?'داخلية':'خارجية')+' متكامل مع 10 حقول.\n\nجميع الحقول مدرجة في الصفحة أدناه للمرجعية.');
+}
+
+function socialSwitchPlatform(p) {
+  SOCIAL_STATE.platform = p;
+  var page = document.getElementById('section-social_platforms');
+  if (!page) return;
+  page.querySelectorAll('.sub-tab[data-platform]').forEach(function(b){ b.classList.remove('active'); });
+  var btn = page.querySelector('.sub-tab[data-platform="'+p+'"]');
+  if (btn) btn.classList.add('active');
+  socialRender();
+}
+
+function socialSwitchView(v) {
+  SOCIAL_STATE.view = v;
+  var page = document.getElementById('section-social_platforms');
+  if (!page) return;
+  page.querySelectorAll('.sub-tab[data-view]').forEach(function(b){ b.classList.remove('active'); });
+  var btn = page.querySelector('.sub-tab[data-view="'+v+'"]');
+  if (btn) btn.classList.add('active');
+  socialRender();
+}
+
+var PLATFORM_LABEL = { linkedin:'لينكدإن', x:'X (تويتر)', snapchat:'سناب شات', youtube:'يوتيوب' };
+var VIEW_LABEL = { scheduled:'المحتوى المجدول', posts:'المنشورات', calendar:'التقويم التحريري', performance:'أداء المنصة' };
+
+function socialRender() {
+  var host = document.getElementById('social-content-body');
+  if (!host) return;
+  var p = SOCIAL_STATE.platform, v = SOCIAL_STATE.view;
+
+  // Handle LinkedIn performance/posts specially — pull from existing feed API
+  if (p === 'linkedin' && (v === 'posts' || v === 'performance')) {
+    host.innerHTML = '<div style="font-weight:700;font-size:15px;margin-bottom:14px;color:var(--text);">'+PLATFORM_LABEL[p]+' · '+VIEW_LABEL[v]+'</div><div id="soc-linkedin-body" style="min-height:300px;"><div style="text-align:center;padding:40px;color:var(--text-3);">جارٍ التحميل…</div></div>';
+    socialLoadLinkedIn(v);
+    return;
+  }
+
+  // For X, Snapchat, YouTube — clear message about integration status
+  var stubMsg = '';
+  if (p === 'x') stubMsg = '<div style="padding:20px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;margin-bottom:16px;"><b>حالة الربط:</b> X API v2 يتطلب Bearer Token مدفوع (Basic tier من $100/شهرياً). يُمكن إضافة المفتاح في إعدادات المنصة لاحقاً.</div>';
+  else if (p === 'snapchat') stubMsg = '<div style="padding:20px;background:#FEF3C7;border:1px solid #FDE68A;border-radius:8px;margin-bottom:16px;"><b>قيد الإعداد:</b> Snap Kit / Business API يحتاج تفعيل حساب الأعمال.</div>';
+  else if (p === 'youtube') stubMsg = '<div style="padding:20px;background:#E0F2FE;border:1px solid #BAE6FD;border-radius:8px;margin-bottom:16px;"><b>قيد الإعداد:</b> YouTube Data API v3 — يحتاج OAuth للقناة الرسمية.</div>';
+
+  host.innerHTML = '<div style="font-weight:700;font-size:15px;margin-bottom:14px;color:var(--text);">'+PLATFORM_LABEL[p]+' · '+VIEW_LABEL[v]+'</div>'+stubMsg+'<div style="text-align:center;padding:40px;color:var(--text-3);"><div style="font-size:40px;margin-bottom:8px;opacity:.5;">📅</div><div style="font-size:14px;">'+VIEW_LABEL[v]+' — لا توجد بيانات للعرض</div></div>';
+}
+
+async function socialLoadLinkedIn(view) {
+  var host = document.getElementById('soc-linkedin-body');
+  if (!host) return;
+  try {
+    var res = await apiFetch('/api/gac/social-feed?platform=linkedin&limit=20');
+    var data = await res.json();
+    var posts = data.posts || data.items || [];
+    if (!posts.length) {
+      host.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-3);">لا توجد منشورات</div>';
+      return;
+    }
+    if (view === 'performance') {
+      var totalLikes = posts.reduce(function(a,p){ return a + (p.likes||p.reactions||0); }, 0);
+      var totalComments = posts.reduce(function(a,p){ return a + (p.comments||0); }, 0);
+      host.innerHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px;"><div class="kpi-card"><div class="kpi-label">إجمالي المنشورات</div><div class="kpi-value">'+posts.length+'</div></div><div class="kpi-card"><div class="kpi-label">إجمالي التفاعل</div><div class="kpi-value">'+totalLikes+'</div></div><div class="kpi-card"><div class="kpi-label">إجمالي التعليقات</div><div class="kpi-value">'+totalComments+'</div></div></div>';
+    } else {
+      host.innerHTML = posts.map(function(p){
+        return '<div style="padding:14px;border-bottom:1px solid var(--border);"><div style="font-size:13px;color:var(--text);line-height:1.6;">'+(p.text||p.content||'').substring(0,240)+'…</div><div style="font-size:11px;color:var(--text-3);margin-top:6px;">👍 '+(p.likes||p.reactions||0)+' · 💬 '+(p.comments||0)+'</div></div>';
+      }).join('');
+    }
+  } catch (e) {
+    host.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-3);">تعذر تحميل بيانات لينكدإن</div>';
+  }
+}
+
+function socialRefresh() { socialRender(); }
+
+function prNew() { alert('قريباً: محرر بيان صحفي متكامل مع دورة حياة: مسودة → مراجعة → اعتماد → نشر → أرشيف.'); }
+function prSwitch(t) {
+  var page = document.getElementById('section-press_releases');
+  if (!page) return;
+  page.querySelectorAll('.sub-tab').forEach(function(b){ b.classList.remove('active'); });
+  var btn = page.querySelector('.sub-tab[data-tab="'+t+'"]');
+  if (btn) btn.classList.add('active');
+}
+
+function mcNew() { alert('قريباً: نموذج طلب تغطية إعلامية مع: تفاصيل الفعالية · رفع صور/فيديو · تقرير التغطية.'); }
+
+/* Init these pages on first show */
+document.addEventListener('DOMContentLoaded', function() {
+  // Delegate to showSection listeners; call renderers when their page is opened
+  var origShow = window.showSection;
+  if (typeof origShow === 'function') {
+    window.showSection = function(name) {
+      origShow(name);
+      if (name === 'internal_requests') reqRender('internal');
+      else if (name === 'external_requests') reqRender('external');
+      else if (name === 'social_platforms') socialRender();
+    };
+  }
+});
 </script>
 
 </body>
