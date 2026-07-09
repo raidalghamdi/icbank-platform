@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: 2026-07-08-phase8-rolematrix -->
+<!-- build: 2026-07-09-review-round1 -->
 <html dir="rtl" lang="ar">
 <head>
 <meta charset="UTF-8">
@@ -177,6 +177,7 @@ body {
   position: sticky;
   top: 0;
   height: 100vh;
+  overflow: hidden; /* container clips, inner scroll region handles overflow */
 }
 .sidebar-brand {
   padding: 18px 20px;
@@ -184,7 +185,21 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-shrink: 0;
 }
+/* Scrollable middle region — wraps every .sidebar-section between brand and foot */
+.sidebar-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+  padding-bottom: 8px;
+}
+.sidebar-scroll::-webkit-scrollbar { width: 6px; }
+.sidebar-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+.sidebar-scroll::-webkit-scrollbar-thumb:hover { background: var(--text-4); }
 .brand-logo {
   width: 36px; height: 36px;
   background: var(--primary);
@@ -245,6 +260,8 @@ body {
   margin-top: auto;
   padding: 12px;
   border-top: 1px solid var(--border);
+  flex-shrink: 0;
+  background: var(--sidebar-bg);
 }
 .user-card {
   display: flex; align-items: center; gap: 10px;
@@ -2685,6 +2702,9 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
       </div>
     </div>
 
+    <!-- Scrollable navigation region -->
+    <div class="sidebar-scroll">
+
     <div class="sidebar-section">
       <div class="sidebar-section-title">الرئيسية</div>
       <div class="sidebar-nav">
@@ -2740,10 +2760,6 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
           <span class="ico"><svg><use href="#i-globe"/></svg></span>
           <span>الأيام العالمية</span>
         </a>
-        <a class="nav-item" data-page="news" onclick="showSection('news')">
-          <span class="ico"><svg><use href="#i-news"/></svg></span>
-          <span>أخبار هيئات المنافسة</span>
-        </a>
       </div>
     </div>
 
@@ -2795,22 +2811,14 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
     <div class="sidebar-section">
       <div class="sidebar-section-title">ستوديو المحتوى</div>
       <div class="sidebar-nav">
-        <a class="nav-item" id="nav-designs" data-page="designs" onclick="showSection('designs')" style="display:none;">
+        <!-- إنشاء التصاميم (يشمل التصميم السريع بالأيقونات كتبويب داخلي) -->
+        <a class="nav-item" data-page="designs" onclick="showSection('designs')">
           <span class="ico"><svg><use href="#i-image"/></svg></span>
           <span>إنشاء التصاميم</span>
-        </a>
-        <a class="nav-item" data-page="icon_event_studio" onclick="showSection('icon_event_studio')">
-          <span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg></span>
-          <span>تصميم سريع بالأيقونات</span>
-          <span class="nav-item-badge" style="background:linear-gradient(135deg,#0069A7,#46BCCD);color:#fff;font-size:10px;padding:2px 6px;border-radius:8px;margin-right:auto;">جديد</span>
         </a>
         <a class="nav-item" data-page="gac_library" onclick="showSection('gac_library')">
           <span class="ico"><svg><use href="#i-book"/></svg></span>
           <span>مكتبة الهيئة</span>
-        </a>
-        <a class="nav-item" id="nav-places" data-page="places" onclick="showSection('places')" style="display:none;">
-          <span class="ico"><svg><use href="#i-bookmark"/></svg></span>
-          <span>مكتبة الأماكن</span>
         </a>
         <a class="nav-item" data-page="smart_assistant" onclick="showSection('smart_assistant')">
           <span class="ico"><svg><use href="#i-bot"/></svg></span>
@@ -2821,6 +2829,7 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
           <span>مكتبة الأوامر</span>
           <span class="nav-item-count" id="pl-nav-count">—</span>
         </a>
+        <!-- مكتبة الأماكن والتصميم السريع بالأيقونات: لم تعد إدخالات مستقلة (منقولة داخل الأقسام المرتبطة) -->
       </div>
     </div>
 
@@ -2837,6 +2846,8 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
         </a>
       </div>
     </div>
+
+    </div><!-- /sidebar-scroll -->
 
     <div class="sidebar-foot">
       <div class="user-card" id="auth-user-card">
@@ -2951,9 +2962,11 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
     <div class="dash-hero">
       <div class="dash-greeting"><span id="dash-user-name">—</span> <span id="dash-user-role-badge" class="dash-role-badge" style="display:none"></span></div>
       <div class="dash-dates">
-        <span id="dash-date-hijri">—</span>
+        <span id="dash-day-name">—</span>
         <span class="dash-date-sep">·</span>
         <span id="dash-date-gregorian">—</span>
+        <span class="dash-date-sep">·</span>
+        <span id="dash-date-hijri">—</span>
       </div>
       <div class="dash-context-msg" id="dash-context-msg">جارٍ التحميل...</div>
     </div>
@@ -2982,44 +2995,7 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
       </div>
     </div>
 
-    <!-- ── Quick Access Services ── -->
-    <div class="dash-section">
-      <div class="dash-section-head">
-        <h2 class="dash-section-title">خدماتنا الرئيسية</h2>
-      </div>
-      <div class="dash-services-grid">
-        <div class="dash-svc-card" onclick="showSection('media_monitoring')" style="--svc-color:#25935F">
-          <div class="dash-svc-top"></div>
-          <div class="dash-svc-icon">📊</div>
-          <div class="dash-svc-name">الرصد الإعلامي</div>
-          <div class="dash-svc-meta" id="dash-svc-mm">تقارير الرصد وتحليل التغطية الإعلامية</div>
-          <div class="dash-svc-btn">افتح الرصد →</div>
-        </div>
-        <div class="dash-svc-card" onclick="showSection('weekstart')" style="--svc-color:#16A34A">
-          <div class="dash-svc-top"></div>
-          <div class="dash-svc-icon">🌅</div>
-          <div class="dash-svc-name">بداية الأسبوع</div>
-          <div class="dash-svc-meta" id="dash-svc-weekstart">جارٍ التحميل...</div>
-          <div class="dash-svc-btn">ابدأ إنتاج محتوى →</div>
-        </div>
-        <div class="dash-svc-card" onclick="showSection('weekend')" style="--svc-color:#7C3AED">
-          <div class="dash-svc-top"></div>
-          <div class="dash-svc-icon">🌙</div>
-          <div class="dash-svc-name">نهاية الأسبوع</div>
-          <div class="dash-svc-meta">رسائل نهاية الأسبوع للموظفين بأسلوب مؤسسي مميز</div>
-          <div class="dash-svc-btn">افتح الأرشيف →</div>
-        </div>
-        <div class="dash-svc-card" onclick="showSection('intldays')" style="--svc-color:#175CD3">
-          <div class="dash-svc-top"></div>
-          <div class="dash-svc-icon">🌐</div>
-          <div class="dash-svc-name">الأيام العالمية</div>
-          <div class="dash-svc-meta" id="dash-svc-intldays">بحث عالمي + أرشيف الأيام الدولية</div>
-          <div class="dash-svc-btn">افتح الأيام →</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── Two-Column: Intl Days + Recent Activations ── -->
+    <!-- ── Two-Column: Intl Days + Upcoming Events (replaces old Recent Activations) ── -->
     <div class="dash-two-col">
       <div class="dash-col-card">
         <div class="dash-col-head">
@@ -3032,34 +3008,12 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
       </div>
       <div class="dash-col-card">
         <div class="dash-col-head">
-          <span class="dash-col-title">⚡ آخر التفعيلات المضافة</span>
-          <button class="link-action" onclick="showSection('aiyear')">عرض الكل <span class="ico"><svg><use href="#i-arrow-left"/></svg></span></button>
+          <span class="dash-col-title">📅 الفعاليات القادمة</span>
+          <button class="link-action" onclick="showSection('external_requests')">إدارة الفعاليات <span class="ico"><svg><use href="#i-arrow-left"/></svg></span></button>
         </div>
-        <div id="dash-recent-act">
+        <div id="home-upcoming-events">
           <div class="loading-wrap"><div class="spinner"></div></div>
         </div>
-      </div>
-    </div>
-
-    <!-- ── Shorfah Newsletter Preview ── -->
-    <div class="dash-section">
-      <div class="dash-section-head">
-        <h2 class="dash-section-title">📰 نشرة شرفة</h2>
-        <button class="link-action" onclick="showSection('shorfah')">فتح النشرة <span class="ico"><svg><use href="#i-arrow-left"/></svg></span></button>
-      </div>
-      <div class="dash-news-grid" id="home-shorfah-preview">
-        <div class="loading-wrap"><div class="spinner"></div><div class="loading-text">جارٍ تحميل نشرة شرفة...</div></div>
-      </div>
-    </div>
-
-    <!-- ── Upcoming Events ── -->
-    <div class="dash-section">
-      <div class="dash-section-head">
-        <h2 class="dash-section-title">📅 الفعاليات القادمة</h2>
-        <button class="link-action" onclick="showSection('external_requests')">إدارة الفعاليات <span class="ico"><svg><use href="#i-arrow-left"/></svg></span></button>
-      </div>
-      <div id="home-upcoming-events" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;">
-        <div class="loading-wrap"><div class="spinner"></div><div class="loading-text">جارٍ تحميل الفعاليات...</div></div>
       </div>
     </div>
 
@@ -4901,6 +4855,11 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
         <div id="shorfah-issue-meta" style="font-size:13px;color:var(--text-3);margin-top:6px;"></div>
         <!-- Action buttons row (full-width on mobile) -->
         <div id="shorfah-issue-actions" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;">
+          <!-- New: kick off automated data collection for the issue's sections -->
+          <button id="shorfah-start-collect-btn" class="btn btn-primary btn-sm" onclick="shorfahStartDataCollection()" style="flex:1 1 200px;justify-content:center;font-weight:800;background:linear-gradient(135deg,#0a4a3d,#2d8a73);color:#fff;">
+            <svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+            بدء تجميع البيانات
+          </button>
           <!-- Phase 7: PDF preview & PDF download hidden — Word is the only official export -->
           <a id="shorfah-pdf-preview-btn" class="btn btn-ghost btn-sm" href="#" target="_blank" style="display:none;flex:1 1 140px;justify-content:center;">
             <svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -7058,15 +7017,24 @@ function dashSetGreeting() {
       }
     }
   } catch(e) {}
-  // Gregorian date — force gregory calendar to avoid Islamic default on iOS
+  // Day name (separate from date) — e.g. خميس
+  var dayEl = document.getElementById('dash-day-name');
+  if (dayEl) {
+    try {
+      dayEl.textContent = new Intl.DateTimeFormat('ar-SA-u-ca-gregory', { weekday:'long' }).format(new Date());
+    } catch(e) {
+      dayEl.textContent = new Date().toLocaleDateString('ar', { weekday:'long' });
+    }
+  }
+  // Gregorian date — date only (no weekday, weekday shown separately)
   var gregEl = document.getElementById('dash-date-gregorian');
   if (gregEl) {
     var now = new Date();
     try {
-      var greg = new Intl.DateTimeFormat('ar-SA-u-ca-gregory-nu-latn', { weekday:'long', year:'numeric', month:'long', day:'numeric' }).format(now);
+      var greg = new Intl.DateTimeFormat('ar-SA-u-ca-gregory-nu-latn', { year:'numeric', month:'long', day:'numeric' }).format(now);
       gregEl.textContent = greg;
     } catch(e) {
-      gregEl.textContent = now.toLocaleDateString('ar', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+      gregEl.textContent = now.toLocaleDateString('ar', { year:'numeric', month:'long', day:'numeric' });
     }
   }
   // Hijri date via Intl
@@ -7131,15 +7099,15 @@ async function homeDashboardInit() {
     var data = await res.json();
     dashSummaryData = data;
     dashRenderKPIs(data);
-    dashRenderServiceCards(data);
+    // Service cards section removed (per user request — duplicate of sidebar)
+    if (typeof dashRenderServiceCards === 'function') { try { dashRenderServiceCards(data); } catch(e){} }
     dashRenderIntlDays(data.intlDaysUpcoming || []);
-    dashRenderRecentActivations((data.aiYear && data.aiYear.recentActivations) || []);
   } catch(e) { /* silent — page still functional */ }
-  // Load media-monitoring count for KPI + service card
+  // Load media-monitoring count for KPI card
   dashLoadMediaMonitoring();
-  // Load Shorfah preview + completion %
+  // Load Shorfah completion % (preview section removed — KPI only)
   dashLoadShorfahPreview();
-  // Load Upcoming Events
+  // Load Upcoming Events (replaces old Recent Activations column)
   dashLoadUpcomingEvents();
 }
 
@@ -11744,40 +11712,59 @@ document.addEventListener('click', (e) => {
 
 // ═══ SHORFAH — Monthly Publication ═══
 var SHORFAH_STATE = { currentIssueId: null, issue: null, sections: [] };
-// Phase 7 — 11-section canonical order per user spec
+// Final 13-section canonical order per user spec (July 2026) + sub-sections
 var SHORFAH_SECTION_LABELS = {
   global_news:           { ar: 'أخبار دولية',        icon: '🌐', color: '#0e3b4a', desc: 'أبرز الأخبار الدولية ذات الصلة' },
   news:                  { ar: 'أخبارنا',           icon: '📰', color: '#1a6e7a', desc: 'أبرز أخبار الهيئة' },
   intl_participation:    { ar: 'مشاركاتنا الدولية',   icon: '🤝', color: '#1a6e7a', desc: 'مشاركات الهيئة في المحافل والفعاليات الدولية' },
-  our_comms:             { ar: 'تواصلنا',           icon: '💬', color: '#2a8d9b', desc: 'حملات ومبادرات التواصل المؤسسي' },
-  economic_observatory:  { ar: 'المرصد الاقتصادي',     icon: '📈', color: '#0e3b4a', desc: 'مؤشرات وأرقام اقتصادية' },
-  system_index:          { ar: 'مؤشر النظام',        icon: '📊', color: '#2a8d9b', desc: 'مؤشرات أداء المنظومة' },
+  our_comms:             { ar: 'تواصلنا',           icon: '💬', color: '#2a8d9b', desc: 'يشمل لقاءات القطاع الخاص وجهود التواصل الحكومي', subs: [
+    { key: '4_1', ar: 'لقاءات القطاع الخاص' },
+    { key: '4_2', ar: 'جهود التواصل مع الجهات الحكومية' }
+  ]},
+  economic_observatory:  { ar: 'المرصد الاقتصادي',     icon: '📈', color: '#0e3b4a', desc: 'أرقام اقتصادية، تركيز الشهر، دراسة وقضية الشهر', subs: [
+    { key: '5_1', ar: 'أرقام اقتصادية' },
+    { key: '5_2', ar: 'تركيز الشهر' },
+    { key: '5_3', ar: 'دراسة اقتصادية' },
+    { key: '5_4', ar: 'قضية الشهر' }
+  ]},
+  system_index:          { ar: 'مؤشر النظام',        icon: '📊', color: '#2a8d9b', desc: 'الجلسات، الشكاوى، الممارسات، التسويات', subs: [
+    { key: '6_1', ar: 'الجلسات القضائية' },
+    { key: '6_2', ar: 'الشكاوى الواردة' },
+    { key: '6_3', ar: 'الممارسات محل البحث والتحري والتحقيق' },
+    { key: '6_4', ar: 'التسويات' }
+  ]},
   legal_window:          { ar: 'نافذة قانونية',       icon: '⚖️', color: '#5a8c96', desc: 'إطلالة على التشريعات والأنظمة' },
   office_interview:      { ar: 'في مكتبهم',         icon: '🎙️', color: '#2a8d9b', desc: 'حوار مع قيادي' },
-  competition_culture:   { ar: 'ثقافة المنافسة',       icon: '🏳️', color: '#0e3b4a', desc: 'توعية بثقافة المنافسة' },
+  competition_culture:   { ar: 'ثقافة المنافسة',       icon: '🏳️', color: '#0e3b4a', desc: 'جهود نشر ثقافة المنافسة + المنافسة في شهر', subs: [
+    { key: '9_1', ar: 'جهود نشر ثقافة المنافسة' },
+    { key: '9_2', ar: 'المنافسة في شهر' }
+  ]},
   outside_box:           { ar: 'خارج الصندوق',        icon: '💡', color: '#0e3b4a', desc: 'مقال موظف' },
   events:                { ar: 'فعالياتنا',           icon: '🎉', color: '#1a6e7a', desc: 'فعاليات الهيئة' },
-  // Legacy / optional — not part of the 11-section order but kept for backward compat
-  employee_qa:           { ar: 'عطنا علومك',          icon: '💬', color: '#2a8d9b', desc: 'حوار سريع' },
+  agency_lit:            { ar: 'نورتنا الهيئة',        icon: '✨', color: '#5a8c96', desc: 'منازل ومنافسات وإنجازات أفراد الهيئة' },
+  employee_qa:           { ar: 'عطنا علومك',          icon: '💬', color: '#2a8d9b', desc: 'حوار مع موظف' },
+  // Legacy / optional — kept for backward compat
   editor:                { ar: 'كلمة افتتاحية',       icon: '✍️', color: '#5a8c96', desc: '' },
   local_news:            { ar: 'أخبار محلية',        icon: '🇸🇦', color: '#1a6e7a', desc: '' },
   regional_news:         { ar: 'أخبار خليجية/عربية', icon: '🌍', color: '#2a8d9b', desc: '' },
   stakeholder:           { ar: 'مساهمة جهة',         icon: '🏢', color: '#5a8c96', desc: '' },
   custom:                { ar: 'قسم مخصص',           icon: '➕', color: '#5a8c96', desc: '' }
 };
-// Canonical order used for rendering & Word export
+// Canonical order used for rendering & Word export (13 sections)
 var SHORFAH_CANONICAL_ORDER = [
-  'global_news',
-  'news',
-  'intl_participation',
-  'our_comms',
-  'economic_observatory',
-  'system_index',
-  'legal_window',
-  'office_interview',
-  'competition_culture',
-  'outside_box',
-  'events'
+  'global_news',           // 1
+  'news',                  // 2
+  'intl_participation',    // 3
+  'our_comms',             // 4 (+4.1 +4.2)
+  'economic_observatory',  // 5 (+5.1 -> 5.4)
+  'system_index',          // 6 (+6.1 -> 6.4)
+  'legal_window',          // 7
+  'office_interview',      // 8
+  'competition_culture',   // 9 (+9.1 +9.2)
+  'outside_box',           // 10
+  'events',                // 11
+  'agency_lit',            // 12 نورتنا الهيئة
+  'employee_qa'            // 13 عطنا علومك
 ];
 var SHORFAH_STATUS_LABELS = {
   pending_contribution: { ar: 'جاري العمل', color: '#9ca3af', bg: '#f3f4f6' },
@@ -12184,6 +12171,34 @@ async function shorfahToggleInclude(sectionId, checked) {
     }
   } catch(e) { alert('خطأ: '+e.message); }
 }
+// Kick off automated data collection for the current issue's sections —
+// front-end wrapper: it POSTs to an endpoint if available, otherwise it
+// signals contributors that collection has started via an SLA reminder.
+async function shorfahStartDataCollection() {
+  if (!SHORFAH_STATE.currentIssueId) { alert('افتح عدداً أولاً لبدء تجميع بياناته.'); return; }
+  var btn = document.getElementById('shorfah-start-collect-btn');
+  if (btn) { btn.disabled = true; btn.style.opacity = '0.7'; btn.innerHTML = '<span style="display:inline-flex;align-items:center;gap:6px;">جارٍ تجميع البيانات…</span>'; }
+  try {
+    var res = await apiFetch('/api/shorfah/issues/'+SHORFAH_STATE.currentIssueId+'/collect', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({}) });
+    var ok = res.ok;
+    var data = {};
+    try { data = await res.json(); } catch(e){}
+    if (ok) {
+      alert(data.message || 'تم بدء تجميع البيانات للأقسام المعتمدة. ستظهر المسودات فور اكتمال كل قسم.');
+      await shorfahOpenIssue(SHORFAH_STATE.currentIssueId);
+    } else if (res.status === 404) {
+      // Endpoint not deployed yet — show friendly hand-off
+      alert('تم تسجيل طلب بدء تجميع البيانات. سيتولى مسؤولو الأقسام إدخال المحتوى من تبويب تحديث الحالة.');
+    } else {
+      alert('تعذر بدء تجميع البيانات: '+(data.error || res.status));
+    }
+  } catch(e) {
+    alert('خطأ في الاتصال: '+e.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.style.opacity = ''; btn.innerHTML = '<svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> بدء تجميع البيانات'; }
+  }
+}
+
 async function shorfahPublishIssue() {
   if (!shorfahIsAdmin()) { alert('عذراً، تحتاج صلاحيات مسؤول للنشر'); return; }
   if (!confirm('نشر هذا العدد؟ سيصبح متاحاً للجميع كنسخة نهائية.')) return;
@@ -12311,7 +12326,7 @@ function shorfahAdminTab(tab) {
   }
 }
 
-// Phase 7: SLA templates & admin ordering aligned with 11-section canonical order
+// SLA templates & admin ordering aligned with 13-section canonical order (July 2026)
 var SHORFAH_SECTION_TYPE_LABELS = {
   global_news: 'أخبار دولية',
   news: 'أخبارنا',
@@ -12324,12 +12339,14 @@ var SHORFAH_SECTION_TYPE_LABELS = {
   competition_culture: 'ثقافة المنافسة',
   outside_box: 'خارج الصندوق',
   events: 'فعالياتنا',
+  agency_lit: 'نورتنا الهيئة',
   employee_qa: 'عطنا علومك'
 };
 var SHORFAH_SECTION_TYPE_ORDER = [
   'global_news','news','intl_participation','our_comms',
   'economic_observatory','system_index','legal_window',
-  'office_interview','competition_culture','outside_box','events'
+  'office_interview','competition_culture','outside_box','events',
+  'agency_lit','employee_qa'
 ];
 function shorfahSectionTypeLabel(t) { return SHORFAH_SECTION_TYPE_LABELS[t] || t; }
 

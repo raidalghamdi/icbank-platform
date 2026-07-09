@@ -118,7 +118,7 @@ router.get("/shorfah/issues/:id", requireAuth, async (req: Request, res: Respons
   res.json({ issue, sections: sectionsEnriched });
 });
 
-// Phase 7 — Canonical 11-section Shorfah issue template per user spec.
+// Canonical 13-section Shorfah issue template (July 2026 spec)
 const SHORFAH_DEFAULT_SECTIONS: Array<{
   sectionType: string;
   titleAr: string;
@@ -128,14 +128,16 @@ const SHORFAH_DEFAULT_SECTIONS: Array<{
   { sectionType: "global_news", titleAr: "أخبار دولية", descriptionAr: "أبرز الأخبار الدولية ذات الصلة", displayOrder: 10 },
   { sectionType: "news", titleAr: "أخبارنا", descriptionAr: "أبرز أخبار الهيئة هذا الشهر", displayOrder: 20 },
   { sectionType: "intl_participation", titleAr: "مشاركاتنا الدولية", descriptionAr: "مشاركات الهيئة في المحافل والفعاليات الدولية", displayOrder: 30 },
-  { sectionType: "our_comms", titleAr: "تواصلنا", descriptionAr: "حملات ومبادرات التواصل المؤسسي", displayOrder: 40 },
-  { sectionType: "economic_observatory", titleAr: "المرصد الاقتصادي", descriptionAr: "مؤشرات وأرقام اقتصادية", displayOrder: 50 },
-  { sectionType: "system_index", titleAr: "مؤشر النظام", descriptionAr: "مؤشرات أداء المنظومة", displayOrder: 60 },
+  { sectionType: "our_comms", titleAr: "تواصلنا", descriptionAr: "يشمل لقاءات القطاع الخاص وجهود التواصل مع الجهات الحكومية", displayOrder: 40 },
+  { sectionType: "economic_observatory", titleAr: "المرصد الاقتصادي", descriptionAr: "أرقام اقتصادية ، تركيز الشهر، دراسة اقتصادية، قضية الشهر", displayOrder: 50 },
+  { sectionType: "system_index", titleAr: "مؤشر النظام", descriptionAr: "الجلسات القضائية، الشكاوى، الممارسات، التسويات", displayOrder: 60 },
   { sectionType: "legal_window", titleAr: "نافذة قانونية", descriptionAr: "إطلالة على التشريعات والأنظمة", displayOrder: 70 },
   { sectionType: "office_interview", titleAr: "في مكتبهم", descriptionAr: "حوار شهري مع أحد القياديين", displayOrder: 80 },
-  { sectionType: "competition_culture", titleAr: "ثقافة المنافسة", descriptionAr: "توعية بثقافة المنافسة", displayOrder: 90 },
+  { sectionType: "competition_culture", titleAr: "ثقافة المنافسة", descriptionAr: "جهود نشر ثقافة المنافسة + المنافسة في شهر", displayOrder: 90 },
   { sectionType: "outside_box", titleAr: "خارج الصندوق", descriptionAr: "مقال شهري من موظف", displayOrder: 100 },
   { sectionType: "events", titleAr: "فعالياتنا", descriptionAr: "فعاليات الهيئة", displayOrder: 110 },
+  { sectionType: "agency_lit", titleAr: "نورتنا الهيئة", descriptionAr: "إنجازات أفراد الهيئة داخل وخارج مقرها", displayOrder: 120 },
+  { sectionType: "employee_qa", titleAr: "عطنا علومك", descriptionAr: "حوار مع موظف", displayOrder: 130 },
 ];
 
 async function seedShorfahSections(issueId: number) {
@@ -203,6 +205,27 @@ router.post("/shorfah/issues/:id/seed-sections", requireAdmin, async (req: Reque
   await seedShorfahSections(id);
   const rows = await db.select().from(shorfahSectionsTable).where(eq(shorfahSectionsTable.issueId, id));
   res.json({ ok: true, sections: rows.length });
+});
+
+// Review Round 1: manual "start data collection" trigger — seeds default sections if empty
+// and flips the issue status to "collecting" so contributors see it in their queue.
+router.post("/shorfah/issues/:id/collect", requireAuth, async (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+  const [issue] = await db.select().from(shorfahIssuesTable).where(eq(shorfahIssuesTable.id, id)).limit(1);
+  if (!issue) return res.status(404).json({ error: "العدد غير موجود" });
+  const existing = await db.select({ id: shorfahSectionsTable.id }).from(shorfahSectionsTable).where(eq(shorfahSectionsTable.issueId, id));
+  let seeded = 0;
+  if (existing.length === 0) {
+    await seedShorfahSections(id);
+    const rows = await db.select({ id: shorfahSectionsTable.id }).from(shorfahSectionsTable).where(eq(shorfahSectionsTable.issueId, id));
+    seeded = rows.length;
+  }
+  const nextStatus = issue.status === "published" ? issue.status : "collecting";
+  const [updated] = await db.update(shorfahIssuesTable).set({
+    status: nextStatus,
+    updatedAt: new Date(),
+  }).where(eq(shorfahIssuesTable.id, id)).returning();
+  res.json({ ok: true, issue: updated, sectionsSeeded: seeded, sectionsExisting: existing.length });
 });
 
 router.patch("/shorfah/issues/:id", requireAdmin, async (req: Request, res: Response) => {

@@ -20,7 +20,7 @@ const OFFWHITE = "#f0f7f8";
 const TEAL_DARK = "#155a64";
 const DEEPNAVY = "#0a2c38";
 
-// Phase 7 — Map section type -> inline SVG icon key (11-section canonical order)
+// Map section type -> inline SVG icon key (13-section canonical order, July 2026)
 export const SECTION_ICON: Record<string, string> = {
   global_news: "newspaper",
   news: "newspaper",
@@ -33,6 +33,7 @@ export const SECTION_ICON: Record<string, string> = {
   competition_culture: "monitor",
   outside_box: "box",
   events: "bunting",
+  agency_lit: "bunting",
   employee_qa: "speech",
 };
 
