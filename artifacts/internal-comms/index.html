@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: 2026-07-13-review-round4-phase2 -->
+<!-- build: 2026-07-13-review-round4-phase5 -->
 <html dir="rtl" lang="ar">
 <head>
 <meta charset="UTF-8">
@@ -4924,6 +4924,12 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
       </div>
     </div>
 
+    <!-- Role banner (Review Round 4 — RBAC) -->
+    <div id="shorfah-role-banner" style="display:none;margin-bottom:14px;padding:14px 16px;background:linear-gradient(135deg,#F9FAFB,#F3F4F6);border:1px solid var(--border);border-radius:10px;">
+      <div id="shorfah-role-badge-slot"></div>
+      <div id="shorfah-role-hint" style="margin-top:8px;font-size:13px;color:var(--text-2);line-height:1.7;"></div>
+    </div>
+
     <!-- Issues grid -->
     <div id="shorfah-issues-list" class="card" style="padding:18px;margin-bottom:16px;">
       <div style="font-weight:800;margin-bottom:10px;color:var(--text);">الأعداد</div>
@@ -5600,21 +5606,21 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
         <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px;">أداء الحملات</div>
         <div style="font-size:12px;color:var(--text-3);">تحليلات مفصّلة لجميع الحملات</div>
       </a>
-      <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px;opacity:.6;">
+      <a href="#" onclick="showSection('internal_requests');return false;" style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px;text-decoration:none;color:inherit;transition:all .2s;" onmouseover="this.style.borderColor='var(--accent)';this.style.transform='translateY(-2px)';" onmouseout="this.style.borderColor='var(--border)';this.style.transform='';">
         <div style="font-size:28px;margin-bottom:8px;">📥</div>
         <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px;">أداء الطلبات</div>
-        <div style="font-size:12px;color:var(--text-3);">قيد التطوير</div>
-      </div>
-      <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px;opacity:.6;">
+        <div style="font-size:12px;color:var(--text-3);">معدل الإنجاز — زمن المعالجة — التأخر</div>
+      </a>
+      <a href="#" onclick="showSection('social_platforms');return false;" style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px;text-decoration:none;color:inherit;transition:all .2s;" onmouseover="this.style.borderColor='var(--accent)';this.style.transform='translateY(-2px)';" onmouseout="this.style.borderColor='var(--border)';this.style.transform='';">
         <div style="font-size:28px;margin-bottom:8px;">📱</div>
         <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px;">أداء المنصات</div>
-        <div style="font-size:12px;color:var(--text-3);">قيد التطوير</div>
-      </div>
-      <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px;opacity:.6;">
+        <div style="font-size:12px;color:var(--text-3);">تفاعل · متابعة · وصول تراكمي</div>
+      </a>
+      <a href="#" onclick="showSection('campaigns_analytics');return false;" style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px;text-decoration:none;color:inherit;transition:all .2s;" onmouseover="this.style.borderColor='var(--accent)';this.style.transform='translateY(-2px)';" onmouseout="this.style.borderColor='var(--border)';this.style.transform='';">
         <div style="font-size:28px;margin-bottom:8px;">📅</div>
         <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px;">التقارير الدورية</div>
-        <div style="font-size:12px;color:var(--text-3);">شهرية وربع سنوية</div>
-      </div>
+        <div style="font-size:12px;color:var(--text-3);">شهرية · ربع سنوية · سنوية</div>
+      </a>
     </div>
   </div>
 
@@ -12190,6 +12196,28 @@ function shorfahCanRole(roles) {
   return roles.some(function(r) { return role === r.toLowerCase(); });
 }
 function shorfahIsAdmin() { return shorfahCanRole(['admin','super_admin']); }
+// Role-specific helpers (Review Round 4 — RBAC 5 UIs)
+function shorfahIsContributor() { return shorfahCanRole(['contributor']); }
+function shorfahIsReviewer()    { return shorfahCanRole(['reviewer']); }
+function shorfahIsApprover()    { return shorfahCanRole(['approver']); }
+function shorfahIsEditor()      { return shorfahCanRole(['content_editor','comms_admin']); }
+function shorfahIsArchiver()    { return shorfahCanRole(['content_editor','comms_admin','admin','super_admin']); }
+function shorfahRoleBadge() {
+  var u = window.AUTH_USER; if (!u) return '';
+  var r = (u.role || '').toLowerCase();
+  var map = {
+    super_admin:  { lbl:'مدير نظام',   bg:'#7C3AED', fg:'#fff' },
+    admin:        { lbl:'مدير',        bg:'#DC2626', fg:'#fff' },
+    comms_admin:  { lbl:'مدير إدارة',  bg:'#B91C1C', fg:'#fff' },
+    content_editor:{lbl:'محرر محتوى',   bg:'#3B82F6', fg:'#fff' },
+    reviewer:     { lbl:'مراجع',       bg:'#F59E0B', fg:'#fff' },
+    approver:     { lbl:'معتمد',       bg:'#059669', fg:'#fff' },
+    contributor:  { lbl:'مساهم',       bg:'#6B7280', fg:'#fff' },
+    viewer:       { lbl:'مشاهد',       bg:'#9CA3AF', fg:'#fff' }
+  };
+  var m = map[r] || { lbl: u.role || 'user', bg:'#6B7280', fg:'#fff' };
+  return '<div style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:'+m.bg+';color:'+m.fg+';border-radius:999px;font-size:12px;font-weight:700;margin-right:8px;">👤 دورك: '+m.lbl+'</div>';
+}
 
 async function shorfahInit() {
   if (typeof closeMobileSidebar === 'function') closeMobileSidebar();
@@ -12198,6 +12226,26 @@ async function shorfahInit() {
   if (newBtn) newBtn.style.display = shorfahIsAdmin() ? '' : 'none';
   var adminBtn = document.getElementById('shorfah-admin-tab-btn');
   if (adminBtn) adminBtn.style.display = shorfahIsAdmin() ? '' : 'none';
+  // Role banner (Review Round 4 — 5 role UIs)
+  var banner = document.getElementById('shorfah-role-banner');
+  var badgeSlot = document.getElementById('shorfah-role-badge-slot');
+  var hintEl = document.getElementById('shorfah-role-hint');
+  if (banner && badgeSlot && hintEl && window.AUTH_USER) {
+    banner.style.display = '';
+    badgeSlot.innerHTML = shorfahRoleBadge();
+    var role = ((AUTH_USER.role)||'').toLowerCase();
+    var hints = {
+      contributor: '📝 <b>مساهم:</b> يمكنك إدخال محتوى الأقسام الموكلة لك وتسليمها. لا يمكنك المراجعة أو الاعتماد.',
+      reviewer:    '🔍 <b>مراجع:</b> تستطيع مراجعة الأقسام المُسلّمة وإعادتها للمساهم أو تمريرها للمعتمد.',
+      approver:    '✅ <b>معتمد:</b> تعتمد الأقسام التي تمت مراجعتها. لا يمكنك تعديل المحتوى الأصلي.',
+      content_editor:'✏️ <b>محرر محتوى:</b> تحرير لغوي وأسلوبي للأقسام المعتمدة + إعداد التصدير النهائي.',
+      comms_admin: '🛡️ <b>مدير إدارة:</b> إدارة الدورة كاملة — من إنشاء العدد حتى الأرشفة وإدارة المساهمين.',
+      admin:       '🛡️ <b>مدير:</b> إدارة الدورة كاملة مع صلاحيات تجاوز workflow.',
+      super_admin: '👑 <b>مدير النظام:</b> صلاحيات كاملة على جميع الأقسام والأعداد والمستخدمين.',
+      viewer:      '👁️ <b>مشاهد:</b> قراءة فقط — لا تملك صلاحيات تعديل.'
+    };
+    hintEl.innerHTML = hints[role] || '<b>مستخدم:</b> يمكنك تصفح أعداد شرفة حسب صلاحياتك.';
+  }
   // Default view: list
   document.getElementById('shorfah-issues-list').style.display = '';
   document.getElementById('shorfah-issue-detail').style.display = 'none';
@@ -12309,7 +12357,14 @@ async function shorfahOpenIssue(id) {
 
 function shorfahRenderBoard() {
   var board = document.getElementById('shorfah-sections-board');
-  var sections = SHORFAH_STATE.sections;
+  // Sort sections by canonical order (Review Round 4)
+  var sections = (SHORFAH_STATE.sections || []).slice().sort(function(a, b) {
+    var ai = SHORFAH_CANONICAL_ORDER.indexOf(a.sectionType);
+    var bi = SHORFAH_CANONICAL_ORDER.indexOf(b.sectionType);
+    if (ai === -1) ai = 999;
+    if (bi === -1) bi = 999;
+    return ai - bi;
+  });
   var isPublished = !!SHORFAH_STATE.isPublished;
   var publishedBanner = isPublished
     ? '<div style="background:linear-gradient(135deg,#dcfce7,#bbf7d0);border:1px solid #86efac;color:#14532d;padding:12px 16px;border-radius:10px;margin-bottom:14px;display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;">'+
@@ -12322,11 +12377,18 @@ function shorfahRenderBoard() {
     var meta = SHORFAH_SECTION_LABELS[s.sectionType] || SHORFAH_SECTION_LABELS.custom;
     var status = SHORFAH_STATUS_LABELS[s.workflowStatus] || SHORFAH_STATUS_LABELS.pending_contribution;
     // When published: only text edit allowed; no workflow transitions; checkbox locked
-    var canEdit = !isPublished && (shorfahIsAdmin() || ['pending_contribution','rejected'].indexOf(s.workflowStatus) >= 0);
-    var canEditTextOnly = isPublished && shorfahIsAdmin();  // for published, admin can still tweak text
-    var canReview = !isPublished && shorfahIsAdmin();
-    var canApprove = !isPublished && shorfahIsAdmin();
-    var canToggle = !isPublished && (shorfahIsAdmin() || s.workflowStatus === 'approved');
+    // Review Round 4 — role-scoped actions (5 role UIs)
+    var isContribStatus = ['pending_contribution','rejected'].indexOf(s.workflowStatus) >= 0;
+    var canEdit = !isPublished && (
+      shorfahIsAdmin() ||
+      (shorfahIsContributor() && isContribStatus) ||
+      (shorfahIsEditor() && ['approved','pending_contribution','rejected','in_review'].indexOf(s.workflowStatus) >= 0)
+    );
+    var canEditTextOnly = isPublished && (shorfahIsAdmin() || shorfahIsEditor());
+    var canReview  = !isPublished && (shorfahIsAdmin() || shorfahIsReviewer());
+    var canApprove = !isPublished && (shorfahIsAdmin() || shorfahIsApprover());
+    var canToggle  = !isPublished && (shorfahIsAdmin() || (shorfahIsEditor() && s.workflowStatus === 'approved'));
+    var canSubmit  = !isPublished && (shorfahIsContributor() || shorfahIsAdmin()) && isContribStatus;
     var includeChecked = s.includeInPdf !== false;
     var hasContent = !!(s.contentMd && s.contentMd.trim().length > 0);
     var contentPreview = hasContent ? (s.contentMd.substring(0, 160).replace(/[*#]/g,'') + (s.contentMd.length > 160 ? '...' : '')) : '<em style="color:#9ca3af;">لا يوجد محتوى بعد</em>';
