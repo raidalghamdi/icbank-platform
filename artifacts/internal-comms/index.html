@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: 2026-07-09-review-round3-content-studio-smart-assistant-x-seed -->
+<!-- build: 2026-07-13-review-round4-phase2 -->
 <html dir="rtl" lang="ar">
 <head>
 <meta charset="UTF-8">
@@ -2885,18 +2885,16 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
     <button class="hamburger" onclick="toggleMobileSidebar()" title="القائمة">
       <span class="ico"><svg><use href="#i-menu"/></svg></span>
     </button>
+    <button class="hamburger" id="nav-back-btn" onclick="navBack()" title="رجوع" style="display:none;">
+      <span class="ico"><svg><use href="#i-chevron-left"/></svg></span>
+    </button>
     <nav class="breadcrumb">
       <span class="en">Workspace</span>
       <span class="breadcrumb-sep ico" style="width:14px;height:14px;"><svg><use href="#i-chevron-left"/></svg></span>
       <span class="breadcrumb-current" id="bc-current">الرئيسية</span>
     </nav>
 
-    <div class="hijri-pill" id="hijri-pill" title="التاريخ الهجري والميلادي">
-      <span class="ico"><svg><use href="#i-calendar"/></svg></span>
-      <span class="hijri-h" id="hijri-h">ـ</span>
-      <span class="hijri-greg-sep">·</span>
-      <span class="hijri-greg" id="hijri-g">—</span>
-    </div>
+    <!-- Date pill removed — date now shown only in the hero card (Review Round 4) -->
 
     <div class="topbar-right">
       <div class="search-wrap">
@@ -3091,11 +3089,19 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
     <div class="page-head">
       <div>
         <h1 class="page-title">المبادرات</h1>
-        <p class="page-sub">قاعدة بيانات شاملة لمبادرات التواصل المؤسسي من منظمات عالمية ومحلية، إضافةً إلى مقترحات ذكاء اصطناعي قابلة للتطبيق.</p>
+        <p class="page-sub">مبادرات التواصل المؤسسي — تشغيلية واستراتيجية — مع حالة الإنجاز ونسبة التقدّم لكل مبادرة.</p>
       </div>
       <div class="page-actions">
         <span id="init-count" style="font-size:12px;color:var(--text-3);font-weight:600;padding:8px 0;"></span>
       </div>
+    </div>
+
+    <!-- KPIs row -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:18px;">
+      <div class="kpi-card"><div class="kpi-label">تشغيلية</div><div class="kpi-value" id="init-kpi-op" style="color:#3B82F6;">—</div></div>
+      <div class="kpi-card"><div class="kpi-label">استراتيجية</div><div class="kpi-value" id="init-kpi-st" style="color:#8B5CF6;">—</div></div>
+      <div class="kpi-card"><div class="kpi-label">متوسط الإنجاز</div><div class="kpi-value" id="init-kpi-avg" style="color:#059669;">—</div></div>
+      <div class="kpi-card"><div class="kpi-label">قيد التنفيذ</div><div class="kpi-value" id="init-kpi-exec" style="color:#F59E0B;">—</div></div>
     </div>
 
     <div class="init-search-wrap">
@@ -3103,11 +3109,17 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
       <input type="text" id="init-search" placeholder="ابحث في المبادرات..." oninput="searchInitiatives(this.value)">
     </div>
 
+    <!-- Primary split: operational vs strategic -->
+    <div class="sub-tabs" role="tablist" style="margin-bottom:8px;">
+      <button class="sub-tab active" data-tab="all" onclick="filterInitiatives('all',this)">📚 الكل</button>
+      <button class="sub-tab" data-tab="operational" onclick="filterInitiatives('operational',this)">⚙️ تشغيلية</button>
+      <button class="sub-tab" data-tab="strategic" onclick="filterInitiatives('strategic',this)">🎯 استراتيجية</button>
+    </div>
+
     <div class="filter-tabs" style="flex-wrap:wrap;gap:6px;">
-      <button class="filter-tab active" onclick="filterInitiatives('all',this)">🌍 الكل</button>
       <button class="filter-tab" onclick="filterInitiatives('global',this)">🌐 عالمية</button>
       <button class="filter-tab" onclick="filterInitiatives('local',this)">🇸🇦 محلية</button>
-      <button class="filter-tab" onclick="filterInitiatives('ai',this)">🤖 مقترحة بالذكاء الاصطناعي</button>
+      <button class="filter-tab" onclick="filterInitiatives('ai',this)">🤖 مقترحة بالذكاء</button>
       <span style="display:inline-block;width:1px;height:24px;background:var(--border);margin:0 4px;"></span>
       <button class="filter-tab" onclick="filterInitiatives('planning',this)">📋 التخطيط</button>
       <button class="filter-tab" onclick="filterInitiatives('execution',this)">⚙️ التنفيذ</button>
@@ -3161,7 +3173,7 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
         <p class="page-sub">تتبّع أداء حملات التواصل المؤسسي (X / LinkedIn / واتساب / إيميل) مع إدخال يدوي للمؤشرات وتصدير تقارير.</p>
       </div>
       <div class="page-actions">
-        <button class="btn btn-primary" onclick="campOpenNewModal()">➕ حملة جديدة</button>
+        <!-- ملحوظة: زر «إضافة حملة جديدة» أُزيل — تحليلات الحملات تعتمد على الحملات الموجودة فقط (الداخلية/الخارجية). Review Round 4 -->
         <button class="btn btn-ghost" onclick="campExportReport('md')">📄 Markdown</button>
         <button class="btn btn-ghost" onclick="campExportReport('pdf')">📑 PDF</button>
       </div>
@@ -3243,7 +3255,7 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
       <div>
         <div class="wk2-hero-title">🌟 نهاية أسبوع سعيدة</div>
         <div class="wk2-hero-sub">محتوى نهاية الأسبوع — للاطلاع والاستمتاع</div>
-        <div class="wk2-hero-desc">أماكن، عروض، بودكاستات، أدوات AI، مباريات، وأفلام</div>
+        <div class="wk2-hero-desc">أماكن، عروض، بودكاستات، أدوات AI، ومباريات</div>
       </div>
     </div>
 
@@ -3340,18 +3352,7 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
         <div class="wk2-options-grid" id="opts-matches"></div>
       </div>
 
-      <div class="wk2-section" id="sec-movies">
-        <div class="wk2-sec-header">
-          <div class="wk2-sec-left">
-            <div class="wk2-sec-icon" style="background:#FDF2F8;color:#BE185D">🎬</div>
-            <div>
-              <div class="wk2-sec-title">أفلام العائلة</div>
-              <div class="wk2-sec-sub">أفلام للعائلة في Muvi و VOX</div>
-            </div>
-          </div>
-        </div>
-        <div class="wk2-options-grid" id="opts-movies"></div>
-      </div>
+      <!-- Films section removed per Review Round 4 -->
 
     </div>
 
@@ -3439,7 +3440,7 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
             <div class="ws-archive-tabs">
               <div class="ws-archive-tab active" onclick="wsFilterArchive('all',this)">الكل <span class="ws-archive-tab-count" id="ws-tab-all">0</span></div>
               <div class="ws-archive-tab" onclick="wsFilterArchive('approved',this)">معتمدة <span class="ws-archive-tab-count" id="ws-tab-approved">0</span></div>
-              <div class="ws-archive-tab" onclick="wsFilterArchive('file',this)">مرفوعة <span class="ws-archive-tab-count" id="ws-tab-file">0</span></div>
+              <div class="ws-archive-tab" onclick="wsFilterArchive('file',this)">تم النشر <span class="ws-archive-tab-count" id="ws-tab-file">0</span></div>
             </div>
             <!-- Archive list -->
             <div id="ws-archive-list" class="ws-archive-list">
@@ -5509,7 +5510,7 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
     <div class="sub-tabs" role="tablist" style="margin-bottom:16px;">
       <button class="sub-tab active" data-view="scheduled" onclick="socialSwitchView('scheduled')">🗓 محتوى مجدول</button>
       <button class="sub-tab" data-view="posts" onclick="socialSwitchView('posts')">📝 المنشورات</button>
-      <button class="sub-tab" data-view="calendar" onclick="socialSwitchView('calendar')">📅 التقويم التحريري</button>
+      <!-- تقويم تحريري أُزيل — يكفي جدول النشر. Review Round 4 -->
       <button class="sub-tab" data-view="performance" onclick="socialSwitchView('performance')">📊 أداء المنصة</button>
     </div>
 
@@ -7176,7 +7177,36 @@ const PAGE_LABELS = {
   performance_reports:'تقارير الأداء',
 };
 
+// Nav history stack for back button (Review Round 4)
+var NAV_HISTORY = [];
+var NAV_SUPPRESS_PUSH = false;
+function navUpdateBackBtn() {
+  var btn = document.getElementById('nav-back-btn');
+  if (!btn) return;
+  btn.style.display = NAV_HISTORY.length > 0 ? '' : 'none';
+}
+function navBack() {
+  if (!NAV_HISTORY.length) return;
+  var prev = NAV_HISTORY.pop();
+  NAV_SUPPRESS_PUSH = true;
+  showSection(prev);
+  NAV_SUPPRESS_PUSH = false;
+  navUpdateBackBtn();
+}
+function _navGetCurrent() {
+  var s = document.querySelector('.page-section.active');
+  if (!s) return null;
+  return s.id.replace(/^section-/, '');
+}
+
 function showSection(name) {
+  if (!NAV_SUPPRESS_PUSH) {
+    var cur = _navGetCurrent();
+    if (cur && cur !== name && cur !== '403') {
+      NAV_HISTORY.push(cur);
+      if (NAV_HISTORY.length > 50) NAV_HISTORY.shift();
+    }
+  }
   if (name !== '403' && !authCanView(name)) {
     document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(a => a.classList.remove('active'));
@@ -7209,6 +7239,12 @@ function showSection(name) {
   if (name === 'shorfah') shorfahInit();
   if (name === 'media_monitoring') MM.load();
   if (name === 'prompts_lib') PL.load();
+  if (name === 'initiatives') initiativesRender();
+  if (name === 'internal_campaigns') renderCampaignsList('internal');
+  if (name === 'external_campaigns') renderCampaignsList('external');
+  if (name === 'press_releases') prRender();
+  if (name === 'media_coverage') mcRender();
+  navUpdateBackBtn();
 }
 
 function toggleMobileSidebar() {
@@ -7369,16 +7405,42 @@ function dashSetGreeting() {
       hijriEl.textContent = hijri.replace(/\s+هـ?$/,'') + ' هـ';
     } catch(e) { hijriEl.textContent = ''; }
   }
-  // Rotating weekly inspiration message — index by ISO week number
+  // Dynamic contextual message — combines time-of-day salutation with user + rotating inspiration
+  // Review Round 4: rotates daily (not weekly), personalized by user name, greets by time-of-day
   var ctxEl = document.getElementById('dash-context-msg');
   if (ctxEl) {
     var now2 = new Date();
-    var d = new Date(Date.UTC(now2.getFullYear(), now2.getMonth(), now2.getDate()));
-    d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
-    var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-    var weekNum = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
-    var idx = ((weekNum - 1) % WEEKLY_MESSAGES.length + WEEKLY_MESSAGES.length) % WEEKLY_MESSAGES.length;
-    ctxEl.textContent = WEEKLY_MESSAGES[idx];
+    var hour = now2.getHours();
+    var day = now2.getDay(); // 0=Sun ... 6=Sat
+    var userName = '';
+    try {
+      if (window.AUTH_USER && AUTH_USER.name) {
+        userName = String(AUTH_USER.name).split(' ')[0];
+      }
+    } catch(e) {}
+    // Time-of-day greeting
+    var greeting = '';
+    if (hour < 5)       greeting = 'مساء الخير';
+    else if (hour < 12) greeting = 'صباح الخير';
+    else if (hour < 17) greeting = 'يوماً موفقاً';
+    else                greeting = 'مساء الخير';
+    // Day-of-week vibe
+    var dayVibe = '';
+    if (day === 0)      dayVibe = 'يوم أحد مليء بالإنجاز'; // Sunday
+    else if (day === 4) dayVibe = 'ختام أسبوع متميز'; // Thu
+    else if (day === 5 || day === 6) dayVibe = 'إجازة سعيدة';
+    else                dayVibe = 'يوم جديد من الإنجاز';
+    // Rotating tip (day-of-year rotation — changes every day)
+    var yearStart = new Date(Date.UTC(now2.getFullYear(), 0, 1));
+    var dayOfYear = Math.floor((now2 - yearStart) / 86400000);
+    var idx = ((dayOfYear % WEEKLY_MESSAGES.length) + WEEKLY_MESSAGES.length) % WEEKLY_MESSAGES.length;
+    var tip = WEEKLY_MESSAGES[idx];
+    // Compose
+    var personal = userName
+      ? (greeting + ' ' + userName + ' · ' + dayVibe)
+      : (greeting + ' · ' + dayVibe);
+    ctxEl.innerHTML = '<div style="margin-bottom:2px;font-weight:600;font-size:14px;">' + personal + '</div>' +
+                      '<div style="opacity:.85;font-size:12.5px;">' + tip + '</div>';
   }
 }
 
@@ -8105,12 +8167,19 @@ function resolveNewsUrl(url, title) {
 }
 
 function filterInitiatives(f, btn) {
-  document.querySelectorAll('#section-initiatives .filter-tab').forEach(t=>t.classList.remove('active'));
-  btn.classList.add('active');
+  // Reset all tabs (both sub-tabs and filter-tabs) then activate the clicked one
+  document.querySelectorAll('#section-initiatives .filter-tab, #section-initiatives .sub-tab').forEach(t=>t.classList.remove('active'));
+  if (btn) btn.classList.add('active');
   const si = document.getElementById('init-search');
   if (si) si.value = '';
+  // Classify: operational = execution/results phases OR local + implementation tag
+  // strategic = planning/impact phases OR AI-suggested OR tag includes 'استراتيجي'
+  const isOperational = i => i.phase === 'execution' || i.phase === 'results' || (i.tags && i.tags.some(t=>/تشغيل|تنفيذ|الداخل|اندماج/.test(t)));
+  const isStrategic  = i => i.phase === 'planning' || i.phase === 'impact' || i.type === 'ai' || (i.tags && i.tags.some(t=>/استراتيج|تحول|رؤية|تخطيط/.test(t)));
   const map = {
     all:INITIATIVES,
+    operational: INITIATIVES.filter(isOperational),
+    strategic:   INITIATIVES.filter(isStrategic),
     global:INITIATIVES.filter(i=>i.type==='global'),
     local:INITIATIVES.filter(i=>i.type==='local'),
     ai:INITIATIVES.filter(i=>i.type==='ai'),
@@ -8121,6 +8190,22 @@ function filterInitiatives(f, btn) {
     impact:INITIATIVES.filter(i=>i.phase==='impact'),
   };
   renderAllInitiatives(map[f] || INITIATIVES);
+}
+
+// Alias called from showSection when navigating to initiatives page
+function initiativesRender() {
+  renderAllInitiatives(INITIATIVES);
+  // Update KPI cards
+  var op = INITIATIVES.filter(function(i){ return i.phase==='execution' || i.phase==='results' || (i.tags && i.tags.some(function(t){ return /تشغيل|تنفيذ|الداخل|اندماج/.test(t); })); }).length;
+  var st = INITIATIVES.filter(function(i){ return i.phase==='planning' || i.phase==='impact' || i.type==='ai' || (i.tags && i.tags.some(function(t){ return /استراتيج|تحول|رؤية|تخطيط/.test(t); })); }).length;
+  var exec = INITIATIVES.filter(function(i){ return i.phase==='execution'; }).length;
+  var vals = INITIATIVES.map(function(i){ return typeof i.applicability === 'number' ? i.applicability : 0; }).filter(function(v){ return v>0; });
+  var avg = vals.length ? Math.round(vals.reduce(function(a,b){ return a+b; },0) / vals.length) : 0;
+  var $ = function(id){ return document.getElementById(id); };
+  if ($('init-kpi-op'))   $('init-kpi-op').textContent = op;
+  if ($('init-kpi-st'))   $('init-kpi-st').textContent = st;
+  if ($('init-kpi-avg'))  $('init-kpi-avg').textContent = avg + '%';
+  if ($('init-kpi-exec')) $('init-kpi-exec').textContent = exec;
 }
 
 function searchInitiatives(q) {
@@ -14270,18 +14355,341 @@ function reqRender(scope) {
   }).join('');
 }
 
-function reqOpenNew(scope) {
-  var t = prompt('عنوان الطلب ال'+(scope==='internal'?'داخلي':'خارجي'));
-  if (!t) return;
-  var types = scope==='internal' ? ['design','news','announcement','email_approval','screens','event_coverage'] : ['design','press_release','event_participation','media_support','social_post'];
-  var ty = prompt('نوع الطلب (' + types.join(' / ') + ')', types[0]);
-  if (!ty) return;
-  REQ_STATE[scope].items.push({ title:t, type:ty, requester:(AUTH_USER&&AUTH_USER.name)||'المستخدم', status:'جديد', createdAt: new Date().toISOString() });
-  reqRender(scope);
+// ─── Shared Modal Helper (Review Round 4) ─────────────────────────────────────────────────
+// Renders an on-the-fly modal with a form. Returns a Promise resolving to the
+// form values as an object, or null if the user cancelled.
+function openFormModal(config) {
+  return new Promise(function(resolve) {
+    var overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto;';
+    var w = (config.width || 640);
+    var fieldsHtml = (config.fields || []).map(function(f) {
+      var id = 'fm-' + f.key;
+      var label = '<label style="display:block;font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px;">' + f.label + (f.required ? ' <span style="color:#DC2626">*</span>' : '') + '</label>';
+      var input = '';
+      if (f.type === 'textarea') {
+        input = '<textarea id="' + id + '" ' + (f.required?'required':'') + ' style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;resize:vertical;min-height:'+(f.rows?f.rows*24:80)+'px;" placeholder="' + (f.placeholder||'') + '">' + (f.default||'') + '</textarea>';
+      } else if (f.type === 'select') {
+        input = '<select id="' + id + '" ' + (f.required?'required':'') + ' style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:#fff;">' +
+          (f.options||[]).map(function(o){
+            var v = typeof o === 'string' ? o : o.value;
+            var l = typeof o === 'string' ? o : o.label;
+            return '<option value="'+v+'"'+(f.default===v?' selected':'')+'>'+l+'</option>';
+          }).join('') + '</select>';
+      } else if (f.type === 'multi') {
+        input = '<div style="display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:1px solid var(--border);border-radius:8px;background:#fff;">' +
+          (f.options||[]).map(function(o, i){
+            var v = typeof o === 'string' ? o : o.value;
+            var l = typeof o === 'string' ? o : o.label;
+            return '<label style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:#F3F4F6;border-radius:6px;cursor:pointer;font-size:12.5px;"><input type="checkbox" data-multi="'+f.key+'" value="'+v+'" style="margin:0"/> '+l+'</label>';
+          }).join('') + '</div>';
+      } else {
+        input = '<input id="' + id + '" type="' + (f.type || 'text') + '" ' + (f.required?'required':'') + ' style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;" placeholder="' + (f.placeholder||'') + '" value="' + (f.default||'') + '"' + (f.min!==undefined?' min="'+f.min+'"':'') + (f.max!==undefined?' max="'+f.max+'"':'') + '/>';
+      }
+      var hint = f.hint ? '<div style="font-size:11px;color:var(--text-3);margin-top:4px;">' + f.hint + '</div>' : '';
+      var cls = f.dynamic ? ' data-dynamic-for="'+f.dynamic+'"' : '';
+      var display = f.hidden ? 'display:none;' : '';
+      return '<div class="fm-field" data-key="' + f.key + '" ' + cls + ' style="margin-bottom:14px;'+display+'">' + label + input + hint + '</div>';
+    }).join('');
+
+    overlay.innerHTML = '<div style="background:#fff;border-radius:14px;width:min('+w+'px,100%);max-height:90vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3);">' +
+      '<div style="padding:18px 22px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:#fff;z-index:1;">' +
+        '<h3 style="margin:0;font-size:17px;font-weight:700;color:var(--text);">' + (config.title||'نموذج') + '</h3>' +
+        '<button type="button" id="fm-close" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--text-3);line-height:1;">✕</button>' +
+      '</div>' +
+      (config.description ? '<div style="padding:12px 22px;background:#F9FAFB;border-bottom:1px solid var(--border);font-size:12.5px;color:var(--text-2);">' + config.description + '</div>' : '') +
+      '<div style="padding:20px 22px;">' + fieldsHtml + '</div>' +
+      '<div style="padding:14px 22px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;background:#F9FAFB;position:sticky;bottom:0;">' +
+        '<button type="button" id="fm-cancel" class="btn btn-ghost">إلغاء</button>' +
+        '<button type="button" id="fm-submit" class="btn btn-primary">' + (config.submitLabel||'حفظ') + '</button>' +
+      '</div></div>';
+    document.body.appendChild(overlay);
+
+    function close(val) { document.body.removeChild(overlay); resolve(val); }
+    overlay.querySelector('#fm-close').onclick = function(){ close(null); };
+    overlay.querySelector('#fm-cancel').onclick = function(){ close(null); };
+    overlay.onclick = function(e){ if (e.target === overlay) close(null); };
+
+    // Dynamic field visibility (fields with a .dynamic key visible only when their trigger is set)
+    function updateDynamicFields() {
+      overlay.querySelectorAll('[data-dynamic-for]').forEach(function(el){
+        var triggerSpec = el.getAttribute('data-dynamic-for'); // format: "triggerKey:value1,value2"
+        var parts = triggerSpec.split(':');
+        var triggerKey = parts[0];
+        var wantedValues = parts[1] ? parts[1].split(',') : [];
+        var trigEl = overlay.querySelector('#fm-' + triggerKey);
+        var multiChecks = overlay.querySelectorAll('[data-multi="'+triggerKey+'"]:checked');
+        var currentVals = [];
+        if (trigEl) currentVals.push(trigEl.value);
+        multiChecks.forEach(function(m){ currentVals.push(m.value); });
+        var show = wantedValues.some(function(v){ return currentVals.indexOf(v) !== -1; });
+        el.style.display = show ? '' : 'none';
+      });
+    }
+    overlay.querySelectorAll('input, select, textarea').forEach(function(el){
+      el.addEventListener('change', updateDynamicFields);
+      el.addEventListener('input', updateDynamicFields);
+    });
+    updateDynamicFields();
+
+    overlay.querySelector('#fm-submit').onclick = function() {
+      var result = {};
+      var missing = [];
+      (config.fields||[]).forEach(function(f) {
+        var fieldEl = overlay.querySelector('.fm-field[data-key="'+f.key+'"]');
+        var isHidden = fieldEl && fieldEl.style.display === 'none';
+        if (f.type === 'multi') {
+          if (isHidden) { result[f.key] = []; return; }
+          var vals = [];
+          overlay.querySelectorAll('[data-multi="'+f.key+'"]:checked').forEach(function(c){ vals.push(c.value); });
+          result[f.key] = vals;
+          if (f.required && !vals.length) missing.push(f.label);
+        } else {
+          var el = overlay.querySelector('#fm-' + f.key);
+          if (!el) return;
+          var field = overlay.querySelector('.fm-field[data-key="'+f.key+'"]');
+          if (field && field.style.display === 'none') { result[f.key] = null; return; }
+          var v = el.value.trim();
+          result[f.key] = v;
+          if (f.required && !v) missing.push(f.label);
+        }
+      });
+      if (missing.length) { alert('يرجى تعبئة: ' + missing.join(' ، ')); return; }
+      close(result);
+    };
+  });
 }
 
-function campaignOpenNew(scope) {
-  alert('قريباً: نموذج حملة '+(scope==='internal'?'داخلية':'خارجية')+' متكامل مع 10 حقول.\n\nجميع الحقول مدرجة في الصفحة أدناه للمرجعية.');
+// ─── Local storage helpers for demo persistence ──────────────────────────────────
+// Until we wire proper backend endpoints for press releases & media coverage,
+// items are stored per-user in localStorage so the demo feels real.
+function lsGet(key) { try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch(e) { return []; } }
+function lsSet(key, arr) { try { localStorage.setItem(key, JSON.stringify(arr)); } catch(e) {} }
+
+async function reqOpenNew(scope) {
+  var internalTypes = [
+    { value:'design',           label:'طلب تصميم داخلي' },
+    { value:'internal_ad',      label:'طلب إعلان داخلي' },
+    { value:'workshop',         label:'طلب ورشة عمل' },
+    { value:'news',             label:'طلب خبر داخلي' },
+    { value:'announcement',     label:'طلب إعلان/تعميم' },
+    { value:'email_approval',   label:'اعتماد إيميل جماعي' },
+    { value:'screens',          label:'محتوى للشاشات الداخلية' },
+    { value:'event_coverage',   label:'تغطية فعالية داخلية' },
+    { value:'change_campaign',  label:'حملة تغيير شاملة' }
+  ];
+  var externalTypes = [
+    { value:'design',              label:'طلب تصميم خارجي' },
+    { value:'press_release',       label:'طلب بيان صحفي' },
+    { value:'event_participation', label:'طلب مشاركة في فعالية' },
+    { value:'media_support',       label:'طلب دعم إعلامي' },
+    { value:'social_post',         label:'طلب منشور على المنصات' },
+    { value:'media_coverage',      label:'طلب تغطية إعلامية' },
+    { value:'external_campaign',   label:'حملة إعلامية خارجية' }
+  ];
+  var types = scope==='internal' ? internalTypes : externalTypes;
+  var isChange = false;
+  var data = await openFormModal({
+    title: 'طلب ' + (scope==='internal'?'داخلي':'خارجي') + ' جديد',
+    submitLabel: 'إرسال الطلب',
+    width: 640,
+    fields: [
+      { key:'title', label:'عنوان الطلب', required:true, placeholder:'مثال: تصميم منشور لليوم الوطني' },
+      { key:'type',  label:'نوع الطلب', type:'select', required:true, options:types, default:types[0].value },
+      { key:'priority', label:'الأولوية', type:'select', options:[{value:'normal',label:'عادي'},{value:'urgent',label:'عاجل'},{value:'critical',label:'حرج'}], default:'normal' },
+      { key:'dueDate', label:'التاريخ المطلوب', type:'date' },
+      { key:'description', label:'وصف الطلب', type:'textarea', rows:4, placeholder:'تفاصيل إضافية...' }
+    ]
+  });
+  if (!data) return;
+  // If "change_campaign" — route to the dedicated Change Campaign form
+  if (data.type === 'change_campaign') {
+    return openChangeCampaign(data.title);
+  }
+  REQ_STATE[scope].items.push({
+    id: 'req-' + Date.now(),
+    title: data.title,
+    type: data.type,
+    priority: data.priority,
+    dueDate: data.dueDate,
+    description: data.description,
+    requester: (AUTH_USER&&AUTH_USER.name)||'المستخدم',
+    status: 'جديد',
+    createdAt: new Date().toISOString()
+  });
+  reqRender(scope);
+  alert('تم إرسال الطلب بنجاح');
+}
+
+// ═══ CHANGE CAMPAIGN (حملة تغيير شاملة) — MVP ═══
+// User specified: long form + dynamic fields + save to DB + auto-create Workspace
+async function openChangeCampaign(prefilledTitle) {
+  var data = await openFormModal({
+    title: '🚀 حملة تغيير شاملة',
+    submitLabel: 'إنشاء الحملة وفتح مساحة العمل',
+    width: 780,
+    description: 'نموذج شامل لحملات التغيير. الحقول الديناميكية تظهر حسب متطلبات الحملة التي تختارها.',
+    fields: [
+      { key:'name',        label:'اسم الحملة', required:true, default: prefilledTitle||'', placeholder:'مثال: حملة تبني النظام المحدّث' },
+      { key:'goal',        label:'الهدف الرئيسي', required:true, type:'textarea', rows:2, placeholder:'ما الذي تريد تحقيقه من هذه الحملة؟' },
+      { key:'description', label:'وصف تفصيلي', type:'textarea', rows:4, placeholder:'لماذا هذه الحملة؟ ما التغيير المطلوب؟' },
+      { key:'audience',    label:'الجمهور المستهدف', required:true, placeholder:'مثال: موظفو الهيئة · قيادات · شركاء' },
+      { key:'startDate',   label:'تاريخ البدء', type:'date', required:true },
+      { key:'endDate',     label:'تاريخ الانتهاء', type:'date', required:true },
+      { key:'priority',    label:'الأولوية', type:'select', options:[{value:'high',label:'عالية'},{value:'medium',label:'متوسطة'},{value:'low',label:'منخفضة'}], default:'medium' },
+      { key:'keyMessages', label:'الرسائل الرئيسية', type:'textarea', rows:3, placeholder:'الرسائل التي نريد إيصالها — رسالة في كل سطر' },
+      { key:'services',    label:'الخدمات المطلوبة', type:'multi', required:true, options:[
+          '🎥 فيديو','🎨 ورش عمل','🖼️ تصاميم داخلية','🌐 تصاميم خارجية',
+          '📢 نشر داخلي','🌐 نشر خارجي','📧 بريد إلكتروني',
+          '📺 شاشات داخلية','📰 تغطية إعلامية','📷 تصوير',
+          '📅 خطة نشر','🔧 متطلبات إضافية'
+        ] },
+      /* Dynamic fields shown based on chosen services */
+      { key:'videoBrief',   label:'🎥 موجز الفيديو', type:'textarea', rows:2, placeholder:'مدة · جمهور · رسائل رئيسية', dynamic:'services:🎥 فيديو' },
+      { key:'workshopBrief',label:'🎨 تفاصيل الورش', type:'textarea', rows:2, placeholder:'عدد الورش · المدة · الموقع', dynamic:'services:🎨 ورش عمل' },
+      { key:'internalDesignBrief',   label:'🖼️ موجز التصاميم الداخلية', type:'textarea', rows:2, placeholder:'أنواع · أحجام · أماكن', dynamic:'services:🖼️ تصاميم داخلية' },
+      { key:'externalDesignBrief',   label:'🌐 موجز التصاميم الخارجية', type:'textarea', rows:2, placeholder:'منصات النشر · المقاسات', dynamic:'services:🌐 تصاميم خارجية' },
+      { key:'internalChannels',label:'📢 قنوات النشر الداخلي', type:'multi', options:['الإنترانت','الإيميل الداخلي','الشاشات','تيمز','واتساب داخلي'], dynamic:'services:📢 نشر داخلي' },
+      { key:'externalChannels',label:'🌐 قنوات النشر الخارجي', type:'multi', options:['موقع الهيئة','إكس','لينكدإن','إنستجرام','يوتيوب','تيك توك','إعلام مدفوع'], dynamic:'services:🌐 نشر خارجي' },
+      { key:'emailDetails',label:'📧 تفاصيل البريد الإلكتروني', type:'textarea', rows:2, placeholder:'عدد الرسائل · الجدول الزمني · القوالب', dynamic:'services:📧 بريد إلكتروني' },
+      { key:'screensDetails',label:'📺 تفاصيل الشاشات', type:'textarea', rows:2, placeholder:'مواقع · مدة العرض · المحتوى', dynamic:'services:📺 شاشات داخلية' },
+      { key:'mediaCoverageBrief',label:'📰 موجز التغطية الإعلامية', type:'textarea', rows:2, placeholder:'الفعالية · التاريخ · القنوات المستهدفة', dynamic:'services:📰 تغطية إعلامية' },
+      { key:'photoBrief',   label:'📷 موجز التصوير', type:'textarea', rows:2, placeholder:'الموقع · الفعالية · عدد المحترفين', dynamic:'services:📷 تصوير' },
+      { key:'publishPlan',  label:'📅 خطة النشر', type:'textarea', rows:2, placeholder:'جدول زمني · تتابع المحتوى', dynamic:'services:📅 خطة نشر' },
+      { key:'otherReq',     label:'🔧 متطلبات إضافية', type:'textarea', rows:2, placeholder:'أي متطلبات أخرى...', dynamic:'services:🔧 متطلبات إضافية' }
+    ]
+  });
+  if (!data) return;
+  var arr = lsGet('gac_change_campaigns');
+  var id = 'cc-' + Date.now();
+  var record = Object.assign({
+    id: id,
+    status: 'planning',        // planning | active | completed | archived
+    progress: 0,
+    createdAt: new Date().toISOString(),
+    createdBy: (AUTH_USER && AUTH_USER.name) || 'المستخدم',
+    workspaceId: 'ws-' + id,
+    timeline: [
+      { date: new Date().toISOString(), text: 'تم إنشاء الحملة', done: true }
+    ],
+    attachments: [],
+    tasks: []
+  }, data);
+  arr.unshift(record);
+  lsSet('gac_change_campaigns', arr);
+  alert('✅ تم إنشاء حملة التغيير الشاملة بنجاح.\n📂 مساحة العمل: ' + record.workspaceId);
+  // Auto-open the workspace page
+  showChangeCampaignWorkspace(id);
+}
+
+// Simple workspace page for Change Campaigns
+function showChangeCampaignWorkspace(id) {
+  var arr = lsGet('gac_change_campaigns');
+  var c = arr.find(function(x){ return x.id === id; });
+  if (!c) { alert('الحملة غير موجودة'); return; }
+  var statusColor = { planning:'#6B7280', active:'#059669', completed:'#3B82F6', archived:'#9CA3AF' }[c.status] || '#6B7280';
+  var statusLbl   = { planning:'تخطيط', active:'نشطة', completed:'مكتملة', archived:'مؤرشفة' }[c.status] || c.status;
+  var services = Array.isArray(c.services) ? c.services : (c.services ? [c.services] : []);
+  var timeline = (c.timeline||[]).map(function(t){
+    return '<div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px dashed #E5E7EB;font-size:13px;"><span style="color:#9CA3AF;min-width:110px;">'+ new Date(t.date).toLocaleDateString('ar-SA') +'</span><span>'+ (t.done?'✅':'⏳') +' '+ t.text +'</span></div>';
+  }).join('');
+  var view = document.createElement('div');
+  view.className = '__ccw';
+  view.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto;';
+  view.innerHTML = '<div style="background:#fff;border-radius:14px;width:min(900px,100%);max-height:92vh;overflow:auto;">'+
+    '<div style="padding:20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;"><div><strong style="font-size:16px;">🚀 '+c.name+'</strong><div style="font-size:12px;color:var(--text-3);margin-top:2px;">مساحة عمل '+c.workspaceId+'</div></div><button style="background:none;border:none;font-size:22px;cursor:pointer;" onclick="this.closest(\'.__ccw\').remove()">✕</button></div>'+
+    '<div style="padding:24px;">'+
+      '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:20px;">'+
+        '<div style="padding:12px;background:#F9FAFB;border-radius:10px;"><div style="font-size:11px;color:#6B7280;margin-bottom:4px;">الحالة</div><span style="padding:3px 10px;background:'+statusColor+'22;color:'+statusColor+';border-radius:999px;font-size:12px;font-weight:600;">'+statusLbl+'</span></div>'+
+        '<div style="padding:12px;background:#F9FAFB;border-radius:10px;"><div style="font-size:11px;color:#6B7280;margin-bottom:4px;">نسبة التقدّم</div><div style="font-size:20px;font-weight:800;color:#059669;">'+(c.progress||0)+'%</div></div>'+
+        '<div style="padding:12px;background:#F9FAFB;border-radius:10px;"><div style="font-size:11px;color:#6B7280;margin-bottom:4px;">الجمهور</div><div style="font-size:13px;">'+(c.audience||'—')+'</div></div>'+
+        '<div style="padding:12px;background:#F9FAFB;border-radius:10px;"><div style="font-size:11px;color:#6B7280;margin-bottom:4px;">الفترة</div><div style="font-size:12px;">'+(c.startDate||'')+' → '+(c.endDate||'')+'</div></div>'+
+      '</div>'+
+      '<div style="margin-bottom:20px;"><div style="font-weight:700;margin-bottom:8px;">🎯 الهدف</div><div style="padding:12px;background:#EFF6FF;border-radius:8px;font-size:13px;line-height:1.7;">'+(c.goal||'—')+'</div></div>'+
+      (c.description?'<div style="margin-bottom:20px;"><div style="font-weight:700;margin-bottom:8px;">📝 الوصف</div><div style="font-size:13px;line-height:1.9;white-space:pre-wrap;color:var(--text);">'+c.description+'</div></div>':'')+
+      (c.keyMessages?'<div style="margin-bottom:20px;"><div style="font-weight:700;margin-bottom:8px;">💬 الرسائل الرئيسية</div><div style="font-size:13px;line-height:1.9;white-space:pre-wrap;">'+c.keyMessages+'</div></div>':'')+
+      (services.length?'<div style="margin-bottom:20px;"><div style="font-weight:700;margin-bottom:8px;">🔧 الخدمات المطلوبة</div><div style="display:flex;flex-wrap:wrap;gap:6px;">'+services.map(function(s){ return '<span class="chip">'+s+'</span>'; }).join('')+'</div></div>':'')+
+      '<div style="margin-bottom:20px;"><div style="font-weight:700;margin-bottom:8px;">📅 الجدول الزمني</div>'+(timeline||'<div style="font-size:12px;color:#9CA3AF;">لا أحداث بعد</div>')+'</div>'+
+      '<div style="margin-bottom:12px;"><div style="font-weight:700;margin-bottom:8px;">📎 المرفقات</div><div style="padding:20px;text-align:center;color:#9CA3AF;font-size:12px;background:#F9FAFB;border-radius:8px;border:1px dashed #D1D5DB;">الرفع قريباً — متوفر في المرحلة التالية</div></div>'+
+    '</div>'+
+    '<div style="padding:16px 20px;border-top:1px solid var(--border);background:#F9FAFB;display:flex;justify-content:space-between;gap:8px;">'+
+      '<button class="btn btn-primary" onclick="advanceChangeCampaign(\''+id+'\')">→ المرحلة التالية</button>'+
+      '<button class="btn btn-ghost" onclick="this.closest(\'.__ccw\').remove()">إغلاق</button>'+
+    '</div>'+
+  '</div>';
+  document.body.appendChild(view);
+}
+
+function advanceChangeCampaign(id) {
+  var arr = lsGet('gac_change_campaigns');
+  var idx = arr.findIndex(function(x){ return x.id === id; });
+  if (idx === -1) return;
+  var next = { planning:'active', active:'completed', completed:'archived' };
+  var progressMap = { planning:25, active:75, completed:100, archived:100 };
+  var newStatus = next[arr[idx].status] || arr[idx].status;
+  arr[idx].status = newStatus;
+  arr[idx].progress = progressMap[newStatus] || arr[idx].progress;
+  arr[idx].timeline = arr[idx].timeline || [];
+  arr[idx].timeline.push({ date:new Date().toISOString(), text:'تم الانتقال إلى: '+newStatus, done:true });
+  lsSet('gac_change_campaigns', arr);
+  document.querySelectorAll('.__ccw').forEach(function(v){ v.remove(); });
+  showChangeCampaignWorkspace(id);
+}
+
+async function campaignOpenNew(scope) {
+  var data = await openFormModal({
+    title: 'حملة ' + (scope==='internal'?'داخلية':'خارجية') + ' جديدة',
+    submitLabel: 'إنشاء الحملة',
+    width: 720,
+    fields: [
+      { key:'name',        label:'اسم الحملة', required:true, placeholder:'مثال: حملة التوعية بنظام المنافسة' },
+      { key:'goal',        label:'الهدف', required:true, placeholder:'الهدف المحدد من الحملة' },
+      { key:'description', label:'وصف مختصر', type:'textarea', rows:3 },
+      { key:'audience',    label:'الفئة المستهدفة', required:true, placeholder:'مثال: الموظفين الجدد' },
+      { key:'startDate',   label:'تاريخ البداية', type:'date', required:true },
+      { key:'endDate',     label:'تاريخ النهاية', type:'date', required:true },
+      { key:'priority',    label:'الأولوية', type:'select', options:[{value:'normal',label:'عادي'},{value:'high',label:'عالية'},{value:'critical',label:'حرج'}], default:'normal' },
+      { key:'messages',    label:'الرسائل الرئيسية', type:'textarea', rows:3, placeholder:'رسالة في كل سطر...' },
+      { key:'budget',      label:'الميزانية (ر.س)', type:'number', min:0 },
+      { key:'channels',    label:'قنوات النشر', type:'multi', options: scope==='internal' ? ['إيميل داخلي','الشاشات الداخلية','تيمز/سلاك','اجتماعات','مطبوعات'] : ['X (تويتر)','لينكدإن','يوتيوب','الموقع الرسمي','وسائل إعلام','واتساب بيزنس'] }
+    ]
+  });
+  if (!data) return;
+  var key = 'gac_campaigns_' + scope;
+  var arr = lsGet(key);
+  arr.unshift(Object.assign({ id:'camp-'+Date.now(), status:'مسودة', progress:0, createdAt:new Date().toISOString(), createdBy:(AUTH_USER&&AUTH_USER.name)||'' }, data));
+  lsSet(key, arr);
+  alert('تم إنشاء الحملة «' + data.name + '».\nالحالة: مسودة — يمكن إدارتها من قائمة الحملات.');
+  // Reload the campaigns page if visible
+  var pageId = scope === 'internal' ? 'section-internal_campaigns' : 'section-external_campaigns';
+  var page = document.getElementById(pageId);
+  if (page && page.classList.contains('active')) renderCampaignsList(scope);
+}
+
+// Render campaigns list on the campaigns pages
+function renderCampaignsList(scope) {
+  var listId = scope === 'internal' ? 'camp-int-list' : 'camp-ext-list';
+  var host = document.getElementById(listId);
+  if (!host) return;
+  var items = lsGet('gac_campaigns_' + scope);
+  if (!items.length) {
+    host.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-3);"><div style="font-size:40px;opacity:.4;margin-bottom:8px;">📢</div><div>لا توجد حملات بعد — أنشئ أول حملة</div></div>';
+    return;
+  }
+  host.innerHTML = items.map(function(c) {
+    var statusColor = c.status === 'نشطة' ? '#059669' : c.status === 'مسودة' ? '#6B7280' : '#DC2626';
+    return '<div style="padding:14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;gap:14px;align-items:flex-start;">' +
+      '<div style="flex:1;min-width:0;">' +
+        '<div style="font-weight:700;font-size:14px;color:var(--text);margin-bottom:4px;">'+c.name+'</div>' +
+        '<div style="font-size:12px;color:var(--text-3);margin-bottom:6px;">'+(c.goal||'')+'</div>' +
+        '<div style="font-size:11px;color:var(--text-4);">'+(c.startDate||'')+' → '+(c.endDate||'')+' · جمهور: '+(c.audience||'—')+'</div>' +
+      '</div>' +
+      '<div style="text-align:left;flex-shrink:0;">' +
+        '<span style="display:inline-block;padding:3px 10px;background:'+statusColor+'22;color:'+statusColor+';border-radius:999px;font-size:11px;font-weight:600;">'+(c.status||'—')+'</span>' +
+        '<div style="font-size:11px;color:var(--text-3);margin-top:4px;">'+(c.progress||0)+'% اكتمال</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
 }
 
 function socialSwitchPlatform(p) {
@@ -14305,7 +14713,7 @@ function socialSwitchView(v) {
 }
 
 var PLATFORM_LABEL = { linkedin:'لينكدإن', x:'X (تويتر)', snapchat:'سناب شات', youtube:'يوتيوب' };
-var VIEW_LABEL = { scheduled:'المحتوى المجدول', posts:'المنشورات', calendar:'التقويم التحريري', performance:'أداء المنصة' };
+var VIEW_LABEL = { scheduled:'المحتوى المجدول', posts:'المنشورات', performance:'أداء المنصة' };
 
 function socialRender() {
   var host = document.getElementById('social-content-body');
@@ -14388,7 +14796,92 @@ async function socialLoadLinkedIn(view) { return socialLoadFeed('linkedin', view
 
 function socialRefresh() { socialRender(); }
 
-function prNew() { alert('قريباً: محرر بيان صحفي متكامل مع دورة حياة: مسودة → مراجعة → اعتماد → نشر → أرشيف.'); }
+async function prNew() {
+  var data = await openFormModal({
+    title: 'بيان صحفي جديد',
+    submitLabel: 'حفظ كمسودة',
+    width: 720,
+    description: 'دورة الحياة: مسودة → قيد المراجعة → معتمد → منشور → أرشيف',
+    fields: [
+      { key:'title',      label:'عنوان البيان', required:true, placeholder:'مثال: إصدار تقرير الربع الثالث' },
+      { key:'subtitle',   label:'العنوان الفرعي' },
+      { key:'summary',    label:'الملخص التنفيذي', type:'textarea', rows:3, required:true, placeholder:'فقرة افتتاحية مختصرة...' },
+      { key:'body',       label:'متن البيان', type:'textarea', rows:8, required:true },
+      { key:'category',   label:'التصنيف', type:'select', options:[{value:'decision',label:'قرار'},{value:'report',label:'تقرير'},{value:'campaign',label:'حملة'},{value:'partnership',label:'شراكة'},{value:'general',label:'عام'}], default:'general' },
+      { key:'quotes',     label:'الاقتباسات', type:'textarea', rows:3, placeholder:'اقتباس من المسؤولين...' },
+      { key:'contact',    label:'جهة التواصل الإعلامي', placeholder:'الاسم · البريد' },
+      { key:'embargoDate', label:'تاريخ النشر المستهدف', type:'date' }
+    ]
+  });
+  if (!data) return;
+  var arr = lsGet('gac_press_releases');
+  arr.unshift(Object.assign({ id:'pr-'+Date.now(), status:'draft', createdAt:new Date().toISOString(), createdBy:(AUTH_USER&&AUTH_USER.name)||'' }, data));
+  lsSet('gac_press_releases', arr);
+  alert('تم حفظ البيان الصحفي كمسودة.');
+  prRender();
+}
+
+function prRender() {
+  var host = document.getElementById('pr-list');
+  if (!host) return;
+  var items = lsGet('gac_press_releases');
+  var tab = document.querySelector('#section-press_releases .sub-tab.active');
+  var filter = tab ? tab.getAttribute('data-tab') : 'all';
+  if (filter !== 'all') items = items.filter(function(x){ return x.status === filter; });
+  if (!items.length) {
+    host.innerHTML = '<div style="font-size:40px;margin-bottom:8px;opacity:.5;text-align:center;">📰</div>' +
+      '<div style="font-size:14px;text-align:center;">لا توجد بيانات صحفية — أنشئ أول بيان</div>';
+    return;
+  }
+  var statusLbl = { draft:'مسودة', review:'قيد المراجعة', approved:'معتمد', published:'منشور', archive:'أرشيف' };
+  var statusColor = { draft:'#6B7280', review:'#F59E0B', approved:'#3B82F6', published:'#059669', archive:'#9CA3AF' };
+  host.style.padding = '0';
+  host.style.textAlign = 'right';
+  host.innerHTML = items.map(function(p) {
+    var color = statusColor[p.status] || '#6B7280';
+    return '<div style="padding:16px 20px;border-bottom:1px solid var(--border);cursor:pointer;" onclick="prOpen(\''+p.id+'\')">' +
+      '<div style="display:flex;justify-content:space-between;gap:14px;align-items:flex-start;">' +
+        '<div style="flex:1;min-width:0;">' +
+          '<div style="font-weight:700;font-size:14px;color:var(--text);margin-bottom:4px;">'+p.title+'</div>' +
+          '<div style="font-size:12px;color:var(--text-3);">'+(p.summary||'').substring(0,140)+'…</div>' +
+          '<div style="font-size:11px;color:var(--text-4);margin-top:6px;">'+(new Date(p.createdAt).toLocaleDateString('ar-SA'))+' · أنشأها: '+(p.createdBy||'—')+'</div>' +
+        '</div>' +
+        '<span style="display:inline-block;padding:3px 10px;background:'+color+'22;color:'+color+';border-radius:999px;font-size:11px;font-weight:600;white-space:nowrap;">'+(statusLbl[p.status]||p.status)+'</span>' +
+      '</div></div>';
+  }).join('');
+}
+
+function prOpen(id) {
+  var items = lsGet('gac_press_releases');
+  var pr = items.find(function(x){ return x.id === id; });
+  if (!pr) return;
+  var actions = '';
+  var next = { draft:'review', review:'approved', approved:'published', published:'archive' };
+  var actionLabel = { draft:'إرسال للمراجعة', review:'اعتماد', approved:'نشر', published:'أرشفة' };
+  if (next[pr.status]) actions = '<button class="btn btn-primary" onclick="prAdvance(\''+id+'\',\''+next[pr.status]+'\')">'+actionLabel[pr.status]+'</button>';
+  var content = '<h2 style="margin:0 0 6px;">'+pr.title+'</h2>' +
+    (pr.subtitle?'<div style="color:var(--text-2);margin-bottom:16px;">'+pr.subtitle+'</div>':'') +
+    '<div style="padding:14px;background:#F9FAFB;border-right:3px solid var(--primary);margin-bottom:16px;font-size:13px;line-height:1.7;">'+pr.summary+'</div>' +
+    '<div style="font-size:13px;line-height:1.9;white-space:pre-wrap;color:var(--text);">'+pr.body+'</div>' +
+    (pr.quotes?'<div style="margin-top:16px;padding:12px;background:#EFF6FF;border-radius:8px;font-size:13px;font-style:italic;">«'+pr.quotes+'»</div>':'') +
+    (pr.contact?'<div style="margin-top:16px;font-size:12px;color:var(--text-3);">للتواصل الإعلامي: '+pr.contact+'</div>':'');
+  var view = document.createElement('div');
+  view.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto;';
+  view.innerHTML = '<div style="background:#fff;border-radius:14px;width:min(760px,100%);max-height:90vh;overflow:auto;"><div style="padding:20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;"><strong>معاينة بيان صحفي</strong><button style="background:none;border:none;font-size:22px;cursor:pointer;" onclick="this.closest(\'.__prv\').remove()">✕</button></div><div style="padding:24px;">'+content+'</div><div style="padding:16px 20px;border-top:1px solid var(--border);background:#F9FAFB;display:flex;justify-content:flex-end;gap:8px;">'+actions+'<button class="btn btn-ghost" onclick="this.closest(\'.__prv\').remove()">إغلاق</button></div></div>';
+  view.className = '__prv';
+  document.body.appendChild(view);
+}
+
+function prAdvance(id, nextStatus) {
+  var arr = lsGet('gac_press_releases');
+  var idx = arr.findIndex(function(x){ return x.id === id; });
+  if (idx === -1) return;
+  arr[idx].status = nextStatus;
+  lsSet('gac_press_releases', arr);
+  document.querySelectorAll('.__prv').forEach(function(v){ v.remove(); });
+  prRender();
+  alert('تم تحديث حالة البيان إلى: ' + nextStatus);
+}
 function prSwitch(t) {
   var page = document.getElementById('section-press_releases');
   if (!page) return;
@@ -14397,7 +14890,55 @@ function prSwitch(t) {
   if (btn) btn.classList.add('active');
 }
 
-function mcNew() { alert('قريباً: نموذج طلب تغطية إعلامية مع: تفاصيل الفعالية · رفع صور/فيديو · تقرير التغطية.'); }
+async function mcNew() {
+  var data = await openFormModal({
+    title: 'طلب تغطية إعلامية جديد',
+    submitLabel: 'حفظ طلب التغطية',
+    width: 720,
+    description: 'المراحل: طلب التغطية → تفاصيل الفعالية → الصور → الفيديو → المخرجات النهائية → تقرير التغطية',
+    fields: [
+      { key:'eventName',   label:'اسم الفعالية', required:true, placeholder:'مثال: ملتقى المنافسة' },
+      { key:'eventDate',   label:'تاريخ الفعالية', type:'date', required:true },
+      { key:'location',    label:'الموقع', required:true, placeholder:'الرياض — فندق فور سيزونز' },
+      { key:'coverageType',label:'نوع التغطية', type:'multi', options:['تغطية مصورة','تغطية فيديو','مقابلات','بث مباشر','بيان صحفي'] },
+      { key:'mediaOutlets',label:'القنوات الإعلامية المستهدفة', type:'textarea', rows:2, placeholder:'لكل قناة سطر...' },
+      { key:'attendees',   label:'أبرز الحضور', type:'textarea', rows:2 },
+      { key:'notes',       label:'ملاحظات إضافية', type:'textarea', rows:3 },
+      { key:'contact',     label:'جهة التنسيق', placeholder:'الاسم · البريد' }
+    ]
+  });
+  if (!data) return;
+  var arr = lsGet('gac_media_coverage');
+  arr.unshift(Object.assign({ id:'mc-'+Date.now(), stage:'requested', createdAt:new Date().toISOString(), createdBy:(AUTH_USER&&AUTH_USER.name)||'' }, data));
+  lsSet('gac_media_coverage', arr);
+  alert('تم تسجيل طلب التغطية الإعلامية.');
+  mcRender();
+}
+
+function mcRender() {
+  var host = document.getElementById('mc-list');
+  if (!host) return;
+  var items = lsGet('gac_media_coverage');
+  if (!items.length) {
+    host.style.padding = '40px 24px';
+    host.style.textAlign = 'center';
+    host.innerHTML = '<div style="font-size:40px;margin-bottom:8px;opacity:.5;">🎬</div><div style="font-size:14px;color:var(--text-3);">لا توجد تغطيات مسجلة — سجّل أول تغطية</div>';
+    return;
+  }
+  var stageLbl = { requested:'طلب', details:'تفاصيل', photos:'صور', video:'فيديو', outputs:'مخرجات', report:'تقرير' };
+  var stageColor = { requested:'#6B7280', details:'#F59E0B', photos:'#8B5CF6', video:'#EC4899', outputs:'#3B82F6', report:'#059669' };
+  host.style.padding = '0';
+  host.style.textAlign = 'right';
+  host.innerHTML = items.map(function(m) {
+    var color = stageColor[m.stage] || '#6B7280';
+    return '<div style="padding:16px 20px;border-bottom:1px solid var(--border);">' +
+      '<div style="display:flex;justify-content:space-between;gap:14px;align-items:flex-start;">' +
+        '<div style="flex:1;"><div style="font-weight:700;font-size:14px;color:var(--text);margin-bottom:4px;">'+m.eventName+'</div>' +
+        '<div style="font-size:12px;color:var(--text-3);">📅 '+m.eventDate+' · 📍 '+m.location+'</div></div>' +
+        '<span style="padding:3px 10px;background:'+color+'22;color:'+color+';border-radius:999px;font-size:11px;font-weight:600;">'+(stageLbl[m.stage]||m.stage)+'</span>' +
+      '</div></div>';
+  }).join('');
+}
 
 /* Smart Assistant — unified tools */
 var SA_TOOL = null;
