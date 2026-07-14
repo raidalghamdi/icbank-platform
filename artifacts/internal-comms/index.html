@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: 2026-07-13-review-round4-phase5 -->
+<!-- build: 2026-07-14-review-round5-final -->
 <html dir="rtl" lang="ar">
 <head>
 <meta charset="UTF-8">
@@ -2714,7 +2714,7 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
       <div class="brand-logo">IC</div>
       <div class="brand-info">
         <div class="brand-title">منصة التواصل المؤسسي</div>
-        <div class="brand-sub en">INTERNAL COMMS · 2026</div>
+        <div class="brand-sub en">CORPORATE COMMUNICATIONS · 2026</div>
       </div>
     </div>
 
@@ -2742,6 +2742,11 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
         <a class="nav-item" data-page="internal_campaigns" onclick="showSection('internal_campaigns')">
           <span class="ico"><svg><use href="#i-trending-up"/></svg></span>
           <span>الحملات الداخلية</span>
+        </a>
+        <!-- Review Round 5: حملات التغيير — صفحة مستقلة -->
+        <a class="nav-item" data-page="change_campaigns" onclick="showSection('change_campaigns')">
+          <span class="ico"><svg><use href="#i-refresh"/></svg></span>
+          <span>حملات التغيير</span>
         </a>
         <a class="nav-item" data-page="shorfah" onclick="showSection('shorfah')">
           <span class="ico"><svg><use href="#i-book"/></svg></span>
@@ -2817,10 +2822,7 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
           <span>المبادرات</span>
           <span class="nav-item-count">42</span>
         </a>
-        <a class="nav-item" data-page="aiyear" onclick="showSection('aiyear')">
-          <span class="ico"><svg><use href="#i-brain"/></svg></span>
-          <span>عام الذكاء الاصطناعي</span>
-        </a>
+        <!-- Review Round 5: حذف قسم عام الذكاء الاصطناعي من Sidebar -->
       </div>
     </div>
 
@@ -2841,11 +2843,7 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
           <span class="ico"><svg><use href="#i-bot"/></svg></span>
           <span>المساعد الذكي</span>
         </a>
-        <a class="nav-item" data-page="prompts_lib" onclick="showSection('prompts_lib')">
-          <span class="ico"><svg><use href="#i-bot"/></svg></span>
-          <span>مكتبة الأوامر</span>
-          <span class="nav-item-count" id="pl-nav-count">—</span>
-        </a>
+        <!-- Review Round 5: حذف مكتبة الأوامر — دمجت في المساعد الذكي -->
         <!-- مكتبة الأماكن والتصميم السريع بالأيقونات: لم تعد إدخالات مستقلة (منقولة داخل الأقسام المرتبطة) -->
       </div>
     </div>
@@ -2887,6 +2885,10 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
     </button>
     <button class="hamburger" id="nav-back-btn" onclick="navBack()" title="رجوع" style="display:none;">
       <span class="ico"><svg><use href="#i-chevron-left"/></svg></span>
+    </button>
+    <!-- Review Round 5: Next button -->
+    <button class="hamburger" id="nav-forward-btn" onclick="navForward()" title="التالي" style="display:none;">
+      <span class="ico" style="transform:scaleX(-1);"><svg><use href="#i-chevron-left"/></svg></span>
     </button>
     <nav class="breadcrumb">
       <span class="en">Workspace</span>
@@ -3102,6 +3104,7 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
       <div class="kpi-card"><div class="kpi-label">استراتيجية</div><div class="kpi-value" id="init-kpi-st" style="color:#8B5CF6;">—</div></div>
       <div class="kpi-card"><div class="kpi-label">متوسط الإنجاز</div><div class="kpi-value" id="init-kpi-avg" style="color:#059669;">—</div></div>
       <div class="kpi-card"><div class="kpi-label">قيد التنفيذ</div><div class="kpi-value" id="init-kpi-exec" style="color:#F59E0B;">—</div></div>
+      <div class="kpi-card"><div class="kpi-label">المبادرات المكتملة</div><div class="kpi-value" id="init-kpi-done" style="color:#10B981;">—</div></div>
     </div>
 
     <div class="init-search-wrap">
@@ -3449,13 +3452,28 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
           </div>
         </div>
 
-        <!-- Style profile card -->
+        <!-- Style profile card (Review Round 5: editable) -->
         <div class="card" id="ws-profile-card" style="display:none">
           <div class="card-body">
-            <div class="card-title-row">
+            <div class="card-title-row" style="display:flex;justify-content:space-between;align-items:center;">
               <span class="card-title">🎨 ملف الأسلوب</span>
+              <button id="ws-profile-edit-btn" class="btn btn-ghost btn-sm" type="button" onclick="wsProfileToggleEdit()" style="font-size:12px;">✏️ تحرير</button>
             </div>
             <div id="ws-profile-content" class="ws-profile-row"></div>
+            <div id="ws-profile-editor" style="display:none;margin-top:10px;">
+              <label style="display:block;font-size:12px;color:var(--text-3);margin-bottom:4px;">النبرة</label>
+              <input id="ws-prof-tone" type="text" class="ws-input" style="margin-bottom:8px;">
+              <label style="display:block;font-size:12px;color:var(--text-3);margin-bottom:4px;">متوسط طول الفقرة (كلمات)</label>
+              <input id="ws-prof-avg" type="number" class="ws-input" style="margin-bottom:8px;">
+              <label style="display:block;font-size:12px;color:var(--text-3);margin-bottom:4px;">الاقتباسات</label>
+              <input id="ws-prof-quote" type="text" class="ws-input" style="margin-bottom:8px;">
+              <label style="display:block;font-size:12px;color:var(--text-3);margin-bottom:4px;">كلمات مفتاحية متكررة (مفصولة بفواصل)</label>
+              <textarea id="ws-prof-keywords" class="ws-textarea" rows="2" style="margin-bottom:8px;"></textarea>
+              <div style="display:flex;gap:8px;justify-content:flex-end;">
+                <button class="btn btn-ghost btn-sm" type="button" onclick="wsProfileCancel()">إلغاء</button>
+                <button class="btn btn-primary btn-sm" type="button" onclick="wsProfileSave()">💾 حفظ</button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -4027,11 +4045,7 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
         <div class="sa-tool-title">تحسين الرسائل</div>
         <div class="sa-tool-sub">حسّن رسائل الإيميل أو الواتساب</div>
       </div>
-      <div class="sa-tool" data-tool="library" onclick="showSection('prompts_lib')">
-        <div class="sa-tool-icon">📚</div>
-        <div class="sa-tool-title">مكتبة الأوامر الكاملة</div>
-        <div class="sa-tool-sub">افتح المكتبة التفصيلية</div>
-      </div>
+      <!-- Review Round 5: أزيلت بطاقة مكتبة الأوامر الكاملة — فقط الأدوات المباشرة -->
     </div>
 
     <!-- Active tool panel -->
@@ -4060,13 +4074,56 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
     <div class="page-head">
       <div>
         <h1 class="page-title">الإعدادات</h1>
-        <p class="page-sub">إعدادات الحساب الشخصي والتفضيلات.</p>
+        <p class="page-sub">إدارة الحساب والتفضيلات والإشعارات.</p>
       </div>
     </div>
-    <div class="card" style="max-width:600px;">
-      <div class="card-body">
-        <p style="color:var(--text-3);font-size:13px;">سيتم تطوير هذه الصفحة في المراحل القادمة.</p>
-      </div>
+
+    <!-- Review Round 5: real settings tabs -->
+    <div style="display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:20px;flex-wrap:wrap;">
+      <button class="settings-tab active" data-stab="profile" onclick="settingsSwitchTab('profile')" style="padding:10px 18px;font-size:13px;font-weight:700;background:none;border:none;border-bottom:2px solid var(--primary);color:var(--primary);cursor:pointer;margin-bottom:-2px;">👤 الحساب الشخصي</button>
+      <button class="settings-tab" data-stab="prefs" onclick="settingsSwitchTab('prefs')" style="padding:10px 18px;font-size:13px;font-weight:700;background:none;border:none;border-bottom:2px solid transparent;color:var(--text-3);cursor:pointer;margin-bottom:-2px;">⚙️ التفضيلات</button>
+      <button class="settings-tab" data-stab="notifs" onclick="settingsSwitchTab('notifs')" style="padding:10px 18px;font-size:13px;font-weight:700;background:none;border:none;border-bottom:2px solid transparent;color:var(--text-3);cursor:pointer;margin-bottom:-2px;">🔔 الإشعارات</button>
+      <button class="settings-tab" data-stab="security" onclick="settingsSwitchTab('security')" style="padding:10px 18px;font-size:13px;font-weight:700;background:none;border:none;border-bottom:2px solid transparent;color:var(--text-3);cursor:pointer;margin-bottom:-2px;">🔐 الأمان</button>
+    </div>
+
+    <div id="settings-pane-profile" class="settings-pane" style="display:block;">
+      <div class="card" style="max-width:640px;"><div class="card-body">
+        <div style="margin-bottom:14px;"><label style="display:block;font-size:12px;color:var(--text-3);margin-bottom:4px;">الاسم الكامل</label><input id="set-name" type="text" class="ws-input" style="width:100%;"></div>
+        <div style="margin-bottom:14px;"><label style="display:block;font-size:12px;color:var(--text-3);margin-bottom:4px;">البريد الإلكتروني</label><input id="set-email" type="email" class="ws-input" style="width:100%;" disabled></div>
+        <div style="margin-bottom:14px;"><label style="display:block;font-size:12px;color:var(--text-3);margin-bottom:4px;">الدور</label><input id="set-role" type="text" class="ws-input" style="width:100%;" disabled></div>
+        <div style="margin-bottom:14px;"><label style="display:block;font-size:12px;color:var(--text-3);margin-bottom:4px;">الإدارة</label><input id="set-dept" type="text" class="ws-input" style="width:100%;"></div>
+        <button class="btn btn-primary" onclick="settingsSaveProfile()">💾 حفظ التغييرات</button>
+      </div></div>
+    </div>
+
+    <div id="settings-pane-prefs" class="settings-pane" style="display:none;">
+      <div class="card" style="max-width:640px;"><div class="card-body">
+        <div style="margin-bottom:14px;"><label style="display:block;font-size:12px;color:var(--text-3);margin-bottom:4px;">لغة الواجهة</label>
+          <select id="set-lang" class="ws-input" style="width:100%;"><option value="ar">العربية</option><option value="en">English</option></select></div>
+        <div style="margin-bottom:14px;"><label style="display:block;font-size:12px;color:var(--text-3);margin-bottom:4px;">المظهر</label>
+          <select id="set-theme" class="ws-input" style="width:100%;"><option value="light">فاتح</option><option value="dark">داكن</option><option value="auto">تلقائي</option></select></div>
+        <div style="margin-bottom:14px;"><label style="display:flex;gap:8px;align-items:center;font-size:13px;cursor:pointer;"><input id="set-autosave" type="checkbox" checked> حفظ تلقائي للمسودات</label></div>
+        <div style="margin-bottom:14px;"><label style="display:flex;gap:8px;align-items:center;font-size:13px;cursor:pointer;"><input id="set-compact" type="checkbox"> وضع مضغوط للقوائم</label></div>
+        <button class="btn btn-primary" onclick="settingsSavePrefs()">💾 حفظ التفضيلات</button>
+      </div></div>
+    </div>
+
+    <div id="settings-pane-notifs" class="settings-pane" style="display:none;">
+      <div class="card" style="max-width:640px;"><div class="card-body">
+        <div style="margin-bottom:14px;"><label style="display:flex;gap:8px;align-items:center;font-size:13px;cursor:pointer;"><input id="set-notif-email" type="checkbox" checked> إشعارات الطلبات على البريد</label></div>
+        <div style="margin-bottom:14px;"><label style="display:flex;gap:8px;align-items:center;font-size:13px;cursor:pointer;"><input id="set-notif-inapp" type="checkbox" checked> إشعارات داخل التطبيق</label></div>
+        <div style="margin-bottom:14px;"><label style="display:flex;gap:8px;align-items:center;font-size:13px;cursor:pointer;"><input id="set-notif-campaign" type="checkbox" checked> تحديثات الحملات</label></div>
+        <div style="margin-bottom:14px;"><label style="display:flex;gap:8px;align-items:center;font-size:13px;cursor:pointer;"><input id="set-notif-shorfah" type="checkbox"> تحديثات نشرة شُرفة</label></div>
+        <button class="btn btn-primary" onclick="settingsSaveNotifs()">💾 حفظ تفضيلات الإشعارات</button>
+      </div></div>
+    </div>
+
+    <div id="settings-pane-security" class="settings-pane" style="display:none;">
+      <div class="card" style="max-width:640px;"><div class="card-body">
+        <p style="color:var(--text-3);font-size:13px;margin-bottom:14px;">لتغيير كلمة المرور تواصل مع مدير النظام.</p>
+        <div style="margin-bottom:14px;"><label style="display:flex;gap:8px;align-items:center;font-size:13px;cursor:pointer;"><input id="set-2fa" type="checkbox"> تفعيل التحقق بخطوتين</label></div>
+        <div style="padding:12px;background:#FEF3C7;border:1px solid #F59E0B;border-radius:8px;font-size:12px;color:#78350F;">⚠️ ميزة التحقق بخطوتين قيد التطوير وتتطلب تفعيلاً مركزياً.</div>
+      </div></div>
     </div>
   </div>
 
@@ -4932,6 +4989,21 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
 
     <!-- Issues grid -->
     <div id="shorfah-issues-list" class="card" style="padding:18px;margin-bottom:16px;">
+      <!-- Review Round 5: Dashboard مدير النظام -->
+      <div id="shorfah-admin-dashboard" style="display:none;background:linear-gradient(135deg,#F3F0FF,#E9E5FF);border:1px solid #C7B8FF;border-radius:12px;padding:16px;margin-bottom:16px;">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;">
+          <div style="font-weight:800;color:#4C1D95;">📊 لوحة مدير النظام — إحصاءات أقسام شُرفة</div>
+          <div style="font-size:12px;color:#6D28D9;" id="shorfah-admin-dash-issue"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;">
+          <div style="background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:12px;text-align:center;"><div style="font-size:11px;color:#6B7280;">مكتملة (معتمد)</div><div id="sh-adm-done" style="font-size:22px;font-weight:900;color:#059669;">—</div></div>
+          <div style="background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:12px;text-align:center;"><div style="font-size:11px;color:#6B7280;">تحت المراجعة</div><div id="sh-adm-rev" style="font-size:22px;font-weight:900;color:#4338CA;">—</div></div>
+          <div style="background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:12px;text-align:center;"><div style="font-size:11px;color:#6B7280;">جاري العمل</div><div id="sh-adm-prog" style="font-size:22px;font-weight:900;color:#6B7280;">—</div></div>
+          <div style="background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:12px;text-align:center;"><div style="font-size:11px;color:#6B7280;">مؤرشفة</div><div id="sh-adm-arch" style="font-size:22px;font-weight:900;color:#111827;">—</div></div>
+          <div style="background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:12px;text-align:center;"><div style="font-size:11px;color:#6B7280;">نسبة الإنجاز</div><div id="sh-adm-pct" style="font-size:22px;font-weight:900;color:#7C3AED;">—</div></div>
+        </div>
+      </div>
+
       <div style="font-weight:800;margin-bottom:10px;color:var(--text);">الأعداد</div>
       <div id="shorfah-issues-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;">
         <div style="color:var(--text-3);font-size:14px;">جاري التحميل…</div>
@@ -4965,10 +5037,10 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
             <svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             تحميل PDF
           </a>
-          <a id="shorfah-docx-download-btn" class="btn btn-primary btn-sm" href="#" download style="flex:1 1 200px;justify-content:center;font-weight:800;">
+          <button id="shorfah-docx-download-btn" class="btn btn-primary btn-sm" type="button" onclick="shorfahDownloadDocx()" style="flex:1 1 200px;justify-content:center;font-weight:800;">
             <svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
             تحميل ملف Word
-          </a>
+          </button>
           <button id="shorfah-start-review-btn" class="btn btn-ghost btn-sm" onclick="shorfahStartReview()" style="display:none;flex:1 1 140px;justify-content:center;">
             <svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
             بدء المراجعة النهائية
@@ -5334,13 +5406,14 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
 
     <!-- Sub-tabs: types + متابعة + أرشيف -->
     <div class="sub-tabs" role="tablist" style="margin-bottom:16px;">
+      <!-- Review Round 5: Sub-tabs موحّدة (6 أنواع داخلية) -->
       <button class="sub-tab active" data-tab="all" onclick="reqSwitchTab('internal','all')">الكل</button>
-      <button class="sub-tab" data-tab="design" onclick="reqSwitchTab('internal','design')">طلب تصميم</button>
-      <button class="sub-tab" data-tab="news" onclick="reqSwitchTab('internal','news')">طلب خبر</button>
-      <button class="sub-tab" data-tab="announcement" onclick="reqSwitchTab('internal','announcement')">طلب إعلان</button>
-      <button class="sub-tab" data-tab="email_approval" onclick="reqSwitchTab('internal','email_approval')">اعتماد بريد</button>
-      <button class="sub-tab" data-tab="screens" onclick="reqSwitchTab('internal','screens')">شاشات</button>
-      <button class="sub-tab" data-tab="event_coverage" onclick="reqSwitchTab('internal','event_coverage')">تغطية فعالية</button>
+      <button class="sub-tab" data-tab="design_internal_ad" onclick="reqSwitchTab('internal','design_internal_ad')">تصميم إعلان داخلي</button>
+      <button class="sub-tab" data-tab="design_visual" onclick="reqSwitchTab('internal','design_visual')">تصميم عرض مرئي</button>
+      <button class="sub-tab" data-tab="workshop_ad" onclick="reqSwitchTab('internal','workshop_ad')">إعلان ورشة</button>
+      <button class="sub-tab" data-tab="announcement_ad" onclick="reqSwitchTab('internal','announcement_ad')">إعلان تعميم</button>
+      <button class="sub-tab" data-tab="internal_publish" onclick="reqSwitchTab('internal','internal_publish')">نشر داخلي</button>
+      <button class="sub-tab" data-tab="world_days" onclick="reqSwitchTab('internal','world_days')">أيام عالمية</button>
       <button class="sub-tab" data-tab="tracking" onclick="reqSwitchTab('internal','tracking')">متابعة الطلبات</button>
       <button class="sub-tab" data-tab="archive" onclick="reqSwitchTab('internal','archive')">الأرشيف</button>
     </div>
@@ -5398,6 +5471,27 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
     </div>
   </div>
 
+  <!-- Review Round 5: حملات التغيير — صفحة مستقلة -->
+  <div class="page-section" id="section-change_campaigns">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title"><span class="ico" style="vertical-align:middle;margin-left:8px;">🔄</span> حملات التغيير</h1>
+        <p class="page-sub">حملات متكاملة لإدارة التغيير داخل الهيئة — مخطط شامل + خدمات ديناميكية + مساحة عمل لكل حملة.</p>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-primary" onclick="openChangeCampaign()">
+          <span class="ico"><svg width="16" height="16"><use href="#i-plus"/></svg></span>
+          <span>حملة تغيير جديدة</span>
+        </button>
+      </div>
+    </div>
+
+    <div id="change-camp-list" style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:40px 24px;text-align:center;color:var(--text-3);">
+      <div style="font-size:40px;margin-bottom:8px;opacity:.5;">🔄</div>
+      <div style="font-size:14px;">لا توجد حملات تغيير بعد — أنشئ أول حملة</div>
+    </div>
+  </div>
+
   <!-- 3. Shorfah stays as its own section (already exists) -->
   <!-- 4. weekstart already exists -->
   <!-- 5. weekend already exists -->
@@ -5427,12 +5521,11 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
     </div>
 
     <div class="sub-tabs" role="tablist" style="margin-bottom:16px;">
+      <!-- Review Round 5: Sub-tabs موحّدة (3 أنواع خارجية) -->
       <button class="sub-tab active" data-tab="all" onclick="reqSwitchTab('external','all')">الكل</button>
-      <button class="sub-tab" data-tab="design" onclick="reqSwitchTab('external','design')">طلب تصميم</button>
-      <button class="sub-tab" data-tab="press_release" onclick="reqSwitchTab('external','press_release')">بيان صحفي</button>
-      <button class="sub-tab" data-tab="event_participation" onclick="reqSwitchTab('external','event_participation')">مشاركة فعالية</button>
-      <button class="sub-tab" data-tab="media_support" onclick="reqSwitchTab('external','media_support')">دعم إعلامي</button>
-      <button class="sub-tab" data-tab="social_post" onclick="reqSwitchTab('external','social_post')">نشر تواصل</button>
+      <button class="sub-tab" data-tab="design_external" onclick="reqSwitchTab('external','design_external')">تصميم خارجي</button>
+      <button class="sub-tab" data-tab="external_publish" onclick="reqSwitchTab('external','external_publish')">نشر خارجي</button>
+      <button class="sub-tab" data-tab="partner_campaign" onclick="reqSwitchTab('external','partner_campaign')">مشاركة مع جهة خارجية</button>
       <button class="sub-tab" data-tab="tracking" onclick="reqSwitchTab('external','tracking')">متابعة الطلبات</button>
       <button class="sub-tab" data-tab="archive" onclick="reqSwitchTab('external','archive')">الأرشيف</button>
     </div>
@@ -5912,6 +6005,7 @@ function authCanView(pageName) {
   if (pageName === 'prompts_lib') return !!AUTH_USER;
   if (pageName === 'internal_requests' || pageName === 'external_requests') return !!AUTH_USER;
   if (pageName === 'internal_campaigns' || pageName === 'external_campaigns') return !!AUTH_USER;
+  if (pageName === 'change_campaigns') return !!AUTH_USER;
   if (pageName === 'social_platforms' || pageName === 'press_releases' || pageName === 'media_coverage') return !!AUTH_USER;
   if (pageName === 'performance_reports') return !!AUTH_USER;
   var permKey = PAGE_PERM_MAP[pageName] || pageName;
@@ -7176,6 +7270,7 @@ const PAGE_LABELS = {
   internal_requests:'الطلبات الداخلية',
   external_requests:'الطلبات الخارجية',
   internal_campaigns:'الحملات الداخلية',
+  change_campaigns:'حملات التغيير',
   external_campaigns:'الحملات الخارجية',
   social_platforms:'إدارة منصات التواصل',
   press_releases:'البيانات الصحفية',
@@ -7185,18 +7280,37 @@ const PAGE_LABELS = {
 
 // Nav history stack for back button (Review Round 4)
 var NAV_HISTORY = [];
+var NAV_FORWARD = []; // Review Round 5
 var NAV_SUPPRESS_PUSH = false;
+var NAV_SUPPRESS_CLEAR = false; // Review Round 5
 function navUpdateBackBtn() {
   var btn = document.getElementById('nav-back-btn');
-  if (!btn) return;
-  btn.style.display = NAV_HISTORY.length > 0 ? '' : 'none';
+  if (btn) btn.style.display = NAV_HISTORY.length > 0 ? '' : 'none';
+  var fwd = document.getElementById('nav-forward-btn');
+  if (fwd) fwd.style.display = NAV_FORWARD.length > 0 ? '' : 'none';
 }
 function navBack() {
   if (!NAV_HISTORY.length) return;
+  var cur = _navGetCurrent();
+  if (cur) NAV_FORWARD.push(cur);
   var prev = NAV_HISTORY.pop();
   NAV_SUPPRESS_PUSH = true;
+  NAV_SUPPRESS_CLEAR = true;
   showSection(prev);
   NAV_SUPPRESS_PUSH = false;
+  NAV_SUPPRESS_CLEAR = false;
+  navUpdateBackBtn();
+}
+function navForward() {
+  if (!NAV_FORWARD.length) return;
+  var cur = _navGetCurrent();
+  if (cur) NAV_HISTORY.push(cur);
+  var next = NAV_FORWARD.pop();
+  NAV_SUPPRESS_PUSH = true;
+  NAV_SUPPRESS_CLEAR = true;
+  showSection(next);
+  NAV_SUPPRESS_PUSH = false;
+  NAV_SUPPRESS_CLEAR = false;
   navUpdateBackBtn();
 }
 function _navGetCurrent() {
@@ -7211,6 +7325,8 @@ function showSection(name) {
     if (cur && cur !== name && cur !== '403') {
       NAV_HISTORY.push(cur);
       if (NAV_HISTORY.length > 50) NAV_HISTORY.shift();
+      // Review Round 5: navigating to new page clears forward stack
+      if (!NAV_SUPPRESS_CLEAR) NAV_FORWARD = [];
     }
   }
   if (name !== '403' && !authCanView(name)) {
@@ -7249,6 +7365,7 @@ function showSection(name) {
   if (name === 'internal_campaigns') renderCampaignsList('internal');
   if (name === 'external_campaigns') renderCampaignsList('external');
   if (name === 'press_releases') prRender();
+  if (name === 'change_campaigns') renderChangeCampaignsList();
   if (name === 'media_coverage') mcRender();
   navUpdateBackBtn();
 }
@@ -7441,12 +7558,8 @@ function dashSetGreeting() {
     var dayOfYear = Math.floor((now2 - yearStart) / 86400000);
     var idx = ((dayOfYear % WEEKLY_MESSAGES.length) + WEEKLY_MESSAGES.length) % WEEKLY_MESSAGES.length;
     var tip = WEEKLY_MESSAGES[idx];
-    // Compose
-    var personal = userName
-      ? (greeting + ' ' + userName + ' · ' + dayVibe)
-      : (greeting + ' · ' + dayVibe);
-    ctxEl.innerHTML = '<div style="margin-bottom:2px;font-weight:600;font-size:14px;">' + personal + '</div>' +
-                      '<div style="opacity:.85;font-size:12.5px;">' + tip + '</div>';
+    // Compose — Review Round 5: removed duplicated greeting line (name+welcome already in hero title)
+    ctxEl.innerHTML = '<div style="opacity:.9;font-size:13px;line-height:1.7;">' + tip + '</div>';
   }
 }
 
@@ -8205,6 +8318,10 @@ function initiativesRender() {
   var op = INITIATIVES.filter(function(i){ return i.phase==='execution' || i.phase==='results' || (i.tags && i.tags.some(function(t){ return /تشغيل|تنفيذ|الداخل|اندماج/.test(t); })); }).length;
   var st = INITIATIVES.filter(function(i){ return i.phase==='planning' || i.phase==='impact' || i.type==='ai' || (i.tags && i.tags.some(function(t){ return /استراتيج|تحول|رؤية|تخطيط/.test(t); })); }).length;
   var exec = INITIATIVES.filter(function(i){ return i.phase==='execution'; }).length;
+  // Review Round 5: حساب المبادرات المكتملة (impact/results أو applicability=100)
+  var done = INITIATIVES.filter(function(i){
+    return i.phase==='impact' || i.phase==='results' || i.status==='completed' || (typeof i.applicability==='number' && i.applicability>=100);
+  }).length;
   var vals = INITIATIVES.map(function(i){ return typeof i.applicability === 'number' ? i.applicability : 0; }).filter(function(v){ return v>0; });
   var avg = vals.length ? Math.round(vals.reduce(function(a,b){ return a+b; },0) / vals.length) : 0;
   var $ = function(id){ return document.getElementById(id); };
@@ -8212,6 +8329,7 @@ function initiativesRender() {
   if ($('init-kpi-st'))   $('init-kpi-st').textContent = st;
   if ($('init-kpi-avg'))  $('init-kpi-avg').textContent = avg + '%';
   if ($('init-kpi-exec')) $('init-kpi-exec').textContent = exec;
+  if ($('init-kpi-done')) $('init-kpi-done').textContent = done;
 }
 
 function searchInitiatives(q) {
@@ -8973,22 +9091,72 @@ async function wsLoadArchive() {
   } catch(e) { /* silent */ }
 
   try {
-    const res = await apiFetch('/api/week-start/style-profile');
-    const profile = await res.json();
+    // Review Round 5: prefer local override (متحرر) over API profile
+    let profile = null;
+    try { profile = JSON.parse(localStorage.getItem('gac_weekstart_style_guide') || 'null'); } catch(_) {}
+    if (!profile) {
+      const res = await apiFetch('/api/week-start/style-profile');
+      profile = await res.json();
+    }
     if (profile) {
-      const card = document.getElementById('ws-profile-card');
-      const content = document.getElementById('ws-profile-content');
-      if (card) card.style.display = '';
-      if (content) {
-        const kws = (profile.recurringKeywords || []).slice(0, 5).join(' · ') || '—';
-        content.innerHTML =
-          '<div class="ws-profile-item"><span class="ws-profile-label">النبرة: </span><span class="ws-profile-val">' + (profile.toneSummary || '—') + '</span></div>' +
-          '<div class="ws-profile-item"><span class="ws-profile-label">متوسط الفقرة: </span><span class="ws-profile-val">' + (profile.avgParagraphLength || '—') + ' كلمة</span></div>' +
-          '<div class="ws-profile-item"><span class="ws-profile-label">الاقتباسات: </span><span class="ws-profile-val">' + (profile.quoteUsage || '—') + '</span></div>' +
-          '<div class="ws-profile-item"><span class="ws-profile-label">كلمات شائعة: </span><span class="ws-profile-val">' + kws + '</span></div>';
-      }
+      window.WS_STYLE_PROFILE = profile;
+      wsRenderStyleProfile(profile);
     }
   } catch(e) { /* silent */ }
+}
+
+// Review Round 5: editable style guide helpers
+function wsRenderStyleProfile(profile) {
+  const card = document.getElementById('ws-profile-card');
+  const content = document.getElementById('ws-profile-content');
+  if (card) card.style.display = '';
+  if (!content) return;
+  const kws = (profile.recurringKeywords || []).slice(0, 5).join(' · ') || '—';
+  content.innerHTML =
+    '<div class="ws-profile-item"><span class="ws-profile-label">النبرة: </span><span class="ws-profile-val">' + (profile.toneSummary || '—') + '</span></div>' +
+    '<div class="ws-profile-item"><span class="ws-profile-label">متوسط الفقرة: </span><span class="ws-profile-val">' + (profile.avgParagraphLength || '—') + ' كلمة</span></div>' +
+    '<div class="ws-profile-item"><span class="ws-profile-label">الاقتباسات: </span><span class="ws-profile-val">' + (profile.quoteUsage || '—') + '</span></div>' +
+    '<div class="ws-profile-item"><span class="ws-profile-label">كلمات شائعة: </span><span class="ws-profile-val">' + kws + '</span></div>';
+}
+
+function wsProfileToggleEdit() {
+  const editor = document.getElementById('ws-profile-editor');
+  const content = document.getElementById('ws-profile-content');
+  if (!editor) return;
+  const isEditing = editor.style.display !== 'none';
+  if (isEditing) { wsProfileCancel(); return; }
+  const p = window.WS_STYLE_PROFILE || {};
+  document.getElementById('ws-prof-tone').value = p.toneSummary || '';
+  document.getElementById('ws-prof-avg').value = p.avgParagraphLength || '';
+  document.getElementById('ws-prof-quote').value = p.quoteUsage || '';
+  document.getElementById('ws-prof-keywords').value = (p.recurringKeywords || []).join('، ');
+  editor.style.display = '';
+  if (content) content.style.display = 'none';
+  const btn = document.getElementById('ws-profile-edit-btn');
+  if (btn) btn.textContent = '✕ إلغاء';
+}
+
+function wsProfileCancel() {
+  const editor = document.getElementById('ws-profile-editor');
+  const content = document.getElementById('ws-profile-content');
+  if (editor) editor.style.display = 'none';
+  if (content) content.style.display = '';
+  const btn = document.getElementById('ws-profile-edit-btn');
+  if (btn) btn.textContent = '✏️ تحرير';
+}
+
+function wsProfileSave() {
+  const profile = {
+    toneSummary: document.getElementById('ws-prof-tone').value.trim(),
+    avgParagraphLength: parseInt(document.getElementById('ws-prof-avg').value) || 0,
+    quoteUsage: document.getElementById('ws-prof-quote').value.trim(),
+    recurringKeywords: document.getElementById('ws-prof-keywords').value.split(/[،,]/).map(s=>s.trim()).filter(Boolean)
+  };
+  try { localStorage.setItem('gac_weekstart_style_guide', JSON.stringify(profile)); } catch(_) {}
+  window.WS_STYLE_PROFILE = profile;
+  wsRenderStyleProfile(profile);
+  wsProfileCancel();
+  alert('✅ تم حفظ ملف الأسلوب محليّاً.');
 }
 
 function wsOpenUpload() {
@@ -12184,6 +12352,8 @@ var SHORFAH_CANONICAL_ORDER = [
 var SHORFAH_STATUS_LABELS = {
   pending_contribution: { ar: 'جاري العمل', color: '#9ca3af', bg: '#f3f4f6' },
   submitted: { ar: 'تم التسليم', color: '#0369a1', bg: '#dbeafe' },
+  // Review Round 5: مرحلة جديدة بعد رفع المحتوى
+  delivered_for_review: { ar: 'تم التسليم للمراجعة', color:'#4338CA', bg:'#E0E7FF' },
   in_review: { ar: 'قيد المراجعة', color: '#a16207', bg: '#fef3c7' },
   approved: { ar: 'معتمد', color: '#15803d', bg: '#dcfce7' },
   rejected: { ar: 'مرفوض', color: '#b91c1c', bg: '#fee2e2' }
@@ -12257,6 +12427,9 @@ async function shorfahInit() {
 async function shorfahLoadIssues() {
   var grid = document.getElementById('shorfah-issues-grid');
   if (!grid) return;
+  // Review Round 5: إظهار Dashboard مدير النظام إذا كان المستخدم super_admin/admin
+  var adminDash = document.getElementById('shorfah-admin-dashboard');
+  if (adminDash) adminDash.style.display = shorfahIsAdmin() ? '' : 'none';
   grid.innerHTML = '<div style="color:#666;padding:24px;text-align:center;grid-column:1/-1;">جاري التحميل...</div>';
   try {
     var res = await apiFetch('/api/shorfah/issues');
@@ -12329,10 +12502,12 @@ async function shorfahOpenIssue(id) {
       downloadBtn.href = '/api/shorfah/issues/'+id+'/pdf.pdf' + (isPublished ? '' : '?preview=1');
       downloadBtn.setAttribute('download', 'shorfah-issue-'+(data.issue.issueNo||data.issue.issue_no||id)+'.pdf');
     }
+    // Review Round 5: Word btn is now a real fetch with auth token
     var docxBtn = document.getElementById('shorfah-docx-download-btn');
     if (docxBtn) {
-      docxBtn.href = '/api/shorfah/issues/'+id+'/docx' + (isPublished ? '' : '?preview=1');
-      docxBtn.setAttribute('download', 'shorfah-issue-'+(data.issue.issueNo||data.issue.issue_no||id)+'.docx');
+      docxBtn.dataset.issueId = id;
+      docxBtn.dataset.preview = isPublished ? '0' : '1';
+      docxBtn.dataset.issueNo = (data.issue.issueNo||data.issue.issue_no||id);
     }
     // Publish button — admin only. For published issues, becomes "إعادة النشر" (re-publish text changes only)
     var pubBtn = document.getElementById('shorfah-publish-btn');
@@ -12355,8 +12530,65 @@ async function shorfahOpenIssue(id) {
   }
 }
 
+// Review Round 5: تنزيل Word — يحمل Bearer token ويفتح Blob محلياً
+async function shorfahDownloadDocx() {
+  var btn = document.getElementById('shorfah-docx-download-btn');
+  if (!btn || !btn.dataset.issueId) return;
+  var id = btn.dataset.issueId;
+  var preview = btn.dataset.preview === '1' ? '?preview=1' : '';
+  var oldHtml = btn.innerHTML;
+  btn.innerHTML = '<span style="display:inline-flex;align-items:center;gap:8px;">⏳ جاري إنشاء ملف Word…</span>';
+  btn.disabled = true;
+  try {
+    var res = await apiFetch('/api/shorfah/issues/'+id+'/docx' + preview);
+    if (!res.ok) throw new Error('HTTP '+res.status);
+    var blob = await res.blob();
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'shorfah-issue-' + (btn.dataset.issueNo || id) + '.docx';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1500);
+  } catch(e) {
+    alert('تعذّر تحميل ملف Word: ' + (e.message||e));
+  } finally {
+    btn.innerHTML = oldHtml;
+    btn.disabled = false;
+  }
+}
+
+// Review Round 5: تحديث Dashboard مدير النظام للعدد الحالي
+function shorfahRefreshAdminDashboard() {
+  var wrap = document.getElementById('shorfah-admin-dashboard');
+  if (!wrap || !shorfahIsAdmin()) return;
+  var secs = SHORFAH_STATE.sections || [];
+  var done=0, rev=0, prog=0, arch=0;
+  secs.forEach(function(s){
+    if (s.archived) arch++;
+    else if (s.workflowStatus==='approved') done++;
+    else if (['in_review','submitted','delivered_for_review'].indexOf(s.workflowStatus)>=0) rev++;
+    else prog++;
+  });
+  var total = secs.length || 1;
+  var pct = Math.round(((done + arch) / total) * 100);
+  var $ = function(id){ return document.getElementById(id); };
+  if ($('sh-adm-done')) $('sh-adm-done').textContent = done;
+  if ($('sh-adm-rev'))  $('sh-adm-rev').textContent = rev;
+  if ($('sh-adm-prog')) $('sh-adm-prog').textContent = prog;
+  if ($('sh-adm-arch')) $('sh-adm-arch').textContent = arch;
+  if ($('sh-adm-pct'))  $('sh-adm-pct').textContent = pct + '%';
+  if ($('shorfah-admin-dash-issue') && SHORFAH_STATE.issue) {
+    var m = SHORFAH_ARABIC_MONTHS[SHORFAH_STATE.issue.month-1] || '';
+    $('shorfah-admin-dash-issue').textContent = 'العدد ' + (SHORFAH_STATE.issue.issueNo || SHORFAH_STATE.issue.issue_no || '') + ' — ' + m + ' ' + SHORFAH_STATE.issue.year;
+  }
+  wrap.style.display = '';
+}
+
 function shorfahRenderBoard() {
   var board = document.getElementById('shorfah-sections-board');
+  shorfahRefreshAdminDashboard();
   // Sort sections by canonical order (Review Round 4)
   var sections = (SHORFAH_STATE.sections || []).slice().sort(function(a, b) {
     var ai = SHORFAH_CANONICAL_ORDER.indexOf(a.sectionType);
@@ -14380,7 +14612,18 @@ function iesPreviewFullscreen(idx) {
 }
 
 /* ══════ Review Round 2 — Requests / Campaigns / Social / PR / Coverage stubs ══════ */
-var REQ_STATE = { internal:{ tab:'all', items:[] }, external:{ tab:'all', items:[] } };
+// Review Round 5: Persistence حقيقية — تحميل الطلبات من localStorage عند الإقلاع
+function reqLoad(scope){
+  try { return JSON.parse(localStorage.getItem('gac_requests_'+scope) || '[]'); }
+  catch(e){ return []; }
+}
+function reqSave(scope, items){
+  try { localStorage.setItem('gac_requests_'+scope, JSON.stringify(items)); } catch(e){}
+}
+var REQ_STATE = {
+  internal:{ tab:'all', items: reqLoad('internal') },
+  external:{ tab:'all', items: reqLoad('external') }
+};
 var SOCIAL_STATE = { platform:'linkedin', view:'scheduled' };
 
 function reqSwitchTab(scope, tab) {
@@ -14412,8 +14655,24 @@ function reqRender(scope) {
     host.innerHTML = '<div style="padding:40px 24px;text-align:center;color:var(--text-3);"><div style="font-size:40px;margin-bottom:8px;opacity:.5;">'+(scope==='internal'?'📥':'📮')+'</div><div style="font-size:14px;">لا توجد طلبات في هذا التصنيف</div></div>';
     return;
   }
+  // Review Round 5: label مقروء للنوع + زر رسائل البدء + حالة فارغة مرئية
+  var typeMap = {};
+  (REQUEST_TYPES[scope]||[]).forEach(function(t){ typeMap[t.value] = t.label; });
   host.innerHTML = items.map(function(r){
-    return '<div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;"><div><div style="font-weight:600;">'+r.title+'</div><div style="font-size:12px;color:var(--text-3);margin-top:4px;">'+(r.type||'')+' · '+(r.requester||'')+'</div></div><span class="chip">'+(r.status||'جديد')+'</span></div>';
+    var typeLabel = typeMap[r.type] || r.type || '';
+    var statusHtml;
+    if (!r.kickoffSent && (!r.status || r.status==='')) {
+      statusHtml = '<button class="btn btn-sm" style="background:#F59E0B;color:#fff;border:none;padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer;" onclick="reqSendKickoff(\''+scope+'\', \''+r.id+'\')">إرسال رسائل البدء</button>';
+    } else {
+      statusHtml = '<span class="chip">'+(r.status||'جديد')+'</span>';
+    }
+    return '<div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:12px;">' +
+      '<div style="flex:1;min-width:0;">' +
+        '<div style="font-weight:600;">'+r.title+'</div>' +
+        '<div style="font-size:12px;color:var(--text-3);margin-top:4px;">'+typeLabel+' · '+(r.requester||'')+'</div>' +
+      '</div>' +
+      statusHtml +
+    '</div>';
   }).join('');
 }
 
@@ -14528,27 +14787,26 @@ function openFormModal(config) {
 function lsGet(key) { try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch(e) { return []; } }
 function lsSet(key, arr) { try { localStorage.setItem(key, JSON.stringify(arr)); } catch(e) {} }
 
+// Review Round 5: قوائم الأنواع الموحّدة (داخلي 6 أنواع + خارجي 3 أنواع)
+var REQUEST_TYPES = {
+  internal: [
+    { value:'design_internal_ad',   label:'طلب تصميم إعلان داخلي' },
+    { value:'design_visual',        label:'طلب تصميم عرض مرئي' },
+    { value:'workshop_ad',          label:'طلب إعلان ورشة' },
+    { value:'announcement_ad',      label:'طلب إعلان تعميم' },
+    { value:'internal_publish',     label:'طلب نشر داخلي' },
+    { value:'world_days',           label:'طلب أيام عالمية' }
+  ],
+  external: [
+    { value:'design_external',      label:'طلب تصميم خارجي' },
+    { value:'external_publish',     label:'طلب نشر خارجي' },
+    { value:'partner_campaign',     label:'طلب مشاركة في حملة مع جهة خارجية' }
+  ]
+};
+
 async function reqOpenNew(scope) {
-  var internalTypes = [
-    { value:'design',           label:'طلب تصميم داخلي' },
-    { value:'internal_ad',      label:'طلب إعلان داخلي' },
-    { value:'workshop',         label:'طلب ورشة عمل' },
-    { value:'news',             label:'طلب خبر داخلي' },
-    { value:'announcement',     label:'طلب إعلان/تعميم' },
-    { value:'email_approval',   label:'اعتماد إيميل جماعي' },
-    { value:'screens',          label:'محتوى للشاشات الداخلية' },
-    { value:'event_coverage',   label:'تغطية فعالية داخلية' },
-    { value:'change_campaign',  label:'حملة تغيير شاملة' }
-  ];
-  var externalTypes = [
-    { value:'design',              label:'طلب تصميم خارجي' },
-    { value:'press_release',       label:'طلب بيان صحفي' },
-    { value:'event_participation', label:'طلب مشاركة في فعالية' },
-    { value:'media_support',       label:'طلب دعم إعلامي' },
-    { value:'social_post',         label:'طلب منشور على المنصات' },
-    { value:'media_coverage',      label:'طلب تغطية إعلامية' },
-    { value:'external_campaign',   label:'حملة إعلامية خارجية' }
-  ];
+  var internalTypes = REQUEST_TYPES.internal;
+  var externalTypes = REQUEST_TYPES.external;
   var types = scope==='internal' ? internalTypes : externalTypes;
   var isChange = false;
   var data = await openFormModal({
@@ -14558,16 +14816,13 @@ async function reqOpenNew(scope) {
     fields: [
       { key:'title', label:'عنوان الطلب', required:true, placeholder:'مثال: تصميم منشور لليوم الوطني' },
       { key:'type',  label:'نوع الطلب', type:'select', required:true, options:types, default:types[0].value },
-      { key:'priority', label:'الأولوية', type:'select', options:[{value:'normal',label:'عادي'},{value:'urgent',label:'عاجل'},{value:'critical',label:'حرج'}], default:'normal' },
+      { key:'priority', label:'الأولوية', type:'select', options:[{value:'normal',label:'عادي'},{value:'high',label:'عالية'}], default:'normal' },
       { key:'dueDate', label:'التاريخ المطلوب', type:'date' },
       { key:'description', label:'وصف الطلب', type:'textarea', rows:4, placeholder:'تفاصيل إضافية...' }
     ]
   });
   if (!data) return;
-  // If "change_campaign" — route to the dedicated Change Campaign form
-  if (data.type === 'change_campaign') {
-    return openChangeCampaign(data.title);
-  }
+  // Review Round 5: إضافة الطلب بدون حالة — تظهر الحالة فقط بعد إرسال رسائل البدء
   REQ_STATE[scope].items.push({
     id: 'req-' + Date.now(),
     title: data.title,
@@ -14576,11 +14831,26 @@ async function reqOpenNew(scope) {
     dueDate: data.dueDate,
     description: data.description,
     requester: (AUTH_USER&&AUTH_USER.name)||'المستخدم',
-    status: 'جديد',
+    status: '',  // فارغة ابتداءً — تمتلئ لاحقاً عند إرسال رسائل البدء
+    kickoffSent: false,
     createdAt: new Date().toISOString()
   });
+  reqSave(scope, REQ_STATE[scope].items);
   reqRender(scope);
   alert('تم إرسال الطلب بنجاح');
+}
+
+// Review Round 5: دالة إرسال رسائل البدء — تفعّل حالة الطلب
+function reqSendKickoff(scope, reqId) {
+  var items = REQ_STATE[scope].items || [];
+  var it = items.find(function(x){ return x.id === reqId; });
+  if (!it) return;
+  it.kickoffSent = true;
+  it.status = 'جديد';
+  it.kickoffAt = new Date().toISOString();
+  reqSave(scope, items);
+  reqRender(scope);
+  alert('تم إرسال رسائل البدء — تم تفعيل حالة الطلب');
 }
 
 // ═══ CHANGE CAMPAIGN (حملة تغيير شاملة) — MVP ═══
@@ -14611,7 +14881,7 @@ async function openChangeCampaign(prefilledTitle) {
       { key:'workshopBrief',label:'🎨 تفاصيل الورش', type:'textarea', rows:2, placeholder:'عدد الورش · المدة · الموقع', dynamic:'services:🎨 ورش عمل' },
       { key:'internalDesignBrief',   label:'🖼️ موجز التصاميم الداخلية', type:'textarea', rows:2, placeholder:'أنواع · أحجام · أماكن', dynamic:'services:🖼️ تصاميم داخلية' },
       { key:'externalDesignBrief',   label:'🌐 موجز التصاميم الخارجية', type:'textarea', rows:2, placeholder:'منصات النشر · المقاسات', dynamic:'services:🌐 تصاميم خارجية' },
-      { key:'internalChannels',label:'📢 قنوات النشر الداخلي', type:'multi', options:['الإنترانت','الإيميل الداخلي','الشاشات','تيمز','واتساب داخلي'], dynamic:'services:📢 نشر داخلي' },
+      { key:'internalChannels',label:'📢 قنوات النشر الداخلي', type:'multi', options:['الإنترانت','الإيميل الداخلي','الشاشات','منصة بيم','واتساب داخلي'], dynamic:'services:📢 نشر داخلي' },
       { key:'externalChannels',label:'🌐 قنوات النشر الخارجي', type:'multi', options:['موقع الهيئة','إكس','لينكدإن','إنستجرام','يوتيوب','تيك توك','إعلام مدفوع'], dynamic:'services:🌐 نشر خارجي' },
       { key:'emailDetails',label:'📧 تفاصيل البريد الإلكتروني', type:'textarea', rows:2, placeholder:'عدد الرسائل · الجدول الزمني · القوالب', dynamic:'services:📧 بريد إلكتروني' },
       { key:'screensDetails',label:'📺 تفاصيل الشاشات', type:'textarea', rows:2, placeholder:'مواقع · مدة العرض · المحتوى', dynamic:'services:📺 شاشات داخلية' },
@@ -14698,6 +14968,48 @@ function advanceChangeCampaign(id) {
   showChangeCampaignWorkspace(id);
 }
 
+// Review Round 5: عرض قائمة حملات التغيير في الصفحة المستقلة
+function renderChangeCampaignsList() {
+  var host = document.getElementById('change-camp-list');
+  if (!host) return;
+  var arr = lsGet('gac_change_campaigns');
+  if (!arr.length) {
+    host.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-3);"><div style="font-size:40px;opacity:.4;margin-bottom:8px;">🔄</div><div>لا توجد حملات تغيير بعد — أنشئ أول حملة</div></div>';
+    host.style.padding = '0';
+    host.style.textAlign = 'right';
+    return;
+  }
+  host.style.padding = '0';
+  host.style.textAlign = 'right';
+  host.innerHTML = arr.map(function(c){
+    // canonical status migration for change campaigns
+    if (!c.status || c.status==='مسودة') c.status = 'planning';
+    else if (c.status==='نشطة') c.status = 'in_progress';
+    var info = campaignStatusInfo(c.status);
+    var opts = CAMPAIGN_STATUSES.map(function(s){
+      return '<option value="'+s.value+'" '+(s.value===c.status?'selected':'')+'>'+s.label+'</option>';
+    }).join('');
+    return '<div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;gap:14px;align-items:flex-start;cursor:pointer;" onclick="showChangeCampaignWorkspace(\''+c.id+'\')">' +
+      '<div style="flex:1;min-width:0;">' +
+        '<div style="font-weight:700;font-size:14px;color:var(--text);margin-bottom:4px;">'+(c.name||'—')+'</div>' +
+        '<div style="font-size:12px;color:var(--text-3);margin-bottom:6px;">'+(c.goal||'')+'</div>' +
+        '<div style="font-size:11px;color:var(--text-4);">'+(c.startDate||'')+' → '+(c.endDate||'')+' · جمهور: '+(c.audience||'—')+'</div>' +
+      '</div>' +
+      '<div style="text-align:left;flex-shrink:0;" onclick="event.stopPropagation()">' +
+        '<select onchange="changeCampaignStatusUpdate(\''+c.id+'\',this.value)" style="padding:5px 10px;border:1px solid '+info.color+';color:'+info.color+';background:'+info.color+'11;border-radius:999px;font-size:11px;font-weight:600;cursor:pointer;">'+opts+'</select>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+function changeCampaignStatusUpdate(id, newStatus){
+  var arr = lsGet('gac_change_campaigns');
+  var it = arr.find(function(x){ return x.id===id; });
+  if (!it) return;
+  it.status = newStatus;
+  lsSet('gac_change_campaigns', arr);
+  renderChangeCampaignsList();
+}
+
 async function campaignOpenNew(scope) {
   var data = await openFormModal({
     title: 'حملة ' + (scope==='internal'?'داخلية':'خارجية') + ' جديدة',
@@ -14710,25 +15022,46 @@ async function campaignOpenNew(scope) {
       { key:'audience',    label:'الفئة المستهدفة', required:true, placeholder:'مثال: الموظفين الجدد' },
       { key:'startDate',   label:'تاريخ البداية', type:'date', required:true },
       { key:'endDate',     label:'تاريخ النهاية', type:'date', required:true },
-      { key:'priority',    label:'الأولوية', type:'select', options:[{value:'normal',label:'عادي'},{value:'high',label:'عالية'},{value:'critical',label:'حرج'}], default:'normal' },
+      { key:'priority',    label:'الأولوية', type:'select', options:[{value:'normal',label:'عادي'},{value:'high',label:'عالية'}], default:'normal' },
       { key:'messages',    label:'الرسائل الرئيسية', type:'textarea', rows:3, placeholder:'رسالة في كل سطر...' },
       { key:'budget',      label:'الميزانية (ر.س)', type:'number', min:0 },
-      { key:'channels',    label:'قنوات النشر', type:'multi', options: scope==='internal' ? ['إيميل داخلي','الشاشات الداخلية','تيمز/سلاك','اجتماعات','مطبوعات'] : ['X (تويتر)','لينكدإن','يوتيوب','الموقع الرسمي','وسائل إعلام','واتساب بيزنس'] }
+      { key:'channels',    label:'قنوات النشر', type:'multi', options: scope==='internal' ? ['إيميل داخلي','الشاشات الداخلية','منصة بيم','مطبوعات'] : ['X (تويتر)','لينكدإن','يوتيوب','الموقع الرسمي','واتساب بيزنس'] }
     ]
   });
   if (!data) return;
   var key = 'gac_campaigns_' + scope;
   var arr = lsGet(key);
-  arr.unshift(Object.assign({ id:'camp-'+Date.now(), status:'مسودة', progress:0, createdAt:new Date().toISOString(), createdBy:(AUTH_USER&&AUTH_USER.name)||'' }, data));
+  // Review Round 5: default status is canonical 'planning'
+  arr.unshift(Object.assign({ id:'camp-'+Date.now(), status:'planning', progress:0, createdAt:new Date().toISOString(), createdBy:(AUTH_USER&&AUTH_USER.name)||'' }, data));
   lsSet(key, arr);
-  alert('تم إنشاء الحملة «' + data.name + '».\nالحالة: مسودة — يمكن إدارتها من قائمة الحملات.');
+  alert('تم إنشاء الحملة «' + data.name + '».\nالحالة: قيد التخطيط — اضغط على البطاقة لإضافة التفاصيل.');
   // Reload the campaigns page if visible
   var pageId = scope === 'internal' ? 'section-internal_campaigns' : 'section-external_campaigns';
   var page = document.getElementById(pageId);
   if (page && page.classList.contains('active')) renderCampaignsList(scope);
 }
 
-// Render campaigns list on the campaigns pages
+// Review Round 5: Unified campaign status list
+var CAMPAIGN_STATUSES = [
+  { value:'planning',   label:'قيد التخطيط',   color:'#6B7280' },
+  { value:'in_progress',label:'قيد التنفيذ',    color:'#3B82F6' },
+  { value:'awaiting',   label:'بانتظار الاعتماد', color:'#F59E0B' },
+  { value:'completed',  label:'مكتملة',        color:'#10B981' }
+];
+function campaignStatusInfo(v){
+  return CAMPAIGN_STATUSES.find(function(s){ return s.value===v; }) || CAMPAIGN_STATUSES[0];
+}
+function campaignStatusUpdate(scope, id, newStatus){
+  var key = 'gac_campaigns_' + scope;
+  var arr = lsGet(key);
+  var it = arr.find(function(x){ return x.id===id; });
+  if (!it) return;
+  it.status = newStatus;
+  lsSet(key, arr);
+  renderCampaignsList(scope);
+}
+
+// Review Round 5: Render campaigns list — status is a dropdown, cards clickable
 function renderCampaignsList(scope) {
   var listId = scope === 'internal' ? 'camp-int-list' : 'camp-ext-list';
   var host = document.getElementById(listId);
@@ -14739,19 +15072,60 @@ function renderCampaignsList(scope) {
     return;
   }
   host.innerHTML = items.map(function(c) {
-    var statusColor = c.status === 'نشطة' ? '#059669' : c.status === 'مسودة' ? '#6B7280' : '#DC2626';
-    return '<div style="padding:14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;gap:14px;align-items:flex-start;">' +
+    // Migrate legacy status strings to canonical values
+    if (!c.status || c.status==='مسودة') c.status = 'planning';
+    else if (c.status==='نشطة') c.status = 'in_progress';
+    var info = campaignStatusInfo(c.status);
+    var opts = CAMPAIGN_STATUSES.map(function(s){
+      return '<option value="'+s.value+'" '+(s.value===c.status?'selected':'')+'>'+s.label+'</option>';
+    }).join('');
+    return '<div class="campaign-card" style="padding:14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;gap:14px;align-items:flex-start;cursor:pointer;" onclick="campaignOpenDetail(\''+scope+'\',\''+c.id+'\')">' +
       '<div style="flex:1;min-width:0;">' +
         '<div style="font-weight:700;font-size:14px;color:var(--text);margin-bottom:4px;">'+c.name+'</div>' +
         '<div style="font-size:12px;color:var(--text-3);margin-bottom:6px;">'+(c.goal||'')+'</div>' +
         '<div style="font-size:11px;color:var(--text-4);">'+(c.startDate||'')+' → '+(c.endDate||'')+' · جمهور: '+(c.audience||'—')+'</div>' +
       '</div>' +
-      '<div style="text-align:left;flex-shrink:0;">' +
-        '<span style="display:inline-block;padding:3px 10px;background:'+statusColor+'22;color:'+statusColor+';border-radius:999px;font-size:11px;font-weight:600;">'+(c.status||'—')+'</span>' +
+      '<div style="text-align:left;flex-shrink:0;" onclick="event.stopPropagation()">' +
+        '<select onchange="campaignStatusUpdate(\''+scope+'\',\''+c.id+'\',this.value)" style="padding:5px 10px;border:1px solid '+info.color+';color:'+info.color+';background:'+info.color+'11;border-radius:999px;font-size:11px;font-weight:600;cursor:pointer;">'+opts+'</select>' +
         '<div style="font-size:11px;color:var(--text-3);margin-top:4px;">'+(c.progress||0)+'% اكتمال</div>' +
       '</div>' +
     '</div>';
   }).join('');
+}
+
+// Review Round 5: فتح تفاصيل الحملة — بطاقات قابلة للتعديل
+async function campaignOpenDetail(scope, id){
+  var key = 'gac_campaigns_' + scope;
+  var arr = lsGet(key);
+  var c = arr.find(function(x){ return x.id===id; });
+  if (!c) return;
+  var CAMPAIGN_FIELDS = [
+    { key:'description', label:'📝 النبذة', type:'textarea', rows:3 },
+    { key:'goal',        label:'🎯 الهدف', type:'textarea', rows:2, required:true },
+    { key:'audience',    label:'👥 الفئة', required:true },
+    { key:'messages',    label:'💬 الرسائل الرئيسية', type:'textarea', rows:4 },
+    { key:'creatives',   label:'🎨 المواد الإبداعية', type:'textarea', rows:3, placeholder:'روابط • ملاحظات • حالة الإنتاج' },
+    { key:'executionPlan', label:'📅 خطة التنفيذ', type:'textarea', rows:4 },
+    { key:'timeline',    label:'⏰ الجدول الزمني', type:'textarea', rows:3 },
+    { key:'status',      label:'⚙️ حالة الحملة', type:'select', options: CAMPAIGN_STATUSES.map(function(s){return {value:s.value,label:s.label};}) },
+    { key:'finalReport', label:'📊 التقرير الختامي', type:'textarea', rows:4 },
+    { key:'kpis',        label:'📈 مؤشرات الأداء', type:'textarea', rows:3 }
+  ];
+  // Preload defaults from existing record
+  var fields = CAMPAIGN_FIELDS.map(function(f){
+    return Object.assign({}, f, { default: (c[f.key]!==undefined ? c[f.key] : '') });
+  });
+  var data = await openFormModal({
+    title: '📋 ' + c.name + ' — تفاصيل الحملة',
+    submitLabel: 'حفظ التعديلات',
+    width: 780,
+    fields: fields
+  });
+  if (!data) return;
+  Object.assign(c, data);
+  c.updatedAt = new Date().toISOString();
+  lsSet(key, arr);
+  renderCampaignsList(scope);
 }
 
 function socialSwitchPlatform(p) {
@@ -14961,12 +15335,15 @@ async function mcNew() {
     fields: [
       { key:'eventName',   label:'اسم الفعالية', required:true, placeholder:'مثال: ملتقى المنافسة' },
       { key:'eventDate',   label:'تاريخ الفعالية', type:'date', required:true },
-      { key:'location',    label:'الموقع', required:true, placeholder:'الرياض — فندق فور سيزونز' },
+      // Review Round 5: موقع التغطية — dropdown (داخل الهيئة / خارج الهيئة)
+      { key:'coverageLocation', label:'موقع التغطية', type:'select', required:true, options:[{value:'internal',label:'داخل الهيئة'},{value:'external',label:'خارج الهيئة'}], default:'internal' },
+      { key:'location',    label:'العنوان التفصيلي', placeholder:'الرياض — فندق فور سيزونز', dynamic:'coverageLocation:external' },
       { key:'coverageType',label:'نوع التغطية', type:'multi', options:['تغطية مصورة','تغطية فيديو','مقابلات','بث مباشر','بيان صحفي'] },
       { key:'mediaOutlets',label:'القنوات الإعلامية المستهدفة', type:'textarea', rows:2, placeholder:'لكل قناة سطر...' },
       { key:'attendees',   label:'أبرز الحضور', type:'textarea', rows:2 },
       { key:'notes',       label:'ملاحظات إضافية', type:'textarea', rows:3 },
-      { key:'contact',     label:'جهة التنسيق', placeholder:'الاسم · البريد' }
+      // Review Round 5: جهة التنسيق — موضّحة أكثر
+      { key:'contact',     label:'جهة التنسيق (منسّق الفعالية)', placeholder:'الاسم • الجهة • البريد • الجوال' }
     ]
   });
   if (!data) return;
@@ -15060,6 +15437,66 @@ function saClear() {
   document.getElementById('sa-panel-body').style.display = 'none';
 }
 
+/* Review Round 5: Settings page handlers */
+function settingsSwitchTab(tab) {
+  document.querySelectorAll('.settings-tab').forEach(function(b) {
+    var isActive = b.getAttribute('data-stab') === tab;
+    b.style.color = isActive ? 'var(--primary)' : 'var(--text-3)';
+    b.style.borderBottomColor = isActive ? 'var(--primary)' : 'transparent';
+    b.classList.toggle('active', isActive);
+  });
+  document.querySelectorAll('.settings-pane').forEach(function(p) { p.style.display = 'none'; });
+  var pane = document.getElementById('settings-pane-' + tab);
+  if (pane) pane.style.display = 'block';
+}
+
+function settingsLoad() {
+  var u = window.AUTH_USER || {};
+  var name = document.getElementById('set-name'); if (name) name.value = u.name || u.fullName || '';
+  var email = document.getElementById('set-email'); if (email) email.value = u.email || '';
+  var role = document.getElementById('set-role'); if (role) role.value = u.roleAr || u.role || '';
+  var saved = {};
+  try { saved = JSON.parse(localStorage.getItem('gac_settings') || '{}'); } catch(_) {}
+  var dept = document.getElementById('set-dept'); if (dept) dept.value = saved.dept || '';
+  var lang = document.getElementById('set-lang'); if (lang) lang.value = saved.lang || 'ar';
+  var theme = document.getElementById('set-theme'); if (theme) theme.value = saved.theme || 'light';
+  ['autosave','compact','notif-email','notif-inapp','notif-campaign','notif-shorfah','2fa'].forEach(function(k) {
+    var el = document.getElementById('set-' + k);
+    if (el && saved.hasOwnProperty(k)) el.checked = !!saved[k];
+  });
+}
+
+function _settingsPersist(patch) {
+  var current = {};
+  try { current = JSON.parse(localStorage.getItem('gac_settings') || '{}'); } catch(_) {}
+  var merged = Object.assign({}, current, patch);
+  localStorage.setItem('gac_settings', JSON.stringify(merged));
+  return merged;
+}
+
+function settingsSaveProfile() {
+  _settingsPersist({ dept: document.getElementById('set-dept').value });
+  alert('✅ تم حفظ بيانات الحساب.');
+}
+function settingsSavePrefs() {
+  _settingsPersist({
+    lang: document.getElementById('set-lang').value,
+    theme: document.getElementById('set-theme').value,
+    autosave: document.getElementById('set-autosave').checked,
+    compact: document.getElementById('set-compact').checked
+  });
+  alert('✅ تم حفظ التفضيلات.');
+}
+function settingsSaveNotifs() {
+  _settingsPersist({
+    'notif-email': document.getElementById('set-notif-email').checked,
+    'notif-inapp': document.getElementById('set-notif-inapp').checked,
+    'notif-campaign': document.getElementById('set-notif-campaign').checked,
+    'notif-shorfah': document.getElementById('set-notif-shorfah').checked
+  });
+  alert('✅ تم حفظ تفضيلات الإشعارات.');
+}
+
 /* Init these pages on first show */
 document.addEventListener('DOMContentLoaded', function() {
   // Delegate to showSection listeners; call renderers when their page is opened
@@ -15070,6 +15507,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (name === 'internal_requests') reqRender('internal');
       else if (name === 'external_requests') reqRender('external');
       else if (name === 'social_platforms') socialRender();
+      else if (name === 'settings') settingsLoad();
     };
   }
 });
