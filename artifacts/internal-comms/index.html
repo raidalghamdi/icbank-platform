@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- build: 2026-07-14-review-round5-final -->
+<!-- build: 2026-07-15-review-round5-complete -->
 <html dir="rtl" lang="ar">
 <head>
 <meta charset="UTF-8">
@@ -5693,27 +5693,52 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
         <p class="page-sub">تقارير أداء الحملات والطلبات والمنصات — شهرية وربع سنوية.</p>
       </div>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-bottom:20px;">
-      <a href="#" onclick="showSection('campaigns_analytics');return false;" style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px;text-decoration:none;color:inherit;transition:all .2s;" onmouseover="this.style.borderColor='var(--accent)';this.style.transform='translateY(-2px)';" onmouseout="this.style.borderColor='var(--border)';this.style.transform='';">
-        <div style="font-size:28px;margin-bottom:8px;">📊</div>
-        <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px;">أداء الحملات</div>
-        <div style="font-size:12px;color:var(--text-3);">تحليلات مفصّلة لجميع الحملات</div>
-      </a>
-      <a href="#" onclick="showSection('internal_requests');return false;" style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px;text-decoration:none;color:inherit;transition:all .2s;" onmouseover="this.style.borderColor='var(--accent)';this.style.transform='translateY(-2px)';" onmouseout="this.style.borderColor='var(--border)';this.style.transform='';">
-        <div style="font-size:28px;margin-bottom:8px;">📥</div>
-        <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px;">أداء الطلبات</div>
-        <div style="font-size:12px;color:var(--text-3);">معدل الإنجاز — زمن المعالجة — التأخر</div>
-      </a>
-      <a href="#" onclick="showSection('social_platforms');return false;" style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px;text-decoration:none;color:inherit;transition:all .2s;" onmouseover="this.style.borderColor='var(--accent)';this.style.transform='translateY(-2px)';" onmouseout="this.style.borderColor='var(--border)';this.style.transform='';">
-        <div style="font-size:28px;margin-bottom:8px;">📱</div>
-        <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px;">أداء المنصات</div>
-        <div style="font-size:12px;color:var(--text-3);">تفاعل · متابعة · وصول تراكمي</div>
-      </a>
-      <a href="#" onclick="showSection('campaigns_analytics');return false;" style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px;text-decoration:none;color:inherit;transition:all .2s;" onmouseover="this.style.borderColor='var(--accent)';this.style.transform='translateY(-2px)';" onmouseout="this.style.borderColor='var(--border)';this.style.transform='';">
-        <div style="font-size:28px;margin-bottom:8px;">📅</div>
-        <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px;">التقارير الدورية</div>
-        <div style="font-size:12px;color:var(--text-3);">شهرية · ربع سنوية · سنوية</div>
-      </a>
+    <!-- Review Round 5: real tabs + inline reports -->
+    <div style="display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:20px;flex-wrap:wrap;">
+      <button class="pr-tab active" data-prtab="requests" onclick="perfSwitchTab('requests')" style="padding:10px 18px;font-size:13px;font-weight:700;background:none;border:none;border-bottom:2px solid var(--primary);color:var(--primary);cursor:pointer;margin-bottom:-2px;">📥 أداء الطلبات</button>
+      <button class="pr-tab" data-prtab="platforms" onclick="perfSwitchTab('platforms')" style="padding:10px 18px;font-size:13px;font-weight:700;background:none;border:none;border-bottom:2px solid transparent;color:var(--text-3);cursor:pointer;margin-bottom:-2px;">📱 أداء المنصات</button>
+      <button class="pr-tab" data-prtab="periodic" onclick="perfSwitchTab('periodic')" style="padding:10px 18px;font-size:13px;font-weight:700;background:none;border:none;border-bottom:2px solid transparent;color:var(--text-3);cursor:pointer;margin-bottom:-2px;">📅 التقارير الدورية</button>
+    </div>
+
+    <!-- أداء الطلبات -->
+    <div id="pr-pane-requests" class="pr-pane" style="display:block;">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:20px;">
+        <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px;"><div style="font-size:11px;color:var(--text-3);margin-bottom:6px;">إجمالي الطلبات</div><div id="pr-req-total" style="font-size:24px;font-weight:900;color:#1a6e7a;">—</div></div>
+        <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px;"><div style="font-size:11px;color:var(--text-3);margin-bottom:6px;">مكتملة</div><div id="pr-req-done" style="font-size:24px;font-weight:900;color:#059669;">—</div></div>
+        <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px;"><div style="font-size:11px;color:var(--text-3);margin-bottom:6px;">قيد المعالجة</div><div id="pr-req-progress" style="font-size:24px;font-weight:900;color:#4338CA;">—</div></div>
+        <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px;"><div style="font-size:11px;color:var(--text-3);margin-bottom:6px;">متأخرة</div><div id="pr-req-late" style="font-size:24px;font-weight:900;color:#DC2626;">—</div></div>
+        <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px;"><div style="font-size:11px;color:var(--text-3);margin-bottom:6px;">معدل الإنجاز</div><div id="pr-req-pct" style="font-size:24px;font-weight:900;color:#7C3AED;">—</div></div>
+      </div>
+      <div class="card"><div class="card-body">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;"><div style="font-weight:800;">توزيع الطلبات حسب النوع</div><button class="btn btn-ghost btn-sm" onclick="perfLoadRequests()">🔄 تحديث</button></div>
+        <div id="pr-req-breakdown" style="font-size:13px;color:var(--text-2);">—</div>
+      </div></div>
+    </div>
+
+    <!-- أداء المنصات -->
+    <div id="pr-pane-platforms" class="pr-pane" style="display:none;">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:20px;">
+        <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px;"><div style="font-size:11px;color:var(--text-3);margin-bottom:6px;">إجمالي المنشورات</div><div id="pr-pl-posts" style="font-size:24px;font-weight:900;color:#1a6e7a;">—</div></div>
+        <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px;"><div style="font-size:11px;color:var(--text-3);margin-bottom:6px;">إجمالي التفاعل</div><div id="pr-pl-engage" style="font-size:24px;font-weight:900;color:#059669;">—</div></div>
+        <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px;"><div style="font-size:11px;color:var(--text-3);margin-bottom:6px;">متوسط الوصول</div><div id="pr-pl-reach" style="font-size:24px;font-weight:900;color:#4338CA;">—</div></div>
+        <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px;"><div style="font-size:11px;color:var(--text-3);margin-bottom:6px;">معدل النمو</div><div id="pr-pl-growth" style="font-size:24px;font-weight:900;color:#7C3AED;">—</div></div>
+      </div>
+      <div class="card"><div class="card-body">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;"><div style="font-weight:800;">توزيع الأداء حسب المنصة</div><button class="btn btn-ghost btn-sm" onclick="perfLoadPlatforms()">🔄 تحديث</button></div>
+        <div id="pr-pl-breakdown" style="font-size:13px;color:var(--text-2);">—</div>
+      </div></div>
+    </div>
+
+    <!-- التقارير الدورية -->
+    <div id="pr-pane-periodic" class="pr-pane" style="display:none;">
+      <div class="card" style="margin-bottom:16px;"><div class="card-body">
+        <div style="display:flex;gap:10px;align-items:end;flex-wrap:wrap;margin-bottom:16px;">
+          <div style="flex:1;min-width:180px;"><label style="display:block;font-size:12px;color:var(--text-3);margin-bottom:4px;">فترة التقرير</label><select id="pr-period-type" class="ws-input" style="width:100%;"><option value="monthly">شهري</option><option value="quarterly">ربع سنوي</option><option value="annual">سنوي</option></select></div>
+          <div style="flex:1;min-width:140px;"><label style="display:block;font-size:12px;color:var(--text-3);margin-bottom:4px;">السنة</label><select id="pr-period-year" class="ws-input" style="width:100%;"></select></div>
+          <button class="btn btn-primary" onclick="perfGeneratePeriodic()">✨ توليد التقرير</button>
+        </div>
+        <div id="pr-periodic-result" style="font-size:13px;color:var(--text-2);">📄 اختر فترة ثم اضغط زر التوليد — سيتم إنشاء تقرير تجميعي من الطلبات والحملات والمنشورات.</div>
+      </div></div>
     </div>
   </div>
 
@@ -7184,7 +7209,9 @@ window.adminExportLogs = function() {
 };
 
 function admDownloadCsv(csv, filename) {
-  var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  // Review Round 5: prepend UTF-8 BOM for correct Arabic rendering in Excel
+  var bom = '\uFEFF';
+  var blob = new Blob([bom + csv], { type: 'text/csv;charset=utf-8;' });
   var url = URL.createObjectURL(blob);
   var a = document.createElement('a');
   a.href = url; a.download = filename;
@@ -14003,11 +14030,98 @@ window.MM = (function(){
   function deleteReport(){ alert('🔒 لا يمكن حذف التقارير النهائية — تبقى محفوظة في النظام للمراجعة والمراقبة.'); }
   function exportReport(){ return exportPdf(); }
 
+  // Review Round 5: Quick generate modal (short form as alternative to full wizard)
+  function openGenerateModal(){
+    var m = document.getElementById('mm-gen-modal');
+    if (m) m.style.display = 'flex';
+  }
+  function closeGenerateModal(){
+    var m = document.getElementById('mm-gen-modal');
+    if (m) m.style.display = 'none';
+  }
+  function onTypeChange(){
+    var sel = document.getElementById('mm-gen-type');
+    var dates = document.getElementById('mm-gen-dates');
+    if (sel && dates) dates.style.display = sel.value === 'custom' ? 'grid' : 'none';
+  }
+  async function runGenerate(){
+    var btn = document.getElementById('mm-gen-btn');
+    var label = document.getElementById('mm-gen-btn-label');
+    var origLabel = label ? label.textContent : 'توليد بـ AI';
+    if (btn) btn.disabled = true;
+    if (label) label.textContent = 'جارٍ التوليد…';
+    try {
+      var sources = [];
+      if (document.getElementById('mm-src-linkedin').checked) sources.push('linkedin');
+      if (document.getElementById('mm-src-news').checked) sources.push('news');
+      if (document.getElementById('mm-src-twitter').checked) sources.push('twitter');
+      var payload = {
+        reportType: document.getElementById('mm-gen-type').value,
+        audience: document.getElementById('mm-gen-audience').value,
+        sources: sources,
+        focusTopics: '',
+        language: 'ar',
+        autoSave: true
+      };
+      var customTitle = document.getElementById('mm-gen-title').value.trim();
+      if (customTitle) payload.title = customTitle;
+      if (payload.reportType === 'custom') {
+        payload.dateFrom = document.getElementById('mm-gen-from').value;
+        payload.dateTo = document.getElementById('mm-gen-to').value;
+        if (!payload.dateFrom || !payload.dateTo) {
+          alert('الرجاء تحديد فترة التقرير المخصصة.');
+          return;
+        }
+      }
+      var res = await apiFetch('/api/final-media-reports/generate', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) {
+        var errTxt = await res.text();
+        var friendly = errTxt;
+        try {
+          var ej = JSON.parse(errTxt);
+          if (ej && ej.error) {
+            var inner = ej.error;
+            if (typeof inner === 'string') { try { inner = JSON.parse(inner); } catch(_){} }
+            var msg = (inner && inner.error && inner.error.message) || (inner && inner.message) || ej.error;
+            var code = (inner && inner.error && inner.error.code) || (inner && inner.code);
+            if (code === 429 || /prepayment|quota|depleted|exceeded/i.test(String(msg))) {
+              friendly = '⚠️ نفد رصيد الذكاء الاصطناعي. يجب على مدير النظام تجديد الرصيد.';
+            } else if (code === 503 || /unavailable|high demand|overloaded|temporary/i.test(String(msg))) {
+              friendly = '⏱️ خدمة الذكاء الاصطناعي مشغولة حالياً. أعد المحاولة خلال 30 ثانية.';
+            } else {
+              friendly = String(msg).slice(0,300);
+            }
+          }
+        } catch(_){}
+        throw new Error(friendly);
+      }
+      var data = await res.json();
+      closeGenerateModal();
+      if (data.saved) {
+        await load();
+        viewReport(data.saved.id);
+      } else if (data.draft) {
+        showDraftPreview(data.draft);
+      }
+    } catch(e) {
+      alert('تعذّر التوليد:\n\n' + (e.message || e));
+    } finally {
+      if (btn) btn.disabled = false;
+      if (label) label.textContent = origLabel;
+    }
+  }
+
   return { load: load, showWizard: showWizard, hideWizard: hideWizard,
     wizPrev: wizPrev, wizNext: wizNext, wizPick: wizPick, toggleSource: toggleSource,
     runSearch: runSearch, viewReport: viewReport, closeViewModal: closeViewModal,
     exportPdf: exportPdf, sendEmail: sendEmail, execSummary: execSummary,
-    exportReport: exportReport, deleteReport: deleteReport };
+    exportReport: exportReport, deleteReport: deleteReport,
+    openGenerateModal: openGenerateModal, closeGenerateModal: closeGenerateModal,
+    onTypeChange: onTypeChange, runGenerate: runGenerate };
 })();
 
 // ══ Prompts Library module ══
@@ -15437,6 +15551,127 @@ function saClear() {
   document.getElementById('sa-panel-body').style.display = 'none';
 }
 
+/* Review Round 5: Performance Reports handlers */
+function perfSwitchTab(tab) {
+  document.querySelectorAll('.pr-tab').forEach(function(b){
+    var active = b.getAttribute('data-prtab') === tab;
+    b.style.color = active ? 'var(--primary)' : 'var(--text-3)';
+    b.style.borderBottomColor = active ? 'var(--primary)' : 'transparent';
+  });
+  document.querySelectorAll('.pr-pane').forEach(function(p){ p.style.display = 'none'; });
+  var pane = document.getElementById('pr-pane-' + tab);
+  if (pane) pane.style.display = 'block';
+  if (tab === 'requests') perfLoadRequests();
+  else if (tab === 'platforms') perfLoadPlatforms();
+  else if (tab === 'periodic') perfInitPeriodic();
+}
+
+function perfLoadRequests() {
+  var internal = [], external = [];
+  try { internal = JSON.parse(localStorage.getItem('gac_requests_internal') || '[]'); } catch(_) {}
+  try { external = JSON.parse(localStorage.getItem('gac_requests_external') || '[]'); } catch(_) {}
+  var all = internal.concat(external);
+  var total = all.length;
+  var done = all.filter(function(r){ return (r.status||'').indexOf('مكتمل') >= 0 || r.status === 'done' || r.status === 'closed'; }).length;
+  var progress = all.filter(function(r){ return r.kickoffSent && !(((r.status||'').indexOf('مكتمل') >= 0) || r.status==='done'); }).length;
+  var late = all.filter(function(r){
+    if (!r.dueDate) return false;
+    var due = new Date(r.dueDate);
+    return due < new Date() && !(((r.status||'').indexOf('مكتمل') >= 0) || r.status==='done');
+  }).length;
+  var pct = total ? Math.round((done/total)*100) : 0;
+  var $ = function(id){ return document.getElementById(id); };
+  if ($('pr-req-total')) $('pr-req-total').textContent = total;
+  if ($('pr-req-done')) $('pr-req-done').textContent = done;
+  if ($('pr-req-progress')) $('pr-req-progress').textContent = progress;
+  if ($('pr-req-late')) $('pr-req-late').textContent = late;
+  if ($('pr-req-pct')) $('pr-req-pct').textContent = pct + '%';
+  // Breakdown by type
+  var byType = {};
+  all.forEach(function(r){ var t = r.typeLabel || r.type || 'غير مصنف'; byType[t] = (byType[t]||0)+1; });
+  var rows = Object.keys(byType).sort(function(a,b){ return byType[b]-byType[a]; }).map(function(k){
+    var count = byType[k]; var pct2 = total ? Math.round(count/total*100) : 0;
+    return '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;"><div style="flex:0 0 200px;font-weight:600;">'+k+'</div><div style="flex:1;background:#F3F4F6;border-radius:6px;height:22px;position:relative;overflow:hidden;"><div style="background:linear-gradient(90deg,#1a6e7a,#3ec0d0);height:100%;width:'+pct2+'%;"></div></div><div style="flex:0 0 60px;text-align:left;font-weight:700;">'+count+' ('+pct2+'%)</div></div>';
+  });
+  var el = document.getElementById('pr-req-breakdown');
+  if (el) el.innerHTML = rows.length ? rows.join('') : '<div style="color:var(--text-3);text-align:center;padding:24px;">لا توجد طلبات حتى الآن.</div>';
+}
+
+function perfLoadPlatforms() {
+  // يقرأ من قائمة المنشورات إن وجدت أو يعرض أرقام توضيحية
+  var posts = [];
+  try { posts = JSON.parse(localStorage.getItem('gac_social_posts') || '[]'); } catch(_) {}
+  var totalPosts = posts.length || 0;
+  var totalEng = posts.reduce(function(s,p){ return s + (parseInt(p.engagement)||0); }, 0);
+  var totalReach = posts.reduce(function(s,p){ return s + (parseInt(p.reach)||0); }, 0);
+  var avgReach = totalPosts ? Math.round(totalReach/totalPosts) : 0;
+  var $ = function(id){ return document.getElementById(id); };
+  if ($('pr-pl-posts')) $('pr-pl-posts').textContent = totalPosts;
+  if ($('pr-pl-engage')) $('pr-pl-engage').textContent = totalEng.toLocaleString('ar-SA');
+  if ($('pr-pl-reach')) $('pr-pl-reach').textContent = avgReach.toLocaleString('ar-SA');
+  if ($('pr-pl-growth')) $('pr-pl-growth').textContent = totalPosts > 0 ? '+' + Math.round(totalEng/Math.max(totalPosts,1)/10) + '%' : '0%';
+  // By platform breakdown
+  var byPlatform = {};
+  posts.forEach(function(p){ var pl = p.platform || 'X'; byPlatform[pl] = (byPlatform[pl]||0)+1; });
+  var el = document.getElementById('pr-pl-breakdown');
+  if (!Object.keys(byPlatform).length) {
+    if (el) el.innerHTML = '<div style="color:var(--text-3);text-align:center;padding:24px;">لا توجد منشورات حتى الآن — أضف من صفحة منصات التواصل.</div>';
+    return;
+  }
+  var rows = Object.keys(byPlatform).sort(function(a,b){ return byPlatform[b]-byPlatform[a]; }).map(function(k){
+    var count = byPlatform[k]; var pct2 = totalPosts ? Math.round(count/totalPosts*100) : 0;
+    return '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;"><div style="flex:0 0 140px;font-weight:600;">'+k+'</div><div style="flex:1;background:#F3F4F6;border-radius:6px;height:22px;position:relative;overflow:hidden;"><div style="background:linear-gradient(90deg,#7C3AED,#EC4899);height:100%;width:'+pct2+'%;"></div></div><div style="flex:0 0 60px;text-align:left;font-weight:700;">'+count+' ('+pct2+'%)</div></div>';
+  });
+  if (el) el.innerHTML = rows.join('');
+}
+
+function perfInitPeriodic() {
+  var sel = document.getElementById('pr-period-year');
+  if (!sel || sel.options.length) return;
+  var y = new Date().getFullYear();
+  for (var i = y+1; i >= y-3; i--) {
+    var opt = document.createElement('option');
+    opt.value = i; opt.textContent = i;
+    if (i === y) opt.selected = true;
+    sel.appendChild(opt);
+  }
+}
+
+function perfGeneratePeriodic() {
+  var type = document.getElementById('pr-period-type').value;
+  var year = document.getElementById('pr-period-year').value;
+  var typeLabel = { monthly:'شهري', quarterly:'ربع سنوي', annual:'سنوي' }[type] || type;
+  // تجميع الإحصاءات
+  var internal=[], external=[], campaigns=[];
+  try { internal = JSON.parse(localStorage.getItem('gac_requests_internal') || '[]'); } catch(_) {}
+  try { external = JSON.parse(localStorage.getItem('gac_requests_external') || '[]'); } catch(_) {}
+  try { campaigns = JSON.parse(localStorage.getItem('gac_campaigns_internal') || '[]').concat(JSON.parse(localStorage.getItem('gac_campaigns_external') || '[]')); } catch(_) {}
+  var totalReq = internal.length + external.length;
+  var doneReq = [].concat(internal, external).filter(function(r){ return (r.status||'').indexOf('مكتمل') >= 0; }).length;
+  var totalCmp = campaigns.length;
+  var doneCmp = campaigns.filter(function(c){ return c.status === 'completed'; }).length;
+  var html = '<div style="background:linear-gradient(135deg,#F3F0FF,#E9E5FF);border-radius:12px;padding:20px;">'+
+    '<div style="font-size:16px;font-weight:800;color:#4C1D95;margin-bottom:14px;">📊 تقرير الأداء ال'+typeLabel+' لعام '+year+'</div>'+
+    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px;">'+
+      '<div style="background:#fff;padding:12px;border-radius:10px;"><div style="font-size:11px;color:#6B7280;margin-bottom:4px;">إجمالي الطلبات</div><div style="font-size:22px;font-weight:900;color:#1a6e7a;">'+totalReq+'</div></div>'+
+      '<div style="background:#fff;padding:12px;border-radius:10px;"><div style="font-size:11px;color:#6B7280;margin-bottom:4px;">منجز منها</div><div style="font-size:22px;font-weight:900;color:#059669;">'+doneReq+'</div></div>'+
+      '<div style="background:#fff;padding:12px;border-radius:10px;"><div style="font-size:11px;color:#6B7280;margin-bottom:4px;">إجمالي الحملات</div><div style="font-size:22px;font-weight:900;color:#4338CA;">'+totalCmp+'</div></div>'+
+      '<div style="background:#fff;padding:12px;border-radius:10px;"><div style="font-size:11px;color:#6B7280;margin-bottom:4px;">حملات مكتملة</div><div style="font-size:22px;font-weight:900;color:#7C3AED;">'+doneCmp+'</div></div>'+
+    '</div>'+
+    '<div style="padding:12px;background:#fff;border-radius:10px;font-size:13px;line-height:1.8;color:#4B5563;">'+
+      '<b>ملخص تنفيذي:</b> تم معالجة '+totalReq+' طلباً خلال هذه الفترة، منها '+doneReq+' مكتملة ('+(totalReq?Math.round(doneReq/totalReq*100):0)+'%). '+
+      'تم إطلاق '+totalCmp+' حملة، وأنجز منها '+doneCmp+' حملة بنسبة '+(totalCmp?Math.round(doneCmp/totalCmp*100):0)+'%.'+
+    '</div>'+
+    '<button class="btn btn-ghost btn-sm" style="margin-top:12px;" onclick="perfExportPeriodic()">📄 تصدير PDF</button>'+
+  '</div>';
+  var el = document.getElementById('pr-periodic-result');
+  if (el) el.innerHTML = html;
+}
+
+function perfExportPeriodic() {
+  window.print();
+}
+
 /* Review Round 5: Settings page handlers */
 function settingsSwitchTab(tab) {
   document.querySelectorAll('.settings-tab').forEach(function(b) {
@@ -15508,6 +15743,8 @@ document.addEventListener('DOMContentLoaded', function() {
       else if (name === 'external_requests') reqRender('external');
       else if (name === 'social_platforms') socialRender();
       else if (name === 'settings') settingsLoad();
+      else if (name === 'performance_reports') { perfInitPeriodic(); perfLoadRequests(); }
+      // admin_panel init handled by existing adminInit() in showSection
     };
   }
 });
