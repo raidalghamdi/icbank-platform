@@ -13659,14 +13659,20 @@ window.MM = (function(){
         var errTxt = await res.text();
         // Parse nested AI provider errors gracefully
         var friendly = errTxt;
+        var errCode = null;
+        var ejFull = {};
         try {
           var ej = JSON.parse(errTxt);
+          ejFull = ej || {};
+          errCode = ej && ej.code;
           if (ej && ej.error) {
             var inner = ej.error;
             if (typeof inner === 'string') { try { inner = JSON.parse(inner); } catch(_){} }
             var msg = (inner && inner.error && inner.error.message) || (inner && inner.message) || ej.error;
             var code = (inner && inner.error && inner.error.code) || (inner && inner.code);
-            if (code === 429 || /prepayment|quota|depleted|exceeded/i.test(String(msg))) {
+            if (ej.code === 'NO_SOURCE_DATA') {
+              friendly = String(ej.error || '').slice(0,500);
+            } else if (code === 429 || /prepayment|quota|depleted|exceeded/i.test(String(msg))) {
               friendly = '⚠️ نفد رصيد الذكاء الاصطناعي (Gemini API).\n\nيجب على المسؤول تجديد رصيد المفتاح من https://ai.studio/projects ثم المحاولة لاحقاً.';
             } else if (code === 503 || /unavailable|high demand|overloaded|temporary/i.test(String(msg))) {
               friendly = '⏱️ خدمة الذكاء الاصطناعي تعاني من ضغط مؤقت الآن.\n\nالرجاء إعادة المحاولة خلال 30 ثانية.';
@@ -13677,6 +13683,25 @@ window.MM = (function(){
             }
           }
         } catch(_){}
+        // If NO_SOURCE_DATA, show custom modal with action buttons (matches runGenerate flow)
+        if (errCode === 'NO_SOURCE_DATA') {
+          var hint = (ejFull && ejFull.hint) || {};
+          var avail = hint.dataAvailable || {};
+          var hasExisting = avail.postsTotal > 0 || avail.newsTotal > 0;
+          var oldest = avail.oldestDate ? avail.oldestDate.slice(0, 10) : null;
+          var newest = avail.newestDate ? avail.newestDate.slice(0, 10) : null;
+          nextBtn.disabled = false; nextBtn.textContent = orig;
+          showNoDataModal({
+            message: ejFull.error || friendly,
+            hasExisting: hasExisting,
+            oldest: oldest,
+            newest: newest,
+            postsTotal: avail.postsTotal || 0,
+            newsTotal: avail.newsTotal || 0,
+            fromWizard: true,
+          });
+          return;
+        }
         throw new Error(friendly);
       }
       var data = await res.json();
@@ -14179,15 +14204,23 @@ window.MM = (function(){
     if (opts.hasExisting) {
       document.getElementById('mm-nodata-use-range').onclick = function(){
         closeModal();
-        document.getElementById('mm-gen-reportType').value = 'custom';
-        onTypeChange();
-        setTimeout(function(){
-          var fromEl = document.getElementById('mm-gen-from');
-          var toEl = document.getElementById('mm-gen-to');
-          if (fromEl) fromEl.value = opts.oldest;
-          if (toEl) toEl.value = opts.newest;
-          runGenerate();
-        }, 200);
+        if (opts.fromWizard) {
+          // Update wizard state and jump straight to generation
+          state.wizAnswers.reportType = 'custom';
+          state.wizAnswers.dateFrom = opts.oldest;
+          state.wizAnswers.dateTo = opts.newest;
+          setTimeout(function(){ wizGenerate(); }, 200);
+        } else {
+          document.getElementById('mm-gen-reportType').value = 'custom';
+          onTypeChange();
+          setTimeout(function(){
+            var fromEl = document.getElementById('mm-gen-from');
+            var toEl = document.getElementById('mm-gen-to');
+            if (fromEl) fromEl.value = opts.oldest;
+            if (toEl) toEl.value = opts.newest;
+            runGenerate();
+          }, 200);
+        }
       };
     }
 
@@ -14200,7 +14233,10 @@ window.MM = (function(){
         var seedData = await seedRes.json();
         if (seedData.ok) {
           closeModal();
-          setTimeout(function(){ runGenerate(); }, 300);
+          setTimeout(function(){
+            if (opts.fromWizard) wizGenerate();
+            else runGenerate();
+          }, 300);
         } else {
           alert('❌ ' + (seedData.error || 'تعذر الاستيراد'));
           btn.disabled = false;
