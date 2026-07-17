@@ -380,6 +380,7 @@ router.post("/final-media-reports/generate", async (req: Request, res: Response)
     const draft = {
       title,
       reportType: body.reportType,
+      audience: body.audience,
       periodLabel,
       dateFrom: from,
       dateTo: to,

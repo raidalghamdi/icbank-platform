@@ -13756,8 +13756,8 @@ window.MM = (function(){
     }
   }
 
-  function audienceLabel(a){ return ({executive:'🎯 تنفيذي',manager:'📊 إداري',analyst:'🔍 تحليلي'})[a] || a; }
-  function typeLabel(t){ return ({weekly:'أسبوعي',monthly:'شهري',custom:'مخصص'})[t] || t; }
+  function audienceLabel(a){ return ({executive:'🎯 تنفيذي',manager:'📊 إداري',analyst:'🔍 تحليلي'})[a] || '📊 إداري'; }
+  function typeLabel(t){ return ({weekly:'أسبوعي',monthly:'شهري',custom:'مخصص'})[t] || 'أسبوعي'; }
 
   function renderList() {
     var loadingEl = document.getElementById('mm-loading');
