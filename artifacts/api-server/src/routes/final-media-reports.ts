@@ -352,6 +352,23 @@ router.post("/final-media-reports/generate", async (req: Request, res: Response)
           .limit(120)
       : [];
 
+    // Guard: if no source data exists in the period, return a clear friendly error
+    // instead of asking the AI to hallucinate a report of zeros.
+    if (posts.length === 0 && news.length === 0) {
+      return res.status(422).json({
+        ok: false,
+        code: "NO_SOURCE_DATA",
+        error: `لا توجد أخبار أو منشورات مرصودة في الفترة (${periodLabel}). الرجاء استيراد بيانات إعلامية أو توسيع الفترة الزمنية.`,
+        hint: {
+          postsInPeriod: 0,
+          newsInPeriod: 0,
+          periodFrom: from.toISOString(),
+          periodTo: to.toISOString(),
+          sources: body.sources,
+        },
+      });
+    }
+
     const feed = formatFeedForAI(posts, news);
     const prompt = buildEightSectionPrompt({
       periodLabel,
@@ -690,6 +707,52 @@ router.post("/qa-queries", async (req: Request, res: Response) => {
   } catch (err: any) {
     console.error("[final-media-reports] qa log error:", err);
     res.status(500).json({ ok: false, error: err.message || "Internal error" });
+  }
+});
+
+// ─── POST /api/final-media-reports/seed-demo ─ admin only ────────────
+// Seeds 12 realistic-looking GAC-themed items (6 news + 6 LinkedIn posts)
+// dated across the last 7 days so the generator has something to analyse.
+router.post("/final-media-reports/seed-demo", async (req: Request, res: Response) => {
+  try {
+    const user = (req as any).user;
+    if (!user || !(["admin", "super_admin"].includes(user.role))) {
+      return res.status(403).json({ ok: false, error: "ممنوع — يتطلب صلاحيات مدير." });
+    }
+    const now = new Date();
+    const daysAgo = (n: number) => new Date(now.getTime() - n * 24 * 60 * 60 * 1000);
+
+    const demoNews = [
+      { kind: "decision", category: "merger-approval", titleAr: "الهيئة العامة للمنافسة توافق على 22 طلب تركز اقتصادي خلال يوليو", bodyAr: "أعلنت الهيئة العامة للمنافسة عن إصدار 22 قراراً بعدم الممانعة على طلبات التركز الاقتصادي خلال الأسبوع الأول من يوليو 2026، في قطاعات التجزئة والتقنية والخدمات اللوجستية.", sourceUrl: "https://www.spa.gov.sa/example-1", publishedAt: daysAgo(1), externalRef: "GAC-DEC-2026-107", tags: ["تركز", "ترخيص", "قرارات"] },
+      { kind: "news", category: "awareness", titleAr: "منتدى المنافسة العادلة يناقش أفضل الممارسات الدولية", bodyAr: "استضافت الهيئة منتدى المنافسة العادلة 2026 بمشاركة ممثلي هيئات دولية من الاتحاد الأوروبي ومنطقة الشرق الأوسط، لمناقشة تأثير الذكاء الاصطناعي على الأسواق الرقمية.", sourceUrl: "https://gac.gov.sa/news-forum", publishedAt: daysAgo(2), tags: ["منتدى", "دولي", "توعية"] },
+      { kind: "decision", category: "enforcement", titleAr: "تحقيقات جديدة في مخالفات تملّك محتمل في قطاع المواد الغذائية", bodyAr: "فتحت الهيئة ملفات تحقيق في ممارسات تقييدية محتملة من قبل 3 منشآت في قطاع توزيع المواد الغذائية في ثلاث مناطق رئيسية.", sourceUrl: "https://gac.gov.sa/enforcement-2026-07", publishedAt: daysAgo(3), externalRef: "GAC-ENF-2026-041", tags: ["تحقيق", "غذاء", "إنفاذ"] },
+      { kind: "news", category: "awareness", titleAr: "دورة تدريبية تخصصية لمحققي المنافسة في جدة", bodyAr: "إختتمت الهيئة دورة تدريبية مكثفة لـ 45 محقق منافسة حول تحليل الأسواق الرقمية وتحديد الممارسات المخالفة.", sourceUrl: "https://gac.gov.sa/training-jeddah", publishedAt: daysAgo(4), tags: ["تدريب", "بناء قدرات"] },
+      { kind: "decision", category: "merger-conditional", titleAr: "الموافقة المشروطة على صفقة استحواذ في قطاع التأمين الصحي", bodyAr: "وافقت الهيئة مشروطًا على طلب تركز لشركات تأمين صحي مع التزامات محددة لحماية حقوق المستفيدين.", sourceUrl: "https://spa.gov.sa/example-5", publishedAt: daysAgo(5), externalRef: "GAC-DEC-2026-108", tags: ["تأمين", "استحواذ", "مشروط"] },
+      { kind: "news", category: "awareness", titleAr: "تقرير سنوي: مؤشر المنافسة في المملكة يرتفع إلى 84%", bodyAr: "حقّقت المملكة تقدماً لافتاً في مؤشر المنافسة العالمي خلال 2026 وفقاً للتقرير السنوي، بزيادة 6 نقاط عن العام السابق.", sourceUrl: "https://gac.gov.sa/annual-report-2026", publishedAt: daysAgo(6), tags: ["مؤشر", "تقدم", "تقرير سنوي"] },
+    ];
+
+    const demoPosts = [
+      { platform: "linkedin", externalId: "demo-li-" + Date.now() + "-1", contentAr: "أعلنت #الهيئة_العامة_للمنافسة إصدار 22 قراراً بعدم الممانعة في يوليو، مما يعزز دورها في حماية المنافسة العادلة.", postUrl: "https://linkedin.com/posts/gac-demo-1", postedAt: daysAgo(1), account: "SaudiGAC", metrics: { likes: 342, comments: 18, shares: 47 } },
+      { platform: "linkedin", externalId: "demo-li-" + Date.now() + "-2", contentAr: "خلال منتدى المنافسة العادلة 2026، أكد معالي الرئيس أهمية التعاون الدولي لمواجهة تحديات الأسواق الرقمية والذكاء الاصطناعي.", postUrl: "https://linkedin.com/posts/gac-demo-2", postedAt: daysAgo(2), account: "SaudiGAC", metrics: { likes: 511, comments: 34, shares: 89 } },
+      { platform: "twitter", externalId: "demo-tw-" + Date.now() + "-3", contentAr: "تحقيقات جديدة في ثلاث منشآت في قطاع توزيع المواد الغذائية — حماية للمستهلك وللسوق. #منافسة_عادلة", postUrl: "https://twitter.com/SaudiGAC/status/demo-3", postedAt: daysAgo(3), account: "SaudiGAC", metrics: { likes: 892, comments: 76, shares: 234 } },
+      { platform: "linkedin", externalId: "demo-li-" + Date.now() + "-4", contentAr: "يسرّنا تخرّج 45 محقق منافسة من الدورة التدريبية التخصصية في جدة. بناء القدرات الوطنية مستمر.", postUrl: "https://linkedin.com/posts/gac-demo-4", postedAt: daysAgo(4), account: "SaudiGAC", metrics: { likes: 267, comments: 12, shares: 28 } },
+      { platform: "twitter", externalId: "demo-tw-" + Date.now() + "-5", contentAr: "موافقة مشروطة على صفقة استحواذ في قطاع التأمين الصحي — لضمان حقوق المستفيدين.", postUrl: "https://twitter.com/SaudiGAC/status/demo-5", postedAt: daysAgo(5), account: "SaudiGAC", metrics: { likes: 445, comments: 41, shares: 78 } },
+      { platform: "linkedin", externalId: "demo-li-" + Date.now() + "-6", contentAr: "المملكة تحقق تقدماً لافتاً في مؤشر المنافسة العالمي بـ 84% — حصيلة الجهود المشتركة مع رؤية 2030.", postUrl: "https://linkedin.com/posts/gac-demo-6", postedAt: daysAgo(6), account: "SaudiGAC", metrics: { likes: 723, comments: 52, shares: 156 } },
+    ];
+
+    // Insert
+    const insertedNews = await db.insert(gacNewsItemsTable).values(demoNews as any).returning({ id: gacNewsItemsTable.id });
+    const insertedPosts = await db.insert(gacSocialPostsTable).values(demoPosts as any).returning({ id: gacSocialPostsTable.id });
+
+    return res.json({
+      ok: true,
+      message: `تم زراعة ${insertedNews.length} خبر و ${insertedPosts.length} منشور تجريبي حديث.`,
+      seededNews: insertedNews.length,
+      seededPosts: insertedPosts.length,
+    });
+  } catch (err: any) {
+    console.error("[final-media-reports] seed error:", err);
+    return res.status(500).json({ ok: false, error: err.message || "Internal error" });
   }
 });
 

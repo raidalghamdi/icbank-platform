@@ -14081,14 +14081,18 @@ window.MM = (function(){
       if (!res.ok) {
         var errTxt = await res.text();
         var friendly = errTxt;
+        var errCode = null;
         try {
           var ej = JSON.parse(errTxt);
+          errCode = ej && ej.code;
           if (ej && ej.error) {
             var inner = ej.error;
             if (typeof inner === 'string') { try { inner = JSON.parse(inner); } catch(_){} }
             var msg = (inner && inner.error && inner.error.message) || (inner && inner.message) || ej.error;
-            var code = (inner && inner.error && inner.error.code) || (inner && inner.code);
-            if (code === 429 || /prepayment|quota|depleted|exceeded/i.test(String(msg))) {
+            var code = (inner && inner.error && inner.error.code) || (inner && inner.code) || ej.code;
+            if (ej.code === 'NO_SOURCE_DATA' || /لا توجد أخبار/.test(String(ej.error))) {
+              friendly = '📭 لا توجد بيانات إعلامية مرصودة في الفترة المختارة.\n\nحلول مقترحة:\n• استخدم زر «استيراد بيانات تجريبية» لاختبار الميزة\n• أو وسّع الفترة إلى «مخصص» واختر فترة أوسع';
+            } else if (code === 429 || /prepayment|quota|depleted|exceeded/i.test(String(msg))) {
               friendly = '⚠️ نفد رصيد الذكاء الاصطناعي. يجب على مدير النظام تجديد الرصيد.';
             } else if (code === 503 || /unavailable|high demand|overloaded|temporary/i.test(String(msg))) {
               friendly = '⏱️ خدمة الذكاء الاصطناعي مشغولة حالياً. أعد المحاولة خلال 30 ثانية.';
@@ -14097,6 +14101,25 @@ window.MM = (function(){
             }
           }
         } catch(_){}
+        // If NO_SOURCE_DATA, offer to seed demo data inline
+        if (errCode === 'NO_SOURCE_DATA') {
+          if (confirm(friendly + '\n\nهل تريد استيراد 12 عنصر تجريبي (6 أخبار + 6 منشورات) للأسبوع الماضي؟')) {
+            try {
+              var seedRes = await apiFetch('/api/final-media-reports/seed-demo', { method: 'POST' });
+              var seedData = await seedRes.json();
+              if (seedData.ok) {
+                alert('✅ ' + seedData.message + '\n\nيمكنك الآن إعادة توليد التقرير.');
+                return;
+              } else {
+                throw new Error(seedData.error || 'تعذر الاستيراد');
+              }
+            } catch (seedErr) {
+              throw new Error('تعذر استيراد البيانات التجريبية: ' + (seedErr.message || seedErr));
+            }
+          } else {
+            return; // user cancelled, don't show error
+          }
+        }
         throw new Error(friendly);
       }
       var data = await res.json();
