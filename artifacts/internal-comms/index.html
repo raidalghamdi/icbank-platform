@@ -14101,64 +14101,23 @@ window.MM = (function(){
             }
           }
         } catch(_){}
-        // If NO_SOURCE_DATA, offer smart options: use available range OR seed demo
+        // If NO_SOURCE_DATA, show a custom modal with proper action buttons (not confirm/alert)
         if (errCode === 'NO_SOURCE_DATA') {
           try { var ejFull = JSON.parse(errTxt); } catch(_) { ejFull = {}; }
           var hint = (ejFull && ejFull.hint) || {};
           var avail = hint.dataAvailable || {};
           var hasExisting = avail.postsTotal > 0 || avail.newsTotal > 0;
-
-          if (hasExisting) {
-            // Offer to switch to custom range covering existing data
-            var oldest = avail.oldestDate ? avail.oldestDate.slice(0, 10) : null;
-            var newest = avail.newestDate ? avail.newestDate.slice(0, 10) : null;
-            var choice = confirm(friendly + '\n\nهل تريد التبديل إلى فترة مخصصة تغطي البيانات المتوفرة؟\n(' + oldest + ' → ' + newest + ')');
-            if (choice) {
-              // Auto-fill custom range and re-generate
-              document.getElementById('mm-gen-reportType').value = 'custom';
-              onTypeChange();
-              document.getElementById('mm-gen-from').value = oldest;
-              document.getElementById('mm-gen-to').value = newest;
-              setTimeout(function(){ runGenerate(); }, 400);
-              return;
-            } else {
-              // Optionally offer demo seed
-              if (confirm('هل تريد بدلاً إضافة 12 عنصر تجريبي حديث (أخبار + منشورات) للأسبوع الماضي؟')) {
-                try {
-                  var seedRes = await apiFetch('/api/final-media-reports/seed-demo', { method: 'POST' });
-                  var seedData = await seedRes.json();
-                  if (seedData.ok) {
-                    alert('✅ ' + seedData.message + '\n\nجاري إعادة التوليد...');
-                    setTimeout(function(){ runGenerate(); }, 400);
-                    return;
-                  } else {
-                    throw new Error(seedData.error || 'تعذر الاستيراد');
-                  }
-                } catch (seedErr) {
-                  throw new Error('تعذر استيراد البيانات: ' + (seedErr.message || seedErr));
-                }
-              }
-              return;
-            }
-          } else {
-            // No data at all — only offer seed
-            if (confirm(friendly + '\n\nهل تريد استيراد 12 عنصر تجريبي (6 أخبار + 6 منشورات) للأسبوع الماضي؟')) {
-              try {
-                var seedRes2 = await apiFetch('/api/final-media-reports/seed-demo', { method: 'POST' });
-                var seedData2 = await seedRes2.json();
-                if (seedData2.ok) {
-                  alert('✅ ' + seedData2.message + '\n\nجاري إعادة التوليد...');
-                  setTimeout(function(){ runGenerate(); }, 400);
-                  return;
-                } else {
-                  throw new Error(seedData2.error || 'تعذر الاستيراد');
-                }
-              } catch (seedErr2) {
-                throw new Error('تعذر استيراد البيانات: ' + (seedErr2.message || seedErr2));
-              }
-            }
-            return;
-          }
+          var oldest = avail.oldestDate ? avail.oldestDate.slice(0, 10) : null;
+          var newest = avail.newestDate ? avail.newestDate.slice(0, 10) : null;
+          showNoDataModal({
+            message: ejFull.error || friendly,
+            hasExisting: hasExisting,
+            oldest: oldest,
+            newest: newest,
+            postsTotal: avail.postsTotal || 0,
+            newsTotal: avail.newsTotal || 0,
+          });
+          return;
         }
         throw new Error(friendly);
       }
@@ -14176,6 +14135,83 @@ window.MM = (function(){
       if (btn) btn.disabled = false;
       if (label) label.textContent = origLabel;
     }
+  }
+
+  // Custom modal for NO_SOURCE_DATA with proper action buttons
+  function showNoDataModal(opts) {
+    // Remove any existing modal
+    var old = document.getElementById('mm-nodata-modal');
+    if (old) old.remove();
+
+    var modal = document.createElement('div');
+    modal.id = 'mm-nodata-modal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;';
+
+    var box = document.createElement('div');
+    box.style.cssText = 'background:white;border-radius:16px;max-width:520px;width:100%;padding:28px 24px;box-shadow:0 20px 60px rgba(0,0,0,.3);direction:rtl;text-align:right;font-family:inherit;max-height:90vh;overflow-y:auto;';
+
+    var actions = '';
+    if (opts.hasExisting) {
+      actions =
+        '<button id="mm-nodata-use-range" style="background:#1a6e7a;color:white;border:none;padding:14px 20px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;width:100%;margin-bottom:10px;">📅 استخدم الفترة المتوفرة (' + opts.oldest + ' → ' + opts.newest + ')</button>' +
+        '<button id="mm-nodata-seed" style="background:#f5ce3e;color:#0e3b4a;border:none;padding:14px 20px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;width:100%;margin-bottom:10px;">➕ استيراد 12 عنصر تجريبي حديث</button>' +
+        '<button id="mm-nodata-close" style="background:transparent;color:#6b7280;border:1px solid #d1d5db;padding:12px 20px;border-radius:10px;font-size:14px;cursor:pointer;width:100%;">إلغاء</button>';
+    } else {
+      actions =
+        '<button id="mm-nodata-seed" style="background:#1a6e7a;color:white;border:none;padding:14px 20px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;width:100%;margin-bottom:10px;">➕ استيراد 12 عنصر تجريبي</button>' +
+        '<button id="mm-nodata-close" style="background:transparent;color:#6b7280;border:1px solid #d1d5db;padding:12px 20px;border-radius:10px;font-size:14px;cursor:pointer;width:100%;">إلغاء</button>';
+    }
+
+    box.innerHTML =
+      '<div style="font-size:36px;text-align:center;margin-bottom:12px;">📭</div>' +
+      '<div style="font-size:18px;font-weight:800;color:#0e3b4a;text-align:center;margin-bottom:12px;">تعذّر توليد التقرير</div>' +
+      '<div style="font-size:14px;color:#374151;line-height:1.7;margin-bottom:20px;white-space:pre-line;">' + escHtml(opts.message) + '</div>' +
+      (opts.hasExisting ? '<div style="background:#f0f7f8;border:1px solid #cce4e6;border-radius:10px;padding:12px;margin-bottom:16px;font-size:13px;color:#0e3b4a;">📊 متوفر في قاعدة البيانات: <b>' + opts.postsTotal + '</b> منشور و <b>' + opts.newsTotal + '</b> خبر</div>' : '') +
+      '<div style="display:flex;flex-direction:column;gap:0;">' + actions + '</div>';
+
+    modal.appendChild(box);
+    document.body.appendChild(modal);
+
+    var closeModal = function(){ modal.remove(); };
+    document.getElementById('mm-nodata-close').onclick = closeModal;
+    modal.onclick = function(e){ if (e.target === modal) closeModal(); };
+
+    if (opts.hasExisting) {
+      document.getElementById('mm-nodata-use-range').onclick = function(){
+        closeModal();
+        document.getElementById('mm-gen-reportType').value = 'custom';
+        onTypeChange();
+        setTimeout(function(){
+          var fromEl = document.getElementById('mm-gen-from');
+          var toEl = document.getElementById('mm-gen-to');
+          if (fromEl) fromEl.value = opts.oldest;
+          if (toEl) toEl.value = opts.newest;
+          runGenerate();
+        }, 200);
+      };
+    }
+
+    document.getElementById('mm-nodata-seed').onclick = async function(){
+      var btn = this;
+      btn.disabled = true;
+      btn.textContent = '⏳ جاري الاستيراد...';
+      try {
+        var seedRes = await apiFetch('/api/final-media-reports/seed-demo', { method: 'POST' });
+        var seedData = await seedRes.json();
+        if (seedData.ok) {
+          closeModal();
+          setTimeout(function(){ runGenerate(); }, 300);
+        } else {
+          alert('❌ ' + (seedData.error || 'تعذر الاستيراد'));
+          btn.disabled = false;
+          btn.textContent = '➕ استيراد 12 عنصر تجريبي';
+        }
+      } catch (e) {
+        alert('❌ تعذر الاستيراد: ' + (e.message || e));
+        btn.disabled = false;
+        btn.textContent = '➕ استيراد 12 عنصر تجريبي';
+      }
+    };
   }
 
   return { load: load, showWizard: showWizard, hideWizard: hideWizard,
