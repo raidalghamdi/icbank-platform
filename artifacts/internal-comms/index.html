@@ -14101,23 +14101,63 @@ window.MM = (function(){
             }
           }
         } catch(_){}
-        // If NO_SOURCE_DATA, offer to seed demo data inline
+        // If NO_SOURCE_DATA, offer smart options: use available range OR seed demo
         if (errCode === 'NO_SOURCE_DATA') {
-          if (confirm(friendly + '\n\nهل تريد استيراد 12 عنصر تجريبي (6 أخبار + 6 منشورات) للأسبوع الماضي؟')) {
-            try {
-              var seedRes = await apiFetch('/api/final-media-reports/seed-demo', { method: 'POST' });
-              var seedData = await seedRes.json();
-              if (seedData.ok) {
-                alert('✅ ' + seedData.message + '\n\nيمكنك الآن إعادة توليد التقرير.');
-                return;
-              } else {
-                throw new Error(seedData.error || 'تعذر الاستيراد');
+          try { var ejFull = JSON.parse(errTxt); } catch(_) { ejFull = {}; }
+          var hint = (ejFull && ejFull.hint) || {};
+          var avail = hint.dataAvailable || {};
+          var hasExisting = avail.postsTotal > 0 || avail.newsTotal > 0;
+
+          if (hasExisting) {
+            // Offer to switch to custom range covering existing data
+            var oldest = avail.oldestDate ? avail.oldestDate.slice(0, 10) : null;
+            var newest = avail.newestDate ? avail.newestDate.slice(0, 10) : null;
+            var choice = confirm(friendly + '\n\nهل تريد التبديل إلى فترة مخصصة تغطي البيانات المتوفرة؟\n(' + oldest + ' → ' + newest + ')');
+            if (choice) {
+              // Auto-fill custom range and re-generate
+              document.getElementById('mm-gen-reportType').value = 'custom';
+              onTypeChange();
+              document.getElementById('mm-gen-from').value = oldest;
+              document.getElementById('mm-gen-to').value = newest;
+              setTimeout(function(){ runGenerate(); }, 400);
+              return;
+            } else {
+              // Optionally offer demo seed
+              if (confirm('هل تريد بدلاً إضافة 12 عنصر تجريبي حديث (أخبار + منشورات) للأسبوع الماضي؟')) {
+                try {
+                  var seedRes = await apiFetch('/api/final-media-reports/seed-demo', { method: 'POST' });
+                  var seedData = await seedRes.json();
+                  if (seedData.ok) {
+                    alert('✅ ' + seedData.message + '\n\nجاري إعادة التوليد...');
+                    setTimeout(function(){ runGenerate(); }, 400);
+                    return;
+                  } else {
+                    throw new Error(seedData.error || 'تعذر الاستيراد');
+                  }
+                } catch (seedErr) {
+                  throw new Error('تعذر استيراد البيانات: ' + (seedErr.message || seedErr));
+                }
               }
-            } catch (seedErr) {
-              throw new Error('تعذر استيراد البيانات التجريبية: ' + (seedErr.message || seedErr));
+              return;
             }
           } else {
-            return; // user cancelled, don't show error
+            // No data at all — only offer seed
+            if (confirm(friendly + '\n\nهل تريد استيراد 12 عنصر تجريبي (6 أخبار + 6 منشورات) للأسبوع الماضي؟')) {
+              try {
+                var seedRes2 = await apiFetch('/api/final-media-reports/seed-demo', { method: 'POST' });
+                var seedData2 = await seedRes2.json();
+                if (seedData2.ok) {
+                  alert('✅ ' + seedData2.message + '\n\nجاري إعادة التوليد...');
+                  setTimeout(function(){ runGenerate(); }, 400);
+                  return;
+                } else {
+                  throw new Error(seedData2.error || 'تعذر الاستيراد');
+                }
+              } catch (seedErr2) {
+                throw new Error('تعذر استيراد البيانات: ' + (seedErr2.message || seedErr2));
+              }
+            }
+            return;
           }
         }
         throw new Error(friendly);

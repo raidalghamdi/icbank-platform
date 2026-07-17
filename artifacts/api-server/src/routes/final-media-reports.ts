@@ -353,18 +353,53 @@ router.post("/final-media-reports/generate", async (req: Request, res: Response)
       : [];
 
     // Guard: if no source data exists in the period, return a clear friendly error
-    // instead of asking the AI to hallucinate a report of zeros.
+    // WITH the actual date range of available data so the user knows what to pick.
     if (posts.length === 0 && news.length === 0) {
+      // Find the actual date range of available data across ALL time (any source)
+      const [oldestPost] = await db.select({ d: gacSocialPostsTable.postedAt })
+        .from(gacSocialPostsTable).orderBy(gacSocialPostsTable.postedAt).limit(1);
+      const [newestPost] = await db.select({ d: gacSocialPostsTable.postedAt })
+        .from(gacSocialPostsTable).orderBy(desc(gacSocialPostsTable.postedAt)).limit(1);
+      const [oldestNews] = await db.select({ d: gacNewsItemsTable.publishedAt })
+        .from(gacNewsItemsTable).orderBy(gacNewsItemsTable.publishedAt).limit(1);
+      const [newestNews] = await db.select({ d: gacNewsItemsTable.publishedAt })
+        .from(gacNewsItemsTable).orderBy(desc(gacNewsItemsTable.publishedAt)).limit(1);
+
+      // Compute total data range
+      const allDates = [oldestPost?.d, newestPost?.d, oldestNews?.d, newestNews?.d]
+        .filter((d): d is Date => !!d)
+        .map(d => new Date(d).getTime());
+      const hasAnyData = allDates.length > 0;
+      const globalFrom = hasAnyData ? new Date(Math.min(...allDates)) : null;
+      const globalTo = hasAnyData ? new Date(Math.max(...allDates)) : null;
+
+      // Count totals
+      const [postsTotal] = await db.select({ c: sql<number>`count(*)::int` }).from(gacSocialPostsTable);
+      const [newsTotal] = await db.select({ c: sql<number>`count(*)::int` }).from(gacNewsItemsTable);
+
+      const fmt = (d: Date | null) => d ? d.toISOString().slice(0, 10) : "—";
+      const rangeStr = hasAnyData ? `من ${fmt(globalFrom)} إلى ${fmt(globalTo)}` : "لا توجد أي بيانات";
+
+      const errorMsg = hasAnyData
+        ? `لا توجد بيانات في الفترة المختارة (${periodLabel}).\n\nالبيانات المتوفرة حالياً: ${postsTotal?.c || 0} منشور و ${newsTotal?.c || 0} خبر (${rangeStr}).\n\nالرجاء اختيار فترة مخصصة تشمل هذا المدى، أو استيراد بيانات تجريبية حديثة.`
+        : `لا توجد أي بيانات إعلامية في النظام. الرجاء استيراد بيانات تجريبية.`;
+
       return res.status(422).json({
         ok: false,
         code: "NO_SOURCE_DATA",
-        error: `لا توجد أخبار أو منشورات مرصودة في الفترة (${periodLabel}). الرجاء استيراد بيانات إعلامية أو توسيع الفترة الزمنية.`,
+        error: errorMsg,
         hint: {
           postsInPeriod: 0,
           newsInPeriod: 0,
           periodFrom: from.toISOString(),
           periodTo: to.toISOString(),
           sources: body.sources,
+          dataAvailable: {
+            postsTotal: postsTotal?.c || 0,
+            newsTotal: newsTotal?.c || 0,
+            oldestDate: hasAnyData ? globalFrom!.toISOString() : null,
+            newestDate: hasAnyData ? globalTo!.toISOString() : null,
+          },
         },
       });
     }
