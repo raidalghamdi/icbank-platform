@@ -157,9 +157,11 @@ ${iconListForAI()}
 {
   "extracted": {
     "headline": "<عنوان 2-6 كلمات من البيانات>",
-    "subtitle": "<سطر أو سطرين حسب الحاجة>",
+    "subtitle": "<النص الفرعي كاملاً — لا تختصر، لا تحذف، انسخ الجمل الأصلية كما هي مع الحفاظ على المعنى الكامل>",
     "department": "<اسم الإدارة الكامل أو \"\">",
     "hashtag": "<#الهاشتاج أو \"\">",
+    "contact_email": "<البريد الإلكتروني حرفياً إن وُجد أو \"\">",
+    "contact_phone": "<رقم الهاتف حرفياً إن وُجد أو \"\">",
     "stats": [
       { "icon": "<أيقونة دلالية>", "value": "<الرقم كما ورد>", "label": "<وصف من السياق>" }
     ]
@@ -185,6 +187,16 @@ ${iconListForAI()}
 - stats مصفوفة فارغة [] إذا لا أرقام في البيانات.
 - rationale يشرح **لماذا** بالتحديد لهذا المحتوى (ليس عبارة عامة).
 - لا تضف أي شرح خارج JSON.
+
+═══════════════════════════════════════
+قواعد المحافظة على النص الأصلي (حرجة جداً):
+═══════════════════════════════════════
+- **الـ subtitle**: انسخ النص الفرعي من المُدخلات **كاملاً** — لا تختصر، لا تحذف جملاً، لا تعيد صياغة. المستخدم كتبه بالضبط كما يريده أن يظهر.
+  - إذا كان النص طويلاً (أكثر من 400 حرف): احتفظ بكل المعلومات المهمة (أسماء الجهات، الأسباب، التوجيهات) ولكن يمكنك تكثيف الحشو اللغوي فقط.
+  - **لا تحذف أبداً**: البريد الإلكتروني، رقم الهاتف، الرابط، اسم إدارة، اسم شخص، تاريخ، أو أي معلومة تواصل.
+- **contact_email**: إذا ظهر بريد إلكتروني في المُدخلات (مثل `staffrelations@gac.gov.sa`) → استخرجه حرفياً في حقل `contact_email` **واحذفه من الـ subtitle** (سيُعرض كعنصر ميتا منفصل مع أيقونة).
+- **contact_phone**: إذا ظهر رقم هاتف → استخرجه حرفياً في `contact_phone` واحذفه من الـ subtitle.
+- **الأرقام والنسب المئوية**: تُحفظ حرفياً في `stats` أو `subtitle` — لا تُقرَّب، لا تُحوَّل.
 `.trim();
 
   try {
@@ -224,6 +236,8 @@ ${iconListForAI()}
     // الإدارة والهاشتاق: فقط من مدخل المستخدم — لا نأخذ من AI لتجنب الاختراع
     const finalDepartment = department?.trim() || "";
     const finalHashtag = hashtag?.trim() || "";
+    const finalContactEmail = (extracted.contact_email || "").trim();
+    const finalContactPhone = (extracted.contact_phone || "").trim();
 
     // ═══ تطبيع layouts: منع التكرار الكامل وضمان التنوع ═══
     const requestedLayouts: LayoutType[] = parsed.variants
@@ -263,6 +277,8 @@ ${iconListForAI()}
         subtitle: finalSubtitle,
         department: finalDepartment || undefined,
         hashtag: finalHashtag || undefined,
+        contact_email: finalContactEmail || undefined,
+        contact_phone: finalContactPhone || undefined,
         date,
         time,
         location,
@@ -273,7 +289,7 @@ ${iconListForAI()}
         layout,
         size: size!,
         logo_url: logoUrl,
-      };
+      } as any;
 
       const html = renderIconEventDesign(input);
 
