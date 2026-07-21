@@ -230,8 +230,10 @@ ${iconListForAI()}
     // إذا لا أرقام في المدخلات → إجبار stats على الفراغ (منع اختراع AI)
     const stats: IconEventStat[] = hasNumbersInInput ? cleanStats : [];
 
-    // ═══ الحقول: تفضيل مدخلات المستخدم، ثم AI، الإدارة والهاشتاق لا يُخترعان ═══
-    const finalHeadline = headline?.trim() || extracted.headline || "عنوان الفعالية";
+    // ═══ الحقول: احترام محتوى المستخدم الحرفي — لا نسمح لـ AI بإعادة صياغة العنوان ═══
+    // Priority: (1) explicit headline from user, (2) first non-empty line of raw_data, (3) AI extracted, (4) fallback
+    const rawFirstLine = String(raw_data || "").split(/\n/).map(l => l.trim()).find(l => l.length > 0) || "";
+    const finalHeadline = headline?.trim() || rawFirstLine || extracted.headline || "عنوان الفعالية";
 
     // ═══ استخراج حاسم للبريد/الهاتف من النص الخام (مستقل عن AI) ═══
     const rawFull = String(raw_data || "").trim();
