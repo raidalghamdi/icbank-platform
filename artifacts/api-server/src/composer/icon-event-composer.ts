@@ -110,6 +110,72 @@ function splitIntoParagraphs(text: string): string[] {
   return [sentences.slice(0, mid).join(" "), sentences.slice(mid).join(" ")];
 }
 
+// ============================================================================
+// Inline contact detection
+// ---------------------------------------------------------------------------
+// الفكرة: إذا انتهت فقرة ما بإشارة للبريد/الهاتف ("... عبر البريد الإلكتروني") 
+// → المستخدم يتوقع أن يرى البريد تحتها مباشرة، لا في أسفل التصميم.
+// لذا: ندمج شريحة البريد/الهاتف في موقعها الطبيعي داخل الفقرات.
+// ============================================================================
+
+type ParagraphBlock =
+  | { type: "text"; content: string }
+  | { type: "email-chip"; email: string }
+  | { type: "phone-chip"; phone: string };
+
+// أنماط الإشارة للبريد (في نهاية أو وسط الفقرة)
+const EMAIL_MENTION_RE = /(البريد\s*الإلكتروني|email|e-?mail|إيميل)\s*[:ـ\-：]?\s*$/i;
+const PHONE_MENTION_RE = /(الهاتف|رقم\s*التواصل|phone|tel|جوال)\s*[:ـ\-：]?\s*$/i;
+
+// يبني تدفق الفقرات مع دمج البريد/الهاتف inline إذا ذُكِرت في أي فقرة.
+// إذا لم تُذكر → الشرائح تذهب أسفل التصميم كما في السابق (bottom chips fallback).
+function buildParagraphFlow(
+  subtitle: string,
+  email: string | undefined,
+  phone: string | undefined,
+): { blocks: ParagraphBlock[]; emailUsedInline: boolean; phoneUsedInline: boolean } {
+  const paragraphs = splitIntoParagraphs(subtitle);
+  const blocks: ParagraphBlock[] = [];
+  let emailUsedInline = false;
+  let phoneUsedInline = false;
+
+  for (const para of paragraphs) {
+    blocks.push({ type: "text", content: para });
+
+    // تحقق إن كانت هذه الفقرة تشير للبريد/الهاتف → أدرج الشريحة بعدها مباشرة
+    if (email && !emailUsedInline && EMAIL_MENTION_RE.test(para)) {
+      blocks.push({ type: "email-chip", email });
+      emailUsedInline = true;
+    }
+    if (phone && !phoneUsedInline && PHONE_MENTION_RE.test(para)) {
+      blocks.push({ type: "phone-chip", phone });
+      phoneUsedInline = true;
+    }
+  }
+
+  return { blocks, emailUsedInline, phoneUsedInline };
+}
+
+// يرسم كتلة فقرات HTML مع دعم email/phone inline chips.
+// paragraphStyle: الـ-CSS المطبق على أوسمة <p>.
+function renderParagraphFlow(
+  blocks: ParagraphBlock[],
+  paragraphStyle: string,
+  colors: any,
+  metaFont: number,
+): string {
+  return blocks.map((b) => {
+    if (b.type === "text") {
+      return `<p style="${paragraphStyle}">${b.content}</p>`;
+    }
+    if (b.type === "email-chip") {
+      return `<div style="text-align:center;margin:6px 0;">${renderContactChip("mail", b.email, colors, metaFont, true)}</div>`;
+    }
+    // phone-chip
+    return `<div style="text-align:center;margin:6px 0;">${renderContactChip("phone", b.phone, colors, metaFont, false)}</div>`;
+  }).join("");
+}
+
 // Helper: email/phone meta chip with icon on LEFT (LTR content)
 function renderContactChip(icon: string, text: string, colors: any, fontSize: number, isEmail: boolean): string {
   // Email/phone are LTR content — icon goes on the LEFT of the text
@@ -407,9 +473,12 @@ function heroLayout(input: IconEventInput): string {
   const subtitleMaxWidth = isStory ? 1000 : isSquare ? 1000 : 1600;
   const heroSubtitleSize = isSquare ? 34 : T.subtitleSize;
 
-  const paragraphs = splitIntoParagraphs(input.subtitle || "");
   const email = (input as any).contact_email;
   const phone = (input as any).contact_phone;
+
+  // Inline flow: يدمج البريد/الهاتف inline إذا ذُكر في الفقرات
+  const flow = buildParagraphFlow(input.subtitle || "", email, phone);
+  const paragraphs = flow.blocks.filter(b => b.type === "text");
 
   const dateTimeLocationChips = [
     input.date && renderMetaChip("calendar", input.date, colors, T.metaFont),
@@ -417,10 +486,13 @@ function heroLayout(input: IconEventInput): string {
     input.location && renderMetaChip("map-pin", input.location, colors, T.metaFont),
   ].filter(Boolean).join("");
 
+  // الشرائح السفلية تظهر فقط للبيانات التي لم تُدمج inline
   const contactChips = [
-    email && renderContactChip("mail", email, colors, T.metaFont, true),
-    phone && renderContactChip("phone", phone, colors, T.metaFont, false),
+    !flow.emailUsedInline && email && renderContactChip("mail", email, colors, T.metaFont, true),
+    !flow.phoneUsedInline && phone && renderContactChip("phone", phone, colors, T.metaFont, false),
   ].filter(Boolean).join("");
+
+  const paragraphStyle = `font-size:${heroSubtitleSize}px;margin:0;opacity:0.95;font-weight:500;line-height:${T.lineHeight - 0.1};`;
 
   return `
 <div class="poster hero-layout" style="width:${width}px;height:${height}px;position:relative;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;direction:rtl;color:#fff;background-image:url('${BG_STATS_HERO_DATA_URI}');background-size:cover;background-position:center;">
@@ -432,15 +504,15 @@ function heroLayout(input: IconEventInput): string {
     <div style="color:#fff;">${renderIcon(input.main_icon, mainIconSize, "#fff")}</div>
   </div>
 
-  <!-- Text block: title + paragraph-split subtitle -->
+  <!-- Text block: title + paragraph-split subtitle (with inline email/phone if mentioned) -->
   <div style="position:absolute;top:${textTopPct};left:0;right:0;text-align:center;padding:0 ${T.margin + 40}px;">
     <h1 style="font-size:${T.titleSize}px;font-weight:900;margin:0 0 ${T.paragraphGap + 12}px;line-height:1.2;letter-spacing:-1px;">${input.headline}</h1>
     ${paragraphs.length > 0 ? `<div style="max-width:${subtitleMaxWidth}px;margin:0 auto;display:flex;flex-direction:column;gap:${T.paragraphGap - 4}px;">
-      ${paragraphs.map(p => `<p style="font-size:${heroSubtitleSize}px;margin:0;opacity:0.95;font-weight:500;line-height:${T.lineHeight - 0.1};">${p}</p>`).join("")}
+      ${renderParagraphFlow(flow.blocks, paragraphStyle, colors, T.metaFont)}
     </div>` : ""}
   </div>
 
-  <!-- Meta chips (bottom) -->
+  <!-- Meta chips (bottom) — only shows data NOT already inline -->
   ${(dateTimeLocationChips || contactChips) ? `<div style="position:absolute;bottom:${isStory ? "5%" : isSquare ? "4%" : "6%"};left:0;right:0;display:flex;justify-content:center;gap:20px;flex-wrap:wrap;padding:0 ${T.margin}px;">
     ${dateTimeLocationChips}${contactChips}
   </div>` : ""}
@@ -467,17 +539,20 @@ function gridLayout(input: IconEventInput): string {
   const iconBoxSize = isStory ? 220 : isLandscape ? 200 : 220;
   const iconSize = iconBoxSize * 0.55;
 
-  const paragraphs = splitIntoParagraphs(input.subtitle || "");
   const email = (input as any).contact_email;
   const phone = (input as any).contact_phone;
+  const flow = buildParagraphFlow(input.subtitle || "", email, phone);
+  const paragraphs = flow.blocks.filter(b => b.type === "text");
 
   const metaChips = [
     input.date && renderMetaChip("calendar", input.date, colors, T.metaFont),
     input.time && renderMetaChip("clock", input.time, colors, T.metaFont),
     input.location && renderMetaChip("map-pin", input.location, colors, T.metaFont),
-    email && renderContactChip("mail", email, colors, T.metaFont, true),
-    phone && renderContactChip("phone", phone, colors, T.metaFont, false),
+    !flow.emailUsedInline && email && renderContactChip("mail", email, colors, T.metaFont, true),
+    !flow.phoneUsedInline && phone && renderContactChip("phone", phone, colors, T.metaFont, false),
   ].filter(Boolean).join("");
+
+  const gridParagraphStyle = `font-size:${T.subtitleSize}px;margin:0;opacity:0.95;font-weight:500;color:#fff;line-height:${T.lineHeight};`;
 
   return `
 <div class="poster grid-layout" style="width:${width}px;height:${height}px;position:relative;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;direction:rtl;color:#fff;background-image:url('${BG_STATS_HERO_DATA_URI}');background-size:cover;background-position:center;">
@@ -487,7 +562,7 @@ function gridLayout(input: IconEventInput): string {
   <div style="position:absolute;top:${isStory ? "200px" : "170px"};right:${T.margin}px;left:${T.margin}px;color:#fff;text-align:center;">
     <h1 style="font-size:${titleSize}px;font-weight:900;margin:0 0 ${T.paragraphGap}px;line-height:1.15;letter-spacing:-1px;">${input.headline}</h1>
     ${paragraphs.length > 0 ? `<div style="max-width:${isStory ? 950 : 1500}px;margin:0 auto;display:flex;flex-direction:column;gap:${T.paragraphGap - 4}px;">
-      ${paragraphs.map(p => `<p style="font-size:${T.subtitleSize}px;margin:0;opacity:0.95;font-weight:500;color:#fff;line-height:${T.lineHeight};">${p}</p>`).join("")}
+      ${renderParagraphFlow(flow.blocks, gridParagraphStyle, colors, T.metaFont)}
     </div>` : ""}
   </div>
 
@@ -525,9 +600,10 @@ function splitLayout(input: IconEventInput): string {
   // Narrower text column in split — tighten subtitle size to fit
   const splitSubtitleSize = isStory ? T.subtitleSize : isLandscape ? T.subtitleSize : 34;
 
-  const paragraphs = splitIntoParagraphs(input.subtitle || "");
   const email = (input as any).contact_email;
   const phone = (input as any).contact_phone;
+  const flow = buildParagraphFlow(input.subtitle || "", email, phone);
+  const paragraphs = flow.blocks.filter(b => b.type === "text");
 
   const dateTimeLocationChips = [
     input.date && renderMetaChip("calendar", input.date, colors, T.metaFont),
@@ -536,9 +612,12 @@ function splitLayout(input: IconEventInput): string {
   ].filter(Boolean).join("");
 
   const contactChips = [
-    email && renderContactChip("mail", email, colors, T.metaFont, true),
-    phone && renderContactChip("phone", phone, colors, T.metaFont, false),
+    !flow.emailUsedInline && email && renderContactChip("mail", email, colors, T.metaFont, true),
+    !flow.phoneUsedInline && phone && renderContactChip("phone", phone, colors, T.metaFont, false),
   ].filter(Boolean).join("");
+
+  const splitParagraphStyleH = `font-size:${splitSubtitleSize}px;color:#fff;margin:0;line-height:${T.lineHeight - 0.1};font-weight:500;opacity:0.95;`;
+  const splitParagraphStyleV = `font-size:${T.subtitleSize}px;color:#fff;margin:0;line-height:${T.lineHeight};font-weight:500;opacity:0.95;`;
 
   const supportingRow = (input.supporting_icons || []).slice(0, 3);
 
@@ -562,7 +641,7 @@ function splitLayout(input: IconEventInput): string {
     <div style="width:96px;height:8px;background:${colors.accent};margin-bottom:${T.paragraphGap + 4}px;"></div>
     <h1 style="font-size:${titleSize}px;font-weight:900;color:#fff;margin:0 0 ${T.paragraphGap + 12}px;line-height:1.2;letter-spacing:-1px;">${input.headline}</h1>
     ${paragraphs.length > 0 ? `<div style="display:flex;flex-direction:column;gap:${T.paragraphGap - 4}px;margin-bottom:${T.paragraphGap + 12}px;">
-      ${paragraphs.map(p => `<p style="font-size:${splitSubtitleSize}px;color:#fff;margin:0;line-height:${T.lineHeight - 0.1};font-weight:500;opacity:0.95;">${p}</p>`).join("")}
+      ${renderParagraphFlow(flow.blocks, splitParagraphStyleH, colors, T.metaFont)}
     </div>` : ""}
     ${(dateTimeLocationChips || contactChips) ? `<div style="display:flex;gap:14px;flex-wrap:wrap;">${dateTimeLocationChips}${contactChips}</div>` : ""}
   </div>
@@ -586,7 +665,7 @@ function splitLayout(input: IconEventInput): string {
     <div style="width:96px;height:8px;background:${colors.accent};margin:0 auto ${T.paragraphGap}px;"></div>
     <h1 style="font-size:${titleSize}px;font-weight:900;color:#fff;margin:0 0 ${T.paragraphGap + 8}px;line-height:1.15;text-align:center;">${input.headline}</h1>
     ${paragraphs.length > 0 ? `<div style="max-width:1050px;margin:0 auto ${T.paragraphGap + 12}px;display:flex;flex-direction:column;gap:${T.paragraphGap}px;text-align:center;">
-      ${paragraphs.map(p => `<p style="font-size:${T.subtitleSize}px;color:#fff;margin:0;line-height:${T.lineHeight};font-weight:500;opacity:0.95;">${p}</p>`).join("")}
+      ${renderParagraphFlow(flow.blocks, splitParagraphStyleV, colors, T.metaFont)}
     </div>` : ""}
     ${(dateTimeLocationChips || contactChips) ? `<div style="display:flex;justify-content:center;gap:14px;flex-wrap:wrap;">${dateTimeLocationChips}${contactChips}</div>` : ""}
   </div>
@@ -613,9 +692,10 @@ function typographyLayout(input: IconEventInput): string {
   const contentMaxWidth = isStory ? 1050 : isSquare ? 1000 : 1600;
   const contentPadding = isStory ? 90 : isSquare ? 100 : 160;
 
-  const paragraphs = splitIntoParagraphs(input.subtitle || "");
   const email = (input as any).contact_email;
   const phone = (input as any).contact_phone;
+  const flow = buildParagraphFlow(input.subtitle || "", email, phone);
+  const paragraphs = flow.blocks.filter(b => b.type === "text");
 
   const dateTimeLocationChips = [
     input.date && renderMetaChip("calendar", input.date, colors, T.metaFont),
@@ -624,9 +704,11 @@ function typographyLayout(input: IconEventInput): string {
   ].filter(Boolean).join("");
 
   const contactChips = [
-    email && renderContactChip("mail", email, colors, T.metaFont, true),
-    phone && renderContactChip("phone", phone, colors, T.metaFont, false),
+    !flow.emailUsedInline && email && renderContactChip("mail", email, colors, T.metaFont, true),
+    !flow.phoneUsedInline && phone && renderContactChip("phone", phone, colors, T.metaFont, false),
   ].filter(Boolean).join("");
+
+  const typoParagraphStyle = `font-size:${subtitleSize}px;margin:0;line-height:${T.lineHeight};font-weight:500;color:#fff;opacity:0.95;`;
 
   return `
 <div class="poster typography-layout" style="width:${width}px;height:${height}px;position:relative;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;direction:rtl;color:#fff;background-image:url('${BG_STATS_HERO_DATA_URI}');background-size:cover;background-position:center;">
@@ -637,7 +719,7 @@ function typographyLayout(input: IconEventInput): string {
   <div style="position:absolute;top:${isSquare ? "56%" : "50%"};left:50%;transform:translate(-50%,-50%);width:100%;padding:0 ${contentPadding}px;text-align:center;">
     <h1 style="font-size:${isSquare ? 62 : titleSize}px;font-weight:900;margin:0 0 ${T.paragraphGap + 16}px;line-height:1.2;letter-spacing:-1px;color:#fff;">${input.headline}</h1>
     ${paragraphs.length > 0 ? `<div style="max-width:${contentMaxWidth}px;margin:0 auto ${T.paragraphGap + 20}px;display:flex;flex-direction:column;gap:${T.paragraphGap}px;">
-      ${paragraphs.map(p => `<p style="font-size:${subtitleSize}px;margin:0;line-height:${T.lineHeight};font-weight:500;color:#fff;opacity:0.95;">${p}</p>`).join("")}
+      ${renderParagraphFlow(flow.blocks, typoParagraphStyle, colors, T.metaFont)}
     </div>` : ""}
     ${(dateTimeLocationChips || contactChips) ? `<div style="display:flex;justify-content:center;gap:18px;flex-wrap:wrap;">
       ${dateTimeLocationChips}${contactChips}

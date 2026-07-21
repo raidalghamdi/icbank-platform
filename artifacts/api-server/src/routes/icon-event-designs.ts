@@ -54,6 +54,7 @@ router.post("/designs/icon-event/generate", async (req: Request, res: Response) 
     location,
     event_type,
     size,
+    main_icon_override,   // اختيار المستخدم للأيقونة — يتجاوز AI إذا مُرّر
   } = req.body as {
     raw_data?: string;
     headline?: string;
@@ -65,6 +66,7 @@ router.post("/designs/icon-event/generate", async (req: Request, res: Response) 
     location?: string;
     event_type?: "workshop" | "meeting" | "launch" | "social";
     size?: SizePreset;
+    main_icon_override?: string;
   };
 
   // يحتاج إما raw_data أو headline على الأقل
@@ -114,17 +116,30 @@ ${iconListForAI()}
 ═══════════════════════════════════════
 قواعد اختيار الأيقونات (دلالية):
 ═══════════════════════════════════════
-- users → للأشخاص/المشاركين/الموظفين
-- building → للإدارات/الجهات/المكاتب
-- calendar → للجلسات/التواريخ/المواعيد
-- monitor / presentation → للعروض/الشاشات
-- target → للأهداف/المحاور
-- trending-up → للنمو/النسب المتصاعدة
-- lightbulb → للأفكار/الابتكار
-- graduation-cap → للتدريب/التعليم
-- rocket → للإطلاقات/المبادرات الجديدة
-- award → للإنجازات/التكريم
-- **لا تختر أيقونة "جميلة" بدون معنى** — الأيقونة يجب أن تعبر عن معنى الرقم.
+- **الأيقونة الرئيسية (main_icon) تمثل جوهر الرسالة — اخترها بعناية**
+- دلالات الأيقونات (طابق المعنى الحقيقي):
+  - **shield** → حماية، أمان، حفظ، ضمان (مثال: "تحمي سجلك"، "أمن البيانات")
+  - **check-circle** → توثيق، تأكيد، إنجاز مكتمل (مثال: "تم التسجيل"، "متطلب منجز")
+  - **hand-heart** → عطاء، خدمة، مزايا للموظفين (مثال: "رصيد لخدمتك"، "مزايا مخصصة")
+  - **heart** → عناية، حب، رفاه الموظفين
+  - **clock** → الوقت، الدوام، الحضور والانصراف، المواعيد (**للوقت الفعلي فقط**)
+  - **calendar** → تواريخ، جدول، مواعيد محددة
+  - **users / users-round** → موظفون، فريق، مشاركون
+  - **user** → موظف واحد، حساب شخصي
+  - **building** → إدارة، جهة، مقر
+  - **target** → هدف، دقة، محور
+  - **trending-up** → نمو، تقدم، إحصاء متصاعد
+  - **lightbulb** → فكرة، ابتكار، مقترح
+  - **graduation-cap** → تدريب، تعليم، تخرج
+  - **rocket** → إطلاق جديد، مبادرة
+  - **award / trophy** → إنجاز، جائزة، تكريم
+  - **book-open** → سياسة، دليل، لائحة
+  - **megaphone** → إعلان، تنبيه، تذكير
+  - **gift** → هدية، حافز، مكافأة
+  - **workshop** → ورشة عمل، تدريب تفاعلي
+  - **sparkles** → جديد، متميز (اختيار أخير فقط)
+- **تحليل دلالي**: إذا كان النص عن "حماية أو حفظ" → shield، عن "ميزة أو رصيد للموظف" → hand-heart، عن "وقت، دوام، حضور" → clock. **لا تختر clock إلا إذا كان الوقت هو الموضوع الحقيقي.**
+- **لا تختر أيقونة "جميلة" بدون معنى** — الأيقونة يجب أن تعبر عن جوهر الرسالة.
 
 ═══════════════════════════════════════
 قواعد اختيار الـ layouts (حسب المحتوى):
@@ -312,7 +327,9 @@ ${iconListForAI()}
       const layout: LayoutType = adjustedLayouts[idx] || "hero";
       // ═══ الهوية الرسمية: teal دائماً لكل التنويعات (لا استثناء) ═══
       const color_scheme: ColorScheme = "teal";
-      const main_icon = validIconNames.has(v.main_icon) ? v.main_icon : "sparkles";
+      // إذا مرّر المستخدم main_icon_override وهو صالح → يطغى على قرار AI
+      const overrideIcon = main_icon_override && validIconNames.has(main_icon_override) ? main_icon_override : null;
+      const main_icon = overrideIcon || (validIconNames.has(v.main_icon) ? v.main_icon : "sparkles");
       const supporting = (Array.isArray(v.supporting_icons) ? v.supporting_icons : [])
         .filter((s: string) => validIconNames.has(s))
         .slice(0, 3);
@@ -363,12 +380,14 @@ ${iconListForAI()}
   } catch (e: any) {
     req.log?.error({ err: e?.message }, "icon-event generate failed");
 
-    // Fallback: توليد 3 تنويعات افتراضية محلياً بدون AI
-    const fallbackIcon =
-      event_type === "workshop" ? "graduation-cap" :
-      event_type === "meeting" ? "users" :
-      event_type === "launch" ? "rocket" :
-      event_type === "social" ? "party-popper" : "sparkles";
+    // Fallback: توليد 3 تنويعات افتراضية محلياً بدون AI — يحترم اختيار المستخدم للأيقونة إن وجد
+    const _fallbackValidIcons = new Set(ICON_LIBRARY.map((i) => i.name));
+    const _iconFromOverride = main_icon_override && _fallbackValidIcons.has(main_icon_override) ? main_icon_override : null;
+    const fallbackIcon = _iconFromOverride ||
+      (event_type === "workshop" ? "graduation-cap" :
+       event_type === "meeting" ? "users" :
+       event_type === "launch" ? "rocket" :
+       event_type === "social" ? "party-popper" : "sparkles");
 
     const fallbackHeadline = headline || (raw_data ? raw_data.split("\n")[0].slice(0, 60) : "فعالية");
     const fallbackStats: IconEventStat[] = [
