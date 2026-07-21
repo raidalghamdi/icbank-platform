@@ -60,11 +60,72 @@ export interface IconEventInput {
   logo_url?: string;
 }
 
+// Canvas dimensions — slightly expanded for more horizontal breathing room while keeping exact aspect ratios
 const SIZE_MAP: Record<SizePreset, { width: number; height: number; aspectLabel: string }> = {
-  square: { width: 1080, height: 1080, aspectLabel: "1:1" },
-  story: { width: 1080, height: 1920, aspectLabel: "9:16" },
-  landscape: { width: 1920, height: 1080, aspectLabel: "16:9" },
+  square: { width: 1200, height: 1200, aspectLabel: "1:1" },
+  story: { width: 1200, height: 2133, aspectLabel: "9:16" },
+  landscape: { width: 2000, height: 1125, aspectLabel: "16:9" },
 };
+
+// Per-size design tokens — each preset gets its own visual tuning
+const SIZE_TOKENS: Record<SizePreset, {
+  margin: number;
+  deptFont: number;
+  deptPaddingV: number;
+  deptPaddingH: number;
+  logoHeight: number;
+  titleSize: number;
+  subtitleSize: number;
+  metaFont: number;
+  paragraphGap: number;
+  lineHeight: number;
+}> = {
+  landscape: { margin: 72, deptFont: 24, deptPaddingV: 16, deptPaddingH: 42, logoHeight: 78, titleSize: 74, subtitleSize: 42, metaFont: 30, paragraphGap: 28, lineHeight: 1.75 },
+  square:    { margin: 64, deptFont: 26, deptPaddingV: 18, deptPaddingH: 44, logoHeight: 78, titleSize: 78, subtitleSize: 44, metaFont: 30, paragraphGap: 26, lineHeight: 1.75 },
+  story:     { margin: 60, deptFont: 28, deptPaddingV: 20, deptPaddingH: 48, logoHeight: 92, titleSize: 96, subtitleSize: 50, metaFont: 34, paragraphGap: 32, lineHeight: 1.8  },
+};
+
+// Helper: department tag (rectangular, sharp corners, white text, size-aware)
+function renderDeptTag(department: string | undefined, colors: any, size: SizePreset, opts?: { top?: number; left?: number; zIndex?: number }): string {
+  if (!department) return "";
+  const T = SIZE_TOKENS[size];
+  const top = opts?.top ?? T.margin;
+  const left = opts?.left ?? T.margin;
+  const z = opts?.zIndex ?? 10;
+  return `<div style="position:absolute;top:${top}px;left:${left}px;background:${colors.accent};color:#fff;padding:${T.deptPaddingV}px ${T.deptPaddingH}px;border-radius:0;font-weight:800;font-size:${T.deptFont}px;letter-spacing:0.5px;line-height:1;white-space:nowrap;z-index:${z};box-shadow:0 2px 6px rgba(0,0,0,0.15);">${department}</div>`;
+}
+
+// Helper: split long subtitle into paragraph blocks for better hierarchy
+function splitIntoParagraphs(text: string): string[] {
+  if (!text) return [];
+  // Prefer existing newlines
+  const byNewline = text.split(/\n{1,}/).map(s => s.trim()).filter(Boolean);
+  if (byNewline.length > 1) return byNewline;
+  // Otherwise split by sentence endings (Arabic period, Latin period, question, exclamation)
+  const sentences = text.split(/(?<=[\.؟!۔])\s+/).map(s => s.trim()).filter(Boolean);
+  if (sentences.length <= 1) return [text];
+  // Group sentences into 2 balanced blocks maximum for readability
+  if (sentences.length <= 2) return sentences;
+  const mid = Math.ceil(sentences.length / 2);
+  return [sentences.slice(0, mid).join(" "), sentences.slice(mid).join(" ")];
+}
+
+// Helper: email/phone meta chip with icon on LEFT (LTR content)
+function renderContactChip(icon: string, text: string, colors: any, fontSize: number, isEmail: boolean): string {
+  // Email/phone are LTR content — icon goes on the LEFT of the text
+  return `<div style="display:inline-flex;align-items:center;gap:12px;background:rgba(255,255,255,0.14);padding:14px 26px;border-radius:50px;border:1.5px solid rgba(255,255,255,0.22);direction:ltr;">
+    <span style="color:${colors.accent};display:inline-flex;">${renderIcon(icon, fontSize + 4, colors.accent)}</span>
+    <span style="font-size:${fontSize}px;font-weight:700;color:#fff;">${text}</span>
+  </div>`;
+}
+
+// Helper: regular meta chip (date/time/location) — icon on right in RTL, but flex order handles it
+function renderMetaChip(icon: string, text: string, colors: any, fontSize: number): string {
+  return `<div style="display:inline-flex;align-items:center;gap:12px;background:rgba(255,255,255,0.14);padding:14px 26px;border-radius:50px;border:1.5px solid rgba(255,255,255,0.22);">
+    <span style="color:${colors.accent};display:inline-flex;">${renderIcon(icon, fontSize + 4, colors.accent)}</span>
+    <span style="font-size:${fontSize}px;font-weight:700;color:#fff;">${text}</span>
+  </div>`;
+}
 
 const COLOR_MAP: Record<ColorScheme, { primary: string; secondary: string; accent: string; bgPattern: string }> = {
   teal: {
@@ -279,7 +340,7 @@ function statsHeroLayout(input: IconEventInput): string {
   <!-- (3) Department Badge — moved 20px lower (top left) -->
   ${
     input.department
-      ? `<div style="position:absolute;top:${T.deptTop}px;left:${T.deptLeft}px;background:${ACCENT};color:${BADGE_TEXT};padding:${T.deptPadding};border-radius:8px;font-weight:800;font-size:${T.deptFont}px;line-height:1.1;white-space:nowrap;box-shadow:0 1px 2px rgba(0,0,0,0.05);">${input.department}</div>`
+      ? `<div style="position:absolute;top:${T.deptTop}px;left:${T.deptLeft}px;background:${ACCENT};color:#ffffff;padding:${T.deptPadding};border-radius:0;font-weight:800;font-size:${T.deptFont}px;line-height:1.1;white-space:nowrap;letter-spacing:-0.2px;">${input.department}</div>`
       : ""
   }
 
@@ -334,48 +395,55 @@ function statsHeroLayout(input: IconEventInput): string {
 function heroLayout(input: IconEventInput): string {
   const colors = COLOR_MAP[input.color_scheme] || COLOR_MAP.blue;
   const { width, height } = SIZE_MAP[input.size];
+  const T = SIZE_TOKENS[input.size];
   const isStory = input.size === "story";
   const isSquare = input.size === "square";
   const logoSrc = input.logo_url && input.logo_url.startsWith("http") ? input.logo_url : GAC_LOGO_WHITE_DATA_URI;
-  const mainIconSize = isStory ? 180 : isSquare ? 150 : 130;
-  const titleSize = isStory ? 88 : isSquare ? 72 : 68;
-  // Larger, readable subtitle so long instructional text is legible
-  const subtitleSize = isStory ? 52 : isSquare ? 48 : 44;
-  const metaSize = isStory ? 34 : 30;
 
-  const metaItems = [
-    input.date && { icon: "calendar", text: input.date },
-    input.time && { icon: "clock", text: input.time },
-    input.location && { icon: "map-pin", text: input.location },
-    (input as any).contact_email && { icon: "mail", text: (input as any).contact_email },
-    (input as any).contact_phone && { icon: "phone", text: (input as any).contact_phone },
-  ].filter(Boolean) as { icon: string; text: string }[];
+  // Size-aware sizing
+  const mainIconSize = isStory ? 200 : isSquare ? 170 : 150;
+  const iconTopPct = isStory ? "14%" : isSquare ? "14%" : "12%";
+  const textTopPct = isStory ? "38%" : isSquare ? "38%" : "38%";
+  const subtitleMaxWidth = isStory ? 1000 : isSquare ? 1000 : 1600;
+
+  const paragraphs = splitIntoParagraphs(input.subtitle || "");
+  const email = (input as any).contact_email;
+  const phone = (input as any).contact_phone;
+
+  const dateTimeLocationChips = [
+    input.date && renderMetaChip("calendar", input.date, colors, T.metaFont),
+    input.time && renderMetaChip("clock", input.time, colors, T.metaFont),
+    input.location && renderMetaChip("map-pin", input.location, colors, T.metaFont),
+  ].filter(Boolean).join("");
+
+  const contactChips = [
+    email && renderContactChip("mail", email, colors, T.metaFont, true),
+    phone && renderContactChip("phone", phone, colors, T.metaFont, false),
+  ].filter(Boolean).join("");
 
   return `
 <div class="poster hero-layout" style="width:${width}px;height:${height}px;position:relative;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;direction:rtl;color:#fff;background-image:url('${BG_STATS_HERO_DATA_URI}');background-size:cover;background-position:center;">
-  ${input.department ? `<div style="position:absolute;top:48px;left:48px;background:${colors.accent};color:${colors.secondary};padding:10px 22px;border-radius:8px;font-weight:800;font-size:20px;">${input.department}</div>` : ""}
-  <img src="${logoSrc}" style="position:absolute;top:48px;right:48px;height:${isStory ? 90 : 70}px;z-index:5;" crossorigin="anonymous" alt="GAC" />
-  <div style="position:absolute;top:${isStory ? "16%" : "13%"};left:50%;transform:translateX(-50%);width:${mainIconSize + 50}px;height:${mainIconSize + 50}px;background:rgba(255,255,255,0.12);border:3px solid rgba(255,255,255,0.25);border-radius:50%;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(10px);">
+  ${renderDeptTag(input.department, colors, input.size)}
+  <img src="${logoSrc}" style="position:absolute;top:${T.margin}px;right:${T.margin}px;height:${T.logoHeight}px;z-index:5;" crossorigin="anonymous" alt="GAC" />
+
+  <!-- Main icon (compact) -->
+  <div style="position:absolute;top:${iconTopPct};left:50%;transform:translateX(-50%);width:${mainIconSize + 50}px;height:${mainIconSize + 50}px;background:rgba(255,255,255,0.12);border:3px solid rgba(255,255,255,0.25);border-radius:50%;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(10px);">
     <div style="color:#fff;">${renderIcon(input.main_icon, mainIconSize, "#fff")}</div>
   </div>
-  <div style="position:absolute;top:${isStory ? "40%" : "38%"};left:0;right:0;text-align:center;padding:0 100px;">
-    <h1 style="font-size:${titleSize}px;font-weight:900;margin:0 0 28px;line-height:1.2;letter-spacing:-1px;">${input.headline}</h1>
-    ${input.subtitle ? `<p style="font-size:${subtitleSize}px;margin:0 auto;opacity:0.95;font-weight:500;line-height:1.55;max-width:${isStory ? 900 : 1500}px;">${input.subtitle}</p>` : ""}
+
+  <!-- Text block: title + paragraph-split subtitle -->
+  <div style="position:absolute;top:${textTopPct};left:0;right:0;text-align:center;padding:0 ${T.margin + 40}px;">
+    <h1 style="font-size:${T.titleSize}px;font-weight:900;margin:0 0 ${T.paragraphGap + 12}px;line-height:1.2;letter-spacing:-1px;">${input.headline}</h1>
+    ${paragraphs.length > 0 ? `<div style="max-width:${subtitleMaxWidth}px;margin:0 auto;display:flex;flex-direction:column;gap:${T.paragraphGap}px;">
+      ${paragraphs.map(p => `<p style="font-size:${T.subtitleSize}px;margin:0;opacity:0.95;font-weight:500;line-height:${T.lineHeight};">${p}</p>`).join("")}
+    </div>` : ""}
   </div>
-  ${
-    metaItems.length > 0
-      ? `<div style="position:absolute;bottom:${isStory ? "12%" : "10%"};left:0;right:0;display:flex;justify-content:center;gap:48px;flex-wrap:wrap;padding:0 60px;">
-      ${metaItems
-        .map(
-          (m) => `<div style="display:flex;align-items:center;gap:14px;background:rgba(255,255,255,0.15);padding:18px 28px;border-radius:50px;backdrop-filter:blur(10px);">
-        <span style="color:${colors.accent};">${renderIcon(m.icon, 32, colors.accent)}</span>
-        <span style="font-size:${metaSize}px;font-weight:600;">${m.text}</span>
-      </div>`
-        )
-        .join("")}
-    </div>`
-      : ""
-  }
+
+  <!-- Meta chips (bottom) -->
+  ${(dateTimeLocationChips || contactChips) ? `<div style="position:absolute;bottom:${isStory ? "10%" : "8%"};left:0;right:0;display:flex;justify-content:center;gap:20px;flex-wrap:wrap;padding:0 ${T.margin}px;">
+    ${dateTimeLocationChips}${contactChips}
+  </div>` : ""}
+
   <div style="position:absolute;bottom:0;left:0;right:0;height:12px;background:linear-gradient(90deg,${colors.accent} 0%,${colors.secondary} 50%,${colors.primary} 100%);"></div>
 </div>
   `.trim();
@@ -385,25 +453,44 @@ function heroLayout(input: IconEventInput): string {
 function gridLayout(input: IconEventInput): string {
   const colors = COLOR_MAP[input.color_scheme] || COLOR_MAP.blue;
   const { width, height } = SIZE_MAP[input.size];
+  const T = SIZE_TOKENS[input.size];
   const isStory = input.size === "story";
   const isLandscape = input.size === "landscape";
   const logoSrc = input.logo_url && input.logo_url.startsWith("http") ? input.logo_url : GAC_LOGO_WHITE_DATA_URI;
+
   const supporting = (input.supporting_icons || []).slice(0, 3);
   const gridIcons = [input.main_icon, ...supporting].slice(0, 4);
   while (gridIcons.length < 4) gridIcons.push("sparkles");
-  const titleSize = isStory ? 80 : isLandscape ? 64 : 64;
+
+  const titleSize = isStory ? 84 : isLandscape ? 68 : 68;
   const iconBoxSize = isStory ? 220 : isLandscape ? 200 : 220;
   const iconSize = iconBoxSize * 0.55;
 
+  const paragraphs = splitIntoParagraphs(input.subtitle || "");
+  const email = (input as any).contact_email;
+  const phone = (input as any).contact_phone;
+
+  const metaChips = [
+    input.date && renderMetaChip("calendar", input.date, colors, T.metaFont),
+    input.time && renderMetaChip("clock", input.time, colors, T.metaFont),
+    input.location && renderMetaChip("map-pin", input.location, colors, T.metaFont),
+    email && renderContactChip("mail", email, colors, T.metaFont, true),
+    phone && renderContactChip("phone", phone, colors, T.metaFont, false),
+  ].filter(Boolean).join("");
+
   return `
 <div class="poster grid-layout" style="width:${width}px;height:${height}px;position:relative;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;direction:rtl;color:#fff;background-image:url('${BG_STATS_HERO_DATA_URI}');background-size:cover;background-position:center;">
-  ${input.department ? `<div style="position:absolute;top:48px;left:48px;background:${colors.accent};color:${colors.secondary};padding:10px 22px;border-radius:8px;font-weight:800;font-size:20px;z-index:6;">${input.department}</div>` : ""}
-  <img src="${logoSrc}" style="position:absolute;top:48px;right:48px;height:${isStory ? 80 : 70}px;z-index:5;" crossorigin="anonymous" alt="GAC" />
-  <div style="position:absolute;top:${isStory ? "200px" : "170px"};right:60px;left:60px;color:#fff;text-align:center;">
-    <h1 style="font-size:${titleSize}px;font-weight:900;margin:0;line-height:1.15;letter-spacing:-1px;">${input.headline}</h1>
-    ${input.subtitle ? `<p style="font-size:${isStory ? 44 : 38}px;margin:20px auto 0;opacity:0.95;font-weight:500;color:${colors.accent};line-height:1.55;max-width:${isStory ? 900 : 1600}px;">${input.subtitle}</p>` : ""}
+  ${renderDeptTag(input.department, colors, input.size)}
+  <img src="${logoSrc}" style="position:absolute;top:${T.margin}px;right:${T.margin}px;height:${T.logoHeight}px;z-index:5;" crossorigin="anonymous" alt="GAC" />
+
+  <div style="position:absolute;top:${isStory ? "200px" : "170px"};right:${T.margin}px;left:${T.margin}px;color:#fff;text-align:center;">
+    <h1 style="font-size:${titleSize}px;font-weight:900;margin:0 0 ${T.paragraphGap}px;line-height:1.15;letter-spacing:-1px;">${input.headline}</h1>
+    ${paragraphs.length > 0 ? `<div style="max-width:${isStory ? 950 : 1500}px;margin:0 auto;display:flex;flex-direction:column;gap:${T.paragraphGap - 4}px;">
+      ${paragraphs.map(p => `<p style="font-size:${T.subtitleSize}px;margin:0;opacity:0.95;font-weight:500;color:#fff;line-height:${T.lineHeight};">${p}</p>`).join("")}
+    </div>` : ""}
   </div>
-  <div style="position:absolute;top:${isStory ? "52%" : isLandscape ? "50%" : "48%"};left:50%;transform:translateX(-50%);display:grid;grid-template-columns:repeat(2,${iconBoxSize}px);gap:${isStory ? 40 : 32}px;">
+
+  <div style="position:absolute;top:${isStory ? "56%" : isLandscape ? "52%" : "50%"};left:50%;transform:translateX(-50%);display:grid;grid-template-columns:repeat(2,${iconBoxSize}px);gap:${isStory ? 40 : 32}px;">
     ${gridIcons
       .map(
         (icn) => `
@@ -413,23 +500,9 @@ function gridLayout(input: IconEventInput): string {
       )
       .join("")}
   </div>
-  <div style="position:absolute;bottom:${isStory ? "100px" : "70px"};left:60px;right:60px;display:flex;justify-content:center;gap:${isStory ? 32 : 40}px;flex-wrap:wrap;">
-    ${[
-      input.date && { icon: "calendar", text: input.date },
-      input.time && { icon: "clock", text: input.time },
-      input.location && { icon: "map-pin", text: input.location },
-      (input as any).contact_email && { icon: "mail", text: (input as any).contact_email },
-      (input as any).contact_phone && { icon: "phone", text: (input as any).contact_phone },
-    ]
-      .filter(Boolean)
-      .map((m: any) =>
-        `<div style="display:flex;align-items:center;gap:12px;color:#fff;font-weight:700;font-size:${isStory ? 30 : 26}px;background:rgba(255,255,255,0.1);padding:12px 22px;border-radius:40px;">
-        ${renderIcon(m.icon, isStory ? 34 : 28, colors.accent)}
-        <span>${m.text}</span>
-      </div>`
-      )
-      .join("")}
-  </div>
+
+  ${metaChips ? `<div style="position:absolute;bottom:${isStory ? "90px" : "70px"};left:${T.margin}px;right:${T.margin}px;display:flex;justify-content:center;gap:16px;flex-wrap:wrap;">${metaChips}</div>` : ""}
+
   <div style="position:absolute;bottom:0;left:0;right:0;height:12px;background:linear-gradient(90deg,${colors.accent} 0%,${colors.secondary} 50%,${colors.primary} 100%);"></div>
 </div>
   `.trim();
@@ -439,68 +512,83 @@ function gridLayout(input: IconEventInput): string {
 function splitLayout(input: IconEventInput): string {
   const colors = COLOR_MAP[input.color_scheme] || COLOR_MAP.blue;
   const { width, height } = SIZE_MAP[input.size];
+  const T = SIZE_TOKENS[input.size];
   const isStory = input.size === "story";
   const isLandscape = input.size === "landscape";
+  const isSquare = input.size === "square";
   const logoSrc = input.logo_url && input.logo_url.startsWith("http") ? input.logo_url : GAC_LOGO_WHITE_DATA_URI;
-  const splitVertical = !isStory;
-  const titleSize = isStory ? 78 : isLandscape ? 70 : 60;
-  const mainIconSize = isStory ? 240 : isLandscape ? 280 : 240;
-  const metaItems = [
-    input.date && { icon: "calendar", text: input.date },
-    input.time && { icon: "clock", text: input.time },
-    input.location && { icon: "map-pin", text: input.location },
-    (input as any).contact_email && { icon: "mail", text: (input as any).contact_email },
-    (input as any).contact_phone && { icon: "phone", text: (input as any).contact_phone },
-  ].filter(Boolean) as { icon: string; text: string }[];
+  const splitVertical = !isStory; // landscape + square use horizontal split
+
+  const titleSize = isStory ? 82 : isLandscape ? 76 : 68;
+  const mainIconSize = isStory ? 240 : isLandscape ? 260 : 220;
+
+  const paragraphs = splitIntoParagraphs(input.subtitle || "");
+  const email = (input as any).contact_email;
+  const phone = (input as any).contact_phone;
+
+  const dateTimeLocationChips = [
+    input.date && renderMetaChip("calendar", input.date, colors, T.metaFont),
+    input.time && renderMetaChip("clock", input.time, colors, T.metaFont),
+    input.location && renderMetaChip("map-pin", input.location, colors, T.metaFont),
+  ].filter(Boolean).join("");
+
+  const contactChips = [
+    email && renderContactChip("mail", email, colors, T.metaFont, true),
+    phone && renderContactChip("phone", phone, colors, T.metaFont, false),
+  ].filter(Boolean).join("");
+
   const supportingRow = (input.supporting_icons || []).slice(0, 3);
 
   if (splitVertical) {
-    // Unified teal background with BG_STATS_HERO pattern (same as stats-hero baseline)
+    // Landscape / Square — horizontal split with generous margins
+    const headerReserve = T.margin + T.deptPaddingV * 2 + T.deptFont + 40;
     return `
 <div class="poster split-layout" style="width:${width}px;height:${height}px;position:relative;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;direction:rtl;color:#fff;background-image:url('${BG_STATS_HERO_DATA_URI}');background-size:cover;background-position:center;display:flex;">
-  <!-- Fixed identity: department badge top-left (lime bg) + logo top-right -->
-  ${input.department ? `<div style="position:absolute;top:48px;left:48px;background:${colors.accent};color:${colors.secondary};padding:10px 22px;border-radius:8px;font-weight:800;font-size:20px;z-index:10;">${input.department}</div>` : ""}
-  <img src="${logoSrc}" style="position:absolute;top:48px;right:48px;height:${isLandscape ? 70 : 80}px;z-index:10;" crossorigin="anonymous" alt="GAC" />
+  ${renderDeptTag(input.department, colors, input.size)}
+  <img src="${logoSrc}" style="position:absolute;top:${T.margin}px;right:${T.margin}px;height:${T.logoHeight}px;z-index:10;" crossorigin="anonymous" alt="GAC" />
 
-  <!-- Left side: main icon in circle (40%) -->
-  <div style="width:40%;height:100%;position:relative;display:flex;align-items:center;justify-content:center;">
+  <!-- Left: icon (40%) -->
+  <div style="width:40%;height:100%;position:relative;display:flex;align-items:center;justify-content:center;padding-top:${headerReserve}px;">
     <div style="position:relative;width:${mainIconSize + 80}px;height:${mainIconSize + 80}px;background:rgba(255,255,255,0.12);border:4px solid rgba(255,255,255,0.28);border-radius:50%;display:flex;align-items:center;justify-content:center;">
       <div style="color:${colors.accent};">${renderIcon(input.main_icon, mainIconSize - 20, colors.accent)}</div>
     </div>
-    ${supportingRow.length > 0 ? `<div style="position:absolute;bottom:80px;left:0;right:0;display:flex;justify-content:center;gap:30px;">${supportingRow.map((s) => `<div style="width:80px;height:80px;background:rgba(255,255,255,0.15);border-radius:20px;display:flex;align-items:center;justify-content:center;"><div style="color:${colors.accent};">${renderIcon(s, 48, colors.accent)}</div></div>`).join("")}</div>` : ""}
   </div>
 
-  <!-- Right side: text content (60%) -->
-  <div style="width:60%;height:100%;padding:160px 80px 80px 80px;display:flex;flex-direction:column;justify-content:center;">
-    <div style="width:80px;height:6px;background:${colors.accent};border-radius:3px;margin-bottom:30px;"></div>
-    <h1 style="font-size:${titleSize}px;font-weight:900;color:#fff;margin:0 0 24px;line-height:1.15;letter-spacing:-1px;">${input.headline}</h1>
-    ${input.subtitle ? `<p style="font-size:${isLandscape ? 38 : 34}px;color:#fff;margin:0 0 40px;line-height:1.65;font-weight:500;">${input.subtitle}</p>` : ""}
-    <div style="display:flex;flex-direction:column;gap:18px;">
-      ${metaItems.map((m) => `<div style="display:flex;align-items:center;gap:16px;color:#fff;font-weight:700;font-size:${isLandscape ? 30 : 28}px;"><div style="width:54px;height:54px;background:rgba(255,255,255,0.18);border:2px solid rgba(255,255,255,0.3);border-radius:14px;display:flex;align-items:center;justify-content:center;color:${colors.accent};flex-shrink:0;">${renderIcon(m.icon, 32, colors.accent)}</div><span style="word-break:break-word;">${m.text}</span></div>`).join("")}
-    </div>
+  <!-- Right: text (60%) -->
+  <div style="width:60%;height:100%;padding:${headerReserve + 20}px ${T.margin + 20}px ${T.margin + 30}px ${T.margin + 20}px;display:flex;flex-direction:column;justify-content:center;">
+    <div style="width:96px;height:8px;background:${colors.accent};margin-bottom:${T.paragraphGap + 4}px;"></div>
+    <h1 style="font-size:${titleSize}px;font-weight:900;color:#fff;margin:0 0 ${T.paragraphGap + 12}px;line-height:1.2;letter-spacing:-1px;">${input.headline}</h1>
+    ${paragraphs.length > 0 ? `<div style="display:flex;flex-direction:column;gap:${T.paragraphGap}px;margin-bottom:${T.paragraphGap + 20}px;">
+      ${paragraphs.map(p => `<p style="font-size:${T.subtitleSize}px;color:#fff;margin:0;line-height:${T.lineHeight};font-weight:500;opacity:0.95;">${p}</p>`).join("")}
+    </div>` : ""}
+    ${(dateTimeLocationChips || contactChips) ? `<div style="display:flex;gap:14px;flex-wrap:wrap;">${dateTimeLocationChips}${contactChips}</div>` : ""}
   </div>
+
+  <div style="position:absolute;bottom:0;left:0;right:0;height:12px;background:linear-gradient(90deg,${colors.accent} 0%,${colors.secondary} 50%,${colors.primary} 100%);"></div>
 </div>`.trim();
   } else {
-    // Story (vertical) — unified teal bg, icon top area, text bottom area
+    // Story (vertical) — icon top, text bottom
     return `
 <div class="poster split-layout" style="width:${width}px;height:${height}px;position:relative;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;direction:rtl;color:#fff;background-image:url('${BG_STATS_HERO_DATA_URI}');background-size:cover;background-position:center;">
-  ${input.department ? `<div style="position:absolute;top:60px;left:60px;background:${colors.accent};color:${colors.secondary};padding:10px 22px;border-radius:8px;font-weight:800;font-size:22px;z-index:10;">${input.department}</div>` : ""}
-  <img src="${logoSrc}" style="position:absolute;top:60px;right:60px;height:80px;z-index:10;" crossorigin="anonymous" alt="GAC" />
+  ${renderDeptTag(input.department, colors, input.size)}
+  <img src="${logoSrc}" style="position:absolute;top:${T.margin}px;right:${T.margin}px;height:${T.logoHeight}px;z-index:10;" crossorigin="anonymous" alt="GAC" />
 
-  <div style="position:absolute;top:20%;left:0;right:0;height:40%;display:flex;align-items:center;justify-content:center;">
+  <div style="position:absolute;top:16%;left:0;right:0;height:32%;display:flex;align-items:center;justify-content:center;">
     <div style="width:${mainIconSize + 100}px;height:${mainIconSize + 100}px;background:rgba(255,255,255,0.12);border:4px solid rgba(255,255,255,0.28);border-radius:50%;display:flex;align-items:center;justify-content:center;">
       <div style="color:${colors.accent};">${renderIcon(input.main_icon, mainIconSize, colors.accent)}</div>
     </div>
   </div>
 
-  <div style="position:absolute;bottom:0;top:65%;left:0;right:0;padding:0 60px;display:flex;flex-direction:column;justify-content:center;">
-    <div style="width:80px;height:6px;background:${colors.accent};border-radius:3px;margin-bottom:30px;align-self:center;"></div>
-    <h1 style="font-size:${titleSize}px;font-weight:900;color:#fff;margin:0 0 20px;line-height:1.15;text-align:center;">${input.headline}</h1>
-    ${input.subtitle ? `<p style="font-size:36px;color:#fff;margin:0 auto 36px;line-height:1.6;text-align:center;font-weight:500;max-width:900px;">${input.subtitle}</p>` : ""}
-    <div style="display:flex;flex-direction:column;align-items:center;gap:16px;">
-      ${metaItems.map((m) => `<div style="display:flex;align-items:center;gap:14px;color:#fff;font-weight:700;font-size:30px;background:rgba(255,255,255,0.1);padding:14px 26px;border-radius:40px;">${renderIcon(m.icon, 32, colors.accent)}<span>${m.text}</span></div>`).join("")}
-    </div>
+  <div style="position:absolute;top:52%;left:0;right:0;bottom:${T.margin + 20}px;padding:0 ${T.margin}px;display:flex;flex-direction:column;justify-content:flex-start;">
+    <div style="width:96px;height:8px;background:${colors.accent};margin:0 auto ${T.paragraphGap}px;"></div>
+    <h1 style="font-size:${titleSize}px;font-weight:900;color:#fff;margin:0 0 ${T.paragraphGap + 8}px;line-height:1.15;text-align:center;">${input.headline}</h1>
+    ${paragraphs.length > 0 ? `<div style="max-width:1050px;margin:0 auto ${T.paragraphGap + 12}px;display:flex;flex-direction:column;gap:${T.paragraphGap}px;text-align:center;">
+      ${paragraphs.map(p => `<p style="font-size:${T.subtitleSize}px;color:#fff;margin:0;line-height:${T.lineHeight};font-weight:500;opacity:0.95;">${p}</p>`).join("")}
+    </div>` : ""}
+    ${(dateTimeLocationChips || contactChips) ? `<div style="display:flex;justify-content:center;gap:14px;flex-wrap:wrap;">${dateTimeLocationChips}${contactChips}</div>` : ""}
   </div>
+
+  <div style="position:absolute;bottom:0;left:0;right:0;height:12px;background:linear-gradient(90deg,${colors.accent} 0%,${colors.secondary} 50%,${colors.primary} 100%);"></div>
 </div>`.trim();
   }
 }
@@ -511,52 +599,49 @@ function splitLayout(input: IconEventInput): string {
 function typographyLayout(input: IconEventInput): string {
   const colors = COLOR_MAP[input.color_scheme] || COLOR_MAP.blue;
   const { width, height } = SIZE_MAP[input.size];
+  const T = SIZE_TOKENS[input.size];
   const isStory = input.size === "story";
   const isSquare = input.size === "square";
-  const isLandscape = input.size === "landscape";
   const logoSrc = input.logo_url && input.logo_url.startsWith("http") ? input.logo_url : GAC_LOGO_WHITE_DATA_URI;
 
-  const titleSize = isStory ? 110 : isSquare ? 96 : 92;
-  const subtitleSize = isStory ? 46 : isSquare ? 42 : 40;
-  const metaSize = isStory ? 32 : 28;
+  // Size-aware typography scale
+  const titleSize = isStory ? 120 : isSquare ? 104 : 96;
+  const subtitleSize = T.subtitleSize + 4;
+  const contentMaxWidth = isStory ? 1050 : isSquare ? 1000 : 1600;
+  const contentPadding = isStory ? 90 : isSquare ? 100 : 160;
 
-  const metaItems = [
-    input.date && { icon: "calendar", text: input.date },
-    input.time && { icon: "clock", text: input.time },
-    input.location && { icon: "map-pin", text: input.location },
-    (input as any).contact_email && { icon: "mail", text: (input as any).contact_email },
-    (input as any).contact_phone && { icon: "phone", text: (input as any).contact_phone },
-  ].filter(Boolean) as { icon: string; text: string }[];
+  const paragraphs = splitIntoParagraphs(input.subtitle || "");
+  const email = (input as any).contact_email;
+  const phone = (input as any).contact_phone;
+
+  const dateTimeLocationChips = [
+    input.date && renderMetaChip("calendar", input.date, colors, T.metaFont),
+    input.time && renderMetaChip("clock", input.time, colors, T.metaFont),
+    input.location && renderMetaChip("map-pin", input.location, colors, T.metaFont),
+  ].filter(Boolean).join("");
+
+  const contactChips = [
+    email && renderContactChip("mail", email, colors, T.metaFont, true),
+    phone && renderContactChip("phone", phone, colors, T.metaFont, false),
+  ].filter(Boolean).join("");
 
   return `
 <div class="poster typography-layout" style="width:${width}px;height:${height}px;position:relative;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;direction:rtl;color:#fff;background-image:url('${BG_STATS_HERO_DATA_URI}');background-size:cover;background-position:center;">
-  <!-- Fixed identity: dept top-left, logo top-right -->
-  ${input.department ? `<div style="position:absolute;top:48px;left:48px;background:${colors.accent};color:${colors.secondary};padding:10px 22px;border-radius:8px;font-weight:800;font-size:20px;z-index:10;">${input.department}</div>` : ""}
-  <img src="${logoSrc}" style="position:absolute;top:48px;right:48px;height:${isStory ? 90 : 70}px;z-index:10;" crossorigin="anonymous" alt="GAC" />
+  ${renderDeptTag(input.department, colors, input.size)}
+  <img src="${logoSrc}" style="position:absolute;top:${T.margin}px;right:${T.margin}px;height:${T.logoHeight}px;z-index:10;" crossorigin="anonymous" alt="GAC" />
 
-  <!-- Centered text block, no icons -->
-  <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:100%;padding:0 ${isStory ? 90 : 140}px;text-align:center;">
-    <!-- Accent bar -->
-    <div style="width:120px;height:8px;background:${colors.accent};border-radius:4px;margin:0 auto 40px;"></div>
-    <h1 style="font-size:${titleSize}px;font-weight:900;margin:0 0 36px;line-height:1.15;letter-spacing:-2px;color:#fff;">${input.headline}</h1>
-    ${input.subtitle ? `<p style="font-size:${subtitleSize}px;margin:0 auto 48px;line-height:1.6;font-weight:500;color:#fff;opacity:0.95;max-width:${isStory ? 900 : 1600}px;">${input.subtitle}</p>` : ""}
-    ${
-      metaItems.length > 0
-        ? `<div style="display:flex;justify-content:center;gap:24px;flex-wrap:wrap;">
-            ${metaItems
-              .map(
-                (m) => `<div style="display:flex;align-items:center;gap:14px;background:rgba(255,255,255,0.12);padding:16px 28px;border-radius:50px;border:1.5px solid rgba(255,255,255,0.22);">
-                  <span style="color:${colors.accent};">${renderIcon(m.icon, isStory ? 32 : 28, colors.accent)}</span>
-                  <span style="font-size:${metaSize}px;font-weight:700;color:#fff;">${m.text}</span>
-                </div>`
-              )
-              .join("")}
-          </div>`
-        : ""
-    }
+  <!-- Centered content, text only -->
+  <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:100%;padding:0 ${contentPadding}px;text-align:center;">
+    <div style="width:140px;height:8px;background:${colors.accent};margin:0 auto ${T.paragraphGap + 12}px;"></div>
+    <h1 style="font-size:${titleSize}px;font-weight:900;margin:0 0 ${T.paragraphGap + 16}px;line-height:1.15;letter-spacing:-2px;color:#fff;">${input.headline}</h1>
+    ${paragraphs.length > 0 ? `<div style="max-width:${contentMaxWidth}px;margin:0 auto ${T.paragraphGap + 20}px;display:flex;flex-direction:column;gap:${T.paragraphGap}px;">
+      ${paragraphs.map(p => `<p style="font-size:${subtitleSize}px;margin:0;line-height:${T.lineHeight};font-weight:500;color:#fff;opacity:0.95;">${p}</p>`).join("")}
+    </div>` : ""}
+    ${(dateTimeLocationChips || contactChips) ? `<div style="display:flex;justify-content:center;gap:18px;flex-wrap:wrap;">
+      ${dateTimeLocationChips}${contactChips}
+    </div>` : ""}
   </div>
 
-  <!-- Bottom accent gradient -->
   <div style="position:absolute;bottom:0;left:0;right:0;height:14px;background:linear-gradient(90deg,${colors.accent} 0%,${colors.secondary} 50%,${colors.primary} 100%);"></div>
 </div>`.trim();
 }
