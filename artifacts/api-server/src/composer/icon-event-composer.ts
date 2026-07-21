@@ -337,7 +337,7 @@ function heroLayout(input: IconEventInput): string {
   const isStory = input.size === "story";
   const isSquare = input.size === "square";
   const logoSrc = input.logo_url && input.logo_url.startsWith("http") ? input.logo_url : GAC_LOGO_WHITE_DATA_URI;
-  const mainIconSize = isStory ? 280 : isSquare ? 240 : 200;
+  const mainIconSize = isStory ? 240 : isSquare ? 200 : 170;
   const titleSize = isStory ? 88 : isSquare ? 72 : 64;
   // Larger, readable subtitle so long instructional text is legible
   const subtitleSize = isStory ? 44 : isSquare ? 40 : 36;
@@ -355,10 +355,10 @@ function heroLayout(input: IconEventInput): string {
 <div class="poster hero-layout" style="width:${width}px;height:${height}px;position:relative;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;direction:rtl;color:#fff;background-image:url('${BG_STATS_HERO_DATA_URI}');background-size:cover;background-position:center;">
   ${input.department ? `<div style="position:absolute;top:48px;left:48px;background:${colors.accent};color:${colors.secondary};padding:10px 22px;border-radius:8px;font-weight:800;font-size:20px;">${input.department}</div>` : ""}
   <img src="${logoSrc}" style="position:absolute;top:48px;right:48px;height:${isStory ? 90 : 70}px;z-index:5;" crossorigin="anonymous" alt="GAC" />
-  <div style="position:absolute;top:${isStory ? "26%" : "22%"};left:50%;transform:translateX(-50%);width:${mainIconSize + 80}px;height:${mainIconSize + 80}px;background:rgba(255,255,255,0.12);border:3px solid rgba(255,255,255,0.25);border-radius:50%;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(10px);">
+  <div style="position:absolute;top:${isStory ? "18%" : "14%"};left:50%;transform:translateX(-50%);width:${mainIconSize + 60}px;height:${mainIconSize + 60}px;background:rgba(255,255,255,0.12);border:3px solid rgba(255,255,255,0.25);border-radius:50%;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(10px);">
     <div style="color:#fff;">${renderIcon(input.main_icon, mainIconSize, "#fff")}</div>
   </div>
-  <div style="position:absolute;top:${isStory ? "48%" : "44%"};left:0;right:0;text-align:center;padding:0 100px;">
+  <div style="position:absolute;top:${isStory ? "46%" : "48%"};left:0;right:0;text-align:center;padding:0 100px;">
     <h1 style="font-size:${titleSize}px;font-weight:900;margin:0 0 28px;line-height:1.2;letter-spacing:-1px;">${input.headline}</h1>
     ${input.subtitle ? `<p style="font-size:${subtitleSize}px;margin:0 auto;opacity:0.95;font-weight:500;line-height:1.55;max-width:${isStory ? 900 : 1500}px;">${input.subtitle}</p>` : ""}
   </div>
@@ -462,16 +462,16 @@ function splitLayout(input: IconEventInput): string {
   ${input.department ? `<div style="position:absolute;top:48px;left:48px;background:${colors.accent};color:${colors.secondary};padding:10px 22px;border-radius:8px;font-weight:800;font-size:20px;z-index:10;">${input.department}</div>` : ""}
   <img src="${logoSrc}" style="position:absolute;top:48px;right:48px;height:${isLandscape ? 70 : 80}px;z-index:10;" crossorigin="anonymous" alt="GAC" />
 
-  <!-- Left half: main icon in circle -->
-  <div style="width:50%;height:100%;position:relative;display:flex;align-items:center;justify-content:center;">
-    <div style="position:relative;width:${mainIconSize + 100}px;height:${mainIconSize + 100}px;background:rgba(255,255,255,0.12);border:4px solid rgba(255,255,255,0.28);border-radius:50%;display:flex;align-items:center;justify-content:center;">
-      <div style="color:${colors.accent};">${renderIcon(input.main_icon, mainIconSize, colors.accent)}</div>
+  <!-- Left side: main icon in circle (40%) -->
+  <div style="width:40%;height:100%;position:relative;display:flex;align-items:center;justify-content:center;">
+    <div style="position:relative;width:${mainIconSize + 80}px;height:${mainIconSize + 80}px;background:rgba(255,255,255,0.12);border:4px solid rgba(255,255,255,0.28);border-radius:50%;display:flex;align-items:center;justify-content:center;">
+      <div style="color:${colors.accent};">${renderIcon(input.main_icon, mainIconSize - 20, colors.accent)}</div>
     </div>
     ${supportingRow.length > 0 ? `<div style="position:absolute;bottom:80px;left:0;right:0;display:flex;justify-content:center;gap:30px;">${supportingRow.map((s) => `<div style="width:80px;height:80px;background:rgba(255,255,255,0.15);border-radius:20px;display:flex;align-items:center;justify-content:center;"><div style="color:${colors.accent};">${renderIcon(s, 48, colors.accent)}</div></div>`).join("")}</div>` : ""}
   </div>
 
-  <!-- Right half: text content -->
-  <div style="width:50%;height:100%;padding:180px 80px 80px;display:flex;flex-direction:column;justify-content:center;">
+  <!-- Right side: text content (60%) -->
+  <div style="width:60%;height:100%;padding:160px 80px 80px 40px;display:flex;flex-direction:column;justify-content:center;">
     <div style="width:80px;height:6px;background:${colors.accent};border-radius:3px;margin-bottom:30px;"></div>
     <h1 style="font-size:${titleSize}px;font-weight:900;color:#fff;margin:0 0 24px;line-height:1.15;letter-spacing:-1px;">${input.headline}</h1>
     ${input.subtitle ? `<p style="font-size:${isLandscape ? 34 : 30}px;color:#fff;margin:0 0 40px;line-height:1.6;font-weight:500;">${input.subtitle}</p>` : ""}
