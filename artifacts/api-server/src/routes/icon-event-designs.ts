@@ -207,7 +207,7 @@ ${iconListForAI()}
     }
 
     const validIconNames = new Set(ICON_LIBRARY.map((i) => i.name));
-    const validLayouts: LayoutType[] = ["stats-hero", "hero", "grid", "split"];
+    const validLayouts: LayoutType[] = ["stats-hero", "hero", "grid", "split", "typography"];
 
     const logoUrl = "/brand-assets/logos/gac-white.png";
     const extracted = parsed.extracted || {};
@@ -287,11 +287,17 @@ ${iconListForAI()}
     // ضمان التنوع: إذا كلها متطابقة، ابدل الثانية والثالثة
     if (adjustedLayouts[0] === adjustedLayouts[1] && adjustedLayouts[1] === adjustedLayouts[2]) {
       const alternatives: LayoutType[] = hasNumbersInInput
-        ? ["stats-hero", "split", "grid"]
-        : ["hero", "split", "grid"];
+        ? ["stats-hero", "split", "typography"]
+        : ["hero", "split", "typography"];
       adjustedLayouts[0] = alternatives[0];
       adjustedLayouts[1] = alternatives[1];
       adjustedLayouts[2] = alternatives[2];
+    }
+
+    // ═══ ضمان وجود تصميم typography واحد على الأقل (نص فقط، بدون أيقونة رئيسية) ═══
+    if (!adjustedLayouts.includes("typography")) {
+      // استبدل الثالث (الأقل أولوية) بـ typography
+      adjustedLayouts[2] = "typography";
     }
 
     const variants = parsed.variants.slice(0, 3).map((v: any, idx: number) => {

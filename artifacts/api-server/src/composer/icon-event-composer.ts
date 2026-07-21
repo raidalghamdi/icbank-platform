@@ -12,7 +12,7 @@ import { GAC } from "./gac-palette";
 import { renderIcon } from "./icon-library";
 import { BG_STATS_HERO_DATA_URI, GAC_LOGO_WHITE_DATA_URI } from "./assets-v5";
 
-export type LayoutType = "stats-hero" | "hero" | "grid" | "split";
+export type LayoutType = "stats-hero" | "hero" | "grid" | "split" | "typography";
 export type SizePreset = "square" | "story" | "landscape";
 export type ColorScheme = "teal" | "blue" | "green" | "cyan" | "navy";
 
@@ -337,11 +337,11 @@ function heroLayout(input: IconEventInput): string {
   const isStory = input.size === "story";
   const isSquare = input.size === "square";
   const logoSrc = input.logo_url && input.logo_url.startsWith("http") ? input.logo_url : GAC_LOGO_WHITE_DATA_URI;
-  const mainIconSize = isStory ? 240 : isSquare ? 200 : 170;
-  const titleSize = isStory ? 88 : isSquare ? 72 : 64;
+  const mainIconSize = isStory ? 180 : isSquare ? 150 : 130;
+  const titleSize = isStory ? 88 : isSquare ? 72 : 68;
   // Larger, readable subtitle so long instructional text is legible
-  const subtitleSize = isStory ? 48 : isSquare ? 44 : 40;
-  const metaSize = isStory ? 32 : 28;
+  const subtitleSize = isStory ? 52 : isSquare ? 48 : 44;
+  const metaSize = isStory ? 34 : 30;
 
   const metaItems = [
     input.date && { icon: "calendar", text: input.date },
@@ -355,10 +355,10 @@ function heroLayout(input: IconEventInput): string {
 <div class="poster hero-layout" style="width:${width}px;height:${height}px;position:relative;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;direction:rtl;color:#fff;background-image:url('${BG_STATS_HERO_DATA_URI}');background-size:cover;background-position:center;">
   ${input.department ? `<div style="position:absolute;top:48px;left:48px;background:${colors.accent};color:${colors.secondary};padding:10px 22px;border-radius:8px;font-weight:800;font-size:20px;">${input.department}</div>` : ""}
   <img src="${logoSrc}" style="position:absolute;top:48px;right:48px;height:${isStory ? 90 : 70}px;z-index:5;" crossorigin="anonymous" alt="GAC" />
-  <div style="position:absolute;top:${isStory ? "18%" : "14%"};left:50%;transform:translateX(-50%);width:${mainIconSize + 60}px;height:${mainIconSize + 60}px;background:rgba(255,255,255,0.12);border:3px solid rgba(255,255,255,0.25);border-radius:50%;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(10px);">
+  <div style="position:absolute;top:${isStory ? "16%" : "13%"};left:50%;transform:translateX(-50%);width:${mainIconSize + 50}px;height:${mainIconSize + 50}px;background:rgba(255,255,255,0.12);border:3px solid rgba(255,255,255,0.25);border-radius:50%;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(10px);">
     <div style="color:#fff;">${renderIcon(input.main_icon, mainIconSize, "#fff")}</div>
   </div>
-  <div style="position:absolute;top:${isStory ? "46%" : "48%"};left:0;right:0;text-align:center;padding:0 100px;">
+  <div style="position:absolute;top:${isStory ? "40%" : "38%"};left:0;right:0;text-align:center;padding:0 100px;">
     <h1 style="font-size:${titleSize}px;font-weight:900;margin:0 0 28px;line-height:1.2;letter-spacing:-1px;">${input.headline}</h1>
     ${input.subtitle ? `<p style="font-size:${subtitleSize}px;margin:0 auto;opacity:0.95;font-weight:500;line-height:1.55;max-width:${isStory ? 900 : 1500}px;">${input.subtitle}</p>` : ""}
   </div>
@@ -505,6 +505,62 @@ function splitLayout(input: IconEventInput): string {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────
+// TYPOGRAPHY LAYOUT: تصميم طباعي بدون أيقونات — نص فقط
+// ─────────────────────────────────────────────────────────────────────────
+function typographyLayout(input: IconEventInput): string {
+  const colors = COLOR_MAP[input.color_scheme] || COLOR_MAP.blue;
+  const { width, height } = SIZE_MAP[input.size];
+  const isStory = input.size === "story";
+  const isSquare = input.size === "square";
+  const isLandscape = input.size === "landscape";
+  const logoSrc = input.logo_url && input.logo_url.startsWith("http") ? input.logo_url : GAC_LOGO_WHITE_DATA_URI;
+
+  const titleSize = isStory ? 110 : isSquare ? 96 : 92;
+  const subtitleSize = isStory ? 46 : isSquare ? 42 : 40;
+  const metaSize = isStory ? 32 : 28;
+
+  const metaItems = [
+    input.date && { icon: "calendar", text: input.date },
+    input.time && { icon: "clock", text: input.time },
+    input.location && { icon: "map-pin", text: input.location },
+    (input as any).contact_email && { icon: "mail", text: (input as any).contact_email },
+    (input as any).contact_phone && { icon: "phone", text: (input as any).contact_phone },
+  ].filter(Boolean) as { icon: string; text: string }[];
+
+  return `
+<div class="poster typography-layout" style="width:${width}px;height:${height}px;position:relative;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;direction:rtl;color:#fff;background-image:url('${BG_STATS_HERO_DATA_URI}');background-size:cover;background-position:center;">
+  <!-- Fixed identity: dept top-left, logo top-right -->
+  ${input.department ? `<div style="position:absolute;top:48px;left:48px;background:${colors.accent};color:${colors.secondary};padding:10px 22px;border-radius:8px;font-weight:800;font-size:20px;z-index:10;">${input.department}</div>` : ""}
+  <img src="${logoSrc}" style="position:absolute;top:48px;right:48px;height:${isStory ? 90 : 70}px;z-index:10;" crossorigin="anonymous" alt="GAC" />
+
+  <!-- Centered text block, no icons -->
+  <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:100%;padding:0 ${isStory ? 90 : 140}px;text-align:center;">
+    <!-- Accent bar -->
+    <div style="width:120px;height:8px;background:${colors.accent};border-radius:4px;margin:0 auto 40px;"></div>
+    <h1 style="font-size:${titleSize}px;font-weight:900;margin:0 0 36px;line-height:1.15;letter-spacing:-2px;color:#fff;">${input.headline}</h1>
+    ${input.subtitle ? `<p style="font-size:${subtitleSize}px;margin:0 auto 48px;line-height:1.6;font-weight:500;color:#fff;opacity:0.95;max-width:${isStory ? 900 : 1600}px;">${input.subtitle}</p>` : ""}
+    ${
+      metaItems.length > 0
+        ? `<div style="display:flex;justify-content:center;gap:24px;flex-wrap:wrap;">
+            ${metaItems
+              .map(
+                (m) => `<div style="display:flex;align-items:center;gap:14px;background:rgba(255,255,255,0.12);padding:16px 28px;border-radius:50px;border:1.5px solid rgba(255,255,255,0.22);">
+                  <span style="color:${colors.accent};">${renderIcon(m.icon, isStory ? 32 : 28, colors.accent)}</span>
+                  <span style="font-size:${metaSize}px;font-weight:700;color:#fff;">${m.text}</span>
+                </div>`
+              )
+              .join("")}
+          </div>`
+        : ""
+    }
+  </div>
+
+  <!-- Bottom accent gradient -->
+  <div style="position:absolute;bottom:0;left:0;right:0;height:14px;background:linear-gradient(90deg,${colors.accent} 0%,${colors.secondary} 50%,${colors.primary} 100%);"></div>
+</div>`.trim();
+}
+
 /** المُرسل الرئيسي */
 export function renderIconEventDesign(input: IconEventInput): string {
   const inner = (() => {
@@ -517,6 +573,8 @@ export function renderIconEventDesign(input: IconEventInput): string {
         return gridLayout(input);
       case "split":
         return splitLayout(input);
+      case "typography":
+        return typographyLayout(input);
     }
   })();
 
