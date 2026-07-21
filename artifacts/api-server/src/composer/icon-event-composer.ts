@@ -633,10 +633,9 @@ function typographyLayout(input: IconEventInput): string {
   ${renderDeptTag(input.department, colors, input.size)}
   <img src="${logoSrc}" style="position:absolute;top:${T.margin}px;right:${T.margin}px;height:${T.logoHeight}px;z-index:10;" crossorigin="anonymous" alt="GAC" />
 
-  <!-- Centered content, text only -->
-  <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:100%;padding:0 ${contentPadding}px;text-align:center;">
-    <div style="width:140px;height:8px;background:${colors.accent};margin:0 auto ${T.paragraphGap + 12}px;"></div>
-    <h1 style="font-size:${titleSize}px;font-weight:900;margin:0 0 ${T.paragraphGap + 16}px;line-height:1.15;letter-spacing:-2px;color:#fff;">${input.headline}</h1>
+  <!-- Centered content, text only — no accent bar, sits below header safe zone -->
+  <div style="position:absolute;top:${isSquare ? "52%" : "50%"};left:50%;transform:translate(-50%,-50%);width:100%;padding:0 ${contentPadding}px;text-align:center;">
+    <h1 style="font-size:${isSquare ? 84 : titleSize}px;font-weight:900;margin:0 0 ${T.paragraphGap + 16}px;line-height:1.15;letter-spacing:-2px;color:#fff;">${input.headline}</h1>
     ${paragraphs.length > 0 ? `<div style="max-width:${contentMaxWidth}px;margin:0 auto ${T.paragraphGap + 20}px;display:flex;flex-direction:column;gap:${T.paragraphGap}px;">
       ${paragraphs.map(p => `<p style="font-size:${subtitleSize}px;margin:0;line-height:${T.lineHeight};font-weight:500;color:#fff;opacity:0.95;">${p}</p>`).join("")}
     </div>` : ""}
