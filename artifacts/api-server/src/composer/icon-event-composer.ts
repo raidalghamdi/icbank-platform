@@ -332,6 +332,7 @@ function heroLayout(input: IconEventInput): string {
   const { width, height } = SIZE_MAP[input.size];
   const isStory = input.size === "story";
   const isSquare = input.size === "square";
+  const logoSrc = input.logo_url && input.logo_url.startsWith("http") ? input.logo_url : GAC_LOGO_WHITE_DATA_URI;
   const mainIconSize = isStory ? 280 : isSquare ? 240 : 200;
   const titleSize = isStory ? 88 : isSquare ? 72 : 64;
   const subtitleSize = isStory ? 36 : isSquare ? 32 : 28;
@@ -347,7 +348,7 @@ function heroLayout(input: IconEventInput): string {
 <div class="poster hero-layout" style="width:${width}px;height:${height}px;background:linear-gradient(135deg,${colors.primary} 0%,${colors.secondary} 100%);position:relative;overflow:hidden;font-family:'Tajawal','Cairo',sans-serif;direction:rtl;color:#fff;">
   <div style="position:absolute;inset:0;background-image:url('${backgroundPattern(input.main_icon, "rgba(255,255,255,0.06)")}');background-size:160px 160px;opacity:0.4;"></div>
   ${input.department ? `<div style="position:absolute;top:48px;right:48px;background:${colors.accent};color:${colors.secondary};padding:10px 22px;border-radius:8px;font-weight:800;font-size:20px;">${input.department}</div>` : ""}
-  ${input.logo_url ? `<img src="${input.logo_url}" style="position:absolute;top:48px;left:48px;height:${isStory ? 90 : 70}px;z-index:5;" crossorigin="anonymous" />` : ""}
+  <img src="${logoSrc}" style="position:absolute;top:48px;left:48px;height:${isStory ? 90 : 70}px;z-index:5;" crossorigin="anonymous" alt="GAC" />
   <div style="position:absolute;top:${isStory ? "26%" : "22%"};left:50%;transform:translateX(-50%);width:${mainIconSize + 80}px;height:${mainIconSize + 80}px;background:rgba(255,255,255,0.12);border:3px solid rgba(255,255,255,0.25);border-radius:50%;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(10px);">
     <div style="color:#fff;">${renderIcon(input.main_icon, mainIconSize, "#fff")}</div>
   </div>
@@ -380,6 +381,7 @@ function gridLayout(input: IconEventInput): string {
   const { width, height } = SIZE_MAP[input.size];
   const isStory = input.size === "story";
   const isLandscape = input.size === "landscape";
+  const logoSrc = input.logo_url && input.logo_url.startsWith("http") ? input.logo_url : GAC_LOGO_WHITE_DATA_URI;
   const supporting = (input.supporting_icons || []).slice(0, 3);
   const gridIcons = [input.main_icon, ...supporting].slice(0, 4);
   while (gridIcons.length < 4) gridIcons.push("sparkles");
@@ -391,8 +393,8 @@ function gridLayout(input: IconEventInput): string {
 <div class="poster grid-layout" style="width:${width}px;height:${height}px;background:#fff;position:relative;overflow:hidden;font-family:'Tajawal','Cairo',sans-serif;direction:rtl;">
   <div style="position:absolute;top:0;left:0;right:0;height:${isStory ? 280 : isLandscape ? 200 : 240}px;background:linear-gradient(135deg,${colors.primary} 0%,${colors.secondary} 100%);"></div>
   ${input.department ? `<div style="position:absolute;top:${isStory ? 100 : 70}px;left:48px;background:${colors.accent};color:${colors.secondary};padding:10px 22px;border-radius:8px;font-weight:800;font-size:20px;z-index:6;">${input.department}</div>` : ""}
-  ${input.logo_url ? `<img src="${input.logo_url}" style="position:absolute;top:48px;right:48px;height:${isStory ? 80 : 70}px;z-index:5;" crossorigin="anonymous" />` : ""}
-  <div style="position:absolute;top:${isStory ? "100px" : "70px"};right:${input.logo_url ? "200px" : "60px"};left:60px;color:#fff;text-align:right;">
+  <img src="${logoSrc}" style="position:absolute;top:48px;right:48px;height:${isStory ? 80 : 70}px;z-index:5;" crossorigin="anonymous" alt="GAC" />
+  <div style="position:absolute;top:${isStory ? "100px" : "70px"};right:200px;left:60px;color:#fff;text-align:right;">
     <h1 style="font-size:${titleSize}px;font-weight:900;margin:0;line-height:1.15;letter-spacing:-1px;">${input.headline}</h1>
     ${input.subtitle ? `<p style="font-size:${isStory ? 34 : 28}px;margin:18px 0 0;opacity:0.95;font-weight:500;">${input.subtitle}</p>` : ""}
   </div>
@@ -432,6 +434,7 @@ function splitLayout(input: IconEventInput): string {
   const { width, height } = SIZE_MAP[input.size];
   const isStory = input.size === "story";
   const isLandscape = input.size === "landscape";
+  const logoSrc = input.logo_url && input.logo_url.startsWith("http") ? input.logo_url : GAC_LOGO_WHITE_DATA_URI;
   const splitVertical = !isStory;
   const titleSize = isStory ? 78 : isLandscape ? 70 : 60;
   const mainIconSize = isStory ? 240 : isLandscape ? 280 : 240;
@@ -453,7 +456,7 @@ function splitLayout(input: IconEventInput): string {
     ${supportingRow.length > 0 ? `<div style="position:absolute;bottom:80px;left:0;right:0;display:flex;justify-content:center;gap:30px;">${supportingRow.map((s) => `<div style="width:80px;height:80px;background:rgba(255,255,255,0.2);border-radius:20px;display:flex;align-items:center;justify-content:center;"><div style="color:#fff;">${renderIcon(s, 48, "#fff")}</div></div>`).join("")}</div>` : ""}
   </div>
   <div style="width:50%;height:100%;padding:80px 60px;display:flex;flex-direction:column;justify-content:center;">
-    ${input.logo_url ? `<img src="${input.logo_url}" style="height:${isLandscape ? 70 : 80}px;margin-bottom:40px;align-self:flex-start;" crossorigin="anonymous" />` : ""}
+    <img src="${logoSrc}" style="height:${isLandscape ? 70 : 80}px;margin-bottom:40px;align-self:flex-start;" crossorigin="anonymous" alt="GAC" />
     ${input.department ? `<div style="background:${colors.primary};color:#fff;padding:8px 18px;border-radius:6px;font-weight:700;font-size:18px;align-self:flex-start;margin-bottom:24px;">${input.department}</div>` : ""}
     <div style="width:80px;height:6px;background:${colors.primary};border-radius:3px;margin-bottom:30px;"></div>
     <h1 style="font-size:${titleSize}px;font-weight:900;color:${colors.secondary};margin:0 0 24px;line-height:1.15;letter-spacing:-1px;">${input.headline}</h1>
@@ -469,7 +472,7 @@ function splitLayout(input: IconEventInput): string {
 <div class="poster split-layout" style="width:${width}px;height:${height}px;background:#fff;position:relative;overflow:hidden;font-family:'Tajawal','Cairo',sans-serif;direction:rtl;display:flex;flex-direction:column;">
   <div style="width:100%;height:55%;background:linear-gradient(160deg,${colors.primary} 0%,${colors.secondary} 100%);position:relative;display:flex;align-items:center;justify-content:center;">
     <div style="position:absolute;inset:0;background-image:url('${backgroundPattern(input.main_icon, "rgba(255,255,255,0.08)")}');background-size:140px 140px;"></div>
-    ${input.logo_url ? `<img src="${input.logo_url}" style="position:absolute;top:60px;left:60px;height:80px;z-index:5;" crossorigin="anonymous" />` : ""}
+    <img src="${logoSrc}" style="position:absolute;top:60px;left:60px;height:80px;z-index:5;" crossorigin="anonymous" alt="GAC" />
     ${input.department ? `<div style="position:absolute;top:60px;right:60px;background:${colors.accent};color:${colors.secondary};padding:10px 22px;border-radius:8px;font-weight:800;font-size:22px;">${input.department}</div>` : ""}
     <div style="position:relative;width:${mainIconSize + 100}px;height:${mainIconSize + 100}px;background:rgba(255,255,255,0.15);border:4px solid rgba(255,255,255,0.3);border-radius:50%;display:flex;align-items:center;justify-content:center;">
       <div style="color:#fff;">${renderIcon(input.main_icon, mainIconSize, "#fff")}</div>
