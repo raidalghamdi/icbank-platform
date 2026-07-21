@@ -78,72 +78,112 @@ router.post("/designs/icon-event/generate", async (req: Request, res: Response) 
   }
 
   // === AI Prompt — يفهم البيانات الخام ويستخرج كل شيء ===
+  // القواعد الأساسية: احترام مدخلات المستخدم، عدم اختراع بيانات، الهوية الرسمية GAC (teal فقط)
   const prompt = `
-أنت مصمم بصري ذكي للهيئة العامة للمنافسة (GAC). ستحلل بيانات الفعالية (قد تكون نصاً خاماً غير منظم) وتستخرج منها:
-1. عنوان رئيسي قصير (2-4 كلمات)
-2. عنوان فرعي (سطر واحد يصف الفعالية)
-3. اسم الإدارة (إن لم يُذكر اتركه فارغاً)
-4. هاشتاج (إن لم يوجد ابتكر واحداً مناسباً)
-5. ثلاث إحصائيات (الأهم) — كل واحدة: أيقونة + قيمة + وصف قصير
-6. أيقونة رئيسية (للتخطيطات الأخرى) + 3 أيقونات داعمة
-7. نظام ألوان من: teal | blue | green | cyan | navy (افتراضي teal للتصميم الرسمي)
+أنت مصمم بصري ذكي للهيئة العامة للمنافسة (GAC). ستحلل بيانات الفعالية (قد تكون نصاً خاماً غير منظم) وتستخرج منها معلومات دقيقة **دون اختراع** أي شيء غير موجود في المدخلات.
+
+مهامك:
+1. عنوان رئيسي قصير (2-6 كلمات) — من البيانات فقط
+2. عنوان فرعي (سطر واحد للتصاميم المكتظة، أو سطرين للتصاميم البسيطة)
+3. اسم الإدارة (إن لم يُذكر → اتركه فارغاً، لا تخترع)
+4. هاشتاج (إن لم يُذكر → اتركه فارغاً، لا تخترع)
+5. إحصائيات (0-3 حسب ما هو موجود فعلياً في البيانات، لا تخترع أرقاماً)
+6. أيقونة رئيسية + أيقونات داعمة (دلالية، تعكس المعنى)
+7. اختيار ذكي للـ layouts الثلاثة (لا نمط ثابت)
 
 البيانات (قد تكون خاماً):
 """
 ${raw_data || `العنوان: ${headline}\nالوصف: ${subtitle || "-"}\nالإدارة: ${department || "-"}\nالتاريخ: ${date || "-"}\nالوقت: ${time || "-"}\nالمكان: ${location || "-"}\nالنوع: ${event_type || "-"}`}
 """
 
-${department ? `ملاحظة: اسم الإدارة المؤكد هو "${department}" — استخدمه كما هو.` : ""}
-${hashtag ? `ملاحظة: الهاشتاج المؤكد هو "${hashtag}".` : ""}
+${department ? `ملاحظة: اسم الإدارة المؤكد هو "${department}" — استخدمه كما هو (بدون اختصار في هذا الحقل).` : "⚠️ لم يُذكر اسم إدارة — اتركه سلسلة فارغة \"\" (لا تخترع)."}
+${hashtag ? `ملاحظة: الهاشتاج المؤكد هو "${hashtag}" — استخدمه كما هو.` : "⚠️ لم يُذكر هاشتاج — اتركه سلسلة فارغة \"\" (لا تخترع هاشتاقاً)."}
 
 الأيقونات المتاحة (اختر فقط من هذه القائمة):
 ${iconListForAI()}
 
-أعد JSON بهذا الشكل بالضبط (3 تنويعات — أولها stats-hero مطابق للهوية الرسمية):
+═══════════════════════════════════════
+قواعد اختيار الإحصائيات (حرجة):
+═══════════════════════════════════════
+- **لا تخترع أرقاماً أبداً**. إذا لم توجد أرقام صريحة في البيانات → اترك stats مصفوفة فارغة [].
+- إذا وُجد رقم واحد فقط في البيانات → أنتج إحصائية واحدة فقط.
+- إذا وُجد رقمان → أنتج اثنين. ثلاثة → ثلاثة. الحد الأقصى 3.
+- استخرج الأرقام حرفياً كما وردت (مثال: "135+" يبقى "135+"، "20" يبقى "20").
+- التسمية (label) يجب أن تعكس السياق الفعلي من البيانات، لا اختراعاً.
+
+═══════════════════════════════════════
+قواعد اختيار الأيقونات (دلالية):
+═══════════════════════════════════════
+- users → للأشخاص/المشاركين/الموظفين
+- building → للإدارات/الجهات/المكاتب
+- calendar → للجلسات/التواريخ/المواعيد
+- monitor / presentation → للعروض/الشاشات
+- target → للأهداف/المحاور
+- trending-up → للنمو/النسب المتصاعدة
+- lightbulb → للأفكار/الابتكار
+- graduation-cap → للتدريب/التعليم
+- rocket → للإطلاقات/المبادرات الجديدة
+- award → للإنجازات/التكريم
+- **لا تختر أيقونة "جميلة" بدون معنى** — الأيقونة يجب أن تعبر عن معنى الرقم.
+
+═══════════════════════════════════════
+قواعد اختيار الـ layouts (حسب المحتوى):
+═══════════════════════════════════════
+حلل نوع المحتوى ثم اختر ثلاث تنويعات مختلفة **مناسبة** له:
+
+• إذا كانت أرقام موجودة (إعلان ورشة/تقرير) → الأولى "stats-hero" (إجباري)
+• إذا لا أرقام (تهنئة/خبر عاجل/إعلان بسيط) → الأولى "hero" (بدون إحصائيات)
+• إذا أرقام فقط بدون سياق قوي → "grid" يبرز الأرقام
+• التنويعات الثلاث يجب أن تكون **متنوعة** (ليس كلها stats-hero)
+
+أمثلة إرشادية:
+- "ورشة استراتيجية — 20 إدارة، 135 موظف" → [stats-hero, split, grid]
+- "مبروك للفريق على الإنجاز" → [hero, split, hero بأسلوب مختلف]
+- "إطلاق مبادرة الابتكار الجديدة" → [hero, split, grid]
+- "20 إدارة، 135 موظف، 10 جلسات" (أرقام فقط) → [grid, stats-hero, split]
+- "خبر عاجل: تعليق العمل غداً" → [hero, hero, split]
+
+═══════════════════════════════════════
+قواعد الهوية الرسمية (ثابتة):
+═══════════════════════════════════════
+- **color_scheme دائماً "teal"** لجميع التنويعات الثلاث (الهوية الرسمية للهيئة).
+- لا تستخدم blue/green/cyan/navy مطلقاً.
+- المحتوى رسمي دائماً — لا سخرية، لا نبرة غير مؤسسية، لا محتوى قد يُسيء.
+
+═══════════════════════════════════════
+صيغة الاستجابة:
+═══════════════════════════════════════
+أعد JSON فقط (بدون أي شرح خارجه):
 {
   "extracted": {
-    "headline": "<عنوان قصير 2-4 كلمات>",
-    "subtitle": "<سطر فرعي>",
-    "department": "<اسم الإدارة أو سلسلة فارغة>",
-    "hashtag": "<#هاشتاج>",
+    "headline": "<عنوان 2-6 كلمات من البيانات>",
+    "subtitle": "<سطر أو سطرين حسب الحاجة>",
+    "department": "<اسم الإدارة الكامل أو \"\">",
+    "hashtag": "<#الهاشتاج أو \"\">",
     "stats": [
-      { "icon": "<اسم أيقونة>", "value": "<رقم/قيمة مثل 135+ أو 20>", "label": "<وصف قصير سطرين كحد أقصى>" },
-      { "icon": "...", "value": "...", "label": "..." },
-      { "icon": "...", "value": "...", "label": "..." }
+      { "icon": "<أيقونة دلالية>", "value": "<الرقم كما ورد>", "label": "<وصف من السياق>" }
     ]
   },
   "variants": [
     {
-      "layout": "stats-hero",
+      "layout": "<اختيار ذكي حسب المحتوى>",
       "color_scheme": "teal",
-      "main_icon": "<أيقونة من القائمة>",
-      "supporting_icons": ["<اسم>","<اسم>","<اسم>"],
-      "rationale": "<سطر يشرح لماذا هذا الاختيار>"
+      "main_icon": "<أيقونة دلالية>",
+      "supporting_icons": ["<دلالية>","<دلالية>","<دلالية>"],
+      "rationale": "<اشرح بوضوح: لماذا اخترت هذا الـ layout بالذات لهذا المحتوى — مثال: 'اخترت stats-hero لأنك ذكرت 3 أرقام محددة (20 إدارة، 135 موظف، 10 جلسات) وهي جوهر الرسالة'>"
     },
-    {
-      "layout": "hero",
-      "color_scheme": "blue",
-      "main_icon": "...",
-      "supporting_icons": ["...","...","..."],
-      "rationale": "..."
-    },
-    {
-      "layout": "split",
-      "color_scheme": "green",
-      "main_icon": "...",
-      "supporting_icons": ["...","...","..."],
-      "rationale": "..."
-    }
+    { "layout": "...", "color_scheme": "teal", "main_icon": "...", "supporting_icons": ["...","...","..."], "rationale": "..." },
+    { "layout": "...", "color_scheme": "teal", "main_icon": "...", "supporting_icons": ["...","...","..."], "rationale": "..." }
   ]
 }
 
-قواعد صارمة:
-- TODO: استخرج كل إحصائية من البيانات (الأرقام، النسب، الأعداد) واختر أيقونة مناسبة لكل واحدة.
-- استخدم فقط أسماء أيقونات من القائمة (مثل "users", "building", "brain", "graduation-cap"...).
-- color_scheme فقط من: teal, blue, green, cyan, navy.
-- layout فقط من: stats-hero, hero, grid, split.
-- العنوان الرئيسي 2-4 كلمات بحد أقصى.
-- إن لم توجد إحصائيات في البيانات، اقترح إحصائيات منطقية حسب نوع الفعالية.
+قواعد صارمة أخيرة:
+- استخدم فقط أسماء أيقونات من القائمة المعطاة.
+- color_scheme = "teal" لكل تنويعة (لا استثناء).
+- layout من: stats-hero | hero | grid | split.
+- **لا تخترع** أرقاماً أو هاشتاقاً أو اسم إدارة إذا لم يكن في المدخلات.
+- stats مصفوفة فارغة [] إذا لا أرقام في البيانات.
+- rationale يشرح **لماذا** بالتحديد لهذا المحتوى (ليس عبارة عامة).
 - لا تضف أي شرح خارج JSON.
 `.trim();
 
@@ -156,34 +196,67 @@ ${iconListForAI()}
 
     const validIconNames = new Set(ICON_LIBRARY.map((i) => i.name));
     const validLayouts: LayoutType[] = ["stats-hero", "hero", "grid", "split"];
-    const validColors: ColorScheme[] = ["teal", "blue", "green", "cyan", "navy"];
 
     const logoUrl = "/brand-assets/logos/gac-white.png";
     const extracted = parsed.extracted || {};
 
-    // تطبيع الإحصائيات
-    const rawStats: any[] = Array.isArray(extracted.stats) ? extracted.stats : [];
-    const stats: IconEventStat[] = rawStats.slice(0, 3).map((s: any) => ({
-      icon: validIconNames.has(s.icon) ? s.icon : "sparkles",
-      value: String(s.value || "—"),
-      label: String(s.label || ""),
-    }));
+    // ═══ كشف وجود أرقام في المدخلات (للتحقق من عدم اختراع AI للإحصائيات) ═══
+    const inputText = [raw_data, headline, subtitle].filter(Boolean).join(" ");
+    const hasNumbersInInput = /\d/.test(inputText);
 
-    // استخدام القيم المقدّمة من المستخدم إن وُجدت، وإلا المستخرجة من AI
+    // ═══ تطبيع الإحصائيات: 0 إلى 3 حسب الموجود فعلياً (لا حشو) ═══
+    const rawStats: any[] = Array.isArray(extracted.stats) ? extracted.stats : [];
+    const cleanStats: IconEventStat[] = rawStats
+      .filter((s: any) => s && s.value && String(s.value).trim() && String(s.value).trim() !== "—")
+      .slice(0, 3)
+      .map((s: any) => ({
+        icon: validIconNames.has(s.icon) ? s.icon : "sparkles",
+        value: String(s.value).trim(),
+        label: String(s.label || "").trim(),
+      }));
+
+    // إذا لا أرقام في المدخلات → إجبار stats على الفراغ (منع اختراع AI)
+    const stats: IconEventStat[] = hasNumbersInInput ? cleanStats : [];
+
+    // ═══ الحقول: تفضيل مدخلات المستخدم، ثم AI، الإدارة والهاشتاق لا يُخترعان ═══
     const finalHeadline = headline?.trim() || extracted.headline || "عنوان الفعالية";
     const finalSubtitle = subtitle?.trim() || extracted.subtitle || "";
-    const finalDepartment = department?.trim() || extracted.department || "";
-    const finalHashtag = hashtag?.trim() || extracted.hashtag || "";
+    // الإدارة والهاشتاق: فقط من مدخل المستخدم — لا نأخذ من AI لتجنب الاختراع
+    const finalDepartment = department?.trim() || "";
+    const finalHashtag = hashtag?.trim() || "";
+
+    // ═══ تطبيع layouts: منع التكرار الكامل وضمان التنوع ═══
+    const requestedLayouts: LayoutType[] = parsed.variants
+      .slice(0, 3)
+      .map((v: any) => (validLayouts.includes(v.layout) ? v.layout : "hero"));
+
+    // إذا لا أرقام → استبدل أي stats-hero بـ hero (منع إحصائيات فارغة)
+    const adjustedLayouts: LayoutType[] = requestedLayouts.map((l) =>
+      !hasNumbersInInput && l === "stats-hero" ? "hero" : l
+    );
+
+    // ضمان التنوع: إذا كلها متطابقة، ابدل الثانية والثالثة
+    if (adjustedLayouts[0] === adjustedLayouts[1] && adjustedLayouts[1] === adjustedLayouts[2]) {
+      const alternatives: LayoutType[] = hasNumbersInInput
+        ? ["stats-hero", "split", "grid"]
+        : ["hero", "split", "grid"];
+      adjustedLayouts[0] = alternatives[0];
+      adjustedLayouts[1] = alternatives[1];
+      adjustedLayouts[2] = alternatives[2];
+    }
 
     const variants = parsed.variants.slice(0, 3).map((v: any, idx: number) => {
-      const layout: LayoutType = validLayouts.includes(v.layout) ? v.layout : validLayouts[idx % 4];
-      const color_scheme: ColorScheme = validColors.includes(v.color_scheme)
-        ? v.color_scheme
-        : (["teal", "blue", "green"] as ColorScheme[])[idx % 3];
+      const layout: LayoutType = adjustedLayouts[idx] || "hero";
+      // ═══ الهوية الرسمية: teal دائماً لكل التنويعات (لا استثناء) ═══
+      const color_scheme: ColorScheme = "teal";
       const main_icon = validIconNames.has(v.main_icon) ? v.main_icon : "sparkles";
       const supporting = (Array.isArray(v.supporting_icons) ? v.supporting_icons : [])
         .filter((s: string) => validIconNames.has(s))
         .slice(0, 3);
+
+      // ═══ الإحصائيات فقط للـ layouts التي تعرضها (stats-hero, grid) ═══
+      const layoutUsesStats = layout === "stats-hero" || layout === "grid";
+      const finalStats = layoutUsesStats && stats.length > 0 ? stats : undefined;
 
       const input: IconEventInput = {
         headline: finalHeadline,
@@ -195,7 +268,7 @@ ${iconListForAI()}
         location,
         main_icon,
         supporting_icons: supporting,
-        stats: stats.length > 0 ? stats : undefined,
+        stats: finalStats,
         color_scheme,
         layout,
         size: size!,
