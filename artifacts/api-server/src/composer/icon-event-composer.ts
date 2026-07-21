@@ -401,9 +401,9 @@ function heroLayout(input: IconEventInput): string {
   const logoSrc = input.logo_url && input.logo_url.startsWith("http") ? input.logo_url : GAC_LOGO_WHITE_DATA_URI;
 
   // Size-aware sizing
-  const mainIconSize = isStory ? 200 : isSquare ? 170 : 150;
-  const iconTopPct = isStory ? "14%" : isSquare ? "14%" : "12%";
-  const textTopPct = isStory ? "38%" : isSquare ? "38%" : "38%";
+  const mainIconSize = isStory ? 180 : isSquare ? 160 : 140;
+  const iconTopPct = isStory ? "12%" : isSquare ? "14%" : "12%";
+  const textTopPct = isStory ? "32%" : isSquare ? "38%" : "38%";
   const subtitleMaxWidth = isStory ? 1000 : isSquare ? 1000 : 1600;
 
   const paragraphs = splitIntoParagraphs(input.subtitle || "");
@@ -440,7 +440,7 @@ function heroLayout(input: IconEventInput): string {
   </div>
 
   <!-- Meta chips (bottom) -->
-  ${(dateTimeLocationChips || contactChips) ? `<div style="position:absolute;bottom:${isStory ? "10%" : "8%"};left:0;right:0;display:flex;justify-content:center;gap:20px;flex-wrap:wrap;padding:0 ${T.margin}px;">
+  ${(dateTimeLocationChips || contactChips) ? `<div style="position:absolute;bottom:${isStory ? "5%" : "6%"};left:0;right:0;display:flex;justify-content:center;gap:20px;flex-wrap:wrap;padding:0 ${T.margin}px;">
     ${dateTimeLocationChips}${contactChips}
   </div>` : ""}
 
@@ -541,7 +541,7 @@ function splitLayout(input: IconEventInput): string {
 
   if (splitVertical) {
     // Landscape / Square — horizontal split with generous margins
-    const headerReserve = T.margin + T.deptPaddingV * 2 + T.deptFont + 40;
+    const headerReserve = T.margin + T.deptPaddingV * 2 + T.deptFont + 60;
     return `
 <div class="poster split-layout" style="width:${width}px;height:${height}px;position:relative;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;direction:rtl;color:#fff;background-image:url('${BG_STATS_HERO_DATA_URI}');background-size:cover;background-position:center;display:flex;">
   ${renderDeptTag(input.department, colors, input.size)}
@@ -555,7 +555,7 @@ function splitLayout(input: IconEventInput): string {
   </div>
 
   <!-- Right: text (60%) -->
-  <div style="width:60%;height:100%;padding:${headerReserve + 20}px ${T.margin + 20}px ${T.margin + 30}px ${T.margin + 20}px;display:flex;flex-direction:column;justify-content:center;">
+  <div style="width:60%;height:100%;padding:${headerReserve + 40}px ${T.margin + 20}px ${T.margin + 40}px ${T.margin + 20}px;display:flex;flex-direction:column;justify-content:${isSquare ? "flex-start" : "center"};">
     <div style="width:96px;height:8px;background:${colors.accent};margin-bottom:${T.paragraphGap + 4}px;"></div>
     <h1 style="font-size:${titleSize}px;font-weight:900;color:#fff;margin:0 0 ${T.paragraphGap + 12}px;line-height:1.2;letter-spacing:-1px;">${input.headline}</h1>
     ${paragraphs.length > 0 ? `<div style="display:flex;flex-direction:column;gap:${T.paragraphGap}px;margin-bottom:${T.paragraphGap + 20}px;">
