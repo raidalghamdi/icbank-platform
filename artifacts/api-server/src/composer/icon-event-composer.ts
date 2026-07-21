@@ -450,13 +450,13 @@ function splitLayout(input: IconEventInput): string {
 <div class="poster split-layout" style="width:${width}px;height:${height}px;background:#fff;position:relative;overflow:hidden;font-family:'Tajawal','Cairo',sans-serif;direction:rtl;display:flex;">
   <div style="width:50%;height:100%;background:linear-gradient(160deg,${colors.primary} 0%,${colors.secondary} 100%);position:relative;display:flex;align-items:center;justify-content:center;">
     <div style="position:absolute;inset:0;background-image:url('${backgroundPattern(input.main_icon, "rgba(255,255,255,0.08)")}');background-size:140px 140px;"></div>
+    <img src="${logoSrc}" style="position:absolute;top:60px;left:60px;height:${isLandscape ? 70 : 80}px;z-index:5;" crossorigin="anonymous" alt="GAC" />
     <div style="position:relative;width:${mainIconSize + 100}px;height:${mainIconSize + 100}px;background:rgba(255,255,255,0.15);border:4px solid rgba(255,255,255,0.3);border-radius:50%;display:flex;align-items:center;justify-content:center;">
       <div style="color:#fff;">${renderIcon(input.main_icon, mainIconSize, "#fff")}</div>
     </div>
     ${supportingRow.length > 0 ? `<div style="position:absolute;bottom:80px;left:0;right:0;display:flex;justify-content:center;gap:30px;">${supportingRow.map((s) => `<div style="width:80px;height:80px;background:rgba(255,255,255,0.2);border-radius:20px;display:flex;align-items:center;justify-content:center;"><div style="color:#fff;">${renderIcon(s, 48, "#fff")}</div></div>`).join("")}</div>` : ""}
   </div>
   <div style="width:50%;height:100%;padding:80px 60px;display:flex;flex-direction:column;justify-content:center;">
-    <img src="${logoSrc}" style="height:${isLandscape ? 70 : 80}px;margin-bottom:40px;align-self:flex-start;" crossorigin="anonymous" alt="GAC" />
     ${input.department ? `<div style="background:${colors.primary};color:#fff;padding:8px 18px;border-radius:6px;font-weight:700;font-size:18px;align-self:flex-start;margin-bottom:24px;">${input.department}</div>` : ""}
     <div style="width:80px;height:6px;background:${colors.primary};border-radius:3px;margin-bottom:30px;"></div>
     <h1 style="font-size:${titleSize}px;font-weight:900;color:${colors.secondary};margin:0 0 24px;line-height:1.15;letter-spacing:-1px;">${input.headline}</h1>
