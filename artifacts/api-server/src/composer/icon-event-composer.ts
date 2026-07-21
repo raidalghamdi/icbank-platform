@@ -345,10 +345,9 @@ function heroLayout(input: IconEventInput): string {
   ].filter(Boolean) as { icon: string; text: string }[];
 
   return `
-<div class="poster hero-layout" style="width:${width}px;height:${height}px;background:linear-gradient(135deg,${colors.primary} 0%,${colors.secondary} 100%);position:relative;overflow:hidden;font-family:'Tajawal','Cairo',sans-serif;direction:rtl;color:#fff;">
-  <div style="position:absolute;inset:0;background-image:url('${backgroundPattern(input.main_icon, "rgba(255,255,255,0.06)")}');background-size:160px 160px;opacity:0.4;"></div>
-  ${input.department ? `<div style="position:absolute;top:48px;right:48px;background:${colors.accent};color:${colors.secondary};padding:10px 22px;border-radius:8px;font-weight:800;font-size:20px;">${input.department}</div>` : ""}
-  <img src="${logoSrc}" style="position:absolute;top:48px;left:48px;height:${isStory ? 90 : 70}px;z-index:5;" crossorigin="anonymous" alt="GAC" />
+<div class="poster hero-layout" style="width:${width}px;height:${height}px;position:relative;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;direction:rtl;color:#fff;background-image:url('${BG_STATS_HERO_DATA_URI}');background-size:cover;background-position:center;">
+  ${input.department ? `<div style="position:absolute;top:48px;left:48px;background:${colors.accent};color:${colors.secondary};padding:10px 22px;border-radius:8px;font-weight:800;font-size:20px;">${input.department}</div>` : ""}
+  <img src="${logoSrc}" style="position:absolute;top:48px;right:48px;height:${isStory ? 90 : 70}px;z-index:5;" crossorigin="anonymous" alt="GAC" />
   <div style="position:absolute;top:${isStory ? "26%" : "22%"};left:50%;transform:translateX(-50%);width:${mainIconSize + 80}px;height:${mainIconSize + 80}px;background:rgba(255,255,255,0.12);border:3px solid rgba(255,255,255,0.25);border-radius:50%;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(10px);">
     <div style="color:#fff;">${renderIcon(input.main_icon, mainIconSize, "#fff")}</div>
   </div>
@@ -390,20 +389,19 @@ function gridLayout(input: IconEventInput): string {
   const iconSize = iconBoxSize * 0.55;
 
   return `
-<div class="poster grid-layout" style="width:${width}px;height:${height}px;background:#fff;position:relative;overflow:hidden;font-family:'Tajawal','Cairo',sans-serif;direction:rtl;">
-  <div style="position:absolute;top:0;left:0;right:0;height:${isStory ? 280 : isLandscape ? 200 : 240}px;background:linear-gradient(135deg,${colors.primary} 0%,${colors.secondary} 100%);"></div>
-  ${input.department ? `<div style="position:absolute;top:${isStory ? 100 : 70}px;left:48px;background:${colors.accent};color:${colors.secondary};padding:10px 22px;border-radius:8px;font-weight:800;font-size:20px;z-index:6;">${input.department}</div>` : ""}
+<div class="poster grid-layout" style="width:${width}px;height:${height}px;position:relative;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;direction:rtl;color:#fff;background-image:url('${BG_STATS_HERO_DATA_URI}');background-size:cover;background-position:center;">
+  ${input.department ? `<div style="position:absolute;top:48px;left:48px;background:${colors.accent};color:${colors.secondary};padding:10px 22px;border-radius:8px;font-weight:800;font-size:20px;z-index:6;">${input.department}</div>` : ""}
   <img src="${logoSrc}" style="position:absolute;top:48px;right:48px;height:${isStory ? 80 : 70}px;z-index:5;" crossorigin="anonymous" alt="GAC" />
-  <div style="position:absolute;top:${isStory ? "100px" : "70px"};right:200px;left:60px;color:#fff;text-align:right;">
+  <div style="position:absolute;top:${isStory ? "200px" : "170px"};right:60px;left:60px;color:#fff;text-align:center;">
     <h1 style="font-size:${titleSize}px;font-weight:900;margin:0;line-height:1.15;letter-spacing:-1px;">${input.headline}</h1>
-    ${input.subtitle ? `<p style="font-size:${isStory ? 34 : 28}px;margin:18px 0 0;opacity:0.95;font-weight:500;">${input.subtitle}</p>` : ""}
+    ${input.subtitle ? `<p style="font-size:${isStory ? 34 : 28}px;margin:18px 0 0;opacity:0.95;font-weight:500;color:${colors.accent};">${input.subtitle}</p>` : ""}
   </div>
-  <div style="position:absolute;top:${isStory ? "44%" : isLandscape ? "42%" : "40%"};left:50%;transform:translateX(-50%);display:grid;grid-template-columns:repeat(2,${iconBoxSize}px);gap:${isStory ? 40 : 32}px;">
+  <div style="position:absolute;top:${isStory ? "48%" : isLandscape ? "46%" : "44%"};left:50%;transform:translateX(-50%);display:grid;grid-template-columns:repeat(2,${iconBoxSize}px);gap:${isStory ? 40 : 32}px;">
     ${gridIcons
       .map(
-        (icn, idx) => `
-      <div style="width:${iconBoxSize}px;height:${iconBoxSize}px;background:${idx % 2 === 0 ? colors.primary : colors.accent};border-radius:28px;display:flex;align-items:center;justify-content:center;box-shadow:0 12px 30px rgba(0,0,0,0.12);">
-        <div style="color:#fff;">${renderIcon(icn, iconSize, "#fff")}</div>
+        (icn) => `
+      <div style="width:${iconBoxSize}px;height:${iconBoxSize}px;background:rgba(255,255,255,0.12);border:2px solid rgba(255,255,255,0.25);border-radius:28px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(10px);">
+        <div style="color:${colors.accent};">${renderIcon(icn, iconSize, colors.accent)}</div>
       </div>`
       )
       .join("")}
@@ -416,8 +414,8 @@ function gridLayout(input: IconEventInput): string {
     ]
       .filter(Boolean)
       .map((m: any) =>
-        `<div style="display:flex;align-items:center;gap:12px;color:${colors.secondary};font-weight:700;font-size:${isStory ? 30 : 24}px;">
-        ${renderIcon(m.icon, isStory ? 36 : 30, colors.primary)}
+        `<div style="display:flex;align-items:center;gap:12px;color:#fff;font-weight:700;font-size:${isStory ? 30 : 24}px;">
+        ${renderIcon(m.icon, isStory ? 36 : 30, colors.accent)}
         <span>${m.text}</span>
       </div>`
       )
@@ -446,47 +444,52 @@ function splitLayout(input: IconEventInput): string {
   const supportingRow = (input.supporting_icons || []).slice(0, 3);
 
   if (splitVertical) {
+    // Unified teal background with BG_STATS_HERO pattern (same as stats-hero baseline)
     return `
-<div class="poster split-layout" style="width:${width}px;height:${height}px;background:#fff;position:relative;overflow:hidden;font-family:'Tajawal','Cairo',sans-serif;direction:rtl;display:flex;">
-  <div style="width:50%;height:100%;background:linear-gradient(160deg,${colors.primary} 0%,${colors.secondary} 100%);position:relative;display:flex;align-items:center;justify-content:center;">
-    <div style="position:absolute;inset:0;background-image:url('${backgroundPattern(input.main_icon, "rgba(255,255,255,0.08)")}');background-size:140px 140px;"></div>
-    <img src="${logoSrc}" style="position:absolute;top:60px;left:60px;height:${isLandscape ? 70 : 80}px;z-index:5;" crossorigin="anonymous" alt="GAC" />
-    <div style="position:relative;width:${mainIconSize + 100}px;height:${mainIconSize + 100}px;background:rgba(255,255,255,0.15);border:4px solid rgba(255,255,255,0.3);border-radius:50%;display:flex;align-items:center;justify-content:center;">
-      <div style="color:#fff;">${renderIcon(input.main_icon, mainIconSize, "#fff")}</div>
+<div class="poster split-layout" style="width:${width}px;height:${height}px;position:relative;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;direction:rtl;color:#fff;background-image:url('${BG_STATS_HERO_DATA_URI}');background-size:cover;background-position:center;display:flex;">
+  <!-- Fixed identity: department badge top-left (lime bg) + logo top-right -->
+  ${input.department ? `<div style="position:absolute;top:48px;left:48px;background:${colors.accent};color:${colors.secondary};padding:10px 22px;border-radius:8px;font-weight:800;font-size:20px;z-index:10;">${input.department}</div>` : ""}
+  <img src="${logoSrc}" style="position:absolute;top:48px;right:48px;height:${isLandscape ? 70 : 80}px;z-index:10;" crossorigin="anonymous" alt="GAC" />
+
+  <!-- Left half: main icon in circle -->
+  <div style="width:50%;height:100%;position:relative;display:flex;align-items:center;justify-content:center;">
+    <div style="position:relative;width:${mainIconSize + 100}px;height:${mainIconSize + 100}px;background:rgba(255,255,255,0.12);border:4px solid rgba(255,255,255,0.28);border-radius:50%;display:flex;align-items:center;justify-content:center;">
+      <div style="color:${colors.accent};">${renderIcon(input.main_icon, mainIconSize, colors.accent)}</div>
     </div>
-    ${supportingRow.length > 0 ? `<div style="position:absolute;bottom:80px;left:0;right:0;display:flex;justify-content:center;gap:30px;">${supportingRow.map((s) => `<div style="width:80px;height:80px;background:rgba(255,255,255,0.2);border-radius:20px;display:flex;align-items:center;justify-content:center;"><div style="color:#fff;">${renderIcon(s, 48, "#fff")}</div></div>`).join("")}</div>` : ""}
+    ${supportingRow.length > 0 ? `<div style="position:absolute;bottom:80px;left:0;right:0;display:flex;justify-content:center;gap:30px;">${supportingRow.map((s) => `<div style="width:80px;height:80px;background:rgba(255,255,255,0.15);border-radius:20px;display:flex;align-items:center;justify-content:center;"><div style="color:${colors.accent};">${renderIcon(s, 48, colors.accent)}</div></div>`).join("")}</div>` : ""}
   </div>
-  <div style="width:50%;height:100%;padding:80px 60px;display:flex;flex-direction:column;justify-content:center;">
-    ${input.department ? `<div style="background:${colors.primary};color:#fff;padding:8px 18px;border-radius:6px;font-weight:700;font-size:18px;align-self:flex-start;margin-bottom:24px;">${input.department}</div>` : ""}
-    <div style="width:80px;height:6px;background:${colors.primary};border-radius:3px;margin-bottom:30px;"></div>
-    <h1 style="font-size:${titleSize}px;font-weight:900;color:${colors.secondary};margin:0 0 24px;line-height:1.15;letter-spacing:-1px;">${input.headline}</h1>
-    ${input.subtitle ? `<p style="font-size:${isLandscape ? 30 : 26}px;color:${GAC.primary.coolGray};margin:0 0 50px;line-height:1.5;">${input.subtitle}</p>` : ""}
+
+  <!-- Right half: text content -->
+  <div style="width:50%;height:100%;padding:180px 80px 80px;display:flex;flex-direction:column;justify-content:center;">
+    <div style="width:80px;height:6px;background:${colors.accent};border-radius:3px;margin-bottom:30px;"></div>
+    <h1 style="font-size:${titleSize}px;font-weight:900;color:#fff;margin:0 0 24px;line-height:1.15;letter-spacing:-1px;">${input.headline}</h1>
+    ${input.subtitle ? `<p style="font-size:${isLandscape ? 30 : 26}px;color:${colors.accent};margin:0 0 50px;line-height:1.5;font-weight:500;">${input.subtitle}</p>` : ""}
     <div style="display:flex;flex-direction:column;gap:20px;">
-      ${metaItems.map((m) => `<div style="display:flex;align-items:center;gap:16px;color:${colors.secondary};font-weight:700;font-size:${isLandscape ? 26 : 24}px;"><div style="width:50px;height:50px;background:${colors.primary};border-radius:14px;display:flex;align-items:center;justify-content:center;color:#fff;">${renderIcon(m.icon, 28, "#fff")}</div><span>${m.text}</span></div>`).join("")}
+      ${metaItems.map((m) => `<div style="display:flex;align-items:center;gap:16px;color:#fff;font-weight:700;font-size:${isLandscape ? 26 : 24}px;"><div style="width:50px;height:50px;background:rgba(255,255,255,0.15);border:2px solid rgba(255,255,255,0.25);border-radius:14px;display:flex;align-items:center;justify-content:center;color:${colors.accent};">${renderIcon(m.icon, 28, colors.accent)}</div><span>${m.text}</span></div>`).join("")}
     </div>
   </div>
-  <div style="position:absolute;bottom:0;left:0;right:0;height:12px;background:linear-gradient(90deg,${colors.accent} 0%,${colors.secondary} 50%,${colors.primary} 100%);"></div>
 </div>`.trim();
   } else {
+    // Story (vertical) — unified teal bg, icon top area, text bottom area
     return `
-<div class="poster split-layout" style="width:${width}px;height:${height}px;background:#fff;position:relative;overflow:hidden;font-family:'Tajawal','Cairo',sans-serif;direction:rtl;display:flex;flex-direction:column;">
-  <div style="width:100%;height:55%;background:linear-gradient(160deg,${colors.primary} 0%,${colors.secondary} 100%);position:relative;display:flex;align-items:center;justify-content:center;">
-    <div style="position:absolute;inset:0;background-image:url('${backgroundPattern(input.main_icon, "rgba(255,255,255,0.08)")}');background-size:140px 140px;"></div>
-    <img src="${logoSrc}" style="position:absolute;top:60px;left:60px;height:80px;z-index:5;" crossorigin="anonymous" alt="GAC" />
-    ${input.department ? `<div style="position:absolute;top:60px;right:60px;background:${colors.accent};color:${colors.secondary};padding:10px 22px;border-radius:8px;font-weight:800;font-size:22px;">${input.department}</div>` : ""}
-    <div style="position:relative;width:${mainIconSize + 100}px;height:${mainIconSize + 100}px;background:rgba(255,255,255,0.15);border:4px solid rgba(255,255,255,0.3);border-radius:50%;display:flex;align-items:center;justify-content:center;">
-      <div style="color:#fff;">${renderIcon(input.main_icon, mainIconSize, "#fff")}</div>
+<div class="poster split-layout" style="width:${width}px;height:${height}px;position:relative;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;direction:rtl;color:#fff;background-image:url('${BG_STATS_HERO_DATA_URI}');background-size:cover;background-position:center;">
+  ${input.department ? `<div style="position:absolute;top:60px;left:60px;background:${colors.accent};color:${colors.secondary};padding:10px 22px;border-radius:8px;font-weight:800;font-size:22px;z-index:10;">${input.department}</div>` : ""}
+  <img src="${logoSrc}" style="position:absolute;top:60px;right:60px;height:80px;z-index:10;" crossorigin="anonymous" alt="GAC" />
+
+  <div style="position:absolute;top:20%;left:0;right:0;height:40%;display:flex;align-items:center;justify-content:center;">
+    <div style="width:${mainIconSize + 100}px;height:${mainIconSize + 100}px;background:rgba(255,255,255,0.12);border:4px solid rgba(255,255,255,0.28);border-radius:50%;display:flex;align-items:center;justify-content:center;">
+      <div style="color:${colors.accent};">${renderIcon(input.main_icon, mainIconSize, colors.accent)}</div>
     </div>
   </div>
-  <div style="width:100%;height:45%;padding:60px;display:flex;flex-direction:column;justify-content:center;">
-    <div style="width:80px;height:6px;background:${colors.primary};border-radius:3px;margin-bottom:30px;align-self:center;"></div>
-    <h1 style="font-size:${titleSize}px;font-weight:900;color:${colors.secondary};margin:0 0 20px;line-height:1.15;text-align:center;">${input.headline}</h1>
-    ${input.subtitle ? `<p style="font-size:30px;color:${GAC.primary.coolGray};margin:0 0 36px;line-height:1.5;text-align:center;">${input.subtitle}</p>` : ""}
+
+  <div style="position:absolute;bottom:0;top:65%;left:0;right:0;padding:0 60px;display:flex;flex-direction:column;justify-content:center;">
+    <div style="width:80px;height:6px;background:${colors.accent};border-radius:3px;margin-bottom:30px;align-self:center;"></div>
+    <h1 style="font-size:${titleSize}px;font-weight:900;color:#fff;margin:0 0 20px;line-height:1.15;text-align:center;">${input.headline}</h1>
+    ${input.subtitle ? `<p style="font-size:30px;color:${colors.accent};margin:0 0 36px;line-height:1.5;text-align:center;font-weight:500;">${input.subtitle}</p>` : ""}
     <div style="display:flex;justify-content:center;gap:40px;flex-wrap:wrap;">
-      ${metaItems.map((m) => `<div style="display:flex;align-items:center;gap:12px;color:${colors.secondary};font-weight:700;font-size:26px;">${renderIcon(m.icon, 30, colors.primary)}<span>${m.text}</span></div>`).join("")}
+      ${metaItems.map((m) => `<div style="display:flex;align-items:center;gap:12px;color:#fff;font-weight:700;font-size:26px;">${renderIcon(m.icon, 30, colors.accent)}<span>${m.text}</span></div>`).join("")}
     </div>
   </div>
-  <div style="position:absolute;bottom:0;left:0;right:0;height:12px;background:linear-gradient(90deg,${colors.accent} 0%,${colors.secondary} 50%,${colors.primary} 100%);"></div>
 </div>`.trim();
   }
 }
