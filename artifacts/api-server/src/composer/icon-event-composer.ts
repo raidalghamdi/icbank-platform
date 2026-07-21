@@ -340,7 +340,7 @@ function heroLayout(input: IconEventInput): string {
   const mainIconSize = isStory ? 240 : isSquare ? 200 : 170;
   const titleSize = isStory ? 88 : isSquare ? 72 : 64;
   // Larger, readable subtitle so long instructional text is legible
-  const subtitleSize = isStory ? 44 : isSquare ? 40 : 36;
+  const subtitleSize = isStory ? 48 : isSquare ? 44 : 40;
   const metaSize = isStory ? 32 : 28;
 
   const metaItems = [
@@ -401,7 +401,7 @@ function gridLayout(input: IconEventInput): string {
   <img src="${logoSrc}" style="position:absolute;top:48px;right:48px;height:${isStory ? 80 : 70}px;z-index:5;" crossorigin="anonymous" alt="GAC" />
   <div style="position:absolute;top:${isStory ? "200px" : "170px"};right:60px;left:60px;color:#fff;text-align:center;">
     <h1 style="font-size:${titleSize}px;font-weight:900;margin:0;line-height:1.15;letter-spacing:-1px;">${input.headline}</h1>
-    ${input.subtitle ? `<p style="font-size:${isStory ? 40 : 34}px;margin:20px auto 0;opacity:0.95;font-weight:500;color:${colors.accent};line-height:1.55;max-width:${isStory ? 900 : 1600}px;">${input.subtitle}</p>` : ""}
+    ${input.subtitle ? `<p style="font-size:${isStory ? 44 : 38}px;margin:20px auto 0;opacity:0.95;font-weight:500;color:${colors.accent};line-height:1.55;max-width:${isStory ? 900 : 1600}px;">${input.subtitle}</p>` : ""}
   </div>
   <div style="position:absolute;top:${isStory ? "52%" : isLandscape ? "50%" : "48%"};left:50%;transform:translateX(-50%);display:grid;grid-template-columns:repeat(2,${iconBoxSize}px);gap:${isStory ? 40 : 32}px;">
     ${gridIcons
@@ -471,12 +471,12 @@ function splitLayout(input: IconEventInput): string {
   </div>
 
   <!-- Right side: text content (60%) -->
-  <div style="width:60%;height:100%;padding:160px 80px 80px 40px;display:flex;flex-direction:column;justify-content:center;">
+  <div style="width:60%;height:100%;padding:160px 80px 80px 80px;display:flex;flex-direction:column;justify-content:center;">
     <div style="width:80px;height:6px;background:${colors.accent};border-radius:3px;margin-bottom:30px;"></div>
     <h1 style="font-size:${titleSize}px;font-weight:900;color:#fff;margin:0 0 24px;line-height:1.15;letter-spacing:-1px;">${input.headline}</h1>
-    ${input.subtitle ? `<p style="font-size:${isLandscape ? 34 : 30}px;color:#fff;margin:0 0 40px;line-height:1.6;font-weight:500;">${input.subtitle}</p>` : ""}
+    ${input.subtitle ? `<p style="font-size:${isLandscape ? 38 : 34}px;color:#fff;margin:0 0 40px;line-height:1.65;font-weight:500;">${input.subtitle}</p>` : ""}
     <div style="display:flex;flex-direction:column;gap:18px;">
-      ${metaItems.map((m) => `<div style="display:flex;align-items:center;gap:16px;color:#fff;font-weight:700;font-size:${isLandscape ? 28 : 26}px;"><div style="width:52px;height:52px;background:rgba(255,255,255,0.18);border:2px solid rgba(255,255,255,0.3);border-radius:14px;display:flex;align-items:center;justify-content:center;color:${colors.accent};flex-shrink:0;">${renderIcon(m.icon, 30, colors.accent)}</div><span style="word-break:break-word;">${m.text}</span></div>`).join("")}
+      ${metaItems.map((m) => `<div style="display:flex;align-items:center;gap:16px;color:#fff;font-weight:700;font-size:${isLandscape ? 30 : 28}px;"><div style="width:54px;height:54px;background:rgba(255,255,255,0.18);border:2px solid rgba(255,255,255,0.3);border-radius:14px;display:flex;align-items:center;justify-content:center;color:${colors.accent};flex-shrink:0;">${renderIcon(m.icon, 32, colors.accent)}</div><span style="word-break:break-word;">${m.text}</span></div>`).join("")}
     </div>
   </div>
 </div>`.trim();
