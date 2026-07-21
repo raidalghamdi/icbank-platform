@@ -401,10 +401,11 @@ function heroLayout(input: IconEventInput): string {
   const logoSrc = input.logo_url && input.logo_url.startsWith("http") ? input.logo_url : GAC_LOGO_WHITE_DATA_URI;
 
   // Size-aware sizing
-  const mainIconSize = isStory ? 180 : isSquare ? 160 : 140;
-  const iconTopPct = isStory ? "12%" : isSquare ? "14%" : "12%";
-  const textTopPct = isStory ? "32%" : isSquare ? "38%" : "38%";
+  const mainIconSize = isStory ? 180 : isSquare ? 140 : 140;
+  const iconTopPct = isStory ? "12%" : isSquare ? "10%" : "12%";
+  const textTopPct = isStory ? "32%" : isSquare ? "32%" : "38%";
   const subtitleMaxWidth = isStory ? 1000 : isSquare ? 1000 : 1600;
+  const heroSubtitleSize = isSquare ? 34 : T.subtitleSize;
 
   const paragraphs = splitIntoParagraphs(input.subtitle || "");
   const email = (input as any).contact_email;
@@ -434,13 +435,13 @@ function heroLayout(input: IconEventInput): string {
   <!-- Text block: title + paragraph-split subtitle -->
   <div style="position:absolute;top:${textTopPct};left:0;right:0;text-align:center;padding:0 ${T.margin + 40}px;">
     <h1 style="font-size:${T.titleSize}px;font-weight:900;margin:0 0 ${T.paragraphGap + 12}px;line-height:1.2;letter-spacing:-1px;">${input.headline}</h1>
-    ${paragraphs.length > 0 ? `<div style="max-width:${subtitleMaxWidth}px;margin:0 auto;display:flex;flex-direction:column;gap:${T.paragraphGap}px;">
-      ${paragraphs.map(p => `<p style="font-size:${T.subtitleSize}px;margin:0;opacity:0.95;font-weight:500;line-height:${T.lineHeight};">${p}</p>`).join("")}
+    ${paragraphs.length > 0 ? `<div style="max-width:${subtitleMaxWidth}px;margin:0 auto;display:flex;flex-direction:column;gap:${T.paragraphGap - 4}px;">
+      ${paragraphs.map(p => `<p style="font-size:${heroSubtitleSize}px;margin:0;opacity:0.95;font-weight:500;line-height:${T.lineHeight - 0.1};">${p}</p>`).join("")}
     </div>` : ""}
   </div>
 
   <!-- Meta chips (bottom) -->
-  ${(dateTimeLocationChips || contactChips) ? `<div style="position:absolute;bottom:${isStory ? "5%" : "6%"};left:0;right:0;display:flex;justify-content:center;gap:20px;flex-wrap:wrap;padding:0 ${T.margin}px;">
+  ${(dateTimeLocationChips || contactChips) ? `<div style="position:absolute;bottom:${isStory ? "5%" : isSquare ? "4%" : "6%"};left:0;right:0;display:flex;justify-content:center;gap:20px;flex-wrap:wrap;padding:0 ${T.margin}px;">
     ${dateTimeLocationChips}${contactChips}
   </div>` : ""}
 
