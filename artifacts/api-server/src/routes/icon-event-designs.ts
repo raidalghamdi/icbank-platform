@@ -261,13 +261,19 @@ ${iconListForAI()}
       // Remove trailing/inline email + phone (they render as meta chips)
       if (finalContactEmail) cleanedRaw = cleanedRaw.replace(finalContactEmail, "").trim();
       if (finalContactPhone) cleanedRaw = cleanedRaw.replace(finalContactPhone, "").trim();
-      // Collapse multiple newlines/spaces, drop dangling colons/labels like "...:"
+      // Preserve paragraph breaks (\n\n) but collapse within-paragraph whitespace
+      // Also drop dangling colons at end of lines (from "الإلكتروني:" once email is removed)
       cleanedRaw = cleanedRaw
-        .replace(/[\u064B-\u0652]/g, "") // leave diacritics as-is; noop safe
-        .replace(/[\r\n]+/g, " ")
-        .replace(/\s{2,}/g, " ")
-        .replace(/[:\uFF1A]\s*$/g, "")
-        .trim();
+        .replace(/\r/g, "")
+        .split(/\n{2,}/)          // split into paragraphs on blank lines
+        .map(p => p
+          .replace(/\n+/g, " ")   // collapse internal newlines within paragraph to spaces
+          .replace(/\s{2,}/g, " ")
+          .replace(/[:\uFF1A]\s*$/g, "")
+          .trim()
+        )
+        .filter(Boolean)
+        .join("\n\n");            // rejoin paragraphs with blank line
       finalSubtitle = cleanedRaw;
     }
     if (!finalSubtitle) finalSubtitle = (extracted.subtitle || "").trim();
