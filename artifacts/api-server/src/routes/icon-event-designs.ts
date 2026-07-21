@@ -194,9 +194,9 @@ ${iconListForAI()}
 - **الـ subtitle**: انسخ النص الفرعي من المُدخلات **كاملاً** — لا تختصر، لا تحذف جملاً، لا تعيد صياغة. المستخدم كتبه بالضبط كما يريده أن يظهر.
   - إذا كان النص طويلاً (أكثر من 400 حرف): احتفظ بكل المعلومات المهمة (أسماء الجهات، الأسباب، التوجيهات) ولكن يمكنك تكثيف الحشو اللغوي فقط.
   - **لا تحذف أبداً**: البريد الإلكتروني، رقم الهاتف، الرابط، اسم إدارة، اسم شخص، تاريخ، أو أي معلومة تواصل.
-- **contact_email**: إذا ظهر بريد إلكتروني في المُدخلات (مثل `staffrelations@gac.gov.sa`) → استخرجه حرفياً في حقل `contact_email` **واحذفه من الـ subtitle** (سيُعرض كعنصر ميتا منفصل مع أيقونة).
-- **contact_phone**: إذا ظهر رقم هاتف → استخرجه حرفياً في `contact_phone` واحذفه من الـ subtitle.
-- **الأرقام والنسب المئوية**: تُحفظ حرفياً في `stats` أو `subtitle` — لا تُقرَّب، لا تُحوَّل.
+- **contact_email**: إذا ظهر بريد إلكتروني في المُدخلات (مثل staffrelations@gac.gov.sa) → استخرجه حرفياً في حقل contact_email **واحذفه من الـ subtitle** (سيُعرض كعنصر ميتا منفصل مع أيقونة).
+- **contact_phone**: إذا ظهر رقم هاتف → استخرجه حرفياً في contact_phone واحذفه من الـ subtitle.
+- **الأرقام والنسب المئوية**: تُحفظ حرفياً في stats أو subtitle — لا تُقرَّب، لا تُحوَّل.
 `.trim();
 
   try {
@@ -232,12 +232,47 @@ ${iconListForAI()}
 
     // ═══ الحقول: تفضيل مدخلات المستخدم، ثم AI، الإدارة والهاشتاق لا يُخترعان ═══
     const finalHeadline = headline?.trim() || extracted.headline || "عنوان الفعالية";
-    const finalSubtitle = subtitle?.trim() || extracted.subtitle || "";
+
+    // ═══ استخراج حاسم للبريد/الهاتف من النص الخام (مستقل عن AI) ═══
+    const rawFull = String(raw_data || "").trim();
+    const emailRegex = /[a-zA-Z0-9._+-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)+/;
+    const phoneRegex = /(?:\+?\d[\d\s\-]{7,}\d)|(?:\b0\d{8,}\b)/;
+    const emailMatch = rawFull.match(emailRegex);
+    const phoneMatch = rawFull.match(phoneRegex);
+    const finalContactEmail = emailMatch ? emailMatch[0] : (extracted.contact_email || "").trim();
+    const finalContactPhone = phoneMatch ? phoneMatch[0] : (extracted.contact_phone || "").trim();
+
+    // ═══ الـ subtitle: للحفاظ على النص الأصلي — استخدم راو_داتا إذا توفر ═══
+    let finalSubtitle = subtitle?.trim() || "";
+    if (!finalSubtitle && rawFull) {
+      // Use raw text, remove headline line + any contact email/phone (they're shown as meta)
+      let cleanedRaw = rawFull;
+      if (finalHeadline && cleanedRaw.startsWith(finalHeadline)) {
+        cleanedRaw = cleanedRaw.slice(finalHeadline.length).trim();
+      } else {
+        // Try removing first line if it matches or resembles headline
+        const lines = cleanedRaw.split(/\n/).map(l => l.trim()).filter(Boolean);
+        if (lines.length > 1 && (lines[0] === finalHeadline || lines[0].includes(finalHeadline.slice(0, 15)))) {
+          cleanedRaw = lines.slice(1).join("\n").trim();
+        }
+      }
+      // Remove trailing/inline email + phone (they render as meta chips)
+      if (finalContactEmail) cleanedRaw = cleanedRaw.replace(finalContactEmail, "").trim();
+      if (finalContactPhone) cleanedRaw = cleanedRaw.replace(finalContactPhone, "").trim();
+      // Collapse multiple newlines/spaces, drop dangling colons/labels like "...:"
+      cleanedRaw = cleanedRaw
+        .replace(/[\u064B-\u0652]/g, "") // leave diacritics as-is; noop safe
+        .replace(/[\r\n]+/g, " ")
+        .replace(/\s{2,}/g, " ")
+        .replace(/[:\uFF1A]\s*$/g, "")
+        .trim();
+      finalSubtitle = cleanedRaw;
+    }
+    if (!finalSubtitle) finalSubtitle = (extracted.subtitle || "").trim();
+
     // الإدارة والهاشتاق: فقط من مدخل المستخدم — لا نأخذ من AI لتجنب الاختراع
     const finalDepartment = department?.trim() || "";
     const finalHashtag = hashtag?.trim() || "";
-    const finalContactEmail = (extracted.contact_email || "").trim();
-    const finalContactPhone = (extracted.contact_phone || "").trim();
 
     // ═══ تطبيع layouts: منع التكرار الكامل وضمان التنوع ═══
     const requestedLayouts: LayoutType[] = parsed.variants
