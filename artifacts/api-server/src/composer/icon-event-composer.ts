@@ -519,8 +519,10 @@ function splitLayout(input: IconEventInput): string {
   const logoSrc = input.logo_url && input.logo_url.startsWith("http") ? input.logo_url : GAC_LOGO_WHITE_DATA_URI;
   const splitVertical = !isStory; // landscape + square use horizontal split
 
-  const titleSize = isStory ? 82 : isLandscape ? 76 : 68;
-  const mainIconSize = isStory ? 240 : isLandscape ? 260 : 220;
+  const titleSize = isStory ? 82 : isLandscape ? 76 : 62;
+  const mainIconSize = isStory ? 240 : isLandscape ? 260 : 200;
+  // Narrower text column in split — tighten subtitle size to fit
+  const splitSubtitleSize = isStory ? T.subtitleSize : isLandscape ? T.subtitleSize : 34;
 
   const paragraphs = splitIntoParagraphs(input.subtitle || "");
   const email = (input as any).contact_email;
@@ -558,8 +560,8 @@ function splitLayout(input: IconEventInput): string {
   <div style="width:60%;height:100%;padding:${headerReserve + 40}px ${T.margin + 20}px ${T.margin + 40}px ${T.margin + 20}px;display:flex;flex-direction:column;justify-content:${isSquare ? "flex-start" : "center"};">
     <div style="width:96px;height:8px;background:${colors.accent};margin-bottom:${T.paragraphGap + 4}px;"></div>
     <h1 style="font-size:${titleSize}px;font-weight:900;color:#fff;margin:0 0 ${T.paragraphGap + 12}px;line-height:1.2;letter-spacing:-1px;">${input.headline}</h1>
-    ${paragraphs.length > 0 ? `<div style="display:flex;flex-direction:column;gap:${T.paragraphGap}px;margin-bottom:${T.paragraphGap + 20}px;">
-      ${paragraphs.map(p => `<p style="font-size:${T.subtitleSize}px;color:#fff;margin:0;line-height:${T.lineHeight};font-weight:500;opacity:0.95;">${p}</p>`).join("")}
+    ${paragraphs.length > 0 ? `<div style="display:flex;flex-direction:column;gap:${T.paragraphGap - 4}px;margin-bottom:${T.paragraphGap + 12}px;">
+      ${paragraphs.map(p => `<p style="font-size:${splitSubtitleSize}px;color:#fff;margin:0;line-height:${T.lineHeight - 0.1};font-weight:500;opacity:0.95;">${p}</p>`).join("")}
     </div>` : ""}
     ${(dateTimeLocationChips || contactChips) ? `<div style="display:flex;gap:14px;flex-wrap:wrap;">${dateTimeLocationChips}${contactChips}</div>` : ""}
   </div>
