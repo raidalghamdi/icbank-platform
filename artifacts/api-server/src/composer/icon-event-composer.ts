@@ -575,13 +575,13 @@ function splitLayout(input: IconEventInput): string {
   ${renderDeptTag(input.department, colors, input.size)}
   <img src="${logoSrc}" style="position:absolute;top:${T.margin}px;right:${T.margin}px;height:${T.logoHeight}px;z-index:10;" crossorigin="anonymous" alt="GAC" />
 
-  <div style="position:absolute;top:16%;left:0;right:0;height:32%;display:flex;align-items:center;justify-content:center;">
+  <div style="position:absolute;top:12%;left:0;right:0;height:26%;display:flex;align-items:center;justify-content:center;">
     <div style="width:${mainIconSize + 100}px;height:${mainIconSize + 100}px;background:rgba(255,255,255,0.12);border:4px solid rgba(255,255,255,0.28);border-radius:50%;display:flex;align-items:center;justify-content:center;">
       <div style="color:${colors.accent};">${renderIcon(input.main_icon, mainIconSize, colors.accent)}</div>
     </div>
   </div>
 
-  <div style="position:absolute;top:52%;left:0;right:0;bottom:${T.margin + 20}px;padding:0 ${T.margin}px;display:flex;flex-direction:column;justify-content:flex-start;">
+  <div style="position:absolute;top:42%;left:0;right:0;bottom:${T.margin + 30}px;padding:0 ${T.margin}px;display:flex;flex-direction:column;justify-content:flex-start;">
     <div style="width:96px;height:8px;background:${colors.accent};margin:0 auto ${T.paragraphGap}px;"></div>
     <h1 style="font-size:${titleSize}px;font-weight:900;color:#fff;margin:0 0 ${T.paragraphGap + 8}px;line-height:1.15;text-align:center;">${input.headline}</h1>
     ${paragraphs.length > 0 ? `<div style="max-width:1050px;margin:0 auto ${T.paragraphGap + 12}px;display:flex;flex-direction:column;gap:${T.paragraphGap}px;text-align:center;">
