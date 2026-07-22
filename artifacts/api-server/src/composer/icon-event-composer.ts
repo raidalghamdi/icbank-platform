@@ -655,26 +655,31 @@ function heroLayout(input: IconEventInput): string {
   const useSideLayout = isVeryDense && (isLandscape || isSquare);
 
   if (useSideLayout) {
-    // حجم الأيقونة الكبيرة للجانب
-    const bigIconSize = isLandscape ? 340 : 280;
-    const bigIconBox = bigIconSize + 100;
+    // نسبة: 30% أيقونة / 70% نص
+    const iconColWidth = Math.round(width * 0.30);
+    // حجم الأيقونة — يملأ العمود (مع مساحة داخلية)
+    const bigIconBox = Math.min(iconColWidth - 80, isLandscape ? 480 : 380);
+    const bigIconSize = bigIconBox - 100;
+    // الأيقونة تتوسط أفقياً داخل عمودها التي في اليسار (RTL: right طبقًا للمرآة، لكن نستخدم left في positioning)
+    const iconLeft = Math.round((iconColWidth - bigIconBox) / 2);
+    // النص: من يمين الشاشة حتى نهاية عمود الأيقونة
     const textColumnRight = T.margin + 20;
-    const textColumnLeft = isLandscape ? Math.round(width * 0.42) : Math.round(width * 0.44);
-    const iconLeft = Math.round((textColumnLeft - bigIconBox) / 2 + T.margin);
-    const iconTop = isLandscape ? "32%" : "30%";
+    const textColumnLeft = iconColWidth + 20;
 
+    // مساحة أعلى لتفادي الشعار (الشعار: top=T.margin, height=T.logoHeight → ينتهي عند T.margin+T.logoHeight)
+    const textTopSafe = T.margin + T.logoHeight + 40;
     return `
 <div class="poster hero-layout" style="width:${width}px;height:${height}px;position:relative;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;direction:rtl;color:#fff;background-image:url('${BG_STATS_HERO_DATA_URI}');background-size:cover;background-position:center;">
   ${renderDeptTag(input.department, colors, input.size)}
   <img src="${logoSrc}" style="position:absolute;top:${T.margin}px;right:${T.margin}px;height:${T.logoHeight}px;z-index:5;" crossorigin="anonymous" alt="GAC" />
 
-  <!-- Big icon (left side) -->
-  <div style="position:absolute;top:${iconTop};left:${iconLeft}px;transform:translateY(-50%);width:${bigIconBox}px;height:${bigIconBox}px;background:rgba(255,255,255,0.10);border:4px solid rgba(255,255,255,0.22);border-radius:50%;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(10px);box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+  <!-- Big icon (left side, vertically centered) -->
+  <div style="position:absolute;top:50%;left:${iconLeft}px;transform:translateY(-50%);width:${bigIconBox}px;height:${bigIconBox}px;background:rgba(255,255,255,0.10);border:4px solid rgba(255,255,255,0.22);border-radius:50%;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(10px);box-shadow:0 20px 60px rgba(0,0,0,0.2);">
     <div style="color:${colors.accent};">${renderIcon(input.main_icon, bigIconSize, colors.accent)}</div>
   </div>
 
   <!-- Text column (right side, RTL right-aligned) -->
-  <div style="position:absolute;top:${T.margin + 140}px;right:${textColumnRight}px;left:${textColumnLeft}px;bottom:${T.margin + 40}px;display:flex;flex-direction:column;justify-content:center;text-align:right;">
+  <div style="position:absolute;top:${textTopSafe}px;right:${textColumnRight}px;left:${textColumnLeft}px;bottom:${T.margin + 40}px;display:flex;flex-direction:column;justify-content:center;text-align:right;">
     <h1 style="font-size:${heroTitleSize}px;font-weight:900;margin:0 0 ${heroTitleGap}px;line-height:1.2;letter-spacing:-1px;text-align:right;">${input.headline}</h1>
     ${paragraphs.length > 0 ? `<div style="display:flex;flex-direction:column;gap:${isVeryDense ? Math.max(T.paragraphGap - 8, 14) : (T.paragraphGap - 4)}px;text-align:right;">
       ${renderParagraphFlow(flow.blocks, paragraphStyle, colors, T.metaFont, { subHeadSize: isVeryDense ? 36 : undefined, bulletSize: isVeryDense ? 27 : undefined, align: "right" })}
