@@ -596,6 +596,7 @@ function heroLayout(input: IconEventInput): string {
   const T = SIZE_TOKENS[input.size];
   const isStory = input.size === "story";
   const isSquare = input.size === "square";
+  const isLandscape = input.size === "landscape";
   const logoSrc = input.logo_url && input.logo_url.startsWith("http") ? input.logo_url : GAC_LOGO_WHITE_DATA_URI;
 
   // Size-aware sizing — يتكيف مع طول المحتوى
@@ -646,9 +647,44 @@ function heroLayout(input: IconEventInput): string {
     !flow.phoneUsedInline && phone && renderContactChip("phone", phone, colors, T.metaFont, false),
   ].filter(Boolean).join("");
 
-  const paragraphStyle = `font-size:${heroSubtitleSize}px;margin:0;opacity:0.95;font-weight:500;line-height:${T.lineHeight - 0.1};`;
+  const paragraphStyle = `font-size:${heroSubtitleSize}px;margin:0;opacity:0.95;font-weight:500;line-height:${T.lineHeight - 0.1};text-align:right;`;
   const heroTitleSize = isVeryDense ? Math.round(T.titleSize * 0.75) : T.titleSize;
   const heroTitleGap = isVeryDense ? Math.round((T.paragraphGap + 12) * 0.5) : (T.paragraphGap + 12);
+
+  // ─── تخطيط side-by-side للمحتوى الكثيف: أيقونة كبيرة يسار + نص يمين (RTL right-aligned) ───
+  const useSideLayout = isVeryDense && (isLandscape || isSquare);
+
+  if (useSideLayout) {
+    // حجم الأيقونة الكبيرة للجانب
+    const bigIconSize = isLandscape ? 340 : 280;
+    const bigIconBox = bigIconSize + 100;
+    const textColumnRight = T.margin + 20;
+    const textColumnLeft = isLandscape ? Math.round(width * 0.42) : Math.round(width * 0.44);
+    const iconLeft = Math.round((textColumnLeft - bigIconBox) / 2 + T.margin);
+    const iconTop = isLandscape ? "32%" : "30%";
+
+    return `
+<div class="poster hero-layout" style="width:${width}px;height:${height}px;position:relative;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;direction:rtl;color:#fff;background-image:url('${BG_STATS_HERO_DATA_URI}');background-size:cover;background-position:center;">
+  ${renderDeptTag(input.department, colors, input.size)}
+  <img src="${logoSrc}" style="position:absolute;top:${T.margin}px;right:${T.margin}px;height:${T.logoHeight}px;z-index:5;" crossorigin="anonymous" alt="GAC" />
+
+  <!-- Big icon (left side) -->
+  <div style="position:absolute;top:${iconTop};left:${iconLeft}px;transform:translateY(-50%);width:${bigIconBox}px;height:${bigIconBox}px;background:rgba(255,255,255,0.10);border:4px solid rgba(255,255,255,0.22);border-radius:50%;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(10px);box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+    <div style="color:${colors.accent};">${renderIcon(input.main_icon, bigIconSize, colors.accent)}</div>
+  </div>
+
+  <!-- Text column (right side, RTL right-aligned) -->
+  <div style="position:absolute;top:${T.margin + 140}px;right:${textColumnRight}px;left:${textColumnLeft}px;bottom:${T.margin + 40}px;display:flex;flex-direction:column;justify-content:center;text-align:right;">
+    <h1 style="font-size:${heroTitleSize}px;font-weight:900;margin:0 0 ${heroTitleGap}px;line-height:1.2;letter-spacing:-1px;text-align:right;">${input.headline}</h1>
+    ${paragraphs.length > 0 ? `<div style="display:flex;flex-direction:column;gap:${isVeryDense ? Math.max(T.paragraphGap - 8, 14) : (T.paragraphGap - 4)}px;text-align:right;">
+      ${renderParagraphFlow(flow.blocks, paragraphStyle, colors, T.metaFont, { subHeadSize: isVeryDense ? 36 : undefined, bulletSize: isVeryDense ? 27 : undefined, align: "right" })}
+    </div>` : ""}
+  </div>
+
+  <div style="position:absolute;bottom:0;left:0;right:0;height:12px;background:linear-gradient(90deg,${colors.accent} 0%,${colors.secondary} 50%,${colors.primary} 100%);"></div>
+</div>
+    `.trim();
+  }
 
   return `
 <div class="poster hero-layout" style="width:${width}px;height:${height}px;position:relative;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;direction:rtl;color:#fff;background-image:url('${BG_STATS_HERO_DATA_URI}');background-size:cover;background-position:center;">
@@ -664,7 +700,7 @@ function heroLayout(input: IconEventInput): string {
   <div style="position:absolute;top:${textTopPct};left:0;right:0;text-align:center;padding:0 ${T.margin + 40}px;">
     <h1 style="font-size:${heroTitleSize}px;font-weight:900;margin:0 0 ${heroTitleGap}px;line-height:1.2;letter-spacing:-1px;">${input.headline}</h1>
     ${paragraphs.length > 0 ? `<div style="max-width:${subtitleMaxWidth}px;margin:0 auto;display:flex;flex-direction:column;gap:${isVeryDense ? Math.max(T.paragraphGap - 8, 14) : (T.paragraphGap - 4)}px;">
-      ${renderParagraphFlow(flow.blocks, paragraphStyle, colors, T.metaFont, { subHeadSize: isVeryDense ? 34 : undefined, bulletSize: isVeryDense ? 26 : undefined })}
+      ${renderParagraphFlow(flow.blocks, paragraphStyle.replace('text-align:right;',''), colors, T.metaFont, { subHeadSize: isVeryDense ? 34 : undefined, bulletSize: isVeryDense ? 26 : undefined })}
     </div>` : ""}
   </div>
 
