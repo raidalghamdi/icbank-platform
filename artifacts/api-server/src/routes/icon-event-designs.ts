@@ -277,18 +277,31 @@ ${iconListForAI()}
       if (finalContactEmail) cleanedRaw = cleanedRaw.replace(finalContactEmail, "").trim();
       if (finalContactPhone) cleanedRaw = cleanedRaw.replace(finalContactPhone, "").trim();
       // Preserve paragraph breaks (\n\n) but collapse within-paragraph whitespace
-      // Also drop dangling colons at end of lines (from "الإلكتروني:" once email is removed)
+      // مهم: إذا احتوت الفقرة على bullets (أسطر تبدأ بـ * أو - أو •) → لا ندمج الأسطر
+      // أيضًا لا نحذف النقطتين من أسطر قصيرة (تعتبر عناوين فرعية مثل "متى تحدث?")
+      const BULLET_RE = /^\s*[*\-•⁃◦▪﹅]\s+/;
       cleanedRaw = cleanedRaw
         .replace(/\r/g, "")
-        .split(/\n{2,}/)          // split into paragraphs on blank lines
-        .map(p => p
-          .replace(/\n+/g, " ")   // collapse internal newlines within paragraph to spaces
-          .replace(/\s{2,}/g, " ")
-          .replace(/[:\uFF1A]\s*$/g, "")
-          .trim()
-        )
+        .split(/\n{2,}/)                    // split into paragraphs on blank lines
+        .map(p => {
+          const lines = p.split(/\n/).map(l => l.trim()).filter(Boolean);
+          const hasBullets = lines.some(l => BULLET_RE.test(l));
+          if (hasBullets) {
+            // حافظ على كل سطر مستقلاً
+            return lines
+              .map(l => l.replace(/\s{2,}/g, " ").trim())
+              .filter(Boolean)
+              .join("\n");
+          }
+          // فقرة عادية: ادمج الأسطر لفقرة واحدة
+          return p
+            .replace(/\n+/g, " ")
+            .replace(/\s{2,}/g, " ")
+            .replace(/[:\uFF1A]\s*$/g, "")   // حذف : معلقة في نهاية الفقرة
+            .trim();
+        })
         .filter(Boolean)
-        .join("\n\n");            // rejoin paragraphs with blank line
+        .join("\n\n");                      // rejoin paragraphs with blank line
       finalSubtitle = cleanedRaw;
     }
     if (!finalSubtitle) finalSubtitle = (extracted.subtitle || "").trim();

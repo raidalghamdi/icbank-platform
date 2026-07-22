@@ -120,6 +120,8 @@ function splitIntoParagraphs(text: string): string[] {
 
 type ParagraphBlock =
   | { type: "text"; content: string }
+  | { type: "sub-heading"; content: string }
+  | { type: "bullet-list"; items: string[] }
   | { type: "email-chip"; email: string }
   | { type: "phone-chip"; phone: string };
 
@@ -127,46 +129,176 @@ type ParagraphBlock =
 const EMAIL_MENTION_RE = /(البريد\s*الإلكتروني|email|e-?mail|إيميل)\s*[:ـ\-：]?\s*$/i;
 const PHONE_MENTION_RE = /(الهاتف|رقم\s*التواصل|phone|tel|جوال)\s*[:ـ\-：]?\s*$/i;
 
-// يبني تدفق الفقرات مع دمج البريد/الهاتف inline إذا ذُكِرت في أي فقرة.
-// إذا لم تُذكر → الشرائح تذهب أسفل التصميم كما في السابق (bottom chips fallback).
+// أنماط bullet points المدخلة (Markdown/Unicode)
+// * item   OR   - item   OR   • item   OR   ⁃ item   OR   ◦ item
+const BULLET_LINE_RE = /^\s*[*\-•⁃◦▪﹅]\s+(.+)$/;
+
+// أسطر تنتهي بـ ؟ تعتبر عنوانين فرعية ("متى قد تحدث المشكلة؟" ...)
+// أو أسطر قصيرة (< 45 حرفاً) تنتهي بـ :
+const SUBHEAD_QUESTION_RE = /^[^\n]{3,80}؟\s*$/;
+const SUBHEAD_COLON_RE = /^[^\n]{3,45}[:：]\s*$/;
+
+function isSubHeading(line: string): boolean {
+  const t = line.trim();
+  if (!t) return false;
+  if (BULLET_LINE_RE.test(t)) return false; // لا تعتبر bullet عنوان
+  return SUBHEAD_QUESTION_RE.test(t) || SUBHEAD_COLON_RE.test(t);
+}
+
+// يبني تدفق الفقرات مع دعم:
+//   • فقرات نصية (text)
+//   • عناوين فرعية ("متى قد تحدث؟" أو "كيف تكتشفها؟")
+//   • bullet points (* item أو - item)
+//   • دمج البريد/الهاتف inline
 function buildParagraphFlow(
   subtitle: string,
   email: string | undefined,
   phone: string | undefined,
 ): { blocks: ParagraphBlock[]; emailUsedInline: boolean; phoneUsedInline: boolean } {
-  const paragraphs = splitIntoParagraphs(subtitle);
   const blocks: ParagraphBlock[] = [];
   let emailUsedInline = false;
   let phoneUsedInline = false;
 
-  for (const para of paragraphs) {
-    blocks.push({ type: "text", content: para });
-
-    // تحقق إن كانت هذه الفقرة تشير للبريد/الهاتف → أدرج الشريحة بعدها مباشرة
-    if (email && !emailUsedInline && EMAIL_MENTION_RE.test(para)) {
-      blocks.push({ type: "email-chip", email });
-      emailUsedInline = true;
-    }
-    if (phone && !phoneUsedInline && PHONE_MENTION_RE.test(para)) {
-      blocks.push({ type: "phone-chip", phone });
-      phoneUsedInline = true;
-    }
+  if (!subtitle || !subtitle.trim()) {
+    return { blocks, emailUsedInline, phoneUsedInline };
   }
+
+  // فصل على أسطر فردية (ليس فقرات) لأن bullets تُقرأ سطرًا بسطر
+  const lines = subtitle.split(/\n/).map(l => l.replace(/\s+$/, ""));
+  const nonEmpty = lines.filter(l => l.trim() !== "");
+
+  // إذا لم يوجد أي bullet أو عنوان فرعي → ترجع للمنطق القديم (فقرات حرة)
+  const hasBullets = nonEmpty.some(l => BULLET_LINE_RE.test(l));
+  const hasSubHead = nonEmpty.some(l => isSubHeading(l));
+
+  if (!hasBullets && !hasSubHead) {
+    // المنطق القديم: فقرات مفصولة بأسطر فارغة
+    const paragraphs = splitIntoParagraphs(subtitle);
+    for (const para of paragraphs) {
+      blocks.push({ type: "text", content: para });
+      if (email && !emailUsedInline && EMAIL_MENTION_RE.test(para)) {
+        blocks.push({ type: "email-chip", email });
+        emailUsedInline = true;
+      }
+      if (phone && !phoneUsedInline && PHONE_MENTION_RE.test(para)) {
+        blocks.push({ type: "phone-chip", phone });
+        phoneUsedInline = true;
+      }
+    }
+    return { blocks, emailUsedInline, phoneUsedInline };
+  }
+
+  // المنطق الجديد: قراءة سطراً بسطر، تجميع bullet lines في bullet-list
+  let currentBullets: string[] = [];
+  let currentTextBuffer: string[] = [];
+
+  const flushText = () => {
+    if (currentTextBuffer.length) {
+      const combined = currentTextBuffer.join(" ").trim();
+      if (combined) {
+        blocks.push({ type: "text", content: combined });
+        // فحص إدراج البريد/الهاتف inline
+        if (email && !emailUsedInline && EMAIL_MENTION_RE.test(combined)) {
+          blocks.push({ type: "email-chip", email });
+          emailUsedInline = true;
+        }
+        if (phone && !phoneUsedInline && PHONE_MENTION_RE.test(combined)) {
+          blocks.push({ type: "phone-chip", phone });
+          phoneUsedInline = true;
+        }
+      }
+      currentTextBuffer = [];
+    }
+  };
+
+  const flushBullets = () => {
+    if (currentBullets.length) {
+      blocks.push({ type: "bullet-list", items: currentBullets });
+      // فحص دمج البريد إذا انتهيت آخر bullet بذكر البريد
+      const lastBullet = currentBullets[currentBullets.length - 1];
+      if (email && !emailUsedInline && EMAIL_MENTION_RE.test(lastBullet)) {
+        blocks.push({ type: "email-chip", email });
+        emailUsedInline = true;
+      }
+      if (phone && !phoneUsedInline && PHONE_MENTION_RE.test(lastBullet)) {
+        blocks.push({ type: "phone-chip", phone });
+        phoneUsedInline = true;
+      }
+      currentBullets = [];
+    }
+  };
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    if (!line) {
+      // سطر فارغ: flush buffers
+      flushText();
+      flushBullets();
+      continue;
+    }
+
+    const bulletMatch = line.match(BULLET_LINE_RE);
+    if (bulletMatch) {
+      // bullet: flush text buffer أولاً، ثم أضف لـ bullets
+      flushText();
+      currentBullets.push(bulletMatch[1].trim());
+      continue;
+    }
+
+    if (isSubHeading(line)) {
+      // sub-heading: flush everything, add heading, don't buffer
+      flushText();
+      flushBullets();
+      blocks.push({ type: "sub-heading", content: line });
+      continue;
+    }
+
+    // سطر نص عادي: flush bullets أولاً، ثم أضف لـ text buffer
+    flushBullets();
+    currentTextBuffer.push(line);
+  }
+
+  // التفريغ الأخير
+  flushText();
+  flushBullets();
 
   return { blocks, emailUsedInline, phoneUsedInline };
 }
 
-// يرسم كتلة فقرات HTML مع دعم email/phone inline chips.
+// يرسم كتلة فقرات HTML مع دعم email/phone inline chips + sub-heading + bullet-list.
 // paragraphStyle: الـ-CSS المطبق على أوسمة <p>.
 function renderParagraphFlow(
   blocks: ParagraphBlock[],
   paragraphStyle: string,
   colors: any,
   metaFont: number,
+  opts?: { subHeadSize?: number; bulletSize?: number; align?: "center" | "right" },
 ): string {
+  // مقاس الخط من paragraphStyle (الأساس)
+  const fsMatch = paragraphStyle.match(/font-size:(\d+)px/);
+  const baseSize = fsMatch ? parseInt(fsMatch[1], 10) : 32;
+  const subHeadSize = opts?.subHeadSize ?? Math.round(baseSize * 1.15);
+  const bulletSize = opts?.bulletSize ?? Math.max(baseSize - 4, 22);
+  const align = opts?.align ?? "center";
+  const listAlign = align === "center" ? "right" : align; // القوائم دائمًا RTL right-aligned
+
   return blocks.map((b) => {
     if (b.type === "text") {
       return `<p style="${paragraphStyle}">${b.content}</p>`;
+    }
+    if (b.type === "sub-heading") {
+      // عنوان فرعي — لون accent مميز + حجم أكبر قليلاً
+      return `<h3 style="font-size:${subHeadSize}px;color:${colors.accent};font-weight:800;margin:14px 0 6px;line-height:1.3;text-align:${align};">${b.content}</h3>`;
+    }
+    if (b.type === "bullet-list") {
+      // قائمة نقاط — dots لون accent، النص أبيض
+      const itemsHtml = b.items.map((it) =>
+        `<li style="display:flex;align-items:flex-start;gap:12px;text-align:${listAlign};direction:rtl;">`
+        + `<span style="flex-shrink:0;margin-top:${Math.round(bulletSize*0.42)}px;width:9px;height:9px;border-radius:50%;background:${colors.accent};"></span>`
+        + `<span style="flex:1;font-size:${bulletSize}px;line-height:1.55;font-weight:500;color:#fff;opacity:0.95;">${it}</span>`
+        + `</li>`
+      ).join("");
+      return `<ul style="list-style:none;padding:0;margin:2px 0 6px;display:flex;flex-direction:column;gap:8px;text-align:${listAlign};">${itemsHtml}</ul>`;
     }
     if (b.type === "email-chip") {
       return `<div style="text-align:center;margin:6px 0;">${renderContactChip("mail", b.email, colors, metaFont, true)}</div>`;
@@ -466,12 +598,23 @@ function heroLayout(input: IconEventInput): string {
   const isSquare = input.size === "square";
   const logoSrc = input.logo_url && input.logo_url.startsWith("http") ? input.logo_url : GAC_LOGO_WHITE_DATA_URI;
 
-  // Size-aware sizing
-  const mainIconSize = isStory ? 180 : isSquare ? 140 : 140;
-  const iconTopPct = isStory ? "12%" : isSquare ? "10%" : "12%";
-  const textTopPct = isStory ? "32%" : isSquare ? "32%" : "38%";
+  // Size-aware sizing — يتكيف مع طول المحتوى (إذا طويل جداً → أيقونة أصغر + اترك مجال أوسع للنص)
+  const contentLength = (input.subtitle || "").length;
+  const isDense = contentLength > 350;   // محتوى كثيف (bullets أو فقرات متعددة)
+
+  const mainIconSize = isDense
+    ? (isStory ? 120 : isSquare ? 90 : 100)
+    : (isStory ? 180 : isSquare ? 140 : 140);
+  const iconTopPct = isDense
+    ? (isStory ? "9%" : isSquare ? "8%" : "9%")
+    : (isStory ? "12%" : isSquare ? "10%" : "12%");
+  const textTopPct = isDense
+    ? (isStory ? "27%" : isSquare ? "28%" : "32%")
+    : (isStory ? "32%" : isSquare ? "32%" : "38%");
   const subtitleMaxWidth = isStory ? 1000 : isSquare ? 1000 : 1600;
-  const heroSubtitleSize = isSquare ? 34 : T.subtitleSize;
+  const heroSubtitleSize = isDense
+    ? (isSquare ? 28 : isStory ? 30 : 30)
+    : (isSquare ? 34 : T.subtitleSize);
 
   const email = (input as any).contact_email;
   const phone = (input as any).contact_phone;
