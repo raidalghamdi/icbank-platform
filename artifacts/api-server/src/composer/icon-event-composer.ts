@@ -861,11 +861,11 @@ function splitLayout(input: IconEventInput): string {
   </div>
 
   <!-- Right: text (60%) -->
-  <div style="width:60%;height:100%;padding:${headerReserve + 40}px ${T.margin + 20}px ${T.margin + 40}px ${T.margin + 20}px;display:flex;flex-direction:column;justify-content:${isSquare ? "flex-start" : "center"};">
+  <div style="width:60%;height:100%;padding:${headerReserve + 60}px ${T.margin + 20}px ${T.margin + 40}px ${T.margin + 20}px;display:flex;flex-direction:column;justify-content:${isSquare ? "flex-start" : "center"};text-align:right;">
     <div style="width:96px;height:8px;background:${colors.accent};margin-bottom:${T.paragraphGap + 4}px;"></div>
-    <h1 style="font-size:${titleSize}px;font-weight:900;color:#fff;margin:0 0 ${T.paragraphGap + 12}px;line-height:1.2;letter-spacing:-1px;">${input.headline}</h1>
-    ${paragraphs.length > 0 ? `<div style="display:flex;flex-direction:column;gap:${T.paragraphGap - 4}px;margin-bottom:${T.paragraphGap + 12}px;">
-      ${renderParagraphFlow(flow.blocks, splitParagraphStyleH, colors, T.metaFont)}
+    <h1 style="font-size:${titleSize}px;font-weight:900;color:#fff;margin:0 0 ${T.paragraphGap + 12}px;line-height:1.25;letter-spacing:-0.5px;text-align:right;">${input.headline}</h1>
+    ${paragraphs.length > 0 ? `<div style="display:flex;flex-direction:column;gap:${T.paragraphGap - 4}px;margin-bottom:${T.paragraphGap + 12}px;text-align:right;">
+      ${renderParagraphFlow(flow.blocks, splitParagraphStyleH.replace('text-align:center;','text-align:right;'), colors, T.metaFont, { align: "right" })}
     </div>` : ""}
     ${(dateTimeLocationChips || contactChips) ? `<div style="display:flex;gap:14px;flex-wrap:wrap;">${dateTimeLocationChips}${contactChips}</div>` : ""}
   </div>
