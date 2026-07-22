@@ -696,9 +696,9 @@ function heroLayout(input: IconEventInput): string {
   ${renderDeptTag(input.department, colors, input.size)}
   <img src="${logoSrc}" style="position:absolute;top:${T.margin}px;right:${T.margin}px;height:${T.logoHeight}px;z-index:5;" crossorigin="anonymous" alt="GAC" />
 
-  <!-- Main icon (compact) -->
-  <div style="position:absolute;top:${iconTopPct};left:50%;transform:translateX(-50%);width:${mainIconSize + 50}px;height:${mainIconSize + 50}px;background:rgba(255,255,255,0.12);border:3px solid rgba(255,255,255,0.25);border-radius:50%;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(10px);">
-    <div style="color:#fff;">${renderIcon(input.main_icon, mainIconSize, "#fff")}</div>
+  <!-- Main icon (compact) — lime accent داخل دائرة شفافة -->
+  <div style="position:absolute;top:${iconTopPct};left:50%;transform:translateX(-50%);width:${mainIconSize + 50}px;height:${mainIconSize + 50}px;background:rgba(255,255,255,0.10);border:4px solid rgba(255,255,255,0.22);border-radius:50%;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(10px);box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+    <div style="color:${colors.accent};">${renderIcon(input.main_icon, mainIconSize, colors.accent)}</div>
   </div>
 
   <!-- Text block: title + paragraph-split subtitle (with inline email/phone if mentioned) -->

@@ -294,11 +294,15 @@ ${iconListForAI()}
               .join("\n");
           }
           // فقرة عادية: ادمج الأسطر لفقرة واحدة
-          return p
+          const merged = p
             .replace(/\n+/g, " ")
             .replace(/\s{2,}/g, " ")
-            .replace(/[:\uFF1A]\s*$/g, "")   // حذف : معلقة في نهاية الفقرة
             .trim();
+          // احتفظ بـ : إذا كانت الفقرة قصيرة (تعتبر عنوانًا فرعيًا) — احذفها فقط من الفقرات الطويلة
+          if (/[:\uFF1A]\s*$/.test(merged) && merged.length > 50) {
+            return merged.replace(/[:\uFF1A]\s*$/g, "").trim();
+          }
+          return merged;
         })
         .filter(Boolean)
         .join("\n\n");                      // rejoin paragraphs with blank line
