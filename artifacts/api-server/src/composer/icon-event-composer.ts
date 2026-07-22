@@ -288,7 +288,7 @@ function renderParagraphFlow(
     }
     if (b.type === "sub-heading") {
       // عنوان فرعي — لون accent مميز
-      return `<h3 style="font-size:${subHeadSize}px;color:${colors.accent};font-weight:800;margin:4px 0 2px;line-height:1.25;text-align:${align};">${b.content}</h3>`;
+      return `<h3 style="font-size:${subHeadSize}px;color:${colors.accent};font-weight:800;margin:10px 0 4px;line-height:1.25;text-align:${align};">${b.content}</h3>`;
     }
     if (b.type === "bullet-list") {
       // قائمة نقاط — dots لون accent، النص أبيض
@@ -298,7 +298,7 @@ function renderParagraphFlow(
         + `<span style="flex:1;font-size:${bulletSize}px;line-height:1.55;font-weight:500;color:#fff;opacity:0.95;">${it}</span>`
         + `</li>`
       ).join("");
-      return `<ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:4px;text-align:${listAlign};">${itemsHtml}</ul>`;
+      return `<ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px;text-align:${listAlign};">${itemsHtml}</ul>`;
     }
     if (b.type === "email-chip") {
       return `<div style="text-align:center;margin:6px 0;">${renderContactChip("mail", b.email, colors, metaFont, true)}</div>`;
@@ -606,23 +606,23 @@ function heroLayout(input: IconEventInput): string {
   const isVeryDense = contentLength > 650 || bulletCount >= 5 || subHeadCount >= 2;
 
   const mainIconSize = isVeryDense
-    ? (isStory ? 80 : isSquare ? 70 : 78)
+    ? (isStory ? 100 : isSquare ? 88 : 96)
     : isDense
       ? (isStory ? 120 : isSquare ? 90 : 100)
       : (isStory ? 180 : isSquare ? 140 : 140);
   const iconTopPct = isVeryDense
-    ? (isStory ? "5%" : isSquare ? "4%" : "5%")
+    ? (isStory ? "8%" : isSquare ? "7%" : "8%")
     : isDense
       ? (isStory ? "9%" : isSquare ? "8%" : "9%")
       : (isStory ? "12%" : isSquare ? "10%" : "12%");
   const textTopPct = isVeryDense
-    ? (isStory ? "18%" : isSquare ? "18%" : "20%")
+    ? (isStory ? "23%" : isSquare ? "23%" : "25%")
     : isDense
       ? (isStory ? "27%" : isSquare ? "28%" : "32%")
       : (isStory ? "32%" : isSquare ? "32%" : "38%");
   const subtitleMaxWidth = isStory ? 1000 : isSquare ? 1000 : 1600;
   const heroSubtitleSize = isVeryDense
-    ? (isSquare ? 22 : isStory ? 24 : 24)
+    ? (isSquare ? 28 : isStory ? 30 : 30)
     : isDense
       ? (isSquare ? 28 : isStory ? 30 : 30)
       : (isSquare ? 34 : T.subtitleSize);
@@ -663,8 +663,8 @@ function heroLayout(input: IconEventInput): string {
   <!-- Text block: title + paragraph-split subtitle (with inline email/phone if mentioned) -->
   <div style="position:absolute;top:${textTopPct};left:0;right:0;text-align:center;padding:0 ${T.margin + 40}px;">
     <h1 style="font-size:${heroTitleSize}px;font-weight:900;margin:0 0 ${heroTitleGap}px;line-height:1.2;letter-spacing:-1px;">${input.headline}</h1>
-    ${paragraphs.length > 0 ? `<div style="max-width:${subtitleMaxWidth}px;margin:0 auto;display:flex;flex-direction:column;gap:${isVeryDense ? Math.max(T.paragraphGap - 18, 8) : (T.paragraphGap - 4)}px;">
-      ${renderParagraphFlow(flow.blocks, paragraphStyle, colors, T.metaFont, { subHeadSize: isVeryDense ? 30 : undefined, bulletSize: isVeryDense ? 22 : undefined })}
+    ${paragraphs.length > 0 ? `<div style="max-width:${subtitleMaxWidth}px;margin:0 auto;display:flex;flex-direction:column;gap:${isVeryDense ? Math.max(T.paragraphGap - 8, 14) : (T.paragraphGap - 4)}px;">
+      ${renderParagraphFlow(flow.blocks, paragraphStyle, colors, T.metaFont, { subHeadSize: isVeryDense ? 38 : undefined, bulletSize: isVeryDense ? 28 : undefined })}
     </div>` : ""}
   </div>
 
