@@ -287,8 +287,8 @@ function renderParagraphFlow(
       return `<p style="${paragraphStyle}">${b.content}</p>`;
     }
     if (b.type === "sub-heading") {
-      // عنوان فرعي — لون accent مميز + حجم أكبر قليلاً
-      return `<h3 style="font-size:${subHeadSize}px;color:${colors.accent};font-weight:800;margin:14px 0 6px;line-height:1.3;text-align:${align};">${b.content}</h3>`;
+      // عنوان فرعي — لون accent مميز
+      return `<h3 style="font-size:${subHeadSize}px;color:${colors.accent};font-weight:800;margin:4px 0 2px;line-height:1.25;text-align:${align};">${b.content}</h3>`;
     }
     if (b.type === "bullet-list") {
       // قائمة نقاط — dots لون accent، النص أبيض
@@ -298,7 +298,7 @@ function renderParagraphFlow(
         + `<span style="flex:1;font-size:${bulletSize}px;line-height:1.55;font-weight:500;color:#fff;opacity:0.95;">${it}</span>`
         + `</li>`
       ).join("");
-      return `<ul style="list-style:none;padding:0;margin:2px 0 6px;display:flex;flex-direction:column;gap:8px;text-align:${listAlign};">${itemsHtml}</ul>`;
+      return `<ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:4px;text-align:${listAlign};">${itemsHtml}</ul>`;
     }
     if (b.type === "email-chip") {
       return `<div style="text-align:center;margin:6px 0;">${renderContactChip("mail", b.email, colors, metaFont, true)}</div>`;
@@ -598,23 +598,34 @@ function heroLayout(input: IconEventInput): string {
   const isSquare = input.size === "square";
   const logoSrc = input.logo_url && input.logo_url.startsWith("http") ? input.logo_url : GAC_LOGO_WHITE_DATA_URI;
 
-  // Size-aware sizing — يتكيف مع طول المحتوى (إذا طويل جداً → أيقونة أصغر + اترك مجال أوسع للنص)
+  // Size-aware sizing — يتكيف مع طول المحتوى
   const contentLength = (input.subtitle || "").length;
-  const isDense = contentLength > 350;   // محتوى كثيف (bullets أو فقرات متعددة)
+  const bulletCount = ((input.subtitle || "").match(/^\s*[*\-•]\s+/gm) || []).length;
+  const subHeadCount = ((input.subtitle || "").match(/[^\n]{3,80}؟\s*$/gm) || []).length;
+  const isDense = contentLength > 350 || bulletCount >= 3;
+  const isVeryDense = contentLength > 650 || bulletCount >= 5 || subHeadCount >= 2;
 
-  const mainIconSize = isDense
-    ? (isStory ? 120 : isSquare ? 90 : 100)
-    : (isStory ? 180 : isSquare ? 140 : 140);
-  const iconTopPct = isDense
-    ? (isStory ? "9%" : isSquare ? "8%" : "9%")
-    : (isStory ? "12%" : isSquare ? "10%" : "12%");
-  const textTopPct = isDense
-    ? (isStory ? "27%" : isSquare ? "28%" : "32%")
-    : (isStory ? "32%" : isSquare ? "32%" : "38%");
+  const mainIconSize = isVeryDense
+    ? (isStory ? 80 : isSquare ? 70 : 78)
+    : isDense
+      ? (isStory ? 120 : isSquare ? 90 : 100)
+      : (isStory ? 180 : isSquare ? 140 : 140);
+  const iconTopPct = isVeryDense
+    ? (isStory ? "5%" : isSquare ? "4%" : "5%")
+    : isDense
+      ? (isStory ? "9%" : isSquare ? "8%" : "9%")
+      : (isStory ? "12%" : isSquare ? "10%" : "12%");
+  const textTopPct = isVeryDense
+    ? (isStory ? "18%" : isSquare ? "18%" : "20%")
+    : isDense
+      ? (isStory ? "27%" : isSquare ? "28%" : "32%")
+      : (isStory ? "32%" : isSquare ? "32%" : "38%");
   const subtitleMaxWidth = isStory ? 1000 : isSquare ? 1000 : 1600;
-  const heroSubtitleSize = isDense
-    ? (isSquare ? 28 : isStory ? 30 : 30)
-    : (isSquare ? 34 : T.subtitleSize);
+  const heroSubtitleSize = isVeryDense
+    ? (isSquare ? 22 : isStory ? 24 : 24)
+    : isDense
+      ? (isSquare ? 28 : isStory ? 30 : 30)
+      : (isSquare ? 34 : T.subtitleSize);
 
   const email = (input as any).contact_email;
   const phone = (input as any).contact_phone;
@@ -636,6 +647,8 @@ function heroLayout(input: IconEventInput): string {
   ].filter(Boolean).join("");
 
   const paragraphStyle = `font-size:${heroSubtitleSize}px;margin:0;opacity:0.95;font-weight:500;line-height:${T.lineHeight - 0.1};`;
+  const heroTitleSize = isVeryDense ? Math.round(T.titleSize * 0.75) : T.titleSize;
+  const heroTitleGap = isVeryDense ? Math.round((T.paragraphGap + 12) * 0.5) : (T.paragraphGap + 12);
 
   return `
 <div class="poster hero-layout" style="width:${width}px;height:${height}px;position:relative;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;direction:rtl;color:#fff;background-image:url('${BG_STATS_HERO_DATA_URI}');background-size:cover;background-position:center;">
@@ -649,9 +662,9 @@ function heroLayout(input: IconEventInput): string {
 
   <!-- Text block: title + paragraph-split subtitle (with inline email/phone if mentioned) -->
   <div style="position:absolute;top:${textTopPct};left:0;right:0;text-align:center;padding:0 ${T.margin + 40}px;">
-    <h1 style="font-size:${T.titleSize}px;font-weight:900;margin:0 0 ${T.paragraphGap + 12}px;line-height:1.2;letter-spacing:-1px;">${input.headline}</h1>
-    ${paragraphs.length > 0 ? `<div style="max-width:${subtitleMaxWidth}px;margin:0 auto;display:flex;flex-direction:column;gap:${T.paragraphGap - 4}px;">
-      ${renderParagraphFlow(flow.blocks, paragraphStyle, colors, T.metaFont)}
+    <h1 style="font-size:${heroTitleSize}px;font-weight:900;margin:0 0 ${heroTitleGap}px;line-height:1.2;letter-spacing:-1px;">${input.headline}</h1>
+    ${paragraphs.length > 0 ? `<div style="max-width:${subtitleMaxWidth}px;margin:0 auto;display:flex;flex-direction:column;gap:${isVeryDense ? Math.max(T.paragraphGap - 18, 8) : (T.paragraphGap - 4)}px;">
+      ${renderParagraphFlow(flow.blocks, paragraphStyle, colors, T.metaFont, { subHeadSize: isVeryDense ? 30 : undefined, bulletSize: isVeryDense ? 22 : undefined })}
     </div>` : ""}
   </div>
 
