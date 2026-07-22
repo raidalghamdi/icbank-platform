@@ -731,8 +731,8 @@ function heroLayout(input: IconEventInput): string {
   <!-- Text block: title + paragraph-split subtitle (with inline email/phone if mentioned) -->
   <div style="position:absolute;top:${textTopPct};left:0;right:0;text-align:center;padding:0 ${T.margin + 40}px;">
     <h1 style="font-size:${heroTitleSize}px;font-weight:900;margin:0 0 ${heroTitleGap}px;line-height:1.2;letter-spacing:-1px;">${input.headline}</h1>
-    ${paragraphs.length > 0 ? `<div style="max-width:${subtitleMaxWidth}px;margin:0 auto;display:flex;flex-direction:column;gap:${isVeryDense ? Math.max(T.paragraphGap - 8, 14) : (T.paragraphGap - 4)}px;">
-      ${renderParagraphFlow(flow.blocks, paragraphStyle.replace('text-align:right;',''), colors, T.metaFont, { subHeadSize: isVeryDense ? 34 : undefined, bulletSize: isVeryDense ? 26 : undefined })}
+    ${paragraphs.length > 0 ? `<div style="max-width:${subtitleMaxWidth}px;margin:0 auto;display:flex;flex-direction:column;gap:${isVeryDense ? Math.max(T.paragraphGap - 8, 14) : (T.paragraphGap - 4)}px;text-align:right;">
+      ${renderParagraphFlow(flow.blocks, paragraphStyle.replace('text-align:center;', 'text-align:right;'), colors, T.metaFont, { subHeadSize: isVeryDense ? 34 : undefined, bulletSize: isVeryDense ? 26 : undefined, align: "right" })}
     </div>` : ""}
   </div>
 
