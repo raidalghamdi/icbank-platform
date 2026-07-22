@@ -414,7 +414,8 @@ ${iconListForAI()}
     ];
 
     const layouts: LayoutType[] = ["stats-hero", "hero", "split"];
-    const colors: ColorScheme[] = ["teal", "blue", "green"];
+    // color_scheme = "teal" دائمًا (الهوية الرسمية)
+    const colors: ColorScheme[] = ["teal", "teal", "teal"];
 
     const fallbackVariants = layouts.map((layout, idx) => {
       const input: IconEventInput = {
