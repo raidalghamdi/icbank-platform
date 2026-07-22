@@ -282,30 +282,57 @@ function renderParagraphFlow(
   const align = opts?.align ?? "center";
   const listAlign = align === "center" ? "right" : align; // القوائم دائمًا RTL right-aligned
 
-  return blocks.map((b) => {
+  // دالة ترسم bullet-list HTML فقط (بدون wrapper container)
+  const renderBulletList = (items: string[]): string => {
+    const itemsHtml = items.map((it) =>
+      `<li style="display:flex;align-items:flex-start;gap:12px;text-align:${listAlign};direction:rtl;">`
+      + `<span style="flex-shrink:0;margin-top:${Math.round(bulletSize*0.42)}px;width:9px;height:9px;border-radius:50%;background:${colors.accent};"></span>`
+      + `<span style="flex:1;font-size:${bulletSize}px;line-height:1.55;font-weight:500;color:#fff;opacity:0.95;">${it}</span>`
+      + `</li>`
+    ).join("");
+    return `<ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px;text-align:${listAlign};">${itemsHtml}</ul>`;
+  };
+
+  // دالة ترسم sub-heading HTML فقط (مع إمكانية تصغير الهوامش للدمج مع bullets)
+  const renderSubHead = (content: string, tightBottom = false): string =>
+    `<h3 style="font-size:${subHeadSize}px;color:${colors.accent};font-weight:800;margin:${tightBottom ? 0 : 10}px 0 ${tightBottom ? 6 : 4}px;line-height:1.25;text-align:${align};">${content}</h3>`;
+
+  // مر على الوحدات: إذا sub-heading يتبعه bullet-list مباشرة → ادمجهما معًا (subhead فوق المجموعة مباشرة بدون فراغ)
+  const parts: string[] = [];
+  for (let i = 0; i < blocks.length; i++) {
+    const b = blocks[i];
     if (b.type === "text") {
-      return `<p style="${paragraphStyle}">${b.content}</p>`;
+      parts.push(`<p style="${paragraphStyle}">${b.content}</p>`);
+      continue;
     }
     if (b.type === "sub-heading") {
-      // عنوان فرعي — لون accent مميز
-      return `<h3 style="font-size:${subHeadSize}px;color:${colors.accent};font-weight:800;margin:10px 0 4px;line-height:1.25;text-align:${align};">${b.content}</h3>`;
+      const next = blocks[i + 1];
+      if (next && next.type === "bullet-list") {
+        // دمج: subhead ملتصق بـ bullets مباشرة (أقل margin أسفل)
+        parts.push(
+          `<div style="display:flex;flex-direction:column;gap:6px;text-align:${listAlign};">`
+          + renderSubHead(b.content, true)
+          + renderBulletList(next.items)
+          + `</div>`
+        );
+        i++; // تخطّ bullet-list التالية
+        continue;
+      }
+      parts.push(renderSubHead(b.content));
+      continue;
     }
     if (b.type === "bullet-list") {
-      // قائمة نقاط — dots لون accent، النص أبيض
-      const itemsHtml = b.items.map((it) =>
-        `<li style="display:flex;align-items:flex-start;gap:12px;text-align:${listAlign};direction:rtl;">`
-        + `<span style="flex-shrink:0;margin-top:${Math.round(bulletSize*0.42)}px;width:9px;height:9px;border-radius:50%;background:${colors.accent};"></span>`
-        + `<span style="flex:1;font-size:${bulletSize}px;line-height:1.55;font-weight:500;color:#fff;opacity:0.95;">${it}</span>`
-        + `</li>`
-      ).join("");
-      return `<ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px;text-align:${listAlign};">${itemsHtml}</ul>`;
+      parts.push(renderBulletList(b.items));
+      continue;
     }
     if (b.type === "email-chip") {
-      return `<div style="text-align:center;margin:6px 0;">${renderContactChip("mail", b.email, colors, metaFont, true)}</div>`;
+      parts.push(`<div style="text-align:center;margin:6px 0;">${renderContactChip("mail", b.email, colors, metaFont, true)}</div>`);
+      continue;
     }
     // phone-chip
-    return `<div style="text-align:center;margin:6px 0;">${renderContactChip("phone", b.phone, colors, metaFont, false)}</div>`;
-  }).join("");
+    parts.push(`<div style="text-align:center;margin:6px 0;">${renderContactChip("phone", b.phone, colors, metaFont, false)}</div>`);
+  }
+  return parts.join("");
 }
 
 // Helper: email/phone meta chip with icon on LEFT (LTR content)
