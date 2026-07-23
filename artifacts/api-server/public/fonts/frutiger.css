@@ -1,0 +1,49 @@
+@font-face {
+  font-family: 'Frutiger LT Arabic';
+  src: url('/fonts/Frutiger-LT-Arabic-45-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: block;
+}
+@font-face {
+  font-family: 'Frutiger LT Arabic';
+  src: url('/fonts/Frutiger-LT-Arabic-55-Roman.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+}
+@font-face {
+  font-family: 'Frutiger LT Arabic';
+  src: url('/fonts/Frutiger-LT-Arabic-55-Roman.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: block;
+}
+@font-face {
+  font-family: 'Frutiger LT Arabic';
+  src: url('/fonts/Frutiger-LT-Arabic-65-Bold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: block;
+}
+@font-face {
+  font-family: 'Frutiger LT Arabic';
+  src: url('/fonts/Frutiger-LT-Arabic-65-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: block;
+}
+@font-face {
+  font-family: 'Frutiger LT Arabic';
+  src: url('/fonts/Frutiger-LT-Arabic-65-Bold.ttf') format('truetype');
+  font-weight: 800;
+  font-style: normal;
+  font-display: block;
+}
+@font-face {
+  font-family: 'Frutiger LT Arabic';
+  src: url('/fonts/Frutiger-LT-Arabic-65-Bold.ttf') format('truetype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: block;
+}

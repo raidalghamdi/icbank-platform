@@ -11,9 +11,40 @@
 import { GAC } from "./gac-palette";
 import { renderIcon } from "./icon-library";
 import { BG_STATS_HERO_DATA_URI, GAC_LOGO_WHITE_DATA_URI } from "./assets-v5";
+import { FRUTIGER_FONT_CSS } from "./frutiger-fonts";
+import { GAC_LOGO_WHITE_SVG } from "./gac-logo-svg";
+
+/** Render GAC logo as inline SVG (vector, crisp at any size). */
+function renderLogoSvg(styleAttr: string): string {
+  // أضف attributes for sizing (aspect ratio preserved)
+  const styled = GAC_LOGO_WHITE_SVG.replace(
+    /<svg([^>]*)>/,
+    `<svg$1 style="${styleAttr}" preserveAspectRatio="xMidYMid meet">`
+  );
+  return styled;
+}
+
+/** If external URL provided, use <img>; otherwise inline SVG. Returns "" when hidden. */
+function renderLogo(logoUrl: string | undefined, positionStyle: string, heightPx: number, size?: SizePreset): string {
+  // للمقاسات المُصَغَّرة — لا شعار أبدًا
+  if (size && (size === "web-small" || size === "web-mini")) return "";
+  if (logoUrl && logoUrl.startsWith("http")) {
+    return `<img src="${logoUrl}" style="${positionStyle};height:${heightPx}px;" crossorigin="anonymous" alt="GAC" />`;
+  }
+  // aspect ≈ 7338/2279 = 3.22
+  const widthPx = Math.round(heightPx * 3.22);
+  return renderLogoSvg(`${positionStyle};height:${heightPx}px;width:${widthPx}px;`);
+}
 
 export type LayoutType = "stats-hero" | "hero" | "grid" | "split" | "typography";
-export type SizePreset = "square" | "story" | "landscape";
+export type SizePreset =
+  | "square" | "story" | "landscape"          // legacy presets
+  | "uhd-4k"           // 3840×2160  — 4K UHD
+  | "desktop-hd"       // 1440×864   — Desktop HD
+  | "web-standard"     // 1067×712   — Web / Email
+  | "web-small"        // 799×479    — Small (حَذف الشعار/الإدارة)
+  | "web-mini"         // 639×479    — Mini (حَذف الشعار/الإدارة)
+  | "story-hd";        // 2823×5016 — Story HD
 export type ColorScheme = "teal" | "blue" | "green" | "cyan" | "navy";
 
 export interface IconEventStat {
@@ -65,6 +96,12 @@ const SIZE_MAP: Record<SizePreset, { width: number; height: number; aspectLabel:
   square: { width: 1200, height: 1200, aspectLabel: "1:1" },
   story: { width: 1200, height: 2133, aspectLabel: "9:16" },
   landscape: { width: 2000, height: 1125, aspectLabel: "16:9" },
+  "uhd-4k":       { width: 3840, height: 2160, aspectLabel: "16:9 UHD" },
+  "desktop-hd":   { width: 1440, height: 864,  aspectLabel: "5:3" },
+  "web-standard": { width: 1067, height: 712,  aspectLabel: "3:2" },
+  "web-small":    { width: 799,  height: 479,  aspectLabel: "5:3" },
+  "web-mini":     { width: 639,  height: 479,  aspectLabel: "4:3" },
+  "story-hd":     { width: 2823, height: 5016, aspectLabel: "9:16 HD" },
 };
 
 // Per-size design tokens — each preset gets its own visual tuning
@@ -83,11 +120,25 @@ const SIZE_TOKENS: Record<SizePreset, {
   landscape: { margin: 72, deptFont: 24, deptPaddingV: 16, deptPaddingH: 42, logoHeight: 78, titleSize: 74, subtitleSize: 42, metaFont: 30, paragraphGap: 28, lineHeight: 1.75 },
   square:    { margin: 64, deptFont: 26, deptPaddingV: 18, deptPaddingH: 44, logoHeight: 78, titleSize: 78, subtitleSize: 44, metaFont: 30, paragraphGap: 26, lineHeight: 1.75 },
   story:     { margin: 60, deptFont: 28, deptPaddingV: 20, deptPaddingH: 48, logoHeight: 92, titleSize: 96, subtitleSize: 50, metaFont: 34, paragraphGap: 32, lineHeight: 1.8  },
+  // مقاسات جديدة رسمية (scaled proportionally from 2000×1125 landscape base)
+  "uhd-4k":       { margin: 140, deptFont: 46, deptPaddingV: 30, deptPaddingH: 82, logoHeight: 150, titleSize: 142, subtitleSize: 80, metaFont: 58, paragraphGap: 54, lineHeight: 1.75 },
+  "desktop-hd":   { margin: 52,  deptFont: 18, deptPaddingV: 12, deptPaddingH: 30, logoHeight: 56,  titleSize: 54,  subtitleSize: 30, metaFont: 22, paragraphGap: 20, lineHeight: 1.7  },
+  "web-standard": { margin: 40,  deptFont: 14, deptPaddingV: 9,  deptPaddingH: 24, logoHeight: 42,  titleSize: 40,  subtitleSize: 22, metaFont: 16, paragraphGap: 14, lineHeight: 1.65 },
+  "web-small":    { margin: 28,  deptFont: 11, deptPaddingV: 6,  deptPaddingH: 18, logoHeight: 32,  titleSize: 32,  subtitleSize: 18, metaFont: 13, paragraphGap: 10, lineHeight: 1.6  },
+  "web-mini":     { margin: 24,  deptFont: 10, deptPaddingV: 6,  deptPaddingH: 16, logoHeight: 28,  titleSize: 28,  subtitleSize: 16, metaFont: 12, paragraphGap: 9,  lineHeight: 1.6  },
+  "story-hd":     { margin: 150, deptFont: 60, deptPaddingV: 40, deptPaddingH: 100,logoHeight: 200, titleSize: 200, subtitleSize: 105,metaFont: 72, paragraphGap: 66, lineHeight: 1.85 },
 };
+
+/** المقاسات التي لا تعرض الشعار ولا الإدارة (حسب المتطلب) */
+export function isMiniSize(size: SizePreset): boolean {
+  return size === "web-small" || size === "web-mini";
+}
 
 // Helper: department tag (rectangular, sharp corners, white text, size-aware)
 function renderDeptTag(department: string | undefined, colors: any, size: SizePreset, opts?: { top?: number; left?: number; zIndex?: number }): string {
   if (!department) return "";
+  // للمقاسات المُصَغَّرة — لا إدارة أبدًا
+  if (size === "web-small" || size === "web-mini") return "";
   const T = SIZE_TOKENS[size];
   const top = opts?.top ?? T.margin;
   const left = opts?.left ?? T.margin;
@@ -555,11 +606,11 @@ function statsHeroLayout(input: IconEventInput): string {
   const logoSrc = input.logo_url && input.logo_url.startsWith("http") ? input.logo_url : GAC_LOGO_WHITE_DATA_URI;
 
   return `
-<div class="poster stats-hero-layout" style="width:${width}px;height:${height}px;position:relative;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;direction:rtl;color:${WHITE};background-image:url('${BG_STATS_HERO_DATA_URI}');background-size:cover;background-position:center;">
+<div class="poster stats-hero-layout" style="width:${width}px;height:${height}px;position:relative;overflow:hidden;font-family:'Frutiger LT Arabic','Cairo','Tajawal',sans-serif;direction:rtl;color:${WHITE};background-image:url('${BG_STATS_HERO_DATA_URI}');background-size:cover;background-position:center;">
 
   <!-- (1) Official GAC Logo — exact, transparent, no rect (top right) -->
   <div style="position:absolute;top:${T.logoTop}px;right:${T.logoRight}px;width:${T.logoWidth}px;height:auto;line-height:0;background:transparent;">
-    <img src="${logoSrc}" style="width:100%;height:auto;display:block;background:transparent;" crossorigin="anonymous" alt="GAC" />
+    ${renderLogo(input.logo_url, `width:100%;height:auto;display:block;background:transparent`, T.logoHeight, input.size)}
   </div>
 
   <!-- (3) Department Badge — moved 20px lower (top left) -->
@@ -696,9 +747,9 @@ function heroLayout(input: IconEventInput): string {
     // مساحة أعلى لتفادي الشعار (الشعار: top=T.margin, height=T.logoHeight → ينتهي عند T.margin+T.logoHeight)
     const textTopSafe = T.margin + T.logoHeight + 40;
     return `
-<div class="poster hero-layout" style="width:${width}px;height:${height}px;position:relative;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;direction:rtl;color:#fff;background-image:url('${BG_STATS_HERO_DATA_URI}');background-size:cover;background-position:center;">
+<div class="poster hero-layout" style="width:${width}px;height:${height}px;position:relative;overflow:hidden;font-family:'Frutiger LT Arabic','Cairo','Tajawal',sans-serif;direction:rtl;color:#fff;background-image:url('${BG_STATS_HERO_DATA_URI}');background-size:cover;background-position:center;">
   ${renderDeptTag(input.department, colors, input.size)}
-  <img src="${logoSrc}" style="position:absolute;top:${T.margin}px;right:${T.margin}px;height:${T.logoHeight}px;z-index:5;" crossorigin="anonymous" alt="GAC" />
+  ${renderLogo(input.logo_url, `position:absolute;top:${T.margin}px;right:${T.margin}px;z-index:5`, T.logoHeight, input.size)}
 
   <!-- Big icon (left side, vertically centered) -->
   <div style="position:absolute;top:50%;left:${iconLeft}px;transform:translateY(-50%);width:${bigIconBox}px;height:${bigIconBox}px;background:rgba(255,255,255,0.10);border:4px solid rgba(255,255,255,0.22);border-radius:50%;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(10px);box-shadow:0 20px 60px rgba(0,0,0,0.2);">
@@ -719,9 +770,9 @@ function heroLayout(input: IconEventInput): string {
   }
 
   return `
-<div class="poster hero-layout" style="width:${width}px;height:${height}px;position:relative;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;direction:rtl;color:#fff;background-image:url('${BG_STATS_HERO_DATA_URI}');background-size:cover;background-position:center;">
+<div class="poster hero-layout" style="width:${width}px;height:${height}px;position:relative;overflow:hidden;font-family:'Frutiger LT Arabic','Cairo','Tajawal',sans-serif;direction:rtl;color:#fff;background-image:url('${BG_STATS_HERO_DATA_URI}');background-size:cover;background-position:center;">
   ${renderDeptTag(input.department, colors, input.size)}
-  <img src="${logoSrc}" style="position:absolute;top:${T.margin}px;right:${T.margin}px;height:${T.logoHeight}px;z-index:5;" crossorigin="anonymous" alt="GAC" />
+  ${renderLogo(input.logo_url, `position:absolute;top:${T.margin}px;right:${T.margin}px;z-index:5`, T.logoHeight, input.size)}
 
   <!-- Main icon (compact) — lime accent داخل دائرة شفافة -->
   <div style="position:absolute;top:${iconTopPct};left:50%;transform:translateX(-50%);width:${mainIconSize + 50}px;height:${mainIconSize + 50}px;background:rgba(255,255,255,0.10);border:4px solid rgba(255,255,255,0.22);border-radius:50%;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(10px);box-shadow:0 20px 60px rgba(0,0,0,0.2);">
@@ -779,9 +830,9 @@ function gridLayout(input: IconEventInput): string {
   const gridParagraphStyle = `font-size:${T.subtitleSize}px;margin:0;opacity:0.95;font-weight:500;color:#fff;line-height:${T.lineHeight};`;
 
   return `
-<div class="poster grid-layout" style="width:${width}px;height:${height}px;position:relative;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;direction:rtl;color:#fff;background-image:url('${BG_STATS_HERO_DATA_URI}');background-size:cover;background-position:center;">
+<div class="poster grid-layout" style="width:${width}px;height:${height}px;position:relative;overflow:hidden;font-family:'Frutiger LT Arabic','Cairo','Tajawal',sans-serif;direction:rtl;color:#fff;background-image:url('${BG_STATS_HERO_DATA_URI}');background-size:cover;background-position:center;">
   ${renderDeptTag(input.department, colors, input.size)}
-  <img src="${logoSrc}" style="position:absolute;top:${T.margin}px;right:${T.margin}px;height:${T.logoHeight}px;z-index:5;" crossorigin="anonymous" alt="GAC" />
+  ${renderLogo(input.logo_url, `position:absolute;top:${T.margin}px;right:${T.margin}px;z-index:5`, T.logoHeight, input.size)}
 
   <div style="position:absolute;top:${isStory ? "200px" : "170px"};right:${T.margin}px;left:${T.margin}px;color:#fff;text-align:center;">
     <h1 style="font-size:${titleSize}px;font-weight:900;margin:0 0 ${T.paragraphGap}px;line-height:1.15;letter-spacing:-1px;">${input.headline}</h1>
@@ -849,9 +900,9 @@ function splitLayout(input: IconEventInput): string {
     // Landscape / Square — horizontal split with generous margins
     const headerReserve = T.margin + T.deptPaddingV * 2 + T.deptFont + 60;
     return `
-<div class="poster split-layout" style="width:${width}px;height:${height}px;position:relative;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;direction:rtl;color:#fff;background-image:url('${BG_STATS_HERO_DATA_URI}');background-size:cover;background-position:center;display:flex;">
+<div class="poster split-layout" style="width:${width}px;height:${height}px;position:relative;overflow:hidden;font-family:'Frutiger LT Arabic','Cairo','Tajawal',sans-serif;direction:rtl;color:#fff;background-image:url('${BG_STATS_HERO_DATA_URI}');background-size:cover;background-position:center;display:flex;">
   ${renderDeptTag(input.department, colors, input.size)}
-  <img src="${logoSrc}" style="position:absolute;top:${T.margin}px;right:${T.margin}px;height:${T.logoHeight}px;z-index:10;" crossorigin="anonymous" alt="GAC" />
+  ${renderLogo(input.logo_url, `position:absolute;top:${T.margin}px;right:${T.margin}px;z-index:10`, T.logoHeight, input.size)}
 
   <!-- Left: icon (40%) -->
   <div style="width:40%;height:100%;position:relative;display:flex;align-items:center;justify-content:center;padding-top:${headerReserve}px;">
@@ -875,9 +926,9 @@ function splitLayout(input: IconEventInput): string {
   } else {
     // Story (vertical) — icon top, text bottom
     return `
-<div class="poster split-layout" style="width:${width}px;height:${height}px;position:relative;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;direction:rtl;color:#fff;background-image:url('${BG_STATS_HERO_DATA_URI}');background-size:cover;background-position:center;">
+<div class="poster split-layout" style="width:${width}px;height:${height}px;position:relative;overflow:hidden;font-family:'Frutiger LT Arabic','Cairo','Tajawal',sans-serif;direction:rtl;color:#fff;background-image:url('${BG_STATS_HERO_DATA_URI}');background-size:cover;background-position:center;">
   ${renderDeptTag(input.department, colors, input.size)}
-  <img src="${logoSrc}" style="position:absolute;top:${T.margin}px;right:${T.margin}px;height:${T.logoHeight}px;z-index:10;" crossorigin="anonymous" alt="GAC" />
+  ${renderLogo(input.logo_url, `position:absolute;top:${T.margin}px;right:${T.margin}px;z-index:10`, T.logoHeight, input.size)}
 
   <div style="position:absolute;top:12%;left:0;right:0;height:26%;display:flex;align-items:center;justify-content:center;">
     <div style="width:${mainIconSize + 100}px;height:${mainIconSize + 100}px;background:rgba(255,255,255,0.12);border:4px solid rgba(255,255,255,0.28);border-radius:50%;display:flex;align-items:center;justify-content:center;">
@@ -935,9 +986,9 @@ function typographyLayout(input: IconEventInput): string {
   const typoParagraphStyle = `font-size:${subtitleSize}px;margin:0;line-height:${T.lineHeight};font-weight:500;color:#fff;opacity:0.95;`;
 
   return `
-<div class="poster typography-layout" style="width:${width}px;height:${height}px;position:relative;overflow:hidden;font-family:'Cairo','Tajawal',sans-serif;direction:rtl;color:#fff;background-image:url('${BG_STATS_HERO_DATA_URI}');background-size:cover;background-position:center;">
+<div class="poster typography-layout" style="width:${width}px;height:${height}px;position:relative;overflow:hidden;font-family:'Frutiger LT Arabic','Cairo','Tajawal',sans-serif;direction:rtl;color:#fff;background-image:url('${BG_STATS_HERO_DATA_URI}');background-size:cover;background-position:center;">
   ${renderDeptTag(input.department, colors, input.size)}
-  <img src="${logoSrc}" style="position:absolute;top:${T.margin}px;right:${T.margin}px;height:${T.logoHeight}px;z-index:10;" crossorigin="anonymous" alt="GAC" />
+  ${renderLogo(input.logo_url, `position:absolute;top:${T.margin}px;right:${T.margin}px;z-index:10`, T.logoHeight, input.size)}
 
   <!-- Centered content, text only — no accent bar, sits below header safe zone -->
   <div style="position:absolute;top:${isSquare ? "56%" : "50%"};left:50%;transform:translate(-50%,-50%);width:100%;padding:0 ${contentPadding}px;text-align:center;">
@@ -981,6 +1032,7 @@ export function renderIconEventDesign(input: IconEventInput): string {
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
+  ${FRUTIGER_FONT_CSS}
   *{box-sizing:border-box;}
   body{margin:0;padding:0;background:#f0f0f0;display:flex;align-items:center;justify-content:center;min-height:100vh;}
   .poster{box-shadow:0 20px 60px rgba(0,0,0,0.2);}

@@ -461,6 +461,62 @@ ${iconListForAI()}
 });
 
 // ─── POST render: HTML → PNG (HD 3x) ────────────────────────────────────────
+// ─── POST /studio ──────────────────────────────────────────────────────────
+// توليد متعدد المقاسات — يقبل headline/subtitle/icon/dept + sizes[]
+// يرجع HTML لكل مقاس مطلوب (يمرّر للـ /render لاحقًا للتحويل إلى PNG)
+router.post("/designs/icon-event/studio", async (req: Request, res: Response) => {
+  const body = req.body as {
+    headline?: string;
+    subtitle?: string;
+    department?: string;
+    main_icon?: string;
+    sizes?: SizePreset[];
+    layout?: LayoutType;
+    logo_url?: string;
+  };
+
+  const headline = (body.headline || "").trim();
+  const subtitle = (body.subtitle || "").trim();
+  const department = (body.department || "").trim();
+  const mainIcon = body.main_icon || "star";
+  const layout = (body.layout || "hero") as LayoutType;
+  const sizes = Array.isArray(body.sizes) && body.sizes.length
+    ? body.sizes.filter((s) => !!SIZE_MAP[s])
+    : (["landscape"] as SizePreset[]);
+
+  if (!headline) {
+    res.status(400).json({ error: "headline مطلوب" });
+    return;
+  }
+
+  try {
+    const variants = sizes.map((size) => {
+      const input: IconEventInput = {
+        headline,
+        subtitle,
+        department: department || undefined,
+        main_icon: mainIcon,
+        color_scheme: "teal",
+        layout,
+        size,
+        logo_url: body.logo_url,
+      };
+      const { width, height } = SIZE_MAP[size];
+      return {
+        size,
+        width,
+        height,
+        html: renderIconEventDesign(input),
+      };
+    });
+
+    res.json({ variants });
+  } catch (e: any) {
+    req.log?.error({ err: e?.message }, "studio generate failed");
+    res.status(500).json({ error: "فشل توليد التصاميم", details: e?.message });
+  }
+});
+
 router.post("/designs/icon-event/render", async (req: Request, res: Response) => {
   const { html, size, quality } = req.body as { html?: string; size?: SizePreset; quality?: "hd" | "ultra" };
 
