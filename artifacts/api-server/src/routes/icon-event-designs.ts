@@ -561,6 +561,18 @@ router.post("/designs/icon-event/render", async (req: Request, res: Response) =>
     // إعطاء وقت كافٍ للخطوط والصور (الشعار)
     await new Promise((r) => setTimeout(r, 1500));
 
+    // انتظار auto-fit script (يُعيّن data-autofit attribute بعد الانتهاء)
+    try {
+      await page.waitForFunction(
+        () => document.body.getAttribute('data-autofit') !== null,
+        { timeout: 5000 }
+      );
+      // إضافة نصف ثانية بعد الانتهاء لضمان استقرار الرندر
+      await new Promise((r) => setTimeout(r, 500));
+    } catch {
+      // لا يوجد auto-fit content (مثل grid/split) — تجاوز
+    }
+
     // محاولة انتظار جاهزية الصور (الشعار)
     try {
       await page.evaluate(async () => {

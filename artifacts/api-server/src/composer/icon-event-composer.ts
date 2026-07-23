@@ -769,22 +769,35 @@ function heroLayout(input: IconEventInput): string {
     `.trim();
   }
 
+  // ═══ Flexbox column layout: content-first, no absolute positioning ═══
+  // Header (logo + dept) is absolute (fixed top). Icon + text stack vertically in a flex column
+  // that is centered in the remaining space. Padding is calculated from real header/footer heights.
+  const headerReserve = T.margin + T.logoHeight + 24;  // space taken by top row
+  const footerReserve = (dateTimeLocationChips || contactChips) ? 90 : 40;
+  const iconBoxSize = mainIconSize + 50;
+  const iconTextGap = isVeryDense ? 24 : isDense ? 32 : 44;
+  const titleGapAdj = isVeryDense ? Math.round((T.paragraphGap + 8) * 0.55) : Math.round((T.paragraphGap + 12) * 0.75);
+  const paragraphGapAdj = isVeryDense ? Math.max(T.paragraphGap - 10, 10) : Math.max(T.paragraphGap - 6, 14);
+
   return `
 <div class="poster hero-layout" style="width:${width}px;height:${height}px;position:relative;overflow:hidden;font-family:'Frutiger LT Arabic','Cairo','Tajawal',sans-serif;direction:rtl;color:#fff;background-image:url('${BG_STATS_HERO_DATA_URI}');background-size:cover;background-position:center;">
   ${renderDeptTag(input.department, colors, input.size)}
   ${renderLogo(input.logo_url, `position:absolute;top:${T.margin}px;right:${T.margin}px;z-index:5`, T.logoHeight, input.size)}
 
-  <!-- Main icon (compact) — lime accent داخل دائرة شفافة -->
-  <div style="position:absolute;top:${iconTopPct};left:50%;transform:translateX(-50%);width:${mainIconSize + 50}px;height:${mainIconSize + 50}px;background:rgba(255,255,255,0.10);border:4px solid rgba(255,255,255,0.22);border-radius:50%;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(10px);box-shadow:0 20px 60px rgba(0,0,0,0.2);">
-    <div style="color:${colors.accent};">${renderIcon(input.main_icon, mainIconSize, colors.accent)}</div>
-  </div>
+  <!-- Content column: icon + title + paragraphs (centered vertically in available space) -->
+  <div class="hero-content" style="position:absolute;top:${headerReserve}px;bottom:${footerReserve}px;left:${T.margin + 40}px;right:${T.margin + 40}px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:${iconTextGap}px;">
+    <!-- Icon in circle -->
+    <div style="flex-shrink:0;width:${iconBoxSize}px;height:${iconBoxSize}px;background:rgba(255,255,255,0.10);border:4px solid rgba(255,255,255,0.22);border-radius:50%;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(10px);box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+      <div style="color:${colors.accent};">${renderIcon(input.main_icon, mainIconSize, colors.accent)}</div>
+    </div>
 
-  <!-- Text block: title + paragraph-split subtitle (with inline email/phone if mentioned) -->
-  <div style="position:absolute;top:${textTopPct};left:0;right:0;text-align:center;padding:0 ${T.margin + 40}px;">
-    <h1 style="font-size:${heroTitleSize}px;font-weight:900;margin:0 0 ${heroTitleGap}px;line-height:1.2;letter-spacing:-1px;">${input.headline}</h1>
-    ${paragraphs.length > 0 ? `<div style="max-width:${subtitleMaxWidth}px;margin:0 auto;display:flex;flex-direction:column;gap:${isVeryDense ? Math.max(T.paragraphGap - 8, 14) : (T.paragraphGap - 4)}px;text-align:right;">
-      ${renderParagraphFlow(flow.blocks, paragraphStyle.replace('text-align:center;', 'text-align:right;'), colors, T.metaFont, { subHeadSize: isVeryDense ? 34 : undefined, bulletSize: isVeryDense ? 26 : undefined, align: "right" })}
-    </div>` : ""}
+    <!-- Text block: title + paragraphs -->
+    <div class="hero-text" style="width:100%;max-width:${subtitleMaxWidth}px;display:flex;flex-direction:column;align-items:center;">
+      <h1 class="hero-title" style="font-size:${heroTitleSize}px;font-weight:900;margin:0 0 ${titleGapAdj}px;line-height:1.15;letter-spacing:-1px;text-align:center;">${input.headline}</h1>
+      ${paragraphs.length > 0 ? `<div class="hero-paragraphs" style="width:100%;display:flex;flex-direction:column;gap:${paragraphGapAdj}px;text-align:right;">
+        ${renderParagraphFlow(flow.blocks, paragraphStyle.replace('text-align:center;', 'text-align:right;'), colors, T.metaFont, { subHeadSize: isVeryDense ? 34 : undefined, bulletSize: isVeryDense ? 26 : undefined, align: "right" })}
+      </div>` : ""}
+    </div>
   </div>
 
   <!-- Meta chips (bottom) — only shows data NOT already inline -->
@@ -1037,10 +1050,60 @@ export function renderIconEventDesign(input: IconEventInput): string {
   body{margin:0;padding:0;background:#f0f0f0;display:flex;align-items:center;justify-content:center;min-height:100vh;}
   .poster{box-shadow:0 20px 60px rgba(0,0,0,0.2);}
   svg{display:block;}
+  .hero-content{overflow:hidden;}
 </style>
 </head>
 <body>
 ${inner}
+<script>
+(function autoFitHero(){
+  // Wait for fonts to load, then measure & shrink until content fits.
+  var run = function(){
+    var content = document.querySelector('.hero-content');
+    if(!content) return;
+    var text = content.querySelector('.hero-text');
+    var title = content.querySelector('.hero-title');
+    var paragraphs = content.querySelector('.hero-paragraphs');
+    if(!text || !title) return;
+
+    // Starting sizes
+    var titleFS = parseFloat(getComputedStyle(title).fontSize);
+    // Collect paragraph nodes (p, li span, h3)
+    var textNodes = paragraphs ? paragraphs.querySelectorAll('p, li > span:last-child, h3') : [];
+    var initialSizes = [];
+    textNodes.forEach(function(n){ initialSizes.push(parseFloat(getComputedStyle(n).fontSize)); });
+
+    // Shrink loop
+    var attempts = 0;
+    var maxAttempts = 30;
+    while(content.scrollHeight > content.clientHeight && attempts < maxAttempts){
+      // Shrink title 2% then text 3%
+      titleFS = titleFS * 0.97;
+      title.style.fontSize = titleFS + 'px';
+      textNodes.forEach(function(n, i){
+        initialSizes[i] = initialSizes[i] * 0.96;
+        n.style.fontSize = initialSizes[i] + 'px';
+      });
+      // Also reduce line-height slightly and paragraph gap
+      if(paragraphs){
+        var currentGap = parseFloat(getComputedStyle(paragraphs).gap || 0);
+        if(currentGap > 6) paragraphs.style.gap = (currentGap * 0.95) + 'px';
+      }
+      attempts++;
+    }
+    // Signal completion via a marker attribute
+    document.body.setAttribute('data-autofit', 'done-' + attempts);
+  };
+  // Try after fonts ready + one frame
+  if(document.fonts && document.fonts.ready){
+    document.fonts.ready.then(function(){
+      requestAnimationFrame(function(){ requestAnimationFrame(run); });
+    });
+  } else {
+    setTimeout(run, 400);
+  }
+})();
+</script>
 </body>
 </html>
   `.trim();
