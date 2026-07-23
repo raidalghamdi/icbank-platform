@@ -684,11 +684,12 @@ function heroLayout(input: IconEventInput): string {
   const isDense = contentLength > 350 || bulletCount >= 3;
   const isVeryDense = contentLength > 650 || bulletCount >= 5 || subHeadCount >= 2;
 
-  const mainIconSize = isVeryDense
-    ? (isStory ? 100 : isSquare ? 88 : 96)
-    : isDense
-      ? (isStory ? 120 : isSquare ? 90 : 100)
-      : (isStory ? 180 : isSquare ? 140 : 140);
+  // Icon size scales with poster area (sqrt of area / reference).
+  // Reference: desktop-hd 1440×864 → ~1116px baseline → factor 1.
+  const sizeScale = Math.sqrt((width * height) / (1440 * 864));
+  const mainIconSize = Math.round(
+    (isVeryDense ? 130 : isDense ? 150 : 190) * sizeScale
+  );
   const iconTopPct = isVeryDense
     ? (isStory ? "8%" : isSquare ? "7%" : "8%")
     : isDense
@@ -699,12 +700,11 @@ function heroLayout(input: IconEventInput): string {
     : isDense
       ? (isStory ? "27%" : isSquare ? "28%" : "32%")
       : (isStory ? "32%" : isSquare ? "32%" : "38%");
-  const subtitleMaxWidth = isStory ? 1000 : isSquare ? 1000 : 1600;
-  const heroSubtitleSize = isVeryDense
-    ? (isSquare ? 26 : isStory ? 28 : 28)
-    : isDense
-      ? (isSquare ? 28 : isStory ? 30 : 30)
-      : (isSquare ? 34 : T.subtitleSize);
+  // Max width for text: 80% of poster width, capped for readability
+  const subtitleMaxWidth = Math.min(width * 0.85, height > width ? width * 0.85 : 1600);
+  // Body font size: scales with poster + density
+  const baseBodyFS = isVeryDense ? 22 : isDense ? 24 : 28;
+  const heroSubtitleSize = Math.max(11, Math.round(baseBodyFS * sizeScale));
 
   const email = (input as any).contact_email;
   const phone = (input as any).contact_phone;
@@ -726,8 +726,10 @@ function heroLayout(input: IconEventInput): string {
   ].filter(Boolean).join("");
 
   const paragraphStyle = `font-size:${heroSubtitleSize}px;margin:0;opacity:0.95;font-weight:500;line-height:${T.lineHeight - 0.1};text-align:right;`;
-  const heroTitleSize = isVeryDense ? Math.round(T.titleSize * 0.75) : T.titleSize;
-  const heroTitleGap = isVeryDense ? Math.round((T.paragraphGap + 12) * 0.5) : (T.paragraphGap + 12);
+  // Title also scales with poster (but density can shrink it)
+  const baseTitle = isVeryDense ? 42 : isDense ? 50 : 58;
+  const heroTitleSize = Math.max(16, Math.round(baseTitle * sizeScale));
+  const heroTitleGap = Math.round((isVeryDense ? 8 : 14) * sizeScale);
 
   // ─── تخطيط side-by-side للمحتوى الكثيف: أيقونة كبيرة يسار + نص يمين (RTL right-aligned) ───
   const useSideLayout = isVeryDense && (isLandscape || isSquare);
@@ -772,12 +774,16 @@ function heroLayout(input: IconEventInput): string {
   // ═══ Flexbox column layout: content-first, no absolute positioning ═══
   // Header (logo + dept) is absolute (fixed top). Icon + text stack vertically in a flex column
   // that is centered in the remaining space. Padding is calculated from real header/footer heights.
-  const headerReserve = T.margin + T.logoHeight + 24;  // space taken by top row
-  const footerReserve = (dateTimeLocationChips || contactChips) ? 90 : 40;
-  const iconBoxSize = mainIconSize + 50;
-  const iconTextGap = isVeryDense ? 24 : isDense ? 32 : 44;
-  const titleGapAdj = isVeryDense ? Math.round((T.paragraphGap + 8) * 0.55) : Math.round((T.paragraphGap + 12) * 0.75);
-  const paragraphGapAdj = isVeryDense ? Math.max(T.paragraphGap - 10, 10) : Math.max(T.paragraphGap - 6, 14);
+  // web-small/web-mini: no logo/dept, so headerReserve is just top padding
+  const isMicro = input.size === "web-small" || input.size === "web-mini";
+  const headerReserve = isMicro ? Math.round(20 * sizeScale + 10) : (T.margin + T.logoHeight + 24);
+  const footerReserve = isMicro
+    ? Math.round(20 * sizeScale + 10)
+    : ((dateTimeLocationChips || contactChips) ? Math.round(90 * sizeScale) : Math.round(40 * sizeScale));
+  const iconBoxSize = mainIconSize + Math.round(30 * sizeScale);
+  const iconTextGap = Math.round((isVeryDense ? 18 : isDense ? 26 : 36) * sizeScale);
+  const titleGapAdj = Math.round((isVeryDense ? 10 : 16) * sizeScale);
+  const paragraphGapAdj = Math.round((isVeryDense ? 10 : 14) * sizeScale);
 
   return `
 <div class="poster hero-layout" style="width:${width}px;height:${height}px;position:relative;overflow:hidden;font-family:'Frutiger LT Arabic','Cairo','Tajawal',sans-serif;direction:rtl;color:#fff;background-image:url('${BG_STATS_HERO_DATA_URI}');background-size:cover;background-position:center;">
@@ -785,7 +791,7 @@ function heroLayout(input: IconEventInput): string {
   ${renderLogo(input.logo_url, `position:absolute;top:${T.margin}px;right:${T.margin}px;z-index:5`, T.logoHeight, input.size)}
 
   <!-- Content column: icon + title + paragraphs (centered vertically in available space) -->
-  <div class="hero-content" style="position:absolute;top:${headerReserve}px;bottom:${footerReserve}px;left:${T.margin + 40}px;right:${T.margin + 40}px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:${iconTextGap}px;">
+  <div class="hero-content" style="position:absolute;top:${headerReserve}px;bottom:${footerReserve}px;left:${isMicro ? T.margin : T.margin + 40}px;right:${isMicro ? T.margin : T.margin + 40}px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:${iconTextGap}px;">
     <!-- Icon in circle -->
     <div style="flex-shrink:0;width:${iconBoxSize}px;height:${iconBoxSize}px;background:rgba(255,255,255,0.10);border:4px solid rgba(255,255,255,0.22);border-radius:50%;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(10px);box-shadow:0 20px 60px rgba(0,0,0,0.2);">
       <div style="color:${colors.accent};">${renderIcon(input.main_icon, mainIconSize, colors.accent)}</div>
