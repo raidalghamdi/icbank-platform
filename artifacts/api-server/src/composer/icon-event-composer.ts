@@ -334,14 +334,19 @@ function renderParagraphFlow(
   const listAlign = align === "center" ? "right" : align; // القوائم دائمًا RTL right-aligned
 
   // دالة ترسم bullet-list HTML فقط (بدون wrapper container)
+  // dot size scales with bullet text size for visual balance
+  const dotSize = Math.max(6, Math.round(bulletSize * 0.32));
+  const dotGap = Math.max(8, Math.round(bulletSize * 0.4));
+  const dotMarginTop = Math.round(bulletSize * 0.5);
+  const listGap = Math.max(6, Math.round(bulletSize * 0.35));
   const renderBulletList = (items: string[]): string => {
     const itemsHtml = items.map((it) =>
-      `<li style="display:flex;align-items:flex-start;gap:12px;text-align:${listAlign};direction:rtl;">`
-      + `<span style="flex-shrink:0;margin-top:${Math.round(bulletSize*0.42)}px;width:9px;height:9px;border-radius:50%;background:${colors.accent};"></span>`
+      `<li style="display:flex;align-items:flex-start;gap:${dotGap}px;text-align:${listAlign};direction:rtl;">`
+      + `<span style="flex-shrink:0;margin-top:${dotMarginTop}px;width:${dotSize}px;height:${dotSize}px;border-radius:50%;background:${colors.accent};"></span>`
       + `<span style="flex:1;font-size:${bulletSize}px;line-height:1.55;font-weight:500;color:#fff;opacity:0.95;">${it}</span>`
       + `</li>`
     ).join("");
-    return `<ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px;text-align:${listAlign};">${itemsHtml}</ul>`;
+    return `<ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:${listGap}px;text-align:${listAlign};">${itemsHtml}</ul>`;
   };
 
   // دالة ترسم sub-heading HTML فقط (مع إمكانية تصغير الهوامش للدمج مع bullets)
@@ -801,7 +806,7 @@ function heroLayout(input: IconEventInput): string {
     <div class="hero-text" style="width:100%;max-width:${subtitleMaxWidth}px;display:flex;flex-direction:column;align-items:center;">
       <h1 class="hero-title" style="font-size:${heroTitleSize}px;font-weight:900;margin:0 0 ${titleGapAdj}px;line-height:1.15;letter-spacing:-1px;text-align:center;">${input.headline}</h1>
       ${paragraphs.length > 0 ? `<div class="hero-paragraphs" style="width:100%;display:flex;flex-direction:column;gap:${paragraphGapAdj}px;text-align:right;">
-        ${renderParagraphFlow(flow.blocks, paragraphStyle.replace('text-align:center;', 'text-align:right;'), colors, T.metaFont, { subHeadSize: isVeryDense ? 34 : undefined, bulletSize: isVeryDense ? 26 : undefined, align: "right" })}
+        ${renderParagraphFlow(flow.blocks, paragraphStyle.replace('text-align:center;', 'text-align:right;'), colors, T.metaFont, { subHeadSize: Math.round(heroSubtitleSize * 1.15), bulletSize: heroSubtitleSize, align: "right" })}
       </div>` : ""}
     </div>
   </div>
