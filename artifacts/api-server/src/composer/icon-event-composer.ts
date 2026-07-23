@@ -123,9 +123,9 @@ const SIZE_TOKENS: Record<SizePreset, {
   // مقاسات جديدة رسمية (scaled proportionally from 2000×1125 landscape base)
   "uhd-4k":       { margin: 140, deptFont: 46, deptPaddingV: 30, deptPaddingH: 82, logoHeight: 150, titleSize: 142, subtitleSize: 80, metaFont: 58, paragraphGap: 54, lineHeight: 1.75 },
   "desktop-hd":   { margin: 52,  deptFont: 18, deptPaddingV: 12, deptPaddingH: 30, logoHeight: 56,  titleSize: 54,  subtitleSize: 30, metaFont: 22, paragraphGap: 20, lineHeight: 1.7  },
-  "web-standard": { margin: 40,  deptFont: 14, deptPaddingV: 9,  deptPaddingH: 24, logoHeight: 42,  titleSize: 40,  subtitleSize: 22, metaFont: 16, paragraphGap: 14, lineHeight: 1.65 },
-  "web-small":    { margin: 28,  deptFont: 11, deptPaddingV: 6,  deptPaddingH: 18, logoHeight: 32,  titleSize: 32,  subtitleSize: 18, metaFont: 13, paragraphGap: 10, lineHeight: 1.6  },
-  "web-mini":     { margin: 24,  deptFont: 10, deptPaddingV: 6,  deptPaddingH: 16, logoHeight: 28,  titleSize: 28,  subtitleSize: 16, metaFont: 12, paragraphGap: 9,  lineHeight: 1.6  },
+  "web-standard": { margin: 32,  deptFont: 13, deptPaddingV: 8,  deptPaddingH: 22, logoHeight: 38,  titleSize: 32,  subtitleSize: 18, metaFont: 14, paragraphGap: 10, lineHeight: 1.55 },
+  "web-small":    { margin: 22,  deptFont: 10, deptPaddingV: 5,  deptPaddingH: 15, logoHeight: 26,  titleSize: 24,  subtitleSize: 14, metaFont: 11, paragraphGap: 7,  lineHeight: 1.5  },
+  "web-mini":     { margin: 18,  deptFont: 9,  deptPaddingV: 5,  deptPaddingH: 13, logoHeight: 22,  titleSize: 22,  subtitleSize: 13, metaFont: 10, paragraphGap: 6,  lineHeight: 1.5  },
   "story-hd":     { margin: 150, deptFont: 60, deptPaddingV: 40, deptPaddingH: 100,logoHeight: 200, titleSize: 200, subtitleSize: 105,metaFont: 72, paragraphGap: 66, lineHeight: 1.85 },
 };
 
