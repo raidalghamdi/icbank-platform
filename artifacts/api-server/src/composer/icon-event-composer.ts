@@ -781,10 +781,19 @@ function heroLayout(input: IconEventInput): string {
   // that is centered in the remaining space. Padding is calculated from real header/footer heights.
   // web-small/web-mini: no logo/dept, so headerReserve is just top padding
   const isMicro = input.size === "web-small" || input.size === "web-mini";
-  const headerReserve = isMicro ? Math.round(20 * sizeScale + 10) : (T.margin + T.logoHeight + 24);
+  const isTall = height > width * 1.3; // story-hd & story
+  // For tall (story) posters, keep a bigger top reserve so content sits
+  // in the upper 60% of the frame rather than dead center.
+  const headerReserve = isMicro
+    ? Math.round(20 * sizeScale + 10)
+    : isTall
+      ? Math.round(height * 0.18)
+      : (T.margin + T.logoHeight + 24);
   const footerReserve = isMicro
     ? Math.round(20 * sizeScale + 10)
-    : ((dateTimeLocationChips || contactChips) ? Math.round(90 * sizeScale) : Math.round(40 * sizeScale));
+    : isTall
+      ? Math.round(height * 0.25) // bigger bottom margin for tall posters (visual balance)
+      : ((dateTimeLocationChips || contactChips) ? Math.round(90 * sizeScale) : Math.round(40 * sizeScale));
   const iconBoxSize = mainIconSize + Math.round(30 * sizeScale);
   const iconTextGap = Math.round((isVeryDense ? 18 : isDense ? 26 : 36) * sizeScale);
   const titleGapAdj = Math.round((isVeryDense ? 10 : 16) * sizeScale);
