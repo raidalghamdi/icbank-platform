@@ -1,0 +1,8 @@
+<!-- src/Icbank.Platform.Domain/Directory.Build.props (nested, merges with root) -->
+<Project>
+  <ItemGroup>
+    <!-- CI step additionally greps this project's .csproj for forbidden PackageReferences.
+         Why: R-BE-002 requires Domain to depend on nothing but System.*; this file is the
+         documented enforcement point even though MSBuild has no first-party "forbid package" gate. -->
+  </ItemGroup>
+</Project>

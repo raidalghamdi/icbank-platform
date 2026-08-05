@@ -1,0 +1,230 @@
+using Icbank.Platform.Domain.Identity;
+using Icbank.Platform.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+
+namespace Icbank.Platform.Infrastructure.Seeding;
+
+/// <summary>
+/// Idempotent reference-data + initial super-admin seeder (task requirement 6). Replaces the old
+/// system's unconditional hardcoded-password <c>TEST_USERS</c> seed (DEFECT-LOG.md SEC-14):
+/// refuses to run in Production unless <c>Seed:AllowInProduction</c> is explicitly <c>true</c>,
+/// generates a random initial super-admin password when none is configured, forces a password
+/// change on first login, and never logs the password anywhere — the one-time plaintext value is
+/// returned only from <see cref="SeedAsync"/>'s return value for the caller (Program.cs) to
+/// surface exactly once via console-only output, never a log sink.
+/// </summary>
+#pragma warning disable SA1204 // Static members should appear before non-static members — LoggerMessage partials must sit near their call sites; ordering here favors readability over the mechanical rule.
+public sealed partial class DatabaseSeeder
+{
+    private const int GeneratedPasswordLength = 24;
+
+    private readonly AppDbContext _dbContext;
+    private readonly IHostEnvironment _environment;
+    private readonly SeedOptions _options;
+    private readonly Microsoft.AspNetCore.Identity.PasswordHasher<Identity.PasswordHasherSubject> _passwordHasher = new();
+    private readonly ILogger<DatabaseSeeder> _logger;
+
+    /// <summary>Initializes a new instance of the <see cref="DatabaseSeeder"/> class.</summary>
+    /// <param name="dbContext">The write-model persistence context.</param>
+    /// <param name="environment">The hosting environment, used to gate Production seeding.</param>
+    /// <param name="options">The bound seed configuration options.</param>
+    /// <param name="logger">The structured logger. Never passed the plaintext password (R-BE-054).</param>
+    public DatabaseSeeder(AppDbContext dbContext, IHostEnvironment environment, IOptions<SeedOptions> options, ILogger<DatabaseSeeder> logger)
+    {
+        _dbContext = dbContext;
+        _environment = environment;
+        _options = options.Value;
+        _logger = logger;
+    }
+
+    /// <summary>
+    /// Seeds the 9 roles, 18 pages, 4 permissions, the default role-permission matrix, and the
+    /// initial super-admin account if none exists yet. Returns the one-time plaintext password
+    /// only when a brand-new super-admin account was just created; returns <c>null</c> on every
+    /// subsequent run (idempotent) or if seeding was skipped.
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The one-time generated super-admin password, or <c>null</c>.</returns>
+    public async Task<string?> SeedAsync(CancellationToken cancellationToken)
+    {
+        if (_environment.IsProduction() && !_options.AllowInProduction)
+        {
+            LogSeedingSkipped(_logger);
+            return null;
+        }
+
+        await SeedRolesAsync(cancellationToken);
+        await SeedPagesAsync(cancellationToken);
+        await SeedPermissionsAsync(cancellationToken);
+        await SeedDefaultRolePermissionsAsync(cancellationToken);
+        return await SeedInitialSuperAdminAsync(cancellationToken);
+    }
+
+    private async Task SeedRolesAsync(CancellationToken cancellationToken)
+    {
+        foreach (RoleName roleName in Enum.GetValues<RoleName>())
+        {
+            var machineName = RoleMachineName(roleName);
+            var exists = await _dbContext.Roles.AnyAsync(r => r.Name == machineName, cancellationToken);
+            if (exists)
+            {
+                continue;
+            }
+
+            _dbContext.Roles.Add(new Role { Name = machineName, NameAr = machineName, IsSystem = true, CreatedBy = "seeder" });
+        }
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    private async Task SeedPagesAsync(CancellationToken cancellationToken)
+    {
+        var sortOrder = 0;
+        foreach (var slug in PageSlugs.All)
+        {
+            var exists = await _dbContext.Pages.AnyAsync(p => p.Slug == slug, cancellationToken);
+            if (!exists)
+            {
+                _dbContext.Pages.Add(new Page { Slug = slug, NameAr = slug, SortOrder = sortOrder, CreatedBy = "seeder" });
+            }
+
+            sortOrder++;
+        }
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    private async Task SeedPermissionsAsync(CancellationToken cancellationToken)
+    {
+        foreach (PermissionVerbName verbName in Enum.GetValues<PermissionVerbName>())
+        {
+            var machineName = verbName.ToString().ToLowerInvariant();
+            var exists = await _dbContext.Permissions.AnyAsync(p => p.Name == machineName, cancellationToken);
+            if (!exists)
+            {
+                _dbContext.Permissions.Add(new Permission { Name = machineName, NameAr = machineName, CreatedBy = "seeder" });
+            }
+        }
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    private async Task SeedDefaultRolePermissionsAsync(CancellationToken cancellationToken)
+    {
+        // Why: only super_admin gets full grants seeded by default. Every other role starts with
+        // zero grants — this is a deliberate behaviour change from the old system, where
+        // super_admin/admin/system_admin all got identical {"*", every verb} grants
+        // (BUSINESS-RULES.md §10.2's "purely cosmetic three-tier admin" finding). See
+        // AUTH-PORT-NOTES.md for the product-facing callout.
+        Role? superAdminRole = await _dbContext.Roles.SingleOrDefaultAsync(r => r.Name == RoleMachineName(RoleName.SuperAdmin), cancellationToken);
+        if (superAdminRole is null)
+        {
+            return;
+        }
+
+        List<Page> pages = await _dbContext.Pages.ToListAsync(cancellationToken);
+        List<Permission> permissions = await _dbContext.Permissions.ToListAsync(cancellationToken);
+
+        foreach (Page page in pages)
+        {
+            foreach (Permission permission in permissions)
+            {
+                var exists = await _dbContext.RolePermissions.AnyAsync(
+                    rp => rp.RoleId == superAdminRole.Id && rp.PageId == page.Id && rp.PermissionId == permission.Id,
+                    cancellationToken);
+                if (!exists)
+                {
+                    _dbContext.RolePermissions.Add(new RolePermission
+                    {
+                        RoleId = superAdminRole.Id,
+                        PageId = page.Id,
+                        PermissionId = permission.Id,
+                        CreatedBy = "seeder",
+                    });
+                }
+            }
+        }
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    private async Task<string?> SeedInitialSuperAdminAsync(CancellationToken cancellationToken)
+    {
+        var alreadyExists = await _dbContext.Users.AnyAsync(u => u.Email == _options.InitialSuperAdminEmail, cancellationToken);
+        if (alreadyExists)
+        {
+            return null;
+        }
+
+        var password = string.IsNullOrWhiteSpace(_options.InitialSuperAdminPassword)
+            ? GenerateRandomPassword()
+            : _options.InitialSuperAdminPassword;
+
+        var user = new User
+        {
+            Email = _options.InitialSuperAdminEmail,
+            Name = "Initial Super Admin",
+            PasswordHash = _passwordHasher.HashPassword(new Identity.PasswordHasherSubject(), password),
+            IsActive = true,
+            MustChangePassword = true,
+            CreatedBy = "seeder",
+        };
+        _dbContext.Users.Add(user);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        Role? superAdminRole = await _dbContext.Roles.SingleOrDefaultAsync(r => r.Name == RoleMachineName(RoleName.SuperAdmin), cancellationToken);
+        if (superAdminRole is not null)
+        {
+            _dbContext.UserRoles.Add(new UserRole { UserId = user.Id, RoleId = superAdminRole.Id, AssignedAt = DateTime.UtcNow, CreatedBy = "seeder" });
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+
+        // Why: R-BE-054 — the password is never logged. It is only ever returned once, in
+        // memory, to Program.cs, which is responsible for surfacing it via console output (not a
+        // log sink) on first run.
+        LogSuperAdminSeeded(_logger, _options.InitialSuperAdminEmail);
+        return string.IsNullOrWhiteSpace(_options.InitialSuperAdminPassword) ? password : null;
+    }
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Seeding skipped: Production environment without Seed:AllowInProduction=true.")]
+    private static partial void LogSeedingSkipped(ILogger logger);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Seeded initial super-admin account {Email}. Password was NOT logged.")]
+    private static partial void LogSuperAdminSeeded(ILogger logger, string email);
+
+    private static string RoleMachineName(RoleName roleName) => roleName switch
+    {
+        RoleName.SuperAdmin => "super_admin",
+        RoleName.Admin => "admin",
+        RoleName.SystemAdmin => "system_admin",
+        RoleName.ApprovedManager => "approved_manager",
+        RoleName.TeamMember => "team_member",
+        RoleName.Requester => "requester",
+        RoleName.Editor => "editor",
+        RoleName.Viewer => "viewer",
+        RoleName.Guest => "guest",
+        _ => roleName.ToString().ToLowerInvariant(),
+    };
+
+    private static string GenerateRandomPassword()
+    {
+        const string upper = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+        const string lower = "abcdefghijkmnopqrstuvwxyz";
+        const string digits = "23456789";
+        const string special = "!@#$%^&*()-_=+";
+        const string alphabet = upper + lower + digits + special;
+
+        var bytes = System.Security.Cryptography.RandomNumberGenerator.GetBytes(GeneratedPasswordLength);
+        var chars = new char[GeneratedPasswordLength];
+        for (var i = 0; i < GeneratedPasswordLength; i++)
+        {
+            chars[i] = alphabet[bytes[i] % alphabet.Length];
+        }
+
+        return new string(chars);
+    }
+}
+#pragma warning restore SA1204

@@ -1,0 +1,12 @@
+# EF Core-generated migration code is scaffolded, not hand-written -- it does not follow the
+# repository's StyleCop/Roslynator/CA style rules (trailing commas, static-readonly arrays,
+# etc.), and must not be hand-edited to satisfy them since `dotnet ef migrations add` will
+# regenerate these files verbatim on every future migration. Analyzer diagnostics are disabled
+# for this folder only; the rest of the Infrastructure project remains fully enforced.
+root = false
+
+[*.cs]
+dotnet_diagnostic.SA1413.severity = none
+dotnet_diagnostic.CA1861.severity = none
+dotnet_diagnostic.SA1028.severity = none
+dotnet_diagnostic.SA1518.severity = none

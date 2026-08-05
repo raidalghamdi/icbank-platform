@@ -1,0 +1,66 @@
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- EF Core / SQL Server — pinned to latest 8.0.x patch as of Aug 2026.
+         Deviation: conventions doc says 8.0.16; 8.0.29 is the latest 8.0.x patch available today.
+         See SCAFFOLD-NOTES.md. -->
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="8.0.29" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.29" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.29" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.29" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.29" />
+
+    <!-- FluentValidation — pinned to 11.x per contract (do NOT upgrade to 12.x without sign-off). -->
+    <PackageVersion Include="FluentValidation" Version="11.11.0" />
+    <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="11.11.0" />
+
+    <!-- MediatR — pinned to 12.x per contract (13.x+ is dual-licensed, see §8 of conventions doc). -->
+    <PackageVersion Include="MediatR" Version="12.4.1" />
+
+    <!-- Serilog -->
+    <PackageVersion Include="Serilog.AspNetCore" Version="8.0.3" />
+    <PackageVersion Include="Serilog.Sinks.Console" Version="6.0.0" />
+    <PackageVersion Include="Serilog.Sinks.Seq" Version="8.0.0" />
+    <PackageVersion Include="Serilog.Enrichers.Environment" Version="3.0.1" />
+    <PackageVersion Include="Serilog.Exceptions" Version="8.4.0" />
+
+    <!-- API docs / versioning -->
+    <PackageVersion Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+    <PackageVersion Include="Asp.Versioning.Mvc" Version="8.1.1" />
+    <PackageVersion Include="Asp.Versioning.Mvc.ApiExplorer" Version="8.1.1" />
+
+    <!-- Resilience (Polly v8 wrapper) -->
+    <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="8.10.0" />
+
+    <!-- Auth -->
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.29" />
+    <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.2.0" />
+
+    <!-- Health checks -->
+    <PackageVersion Include="AspNetCore.HealthChecks.SqlServer" Version="8.0.2" />
+
+    <!-- Background jobs -->
+    <PackageVersion Include="Hangfire.AspNetCore" Version="1.8.18" />
+    <PackageVersion Include="Hangfire.SqlServer" Version="1.8.18" />
+
+    <!-- Testing -->
+    <PackageVersion Include="xunit" Version="2.9.2" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="2.8.2" />
+    <PackageVersion Include="FluentAssertions" Version="6.12.1" />
+    <PackageVersion Include="NSubstitute" Version="5.3.0" />
+    <PackageVersion Include="Testcontainers.MsSql" Version="4.1.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.29" />
+    <PackageVersion Include="coverlet.collector" Version="6.0.2" />
+    <PackageVersion Include="Bogus" Version="35.6.1" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+
+    <!-- Analyzers (root Directory.Build.props) -->
+    <PackageVersion Include="Roslynator.Analyzers" Version="4.12.9" />
+    <PackageVersion Include="StyleCop.Analyzers" Version="1.2.0-beta.556" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="8.0.0" />
+  </ItemGroup>
+</Project>
