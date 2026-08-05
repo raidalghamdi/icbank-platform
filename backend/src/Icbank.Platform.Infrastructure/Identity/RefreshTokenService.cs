@@ -72,23 +72,7 @@ public sealed class RefreshTokenService : IRefreshTokenService
             return null;
         }
 
-        var newRawToken = GenerateRawToken();
-        var replacement = new RefreshToken
-        {
-            UserId = existing.UserId,
-            TokenHash = Hash(newRawToken),
-            ExpiresAt = DateTime.UtcNow.AddHours(_options.RefreshTokenHours),
-            CreatedByIp = createdByIp,
-        };
-
-        existing.RevokedAt = DateTime.UtcNow;
-        _dbContext.Add(replacement);
-        await _dbContext.SaveChangesAsync(cancellationToken);
-
-        existing.ReplacedByTokenId = replacement.Id;
-        await _dbContext.SaveChangesAsync(cancellationToken);
-
-        return (existing.UserId, newRawToken);
+        return await IssueReplacementAsync(existing, createdByIp, cancellationToken);
     }
 
     /// <inheritdoc />
@@ -120,5 +104,28 @@ public sealed class RefreshTokenService : IRefreshTokenService
     {
         var bytes = SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(rawToken));
         return Convert.ToHexString(bytes);
+    }
+
+    /// <summary>Revokes <paramref name="existing"/> and issues its replacement token atomically.</summary>
+    private async Task<(int UserId, string NewRawToken)> IssueReplacementAsync(
+        RefreshToken existing, string? createdByIp, CancellationToken cancellationToken)
+    {
+        var newRawToken = GenerateRawToken();
+        var replacement = new RefreshToken
+        {
+            UserId = existing.UserId,
+            TokenHash = Hash(newRawToken),
+            ExpiresAt = DateTime.UtcNow.AddHours(_options.RefreshTokenHours),
+            CreatedByIp = createdByIp,
+        };
+
+        existing.RevokedAt = DateTime.UtcNow;
+        _dbContext.Add(replacement);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        existing.ReplacedByTokenId = replacement.Id;
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        return (existing.UserId, newRawToken);
     }
 }

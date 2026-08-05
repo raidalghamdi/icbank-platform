@@ -28,6 +28,20 @@ public static class DependencyInjection
     /// <returns>The same <paramref name="services"/> instance, for chaining.</returns>
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
+        AddSecurityServices(services, configuration);
+        AddSsoServices(services, configuration);
+        AddSeeding(services, configuration);
+        AddPersistence(services, configuration);
+        AddResilientHttpClients(services);
+
+        return services;
+    }
+
+    /// <summary>Registers the current-user/request-context ports, identity/auth ports, and other security-related singletons/scoped services.</summary>
+    /// <param name="services">The DI service collection.</param>
+    /// <param name="configuration">The application configuration, used for JWT options binding.</param>
+    private static void AddSecurityServices(IServiceCollection services, IConfiguration configuration)
+    {
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddScoped<IRequestContext, HttpRequestContext>();
@@ -48,7 +62,13 @@ public static class DependencyInjection
             .Bind(configuration.GetSection(JwtOptions.SectionName))
             .Validate(options => !string.IsNullOrWhiteSpace(options.SigningKey), "Jwt:SigningKey must be configured.")
             .ValidateOnStart();
+    }
 
+    /// <summary>Registers Azure AD SSO support: the distributed state cache, options binding, the IdP <c>HttpClient</c>, and the SSO ports.</summary>
+    /// <param name="services">The DI service collection.</param>
+    /// <param name="configuration">The application configuration, used for Azure AD options binding.</param>
+    private static void AddSsoServices(IServiceCollection services, IConfiguration configuration)
+    {
         // Why: Azure AD SSO (BUSINESS-RULES.md §11.2/§11.3) — the distributed cache is a
         // single-instance in-memory implementation by default; swap AddDistributedMemoryCache()
         // for a Redis-backed registration to support horizontal scaling (see AUTH-PORT-NOTES.md).
@@ -58,10 +78,22 @@ public static class DependencyInjection
         services.AddScoped<IAzureAdClient, AzureAdClient>();
         services.AddSingleton<ISsoStateStore, DistributedSsoStateStore>();
         services.AddScoped<ISsoOptionsProvider, AzureAdOptionsProvider>();
+    }
 
+    /// <summary>Registers database-seeding options and the <see cref="Seeding.DatabaseSeeder"/>.</summary>
+    /// <param name="services">The DI service collection.</param>
+    /// <param name="configuration">The application configuration, used for seed options binding.</param>
+    private static void AddSeeding(IServiceCollection services, IConfiguration configuration)
+    {
         services.AddOptions<Seeding.SeedOptions>().Bind(configuration.GetSection(Seeding.SeedOptions.SectionName));
         services.AddScoped<Seeding.DatabaseSeeder>();
+    }
 
+    /// <summary>Registers the <see cref="AuditInterceptor"/>, the EF Core <see cref="AppDbContext"/>, and the narrow <c>IApplicationDbContext</c> port Application consumes.</summary>
+    /// <param name="services">The DI service collection.</param>
+    /// <param name="configuration">The application configuration, used to resolve the SQL Server connection string.</param>
+    private static void AddPersistence(IServiceCollection services, IConfiguration configuration)
+    {
         // Why: AuditInterceptor depends on the scoped ICurrentUserService, so it must itself be
         // scoped (a singleton cannot consume a scoped dependency — ASP.NET Core's DI validator
         // rejects this at startup with ValidateScopes/ValidateOnBuild).
@@ -78,10 +110,6 @@ public static class DependencyInjection
         // this resolves it to the same scoped AppDbContext instance EF Core already manages.
         services.AddScoped<Icbank.Platform.Application.Common.Interfaces.IApplicationDbContext>(
             sp => sp.GetRequiredService<AppDbContext>());
-
-        AddResilientHttpClients(services);
-
-        return services;
     }
 
     /// <summary>Registers the named <c>HttpClient</c> instances used for outbound calls, wrapped in a standard resilience pipeline (Polly v8 via <c>Microsoft.Extensions.Http.Resilience</c>).</summary>

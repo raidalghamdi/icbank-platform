@@ -37,6 +37,27 @@ public sealed class UpdateRolePermissionsCommandHandler : IRequestHandler<Update
             _dbContext.RolePermissions.Where(rp => rp.RoleId == request.RoleId), cancellationToken);
         var beforeSnapshot = existingGrants.Select(g => new { g.PageId, g.PermissionId }).ToList();
 
+        await ReplaceGrantsAsync(request, existingGrants, cancellationToken);
+
+        await _auditLog.RecordAsync(
+            request.ActorUserId,
+            "role.permissions.replace",
+            "Role",
+            request.RoleId.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            before: beforeSnapshot,
+            after: request.Grants,
+            cancellationToken);
+
+        return Result<bool>.Success(true);
+    }
+
+    /// <summary>
+    /// Removes the role's existing permission grants and inserts the requested replacement set
+    /// in a single change-tracker graph, flushed by one <c>SaveChangesAsync</c> call.
+    /// </summary>
+    private async Task ReplaceGrantsAsync(
+        UpdateRolePermissionsCommand request, List<RolePermission> existingGrants, CancellationToken cancellationToken)
+    {
         List<Page> pages = await _queryExecutor.ToListAsync(_dbContext.Pages, cancellationToken);
         List<Permission> permissions = await _queryExecutor.ToListAsync(_dbContext.Permissions, cancellationToken);
 
@@ -62,16 +83,5 @@ public sealed class UpdateRolePermissionsCommandHandler : IRequestHandler<Update
         }
 
         await _dbContext.SaveChangesAsync(cancellationToken);
-
-        await _auditLog.RecordAsync(
-            request.ActorUserId,
-            "role.permissions.replace",
-            "Role",
-            request.RoleId.ToString(System.Globalization.CultureInfo.InvariantCulture),
-            before: beforeSnapshot,
-            after: request.Grants,
-            cancellationToken);
-
-        return Result<bool>.Success(true);
     }
 }

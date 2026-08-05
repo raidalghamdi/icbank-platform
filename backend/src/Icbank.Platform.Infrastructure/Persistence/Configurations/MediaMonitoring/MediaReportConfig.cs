@@ -22,6 +22,15 @@ public sealed class MediaReportConfig : IEntityTypeConfiguration<MediaReport>
         builder.ToTable("media_reports");
         builder.ConfigureAuditable();
 
+        ConfigureColumns(builder);
+        ConfigureJsonColumns(builder);
+        ConfigureIndexes(builder);
+        ConfigureRelationships(builder);
+    }
+
+    /// <summary>Maps the scalar columns of <see cref="MediaReport"/>.</summary>
+    private static void ConfigureColumns(EntityTypeBuilder<MediaReport> builder)
+    {
         builder.Property(r => r.Title).HasColumnName("title").HasMaxLength(TitleMaxLength).IsRequired();
         builder.Property(r => r.ReportType).HasColumnName("report_type").HasMaxLength(ReportTypeMaxLength).HasConversion<string>().IsRequired();
         builder.Property(r => r.Audience).HasColumnName("audience").HasMaxLength(AudienceMaxLength).HasConversion<string>().IsRequired();
@@ -35,7 +44,11 @@ public sealed class MediaReportConfig : IEntityTypeConfiguration<MediaReport>
         builder.Property(r => r.GeneratedByName).HasColumnName("generated_by_name").HasMaxLength(NameMaxLength);
         builder.Property(r => r.AiModel).HasColumnName("ai_model").HasMaxLength(AiModelMaxLength);
         builder.Property(r => r.Status).HasColumnName("status").HasMaxLength(StatusMaxLength).HasConversion<string>().IsRequired();
+    }
 
+    /// <summary>Maps the JSON-backed columns of <see cref="MediaReport"/>.</summary>
+    private static void ConfigureJsonColumns(EntityTypeBuilder<MediaReport> builder)
+    {
         builder.Property(r => r.Sources)
             .HasColumnName("sources_json")
             .HasColumnType("nvarchar(max)")
@@ -47,10 +60,18 @@ public sealed class MediaReportConfig : IEntityTypeConfiguration<MediaReport>
             .HasColumnType("nvarchar(max)")
             .HasConversion(JsonValueConverter.Create<MediaReportStats>())
             .Metadata.SetValueComparer(JsonValueConverter.CreateComparer<MediaReportStats>());
+    }
 
+    /// <summary>Declares the secondary indexes for <see cref="MediaReport"/>.</summary>
+    private static void ConfigureIndexes(EntityTypeBuilder<MediaReport> builder)
+    {
         builder.HasIndex(r => r.GeneratedByUserId).HasDatabaseName("ix_media_reports_generated_by_user_id");
         builder.HasIndex(r => new { r.DateFrom, r.DateTo }).HasDatabaseName("ix_media_reports_date_range");
+    }
 
+    /// <summary>Declares the foreign-key relationships for <see cref="MediaReport"/>.</summary>
+    private static void ConfigureRelationships(EntityTypeBuilder<MediaReport> builder)
+    {
         // Restrict: DATA-MODEL.md section 4 flags generated_by_user_id as an unenforced implied
         // FK; now enforced. Restrict preserves the report (a business record) if the generating
         // user is later deleted -- the denormalized GeneratedByName already preserves the

@@ -58,6 +58,19 @@
     <PackageVersion Include="Bogus" Version="35.6.1" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
 
+    <!--
+      R-BE-076 - transitive security pins. Central transitive pinning is on, so
+      declaring these here forces the whole graph onto a non-vulnerable version.
+      Each entry must cite the advisory it closes and the package that pulled the
+      vulnerable version in, so the pin can be retired when the parent updates.
+    -->
+    <!-- GHSA-5crp-9r3c-p9vr (High) - pulled in by Hangfire.SqlServer 1.8.18 -->
+    <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
+    <!-- GHSA-wvxc-855f-jvrv (Moderate) - pulled in by Microsoft.Identity.Web / Azure SDK -->
+    <PackageVersion Include="Azure.Identity" Version="1.13.2" />
+    <!-- GHSA-x674-v45j-fwxw (Low) - transitive of Azure.Identity -->
+    <PackageVersion Include="Microsoft.Identity.Client" Version="4.67.2" />
+
     <!-- Analyzers (root Directory.Build.props) -->
     <PackageVersion Include="Roslynator.Analyzers" Version="4.12.9" />
     <PackageVersion Include="StyleCop.Analyzers" Version="1.2.0-beta.556" />

@@ -20,6 +20,15 @@ public sealed class PromptFrameworkConfig : IEntityTypeConfiguration<PromptFrame
         builder.ToTable("prompt_frameworks");
         builder.ConfigureAuditable();
 
+        ConfigureColumns(builder);
+        ConfigureJsonColumns(builder);
+        ConfigureIndexes(builder);
+        ConfigureRelationships(builder);
+    }
+
+    /// <summary>Maps the scalar columns of <see cref="PromptFramework"/>.</summary>
+    private static void ConfigureColumns(EntityTypeBuilder<PromptFramework> builder)
+    {
         builder.Property(f => f.NameAr).HasColumnName("name_ar").HasMaxLength(NameMaxLength).IsRequired();
         builder.Property(f => f.NameEn).HasColumnName("name_en").HasMaxLength(NameMaxLength);
         builder.Property(f => f.DescriptionAr).HasColumnName("description_ar").HasColumnType("nvarchar(max)");
@@ -34,7 +43,11 @@ public sealed class PromptFrameworkConfig : IEntityTypeConfiguration<PromptFrame
         builder.Property(f => f.CreatedByUserId).HasColumnName("created_by_user_id");
         builder.Property(f => f.CreatedByName).HasColumnName("created_by_name").HasMaxLength(NameMaxLength);
         builder.Property(f => f.Status).HasColumnName("status").HasMaxLength(StatusMaxLength).HasConversion<string>().IsRequired();
+    }
 
+    /// <summary>Maps the JSON-backed list columns of <see cref="PromptFramework"/>.</summary>
+    private static void ConfigureJsonColumns(EntityTypeBuilder<PromptFramework> builder)
+    {
         builder.Property(f => f.Variables)
             .HasColumnName("variables_json")
             .HasColumnType("nvarchar(max)")
@@ -46,10 +59,18 @@ public sealed class PromptFrameworkConfig : IEntityTypeConfiguration<PromptFrame
             .HasColumnType("nvarchar(max)")
             .HasConversion(JsonListValueConverter.Create<string>())
             .Metadata.SetValueComparer(JsonListValueConverter.CreateComparer<string>());
+    }
 
+    /// <summary>Declares the secondary indexes for <see cref="PromptFramework"/>.</summary>
+    private static void ConfigureIndexes(EntityTypeBuilder<PromptFramework> builder)
+    {
         builder.HasIndex(f => f.CreatedByUserId).HasDatabaseName("ix_prompt_frameworks_created_by_user_id");
         builder.HasIndex(f => f.Category).HasDatabaseName("ix_prompt_frameworks_category");
+    }
 
+    /// <summary>Declares the foreign-key relationships for <see cref="PromptFramework"/>.</summary>
+    private static void ConfigureRelationships(EntityTypeBuilder<PromptFramework> builder)
+    {
         // Restrict: DATA-MODEL.md section 4 flags created_by_user_id as an unenforced implied
         // FK; now enforced. Restrict preserves the framework (reusable product IP) if the
         // creating user is later deleted.

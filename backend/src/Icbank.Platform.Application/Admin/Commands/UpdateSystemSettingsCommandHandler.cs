@@ -32,6 +32,26 @@ public sealed class UpdateSystemSettingsCommandHandler : IRequestHandler<UpdateS
             return Result<bool>.Failure("unknown_setting_key: " + string.Join(',', unknownKeys));
         }
 
+        List<string> changedKeys = await ApplySettingsAsync(request, cancellationToken);
+
+        // Why: R-BE-054 — secret values (azure_ad_client_secret) are never written to the audit
+        // log payload; only the fact that the key changed is recorded.
+        await _auditLog.RecordAsync(
+            request.ActorUserId,
+            "settings.update",
+            "SystemSetting",
+            string.Join(',', changedKeys),
+            before: null,
+            after: new { ChangedKeys = changedKeys },
+            cancellationToken);
+
+        return Result<bool>.Success(true);
+    }
+
+    /// <summary>Upserts each requested setting against the existing rows and persists the changes.</summary>
+    /// <returns>The keys that were included in the request, in request order.</returns>
+    private async Task<List<string>> ApplySettingsAsync(UpdateSystemSettingsCommand request, CancellationToken cancellationToken)
+    {
         List<SystemSetting> existing = await _queryExecutor.ToListAsync(_dbContext.SystemSettings, cancellationToken);
         var actorId = request.ActorUserId.ToString(System.Globalization.CultureInfo.InvariantCulture);
         var changedKeys = new List<string>();
@@ -53,18 +73,6 @@ public sealed class UpdateSystemSettingsCommandHandler : IRequestHandler<UpdateS
         }
 
         await _dbContext.SaveChangesAsync(cancellationToken);
-
-        // Why: R-BE-054 — secret values (azure_ad_client_secret) are never written to the audit
-        // log payload; only the fact that the key changed is recorded.
-        await _auditLog.RecordAsync(
-            request.ActorUserId,
-            "settings.update",
-            "SystemSetting",
-            string.Join(',', changedKeys),
-            before: null,
-            after: new { ChangedKeys = changedKeys },
-            cancellationToken);
-
-        return Result<bool>.Success(true);
+        return changedKeys;
     }
 }

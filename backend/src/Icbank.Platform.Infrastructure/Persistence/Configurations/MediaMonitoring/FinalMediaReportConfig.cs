@@ -26,6 +26,20 @@ public sealed class FinalMediaReportConfig : IEntityTypeConfiguration<FinalMedia
         builder.ToTable("final_media_reports");
         builder.ConfigureAuditable();
 
+        ConfigureColumns(builder);
+        ConfigureJsonColumns(builder);
+        ConfigureIndexes(builder);
+        ConfigureRelationships(builder);
+
+        // Note: ConfigureAuditable() still applies the standard DeletedAt column/query filter
+        // for schema consistency (every entity gets the closed audit-column set per the task's
+        // rulebook-compliance requirement), even though the application layer should never call
+        // SoftDelete() on this table in practice -- immutability is the design intent here.
+    }
+
+    /// <summary>Maps the scalar columns of <see cref="FinalMediaReport"/>.</summary>
+    private static void ConfigureColumns(EntityTypeBuilder<FinalMediaReport> builder)
+    {
         builder.Property(r => r.ReportNumber).HasColumnName("report_number").HasMaxLength(ReportNumberMaxLength).IsRequired();
         builder.Property(r => r.Title).HasColumnName("title").HasMaxLength(TitleMaxLength).IsRequired();
         builder.Property(r => r.ReportType).HasColumnName("report_type").HasMaxLength(ReportTypeMaxLength).HasConversion<string>().IsRequired();
@@ -48,7 +62,11 @@ public sealed class FinalMediaReportConfig : IEntityTypeConfiguration<FinalMedia
         builder.Property(r => r.ContentSha256).HasColumnName("content_sha256").HasMaxLength(Sha256MaxLength).IsRequired();
         builder.Property(r => r.PdfStorageKey).HasColumnName("pdf_storage_key").HasMaxLength(StorageKeyMaxLength);
         builder.Property(r => r.ViewCount).HasColumnName("view_count").IsRequired();
+    }
 
+    /// <summary>Maps the JSON-backed columns of <see cref="FinalMediaReport"/>.</summary>
+    private static void ConfigureJsonColumns(EntityTypeBuilder<FinalMediaReport> builder)
+    {
         builder.Property(r => r.Kpis).HasColumnName("kpis_json").HasColumnType("nvarchar(max)")
             .HasConversion(JsonValueConverter.CreateRequired<ReportKpis>()).Metadata.SetValueComparer(JsonValueConverter.CreateRequiredComparer<ReportKpis>());
         builder.Property(r => r.TopNews).HasColumnName("top_news_json").HasColumnType("nvarchar(max)")
@@ -71,19 +89,22 @@ public sealed class FinalMediaReportConfig : IEntityTypeConfiguration<FinalMedia
             .HasConversion(JsonListValueConverter.Create<QuoteAppendixItem>()).Metadata.SetValueComparer(JsonListValueConverter.CreateComparer<QuoteAppendixItem>());
         builder.Property(r => r.Sources).HasColumnName("sources_json").HasColumnType("nvarchar(max)")
             .HasConversion(JsonListValueConverter.Create<SourceRef>()).Metadata.SetValueComparer(JsonListValueConverter.CreateComparer<SourceRef>());
+    }
 
+    /// <summary>Declares the secondary indexes for <see cref="FinalMediaReport"/>.</summary>
+    private static void ConfigureIndexes(EntityTypeBuilder<FinalMediaReport> builder)
+    {
         builder.HasIndex(r => r.ReportNumber).IsUnique().HasDatabaseName("ux_final_media_reports_report_number");
         builder.HasIndex(r => r.GeneratedByUserId).HasDatabaseName("ix_final_media_reports_generated_by_user_id");
+    }
 
+    /// <summary>Declares the foreign-key relationships for <see cref="FinalMediaReport"/>.</summary>
+    private static void ConfigureRelationships(EntityTypeBuilder<FinalMediaReport> builder)
+    {
         // Restrict: DATA-MODEL.md section 4 flags generated_by_user_id as an unenforced implied
         // FK; now enforced. Restrict because this table is immutable/append-only by design --
         // the generating user's removal must never mutate or cascade into a locked report.
         builder.HasOne(r => r.GeneratedByUser).WithMany()
             .HasForeignKey(r => r.GeneratedByUserId).OnDelete(DeleteBehavior.Restrict);
-
-        // Note: ConfigureAuditable() still applies the standard DeletedAt column/query filter
-        // for schema consistency (every entity gets the closed audit-column set per the task's
-        // rulebook-compliance requirement), even though the application layer should never call
-        // SoftDelete() on this table in practice -- immutability is the design intent here.
     }
 }

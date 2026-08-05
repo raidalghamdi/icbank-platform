@@ -42,51 +42,14 @@ public sealed class SafeStoragePathValidator : ISafeStoragePathValidator
             return SafePathValidationResult.Invalid("decode_limit_exceeded");
         }
 
-        if (ContainsNullOrControlBytes(decoded))
+        SafePathValidationResult? decodedRejection = RejectDecodedForm(candidatePath, decoded);
+        if (decodedRejection is not null)
         {
-            return SafePathValidationResult.Invalid("encoded_null_or_control_byte");
+            return decodedRejection;
         }
 
         var normalizedSlashes = decoded.Replace('\\', '/');
-
-        if (IsAbsoluteOrRooted(normalizedSlashes))
-        {
-            return SafePathValidationResult.Invalid("absolute_or_rooted_path");
-        }
-
-        if (IsUncPath(candidatePath) || IsUncPath(decoded))
-        {
-            return SafePathValidationResult.Invalid("unc_path");
-        }
-
-        string resolved;
-        try
-        {
-            resolved = Path.GetFullPath(VirtualRoot + "/" + normalizedSlashes);
-        }
-        catch (ArgumentException)
-        {
-            return SafePathValidationResult.Invalid("unresolvable_path");
-        }
-
-        var resolvedSlashes = resolved.Replace('\\', '/');
-        if (!resolvedSlashes.StartsWith(VirtualRoot + "/", StringComparison.Ordinal) && resolvedSlashes != VirtualRoot)
-        {
-            // Why: this is the actual traversal defense — if resolving ".." segments walked the
-            // candidate path outside the virtual root, no amount of string-matching upstream
-            // would have caught every encoding of the escape.
-            return SafePathValidationResult.Invalid("traversal_escapes_root");
-        }
-
-        var normalizedRelative = resolvedSlashes[(VirtualRoot.Length + 1)..].TrimStart('/');
-
-        if (allowedPrefixes.Count > 0 &&
-            !allowedPrefixes.Any(prefix => normalizedRelative.StartsWith(prefix, StringComparison.Ordinal)))
-        {
-            return SafePathValidationResult.Invalid("prefix_not_allowed");
-        }
-
-        return SafePathValidationResult.Valid(normalizedRelative);
+        return ResolveAgainstRoot(normalizedSlashes, allowedPrefixes);
     }
 
     private static bool ContainsNullOrControlBytes(string value)
@@ -113,6 +76,25 @@ public sealed class SafeStoragePathValidator : ISafeStoragePathValidator
         return null;
     }
 
+    /// <summary>
+    /// Checks the post-decode invariants that must hold regardless of how the input was encoded:
+    /// no smuggled control bytes and no UNC prefix on either the raw or decoded form.
+    /// </summary>
+    private static SafePathValidationResult? RejectDecodedForm(string candidatePath, string decoded)
+    {
+        if (ContainsNullOrControlBytes(decoded))
+        {
+            return SafePathValidationResult.Invalid("encoded_null_or_control_byte");
+        }
+
+        if (IsUncPath(candidatePath) || IsUncPath(decoded))
+        {
+            return SafePathValidationResult.Invalid("unc_path");
+        }
+
+        return null;
+    }
+
     private static bool IsAbsoluteOrRooted(string normalizedSlashes)
     {
         if (normalizedSlashes.StartsWith('/'))
@@ -132,5 +114,67 @@ public sealed class SafeStoragePathValidator : ISafeStoragePathValidator
     private static bool IsUncPath(string value)
     {
         return value.StartsWith("\\\\", StringComparison.Ordinal) || value.StartsWith("//", StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// Normalizes <paramref name="normalizedSlashes"/> against <see cref="VirtualRoot"/>, verifies
+    /// the resolved path did not escape the root, and checks the caller's prefix allowlist.
+    /// </summary>
+    private static SafePathValidationResult ResolveAgainstRoot(
+        string normalizedSlashes, IReadOnlyCollection<string> allowedPrefixes)
+    {
+        if (IsAbsoluteOrRooted(normalizedSlashes))
+        {
+            return SafePathValidationResult.Invalid("absolute_or_rooted_path");
+        }
+
+        var resolvedSlashes = TryResolveFullPath(normalizedSlashes, out SafePathValidationResult? failure);
+        if (failure is not null)
+        {
+            return failure;
+        }
+
+        if (!StaysWithinVirtualRoot(resolvedSlashes!))
+        {
+            // Why: this is the actual traversal defense — if resolving ".." segments walked the
+            // candidate path outside the virtual root, no amount of string-matching upstream
+            // would have caught every encoding of the escape.
+            return SafePathValidationResult.Invalid("traversal_escapes_root");
+        }
+
+        var normalizedRelative = resolvedSlashes![(VirtualRoot.Length + 1)..].TrimStart('/');
+        return CheckAllowedPrefix(normalizedRelative, allowedPrefixes);
+    }
+
+    /// <summary>Resolves <paramref name="normalizedSlashes"/> under <see cref="VirtualRoot"/> via .NET's own path-resolution algorithm.</summary>
+    private static string? TryResolveFullPath(string normalizedSlashes, out SafePathValidationResult? failure)
+    {
+        try
+        {
+            failure = null;
+            return Path.GetFullPath(VirtualRoot + "/" + normalizedSlashes).Replace('\\', '/');
+        }
+        catch (ArgumentException)
+        {
+            failure = SafePathValidationResult.Invalid("unresolvable_path");
+            return null;
+        }
+    }
+
+    private static bool StaysWithinVirtualRoot(string resolvedSlashes)
+    {
+        return resolvedSlashes.StartsWith(VirtualRoot + "/", StringComparison.Ordinal) || resolvedSlashes == VirtualRoot;
+    }
+
+    private static SafePathValidationResult CheckAllowedPrefix(
+        string normalizedRelative, IReadOnlyCollection<string> allowedPrefixes)
+    {
+        if (allowedPrefixes.Count > 0 &&
+            !allowedPrefixes.Any(prefix => normalizedRelative.StartsWith(prefix, StringComparison.Ordinal)))
+        {
+            return SafePathValidationResult.Invalid("prefix_not_allowed");
+        }
+
+        return SafePathValidationResult.Valid(normalizedRelative);
     }
 }

@@ -36,16 +36,10 @@ public sealed class AssignUserRoleCommandHandler : IRequestHandler<AssignUserRol
     {
         Role? role = await _queryExecutor.SingleOrDefaultAsync(
             _dbContext.Roles.Where(r => r.Id == request.RoleId), cancellationToken);
-        if (role is null)
+        Result<bool>? roleGuardFailure = ValidateRole(role, request.ActorIsSuperAdmin);
+        if (roleGuardFailure is not null || role is null)
         {
-            return Result<bool>.Failure("role_not_found");
-        }
-
-        // Why: SEC-01 — this is the enforcement point. A plain admin (ActorIsSuperAdmin == false)
-        // may never grant super_admin, to anyone, including themselves.
-        if (string.Equals(role.Name, SuperAdminRoleName, StringComparison.OrdinalIgnoreCase) && !request.ActorIsSuperAdmin)
-        {
-            return Result<bool>.Failure("forbidden_super_admin_grant");
+            return roleGuardFailure!.Value;
         }
 
         User? targetUser = await _queryExecutor.SingleOrDefaultAsync(
@@ -71,15 +65,41 @@ public sealed class AssignUserRoleCommandHandler : IRequestHandler<AssignUserRol
         });
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        await _auditLog.RecordAsync(
-            request.ActorUserId,
-            "user.role.assign",
-            "User",
-            request.TargetUserId.ToString(System.Globalization.CultureInfo.InvariantCulture),
-            before: null,
-            after: new { roleId = request.RoleId, roleName = role.Name },
-            cancellationToken);
+        await RecordAssignmentAuditAsync(request.ActorUserId, request.TargetUserId, role, cancellationToken);
 
         return Result<bool>.Success(true);
     }
+
+    /// <summary>
+    /// Validates the target role exists and, per SEC-01, that a non-super-admin actor is not
+    /// granting the <c>super_admin</c> role to anyone, including themselves.
+    /// </summary>
+    /// <returns>A failure result if a guard is violated; otherwise <see langword="null"/>.</returns>
+    private static Result<bool>? ValidateRole(Role? role, bool actorIsSuperAdmin)
+    {
+        if (role is null)
+        {
+            return Result<bool>.Failure("role_not_found");
+        }
+
+        // Why: SEC-01 — this is the enforcement point. A plain admin (ActorIsSuperAdmin == false)
+        // may never grant super_admin, to anyone, including themselves.
+        if (string.Equals(role.Name, SuperAdminRoleName, StringComparison.OrdinalIgnoreCase) && !actorIsSuperAdmin)
+        {
+            return Result<bool>.Failure("forbidden_super_admin_grant");
+        }
+
+        return null;
+    }
+
+    /// <summary>Writes the privileged-action audit-log entry for the role assignment.</summary>
+    private Task RecordAssignmentAuditAsync(int actorUserId, int targetUserId, Role role, CancellationToken cancellationToken) =>
+        _auditLog.RecordAsync(
+            actorUserId,
+            "user.role.assign",
+            "User",
+            targetUserId.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            before: null,
+            after: new { roleId = role.Id, roleName = role.Name },
+            cancellationToken);
 }

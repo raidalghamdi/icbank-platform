@@ -1,0 +1,117 @@
+name: Backend CI
+
+on:
+  pull_request:
+    branches: [main]
+    paths: ['backend/**', '.github/workflows/backend-ci.yml']
+  push:
+    branches: [main]
+    paths: ['backend/**', '.github/workflows/backend-ci.yml']
+
+env:
+  DOTNET_VERSION: '8.0.x'
+  COVERAGE_THRESHOLD: 70
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 'true'
+  DOTNET_NOLOGO: 'true'
+
+defaults:
+  run:
+    working-directory: backend
+
+jobs:
+  build-test-analyze:
+    runs-on: ubuntu-latest
+    services:
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: 'Y'
+          MSSQL_SA_PASSWORD: 'P@ssw0rd_CI_Only!'
+        ports: ['1433:1433']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore
+
+      # R-BE-090 — code style is not advisory
+      - name: Format verification (R-BE-090)
+        run: dotnet format --verify-no-changes --no-restore
+
+      # R-BE-091 — hard 40-line-per-method gate.
+      # No first-party Roslyn analyzer supports a configurable line threshold
+      # as a build error; see DOTNET-CONVENTIONS.md section 8.
+      - name: Method-length gate (R-BE-091)
+        run: |
+          pip install --quiet lizard
+          # lizard emits a synthetic "*global*" entry per C# file whose reported
+          # length is the whole file, not a method. Filter it out so the gate
+          # measures real methods only.
+          # EF Core migration files are generated code and are exempt.
+          lizard --CCN 15 -L 40 -w src/ -x "*/Migrations/*" \
+            | grep -v '\*global\*' > lizard.txt || true
+          if [ -s lizard.txt ]; then
+            cat lizard.txt
+            echo "::error::Method exceeds 40 lines or CCN 15 (R-BE-091)"
+            exit 1
+          fi
+          echo "R-BE-091 gate passed: no method over 40 lines or CCN 15."
+
+      # R-BE-083 — a skipped test must reference a tracking ticket
+      - name: No skip-to-green gate (R-BE-083)
+        run: |
+          if grep -rn 'Skip = "' tests/ | grep -v 'Ticket:'; then
+            echo "::error::Found Skip= without a linked Ticket: trailer (R-BE-083)"
+            exit 1
+          fi
+
+      - name: Build (warnings-as-errors, nullable enforced)
+        run: dotnet build --no-restore -c Release
+
+      # R-BE-076 — dependency vulnerability scan
+      - name: Vulnerable package scan (R-BE-076)
+        run: |
+          dotnet list package --vulnerable --include-transitive 2>&1 | tee vuln.txt
+          if grep -qiE "Critical|High" vuln.txt; then
+            echo "::error::Critical/High vulnerable package found (R-BE-076)"
+            exit 1
+          fi
+
+      - name: Run tests with coverage
+        run: |
+          dotnet test --no-build -c Release \
+            --collect:"XPlat Code Coverage" \
+            --results-directory ./coverage \
+            --settings coverlet.runsettings
+        env:
+          ConnectionStrings__Default: 'Server=localhost,1433;Database=IcbankPlatformTest;User Id=sa;Password=P@ssw0rd_CI_Only!;TrustServerCertificate=True;'
+
+      # R-BE-080 — coverage gate, Application + Domain only
+      - name: Coverage gate (R-BE-080)
+        run: |
+          dotnet tool install -g dotnet-reportgenerator-globaltool
+          export PATH="$PATH:$HOME/.dotnet/tools"
+          reportgenerator \
+            -reports:"coverage/**/coverage.cobertura.xml" \
+            -targetdir:coveragereport \
+            -reporttypes:JsonSummary \
+            -classfilters:"+Icbank.Platform.Application.*;+Icbank.Platform.Domain.*"
+          LINE_RATE=$(jq '.summary.linecoverage' coveragereport/Summary.json)
+          echo "Line coverage (Application + Domain): $LINE_RATE%"
+          if (( $(echo "$LINE_RATE < ${{ env.COVERAGE_THRESHOLD }}" | bc -l) )); then
+            echo "::error::Coverage $LINE_RATE% is below the ${{ env.COVERAGE_THRESHOLD }}% threshold (R-BE-080)"
+            exit 1
+          fi
+
+      - name: Publish coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: backend/coveragereport

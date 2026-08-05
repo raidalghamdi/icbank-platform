@@ -19,6 +19,14 @@ public sealed class ShorfahSectionConfig : IEntityTypeConfiguration<ShorfahSecti
         builder.ToTable("shorfah_sections");
         builder.ConfigureAuditable();
 
+        ConfigureColumns(builder);
+        ConfigureIndexes(builder);
+        ConfigureRelationships(builder);
+    }
+
+    /// <summary>Maps the scalar columns of <see cref="ShorfahSection"/>.</summary>
+    private static void ConfigureColumns(EntityTypeBuilder<ShorfahSection> builder)
+    {
         builder.Property(s => s.IssueId).HasColumnName("issue_id").IsRequired();
         builder.Property(s => s.ParentSectionId).HasColumnName("parent_section_id");
         builder.Property(s => s.SectionType).HasColumnName("section_type").HasMaxLength(SectionTypeMaxLength).HasConversion<string>().IsRequired();
@@ -44,13 +52,21 @@ public sealed class ShorfahSectionConfig : IEntityTypeConfiguration<ShorfahSecti
         builder.Property(s => s.SlaDays).HasColumnName("sla_days");
         builder.Property(s => s.SlaStartsAt).HasColumnName("sla_starts_at").HasColumnType("datetimeoffset(3)");
         builder.Property(s => s.SlaDeadline).HasColumnName("sla_deadline").HasColumnType("datetimeoffset(3)");
+    }
 
+    /// <summary>Declares the secondary indexes for <see cref="ShorfahSection"/>.</summary>
+    private static void ConfigureIndexes(EntityTypeBuilder<ShorfahSection> builder)
+    {
         builder.HasIndex(s => s.IssueId).HasDatabaseName("ix_shorfah_sections_issue_id");
         builder.HasIndex(s => s.WorkflowStatus).HasDatabaseName("ix_shorfah_sections_workflow_status");
         builder.HasIndex(s => s.SlaDeadline).HasDatabaseName("ix_shorfah_sections_sla_deadline");
         builder.HasIndex(s => s.ParentSectionId).HasDatabaseName("ix_shorfah_sections_parent_section_id");
         builder.HasIndex(s => s.OwnerUserId).HasDatabaseName("ix_shorfah_sections_owner_user_id");
+    }
 
+    /// <summary>Declares the foreign-key relationships for <see cref="ShorfahSection"/>.</summary>
+    private static void ConfigureRelationships(EntityTypeBuilder<ShorfahSection> builder)
+    {
         // Cascade: the issue is the section's mandatory parent container -- deleting an issue
         // should remove all its sections (DATA-MODEL.md section 4 flags issue_id as the single
         // highest-priority unenforced implied FK gap in the schema; enforced here).
