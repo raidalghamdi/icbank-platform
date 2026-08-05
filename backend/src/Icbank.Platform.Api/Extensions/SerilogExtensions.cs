@@ -6,7 +6,9 @@ namespace Icbank.Platform.Api.Extensions;
 
 /// <summary>
 /// Configures Serilog structured logging (R-BE-050, R-BE-052) driven entirely by
-/// <c>appsettings.json</c>, so log levels and sinks differ per environment without a rebuild.
+/// <c>appsettings.json</c>, so log levels and sinks -- including the Application Insights sink
+/// enabled in deployed environments via <c>Serilog:WriteTo</c> -- differ per environment without
+/// a rebuild.
 /// </summary>
 public static class SerilogExtensions
 {

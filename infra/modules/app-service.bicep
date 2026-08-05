@@ -28,6 +28,8 @@ param sqlDatabaseName string
 param storageAccountBlobEndpoint string
 param storageAccountName string
 param environmentName string
+param acsEmailEndpoint string
+param acsEmailSenderAddress string
 param tags object
 
 var planName = '${baseName}-plan'
@@ -89,6 +91,15 @@ resource site 'Microsoft.Web/sites@2023-12-01' = {
           value: appInsightsConnectionString
         }
         {
+          // Why: same connection string, fed to the Serilog sink's config-bound Args.connectionString
+          // (see appsettings.Staging.json / appsettings.Production.json) so every structured log line
+          // -- not just the ASP.NET Core request telemetry the App Insights SDK auto-collects -- lands
+          // in the same Application Insights resource. Not a secret: an instrumentation connection
+          // string grants no read access to anything, only a write-only ingestion endpoint.
+          name: 'Serilog__WriteTo__1__Args__connectionString'
+          value: appInsightsConnectionString
+        }
+        {
           name: 'ObjectStorage__Provider'
           value: 'AzureBlob'
         }
@@ -103,6 +114,20 @@ resource site 'Microsoft.Web/sites@2023-12-01' = {
         {
           name: 'Notifications__Provider'
           value: 'AzureCommunicationServices'
+        }
+        {
+          // Why: the ACS Email endpoint URL is not a secret (it is a per-resource hostname, not a
+          // credential); the API authenticates to it via its managed identity (Azure Communication
+          // Services Email supports Entra ID auth via DefaultAzureCredential, no connection-string
+          // access key is ever configured here). Left blank by this module -- populated per
+          // environment once the operator provisions the Communication Services resource
+          // (docs/DEPLOYMENT.md), since that resource is outside this task's declared scope.
+          name: 'Notifications__AzureCommunicationServices__Endpoint'
+          value: acsEmailEndpoint
+        }
+        {
+          name: 'Notifications__AzureCommunicationServices__SenderAddress'
+          value: acsEmailSenderAddress
         }
         {
           name: 'WEBSITE_HTTPLOGGING_RETENTION_DAYS'

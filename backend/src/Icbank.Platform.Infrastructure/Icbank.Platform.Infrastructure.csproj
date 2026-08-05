@@ -18,6 +18,15 @@
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
     <PackageReference Include="Hangfire.AspNetCore" />
     <PackageReference Include="Hangfire.SqlServer" />
+    <PackageReference Include="Azure.Storage.Blobs" />
+    <PackageReference Include="Azure.Communication.Email" />
+    <!-- Aliased: Azure.Core >= 1.55.0 (floor of Azure.Storage.Blobs 12.29.1) embeds its own
+         internal Azure.Identity.DefaultAzureCredential type, which collides (CS0433) with the
+         real Azure.Identity package's type of the identical fully-qualified name when both
+         assemblies are referenced directly. Aliasing forces callers to disambiguate via
+         `extern alias identity;` + `identity::Azure.Identity.DefaultAzureCredential`. -->
+    <PackageReference Include="Azure.Identity" Aliases="identity" />
+    <PackageReference Include="Polly" />
   </ItemGroup>
 
 </Project>
