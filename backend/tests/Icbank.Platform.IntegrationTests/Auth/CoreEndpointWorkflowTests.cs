@@ -9,11 +9,11 @@ namespace Icbank.Platform.IntegrationTests.Auth;
 
 /// <summary>
 /// End-to-end workflow coverage for the Wave 1 mutating endpoints not already exercised by
-/// <see cref="Wave1EndpointAuthorizationTests"/> — approve/publish/reject/edit/delete lifecycle
+/// <see cref="CoreEndpointAuthorizationTests"/> — approve/publish/reject/edit/delete lifecycle
 /// transitions for Weekend Drafts, Weekend Places, and Week Start, plus audit-log-write
 /// assertions per task requirement 5 ("audit-log write on every mutating action").
 /// </summary>
-public sealed class Wave1EndpointWorkflowTests : IDisposable
+public sealed class CoreEndpointWorkflowTests : IDisposable
 {
     private const string SharedPassword = "Str0ng!Passw0rd#2026";
 

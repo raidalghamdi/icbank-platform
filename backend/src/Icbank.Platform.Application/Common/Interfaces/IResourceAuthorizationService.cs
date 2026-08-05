@@ -34,4 +34,15 @@ public interface IResourceAuthorizationService
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A <see cref="ResourceAuthorizationResult"/> describing whether the role exists.</returns>
     Task<ResourceAuthorizationResult> AuthorizeRoleResourceAsync(int roleId, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Confirms a targeted Shorfah issue row exists (Wave 4a: SEC-16 applied to the issue
+    /// lifecycle). The Shorfah issue aggregate has no owner/tenant concept beyond existence, so
+    /// this check is a pure existence guard -- a guessed/stale id fails closed with 404 rather
+    /// than a handler silently no-oping or throwing an unhandled null-reference.
+    /// </summary>
+    /// <param name="issueId">The client-supplied issue id.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A <see cref="ResourceAuthorizationResult"/> describing whether the issue exists.</returns>
+    Task<ResourceAuthorizationResult> AuthorizeShorfahIssueResourceAsync(int issueId, CancellationToken cancellationToken);
 }

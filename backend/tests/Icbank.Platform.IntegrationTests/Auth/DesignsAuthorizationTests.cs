@@ -13,7 +13,7 @@ namespace Icbank.Platform.IntegrationTests.Auth;
 /// requires <c>design_studio:{verb}</c>: anonymous -> 401, super-admin -> 200/201/404 as
 /// applicable.
 /// </summary>
-public sealed class Wave3bDesignsAuthorizationTests : IDisposable
+public sealed class DesignsAuthorizationTests : IDisposable
 {
     private const string SharedPassword = "Str0ng!Passw0rd#2026";
 

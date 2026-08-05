@@ -300,6 +300,33 @@ public sealed class AppDbContext : DbContext, IApplicationDbContext
     /// <inheritdoc cref="IApplicationDbContext.GeneratedDesigns" />
     IQueryable<GeneratedDesign> IApplicationDbContext.GeneratedDesigns => GeneratedDesigns;
 
+    /// <inheritdoc cref="IApplicationDbContext.ShorfahIssues" />
+    IQueryable<ShorfahIssue> IApplicationDbContext.ShorfahIssues => ShorfahIssues;
+
+    /// <inheritdoc cref="IApplicationDbContext.ShorfahSections" />
+    IQueryable<ShorfahSection> IApplicationDbContext.ShorfahSections => ShorfahSections;
+
+    /// <inheritdoc cref="IApplicationDbContext.ShorfahSectionPermissions" />
+    IQueryable<ShorfahSectionPermission> IApplicationDbContext.ShorfahSectionPermissions => ShorfahSectionPermissions;
+
+    /// <inheritdoc cref="IApplicationDbContext.ShorfahSectionMedia" />
+    IQueryable<ShorfahSectionMedia> IApplicationDbContext.ShorfahSectionMedia => ShorfahSectionMedia;
+
+    /// <inheritdoc cref="IApplicationDbContext.ShorfahWorkflowLogs" />
+    IQueryable<ShorfahWorkflowLog> IApplicationDbContext.ShorfahWorkflowLogs => ShorfahWorkflowLogs;
+
+    /// <inheritdoc cref="IApplicationDbContext.ShorfahAssignments" />
+    IQueryable<ShorfahAssignment> IApplicationDbContext.ShorfahAssignments => ShorfahAssignments;
+
+    /// <inheritdoc cref="IApplicationDbContext.ShorfahReminders" />
+    IQueryable<ShorfahReminder> IApplicationDbContext.ShorfahReminders => ShorfahReminders;
+
+    /// <inheritdoc cref="IApplicationDbContext.ShorfahSectionSlaDefaults" />
+    IQueryable<ShorfahSectionSlaDefault> IApplicationDbContext.ShorfahSectionSlaDefaults => ShorfahSectionSlaDefaults;
+
+    /// <inheritdoc cref="IApplicationDbContext.ShorfahNotifications" />
+    IQueryable<ShorfahNotification> IApplicationDbContext.ShorfahNotifications => ShorfahNotifications;
+
     /// <inheritdoc cref="IApplicationDbContext.Add{TEntity}" />
     void IApplicationDbContext.Add<TEntity>(TEntity entity) => Set<TEntity>().Add(entity);
 

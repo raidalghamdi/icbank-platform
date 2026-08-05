@@ -16,7 +16,7 @@ namespace Icbank.Platform.IntegrationTests.Auth;
 /// (PUT/DELETE) always returns 403 for every caller, matching the Node source's unconditional
 /// rejection exactly.
 /// </summary>
-public sealed class Wave3aFinalMediaReportsAuthorizationTests : IDisposable
+public sealed class FinalMediaReportsAuthorizationTests : IDisposable
 {
     private const string SharedPassword = "Str0ng!Passw0rd#2026";
 

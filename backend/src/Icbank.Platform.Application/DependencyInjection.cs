@@ -2,6 +2,7 @@ using System.Reflection;
 using FluentValidation;
 using Icbank.Platform.Application.Auth;
 using Icbank.Platform.Application.Common.Behaviors;
+using Icbank.Platform.Application.Shorfah;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Icbank.Platform.Application;
@@ -27,6 +28,8 @@ public static class DependencyInjection
 
         services.AddValidatorsFromAssembly(ApplicationAssembly);
         services.AddScoped<AuthSessionFactory>();
+        services.AddScoped<ShorfahSectionSeeder>();
+        services.AddScoped<ShorfahExportSectionSelector>();
 
         return services;
     }

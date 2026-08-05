@@ -5,6 +5,7 @@ using Icbank.Platform.Domain.Identity;
 using Icbank.Platform.Domain.InternationalDays;
 using Icbank.Platform.Domain.MediaMonitoring;
 using Icbank.Platform.Domain.Reports;
+using Icbank.Platform.Domain.Shorfah;
 using Icbank.Platform.Domain.Weekend;
 
 namespace Icbank.Platform.Application.Common.Interfaces;
@@ -129,6 +130,33 @@ public interface IApplicationDbContext
 
     /// <summary>Gets a queryable over composer-rendered output images (Wave 3b: Designs/Composer).</summary>
     IQueryable<GeneratedDesign> GeneratedDesigns { get; }
+
+    /// <summary>Gets a queryable over Shorfah magazine issues (Wave 4a: Shorfah issue lifecycle).</summary>
+    IQueryable<ShorfahIssue> ShorfahIssues { get; }
+
+    /// <summary>Gets a queryable over Shorfah magazine content sections (Wave 4a: Shorfah issue lifecycle).</summary>
+    IQueryable<ShorfahSection> ShorfahSections { get; }
+
+    /// <summary>Gets a queryable over per-section permission grants (Wave 4a: Shorfah issue lifecycle).</summary>
+    IQueryable<ShorfahSectionPermission> ShorfahSectionPermissions { get; }
+
+    /// <summary>Gets a queryable over section media attachments (Wave 4a: Shorfah issue lifecycle).</summary>
+    IQueryable<ShorfahSectionMedia> ShorfahSectionMedia { get; }
+
+    /// <summary>Gets a queryable over the section workflow audit log (Wave 4a: Shorfah issue lifecycle).</summary>
+    IQueryable<ShorfahWorkflowLog> ShorfahWorkflowLogs { get; }
+
+    /// <summary>Gets a queryable over contributor/role assignments per section (Wave 4a: Shorfah issue lifecycle).</summary>
+    IQueryable<ShorfahAssignment> ShorfahAssignments { get; }
+
+    /// <summary>Gets a queryable over sent SLA reminder records (Wave 4a: Shorfah issue lifecycle).</summary>
+    IQueryable<ShorfahReminder> ShorfahReminders { get; }
+
+    /// <summary>Gets a queryable over per-section-type SLA day defaults (Wave 4a: Shorfah issue lifecycle).</summary>
+    IQueryable<ShorfahSectionSlaDefault> ShorfahSectionSlaDefaults { get; }
+
+    /// <summary>Gets a queryable over in-app notifications (Wave 4a: Shorfah issue lifecycle).</summary>
+    IQueryable<ShorfahNotification> ShorfahNotifications { get; }
 
     /// <summary>Tracks a new entity for insertion.</summary>
     /// <typeparam name="TEntity">The entity type.</typeparam>

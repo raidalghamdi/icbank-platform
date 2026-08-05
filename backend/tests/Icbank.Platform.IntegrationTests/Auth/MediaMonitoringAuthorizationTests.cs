@@ -13,7 +13,7 @@ namespace Icbank.Platform.IntegrationTests.Auth;
 /// were completely unauthenticated in the Node source), viewer (zero grants) -> 403, super-admin
 /// -> 200/201/404 as applicable.
 /// </summary>
-public sealed class Wave3aMediaMonitoringAuthorizationTests : IDisposable
+public sealed class MediaMonitoringAuthorizationTests : IDisposable
 {
     private const string SharedPassword = "Str0ng!Passw0rd#2026";
 

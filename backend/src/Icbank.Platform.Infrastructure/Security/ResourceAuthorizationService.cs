@@ -59,4 +59,11 @@ public sealed class ResourceAuthorizationService : IResourceAuthorizationService
         var exists = await _dbContext.Roles.AnyAsync(r => r.Id == roleId, cancellationToken);
         return exists ? ResourceAuthorizationResult.Authorized : ResourceAuthorizationResult.NotFound;
     }
+
+    /// <inheritdoc />
+    public async Task<ResourceAuthorizationResult> AuthorizeShorfahIssueResourceAsync(int issueId, CancellationToken cancellationToken)
+    {
+        var exists = await _dbContext.ShorfahIssues.AnyAsync(i => i.Id == issueId, cancellationToken);
+        return exists ? ResourceAuthorizationResult.Authorized : ResourceAuthorizationResult.NotFound;
+    }
 }

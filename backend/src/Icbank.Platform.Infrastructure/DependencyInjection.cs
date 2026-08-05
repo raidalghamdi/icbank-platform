@@ -30,6 +30,7 @@ public static class DependencyInjection
     {
         AddSecurityServices(services, configuration);
         AddDesignsServices(services);
+        AddShorfahServices(services);
         AddSsoServices(services, configuration);
         AddSeeding(services, configuration);
         AddPersistence(services, configuration);
@@ -95,6 +96,17 @@ public static class DependencyInjection
         services.AddScoped<Icbank.Platform.Application.Designs.Composer.IGacLogoSeedCatalog, Designs.CuratedGacLogoSeedCatalog>();
         services.AddScoped<Icbank.Platform.Application.Designs.Composer.IDesignComposer, Designs.PlaceholderDesignComposer>();
         services.AddScoped<Icbank.Platform.Application.Designs.Composer.IBackgroundImageGenerator, Designs.TemplateBackgroundImageGenerator>();
+    }
+
+    /// <summary>Registers Wave 4a Shorfah issue-lifecycle ports: notification/URL/rate-limiter/export-rendering placeholders.</summary>
+    /// <param name="services">The DI service collection.</param>
+    private static void AddShorfahServices(IServiceCollection services)
+    {
+        services.AddScoped<Icbank.Platform.Application.Shorfah.IShorfahNotificationSender, Shorfah.NullShorfahNotificationSender>();
+        services.AddScoped<Icbank.Platform.Application.Shorfah.IShorfahUrlProvider, Shorfah.ConfigurationShorfahUrlProvider>();
+        services.AddSingleton<Icbank.Platform.Application.Shorfah.IShorfahSendInitialRateLimiter, Shorfah.InMemoryShorfahSendInitialRateLimiter>();
+        services.AddScoped<Icbank.Platform.Application.Shorfah.IShorfahDocxRenderer, Shorfah.PlainTextShorfahDocxRenderer>();
+        services.AddScoped<Icbank.Platform.Application.Shorfah.IShorfahIssuePdfRenderer, Shorfah.TemplateShorfahIssuePdfRenderer>();
     }
 
     /// <summary>Registers Azure AD SSO support: the distributed state cache, options binding, the IdP <c>HttpClient</c>, and the SSO ports.</summary>

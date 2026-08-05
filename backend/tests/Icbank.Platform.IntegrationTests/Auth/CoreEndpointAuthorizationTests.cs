@@ -16,7 +16,7 @@ namespace Icbank.Platform.IntegrationTests.Auth;
 /// policy per <c>PermissionAuthorizationHandler</c>, so it stands in for "correctly permissioned"
 /// without needing to seed the new page slugs' role_permissions rows for every test.
 /// </summary>
-public sealed class Wave1EndpointAuthorizationTests : IDisposable
+public sealed class CoreEndpointAuthorizationTests : IDisposable
 {
     private const string SharedPassword = "Str0ng!Passw0rd#2026";
 

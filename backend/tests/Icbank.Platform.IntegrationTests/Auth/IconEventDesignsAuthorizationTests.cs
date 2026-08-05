@@ -13,7 +13,7 @@ namespace Icbank.Platform.IntegrationTests.Auth;
 /// (SEC-02 mandates every mutating route require an explicit policy) -- this port requires
 /// <c>design_studio:{verb}</c>: anonymous -> 401, super-admin -> 200/429 as applicable.
 /// </summary>
-public sealed class Wave3bIconEventDesignsAuthorizationTests : IDisposable
+public sealed class IconEventDesignsAuthorizationTests : IDisposable
 {
     private const string SharedPassword = "Str0ng!Passw0rd#2026";
 
