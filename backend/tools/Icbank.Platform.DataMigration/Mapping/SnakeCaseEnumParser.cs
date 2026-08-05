@@ -5,7 +5,9 @@ namespace Icbank.Platform.DataMigration.Mapping;
 /// the Postgres schema has no native enum types — every status/type column is free text enforced
 /// only in application code) into the corresponding destination <c>PascalCase</c> C# enum member.
 /// Pure function, unit-tested against every literal value enumerated in DATA-MODEL.md for each
-/// column this is used on.
+/// column this is used on. Some source columns (e.g. media-monitoring's <c>category</c> and
+/// <c>query_type</c>) use hyphen-delimited values such as <c>content-creation</c> instead of
+/// underscores; both delimiters are treated identically.
 /// </summary>
 public static class SnakeCaseEnumParser
 {
@@ -38,7 +40,7 @@ public static class SnakeCaseEnumParser
             return string.Empty;
         }
 
-        var parts = snakeCaseValue.Split('_', StringSplitOptions.RemoveEmptyEntries);
+        var parts = snakeCaseValue.Split(['_', '-'], StringSplitOptions.RemoveEmptyEntries);
         return string.Concat(parts.Select(Capitalize));
     }
 

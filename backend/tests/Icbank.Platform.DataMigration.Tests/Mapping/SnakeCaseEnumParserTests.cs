@@ -1,5 +1,6 @@
 using FluentAssertions;
 using Icbank.Platform.DataMigration.Mapping;
+using Icbank.Platform.Domain.MediaMonitoring;
 using Icbank.Platform.Domain.Shorfah;
 using Xunit;
 
@@ -99,5 +100,32 @@ public sealed class SnakeCaseEnumParserTests
     public void ToPascalCase_ConvertsAsExpected(string source, string expected)
     {
         SnakeCaseEnumParser.ToPascalCase(source).Should().Be(expected);
+    }
+
+    [Theory]
+    [InlineData("media-report", PromptFrameworkCategory.MediaReport)]
+    [InlineData("content-creation", PromptFrameworkCategory.ContentCreation)]
+    [InlineData("analysis", PromptFrameworkCategory.Analysis)]
+    [InlineData("summarization", PromptFrameworkCategory.Summarization)]
+    [InlineData("rewriting", PromptFrameworkCategory.Rewriting)]
+    [InlineData("insights", PromptFrameworkCategory.Insights)]
+    public void Parse_EveryPromptFrameworkCategorySourceValue_ParsesToExpectedMember(string source, PromptFrameworkCategory expected)
+    {
+        SnakeCaseEnumParser.Parse<PromptFrameworkCategory>(source).Should().Be(expected);
+    }
+
+    [Theory]
+    [InlineData("wizard", QaQueryType.Wizard)]
+    [InlineData("search-full", QaQueryType.SearchFull)]
+    [InlineData("search-info", QaQueryType.SearchInfo)]
+    public void Parse_EveryQaQueryTypeSourceValue_ParsesToExpectedMember(string source, QaQueryType expected)
+    {
+        SnakeCaseEnumParser.Parse<QaQueryType>(source).Should().Be(expected);
+    }
+
+    [Fact]
+    public void ToPascalCase_HyphenDelimitedValue_ConvertsSameAsUnderscore()
+    {
+        SnakeCaseEnumParser.ToPascalCase("content-creation").Should().Be("ContentCreation");
     }
 }

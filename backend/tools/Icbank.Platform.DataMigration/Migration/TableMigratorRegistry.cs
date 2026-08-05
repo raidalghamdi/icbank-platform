@@ -13,7 +13,7 @@ namespace Icbank.Platform.DataMigration.Migration;
 /// non-trivial decisions (multi-role union, duplicate detection, nullable-timestamp backfill,
 /// native-array fan-out, password non-portability) plus the core RBAC lookup tables the rest of
 /// the graph roots from. See spec/DATA-MIGRATION-NOTES.md "Table-by-table mapping status" for
-/// the remaining ~35 tables — they are a mechanical extension of the exact same
+/// the remaining tables not yet covered — they are a mechanical extension of the exact same
 /// read-row → transform → resolve-FK-via-id-map → write-via-EF → record-mapping pattern used by
 /// every migrator here, deliberately not hand-built individually within this engagement's scope.
 /// </para>
@@ -66,5 +66,21 @@ public static class TableMigratorRegistry
         // Users (generated_by/approved_by), already migrated above.
         new WeekendPlaceTableMigrator(),
         new WeekendDraftTableMigrator(),
+
+        // Designs domain -- DesignTemplate has no FKs; BrandLogo/BrandFont have no FKs;
+        // GeneratedDesign optionally FKs to DesignTemplate, Users, and re-points its
+        // selected_logos id list through BrandLogo's id mapping, so it must run last.
+        new DesignTemplateTableMigrator(),
+        new BrandLogoTableMigrator(),
+        new BrandFontTableMigrator(),
+        new GeneratedDesignTableMigrator(),
+
+        // Media-monitoring domain -- MediaReport and PromptFramework both optionally FK to
+        // Users only. ReportsQaQuery optionally FKs to Users and to final_media_reports; the
+        // latter has no migrator yet (see spec/DATA-MIGRATION-NOTES.md), so every migrated
+        // ReportsQaQuery row's FinalReportId will resolve to null until that gap is closed.
+        new MediaReportTableMigrator(),
+        new PromptFrameworkTableMigrator(),
+        new ReportsQaQueryTableMigrator(),
     };
 }
