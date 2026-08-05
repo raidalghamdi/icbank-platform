@@ -1,4 +1,5 @@
 using Icbank.Platform.Domain.AiYear;
+using Icbank.Platform.Domain.Designs;
 using Icbank.Platform.Domain.Gac;
 using Icbank.Platform.Domain.Identity;
 using Icbank.Platform.Domain.InternationalDays;
@@ -116,6 +117,18 @@ public interface IApplicationDbContext
 
     /// <summary>Gets a queryable over the QA/search query audit trail against final reports (Wave 3a: Final Media Reports).</summary>
     IQueryable<ReportsQaQuery> ReportsQaQueries { get; }
+
+    /// <summary>Gets a queryable over reusable branded poster/slide templates (Wave 3b: Designs/Composer).</summary>
+    IQueryable<DesignTemplate> DesignTemplates { get; }
+
+    /// <summary>Gets a queryable over uploaded brand logo assets (Wave 3b: Designs/Composer).</summary>
+    IQueryable<BrandLogo> BrandLogos { get; }
+
+    /// <summary>Gets a queryable over uploaded brand font files (Wave 3b: Designs/Composer).</summary>
+    IQueryable<BrandFont> BrandFonts { get; }
+
+    /// <summary>Gets a queryable over composer-rendered output images (Wave 3b: Designs/Composer).</summary>
+    IQueryable<GeneratedDesign> GeneratedDesigns { get; }
 
     /// <summary>Tracks a new entity for insertion.</summary>
     /// <typeparam name="TEntity">The entity type.</typeparam>

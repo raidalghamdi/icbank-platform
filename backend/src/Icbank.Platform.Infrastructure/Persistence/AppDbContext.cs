@@ -288,6 +288,18 @@ public sealed class AppDbContext : DbContext, IApplicationDbContext
     /// <inheritdoc cref="IApplicationDbContext.ReportsQaQueries" />
     IQueryable<ReportsQaQuery> IApplicationDbContext.ReportsQaQueries => ReportsQaQueries;
 
+    /// <inheritdoc cref="IApplicationDbContext.DesignTemplates" />
+    IQueryable<DesignTemplate> IApplicationDbContext.DesignTemplates => DesignTemplates;
+
+    /// <inheritdoc cref="IApplicationDbContext.BrandLogos" />
+    IQueryable<BrandLogo> IApplicationDbContext.BrandLogos => BrandLogos;
+
+    /// <inheritdoc cref="IApplicationDbContext.BrandFonts" />
+    IQueryable<BrandFont> IApplicationDbContext.BrandFonts => BrandFonts;
+
+    /// <inheritdoc cref="IApplicationDbContext.GeneratedDesigns" />
+    IQueryable<GeneratedDesign> IApplicationDbContext.GeneratedDesigns => GeneratedDesigns;
+
     /// <inheritdoc cref="IApplicationDbContext.Add{TEntity}" />
     void IApplicationDbContext.Add<TEntity>(TEntity entity) => Set<TEntity>().Add(entity);
 
