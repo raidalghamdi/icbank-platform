@@ -12,6 +12,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- Why: BlobPathResolver is intentionally internal (Storage/BlobPathResolver.cs: it is a
+         shared implementation detail of the Azure Blob adapters, not part of the Infrastructure
+         layer's public surface), but its folder-prefix-to-container mapping is exactly the kind
+         of pure logic that should be unit tested directly rather than only indirectly through
+         every adapter that calls it. -->
+    <InternalsVisibleTo Include="Icbank.Platform.UnitTests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
     <PackageReference Include="Microsoft.Extensions.Http.Resilience" />

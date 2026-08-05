@@ -38,6 +38,10 @@
     <ProjectReference Include="..\..\src\Icbank.Platform.Domain\Icbank.Platform.Domain.csproj" />
     <ProjectReference Include="..\..\src\Icbank.Platform.Application\Icbank.Platform.Application.csproj" />
     <ProjectReference Include="..\..\src\Icbank.Platform.Infrastructure\Icbank.Platform.Infrastructure.csproj" />
+    <!-- Why: StartupSecretsGuardExtensionsTests needs the real WebApplicationBuilder extension
+         method from the Api project: re-implementing its logic in the test would only prove the
+         copy matches itself, not that the deployed app is protected. -->
+    <ProjectReference Include="..\..\src\Icbank.Platform.Api\Icbank.Platform.Api.csproj" />
   </ItemGroup>
 
 </Project>
