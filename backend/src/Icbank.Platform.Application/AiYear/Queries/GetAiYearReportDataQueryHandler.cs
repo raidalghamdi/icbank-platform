@@ -42,6 +42,7 @@ public sealed class GetAiYearReportDataQueryHandler : IRequestHandler<GetAiYearR
     private static AiYearReportRowDto ToRow(Domain.AiYear.AiYearActivation activation, Dictionary<int, List<string>> channelsByActivation)
     {
         List<string> channels = channelsByActivation.TryGetValue(activation.Id, out List<string>? list) ? list : new List<string>();
-        return new AiYearReportRowDto(activation.Title, activation.Month, activation.Type, channels, activation.Reach);
+        var monthNameAr = Shorfah.ArabicMonthNames.For(activation.Month);
+        return new AiYearReportRowDto(activation.Title, activation.Month, monthNameAr, activation.Type, channels, activation.Reach);
     }
 }
