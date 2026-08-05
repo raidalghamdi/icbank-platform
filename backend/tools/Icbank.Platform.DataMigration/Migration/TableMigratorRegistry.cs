@@ -36,9 +36,9 @@ public static class TableMigratorRegistry
         new AiYearActivationTableMigrator(),
         new GacSocialPostTableMigrator(),
 
-        // ShorfahSection depends on ShorfahIssue (not yet implemented as its own migrator in
-        // this engagement -- see spec/DATA-MIGRATION-NOTES.md open question on issue seeding
-        // order) and on Users for the four actor FKs.
+        // ShorfahIssue is the top-level workflow container; ShorfahSection FKs to it (issue_id)
+        // and to Users for the four actor FKs, so issues must be migrated first.
+        new ShorfahIssueTableMigrator(),
         new ShorfahSectionTableMigrator(),
     };
 }
