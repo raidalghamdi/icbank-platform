@@ -96,6 +96,15 @@ if (!app.Environment.IsDevelopment())
 
 app.UseMiddleware<SecurityHeadersMiddleware>();
 app.UseMiddleware<GlobalExceptionMiddleware>();
+
+// Why: R-BE-035 requires every error to be Problem Details. GlobalExceptionMiddleware only
+// covers thrown exceptions and controllers only cover matched routes, which left bare
+// status codes produced by the framework itself - an unmatched route, a wrong HTTP verb, an
+// unauthenticated call - returning an empty body with no content type. UseStatusCodePages
+// renders those through the registered ProblemDetails service so the contract holds for
+// every response the client can observe, not just the ones a controller reached.
+app.UseStatusCodePages();
+
 app.UseCorrelationId();
 
 app.UseCors(Icbank.Platform.Api.Extensions.CorsExtensions.FrontendPolicyName);

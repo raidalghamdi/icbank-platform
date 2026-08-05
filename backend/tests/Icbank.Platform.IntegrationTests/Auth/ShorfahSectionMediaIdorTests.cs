@@ -86,7 +86,7 @@ public sealed class ShorfahSectionMediaIdorTests : IDisposable
         // a false-negative status code on top of a real deletion.
         HttpResponseMessage verifyResponse = await adminClient.GetAsync(new Uri($"/api/v1/shorfah/sections/{section.Id}/media?page=1&pageSize=10", UriKind.Relative));
         MediaListPayload? verifyPayload = await verifyResponse.Content.ReadFromJsonAsync<MediaListPayload>();
-        verifyPayload!.Media.Should().ContainSingle(m => m.Id == media.Id);
+        verifyPayload!.Items.Should().ContainSingle(m => m.Id == media.Id);
     }
 
     [Fact]
@@ -129,7 +129,7 @@ public sealed class ShorfahSectionMediaIdorTests : IDisposable
 
         afterGrant.StatusCode.Should().Be(HttpStatusCode.OK, "the View tier alone (not Contribute/Review/Approve) must be sufficient to list media, matching the non-hierarchical tier model");
         MediaListPayload? payload = await afterGrant.Content.ReadFromJsonAsync<MediaListPayload>();
-        payload!.Media.Should().ContainSingle();
+        payload!.Items.Should().ContainSingle();
     }
 
     private static async Task<MediaDto> UploadOneMediaAsync(HttpClient client, int sectionId)
@@ -238,5 +238,5 @@ public sealed class ShorfahSectionMediaIdorTests : IDisposable
 
     private sealed record MediaPayload(MediaDto Media);
 
-    private sealed record MediaListPayload(List<MediaDto> Media, int Page, int PageSize, int Total);
+    private sealed record MediaListPayload(List<MediaDto> Items, int Page, int PageSize, int Total);
 }

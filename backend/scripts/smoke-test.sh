@@ -159,10 +159,10 @@ ENVELOPE=$(curl -sS "${BASE}/api/v1/shorfah/issues" -H "$AUTH_HEADER" 2>/dev/nul
 if printf '%s' "$ENVELOPE" | python3 -c '
 import json,sys
 body = json.load(sys.stdin)
-missing = [k for k in ("items","page","pageSize","totalCount") if k not in body]
+missing = [k for k in ("items","page","pageSize","total") if k not in body]
 sys.exit(1 if missing else 0)
 ' 2>/dev/null; then
-  pass "list response carries items/page/pageSize/totalCount"
+  pass "list response carries items/page/pageSize/total"
 else
   fail "list response is missing the pagination envelope"
   echo "  response: ${ENVELOPE:0:400}"

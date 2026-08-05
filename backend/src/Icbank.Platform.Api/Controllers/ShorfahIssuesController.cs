@@ -47,7 +47,7 @@ public sealed class ShorfahIssuesController : ControllerBase
     {
         var pagedQuery = new PagedQuery { Page = page == 0 ? 1 : page, PageSize = pageSize == 0 ? DefaultPageSize : pageSize };
         Result<PagedResult<ShorfahIssueDto>> result = await _sender.Send(new ListShorfahIssuesQuery(pagedQuery), cancellationToken);
-        return Ok(new { issues = result.Value!.Items, page = result.Value.Page, pageSize = result.Value.PageSize, total = result.Value.Total });
+        return Ok(result.Value);
     }
 
     /// <summary>Fetches a single issue with its ordered sections.</summary>

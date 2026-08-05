@@ -114,7 +114,7 @@ public sealed class ShorfahSectionMediaAndAssignmentsTests : IDisposable
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         MediaListPayload? payload = await response.Content.ReadFromJsonAsync<MediaListPayload>();
-        payload!.Media.Should().ContainSingle();
+        payload!.Items.Should().ContainSingle();
         payload.Total.Should().Be(1);
     }
 
@@ -457,7 +457,7 @@ public sealed class ShorfahSectionMediaAndAssignmentsTests : IDisposable
 
     private sealed record MediaPayload(MediaDto Media);
 
-    private sealed record MediaListPayload(List<MediaDto> Media, int Page, int PageSize, int Total);
+    private sealed record MediaListPayload(List<MediaDto> Items, int Page, int PageSize, int Total);
 
     private sealed record AssignmentDto(int Id, int SectionId, int UserId, string? Role);
 

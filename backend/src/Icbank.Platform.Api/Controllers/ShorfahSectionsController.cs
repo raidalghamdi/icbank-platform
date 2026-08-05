@@ -219,7 +219,7 @@ public sealed class ShorfahSectionsController : ControllerBase
 
         var pagedQuery = new PagedQuery { Page = page == 0 ? 1 : page, PageSize = pageSize == 0 ? PagedQuery.DefaultPageSize : pageSize };
         Result<PagedResult<ShorfahWorkflowLogDto>> result = await _sender.Send(new ListShorfahWorkflowLogQuery(sectionId, pagedQuery), cancellationToken);
-        return Ok(new { logs = result.Value!.Items, page = result.Value.Page, pageSize = result.Value.PageSize, total = result.Value.Total });
+        return Ok(result.Value);
     }
 
     /// <summary>Lists media for a section, ordered by display order, paginated. Requires the same view/contribute/review/approve/admin tier as the mutations (closes AMBIGUOUS-API-4 for reads).</summary>
@@ -246,7 +246,7 @@ public sealed class ShorfahSectionsController : ControllerBase
             return Problem(result.Error, statusCode: StatusCodes.Status403Forbidden);
         }
 
-        return Ok(new { media = result.Value!.Items, page = result.Value.Page, pageSize = result.Value.PageSize, total = result.Value.Total });
+        return Ok(result.Value);
     }
 
     /// <summary>Uploads media (base64) to a section. 8MB cap; content-type allowlisted.</summary>

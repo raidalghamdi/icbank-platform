@@ -350,10 +350,10 @@ public sealed class ShorfahIssuesWorkflowTests : IDisposable
 
         ListIssuesPayload? first = await firstPage.Content.ReadFromJsonAsync<ListIssuesPayload>();
         ListIssuesPayload? second = await secondPage.Content.ReadFromJsonAsync<ListIssuesPayload>();
-        first!.Issues.Should().HaveCount(2);
+        first!.Items.Should().HaveCount(2);
         first.Total.Should().BeGreaterOrEqualTo(3);
         second!.Page.Should().Be(2);
-        second.Issues.Should().NotBeEmpty();
+        second.Items.Should().NotBeEmpty();
     }
 
     [Fact]
@@ -365,7 +365,7 @@ public sealed class ShorfahIssuesWorkflowTests : IDisposable
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         ListIssuesPayload? payload = await response.Content.ReadFromJsonAsync<ListIssuesPayload>();
-        payload!.Issues.Should().BeEmpty();
+        payload!.Items.Should().BeEmpty();
         payload.Total.Should().Be(0);
     }
 
@@ -445,5 +445,5 @@ public sealed class ShorfahIssuesWorkflowTests : IDisposable
 
     private sealed record SendInitialPayload(bool Ok, int Sent, JsonElement Results);
 
-    private sealed record ListIssuesPayload(List<IssueDto> Issues, int Page, int PageSize, int Total);
+    private sealed record ListIssuesPayload(List<IssueDto> Items, int Page, int PageSize, int Total);
 }

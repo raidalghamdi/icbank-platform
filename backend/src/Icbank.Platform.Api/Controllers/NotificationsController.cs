@@ -50,7 +50,7 @@ public sealed class NotificationsController : ControllerBase
         var actorUserId = RequireActorUserId();
         var pagedQuery = new PagedQuery { Page = page == 0 ? 1 : page, PageSize = pageSize == 0 ? DefaultPageSize : pageSize };
         Result<PagedResult<ShorfahNotificationDto>> result = await _sender.Send(new ListShorfahNotificationsQuery(actorUserId, pagedQuery), cancellationToken);
-        return Ok(new { notifications = result.Value!.Items, page = result.Value.Page, pageSize = result.Value.PageSize, total = result.Value.Total });
+        return Ok(result.Value);
     }
 
     /// <summary>Marks one notification read. Scoped to the caller's own id -- a foreign notification id resolves to 404, never a silent no-op or another user's data.</summary>

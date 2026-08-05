@@ -55,7 +55,7 @@ public sealed class WeekendDraftsController : ControllerBase
     {
         var pagedQuery = new PagedQuery { Page = page == 0 ? 1 : page, PageSize = pageSize == 0 ? DefaultPageSize : pageSize };
         Result<PagedResult<WeekendDraftDto>> result = await _sender.Send(new ListWeekendDraftsQuery(pagedQuery, status), cancellationToken);
-        return Ok(new { drafts = result.Value!.Items, page = result.Value.Page, pageSize = result.Value.PageSize, total = result.Value.Total });
+        return Ok(result.Value);
     }
 
     /// <summary>Fetches a single draft by id.</summary>

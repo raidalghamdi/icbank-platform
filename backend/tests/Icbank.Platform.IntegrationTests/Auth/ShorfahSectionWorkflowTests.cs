@@ -192,8 +192,8 @@ public sealed class ShorfahSectionWorkflowTests : IDisposable
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         LogPayload? payload = await response.Content.ReadFromJsonAsync<LogPayload>();
-        payload!.Logs.Should().Contain(l => l.Action == "submitted");
-        payload.Logs.Should().Contain(l => l.Action == "approved");
+        payload!.Items.Should().Contain(l => l.Action == "submitted");
+        payload.Items.Should().Contain(l => l.Action == "approved");
         payload.Total.Should().BeGreaterOrEqualTo(2);
     }
 
@@ -207,7 +207,7 @@ public sealed class ShorfahSectionWorkflowTests : IDisposable
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         LogPayload? payload = await response.Content.ReadFromJsonAsync<LogPayload>();
-        payload!.Logs.Should().BeEmpty();
+        payload!.Items.Should().BeEmpty();
         payload.Total.Should().Be(0);
     }
 
@@ -273,5 +273,5 @@ public sealed class ShorfahSectionWorkflowTests : IDisposable
 
     private sealed record LogEntryDto(int Id, string Action);
 
-    private sealed record LogPayload(List<LogEntryDto> Logs, int Page, int PageSize, int Total);
+    private sealed record LogPayload(List<LogEntryDto> Items, int Page, int PageSize, int Total);
 }

@@ -186,7 +186,7 @@ public sealed class CoreEndpointWorkflowTests : IDisposable
     private static async Task<int> ReadFirstArchiveEntryIdAsync(HttpResponseMessage response)
     {
         var document = System.Text.Json.JsonDocument.Parse(await response.Content.ReadAsStringAsync());
-        return document.RootElement.GetProperty("entries")[0].GetProperty("id").GetInt32();
+        return document.RootElement.GetProperty("items")[0].GetProperty("id").GetInt32();
     }
 
     private async Task<HttpClient> ArrangeSuperAdminClientAsync()

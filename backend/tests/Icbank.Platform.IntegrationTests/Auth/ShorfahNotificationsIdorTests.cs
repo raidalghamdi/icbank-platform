@@ -42,8 +42,8 @@ public sealed class ShorfahNotificationsIdorTests : IDisposable
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         NotificationsListPayload? payload = await response.Content.ReadFromJsonAsync<NotificationsListPayload>();
-        payload!.Notifications.Should().ContainSingle();
-        payload.Notifications.Should().OnlyContain(n => n.Title == "لمستخدم أ", "GET /notifications must never surface another user's rows even though B's rows exist in the same table");
+        payload!.Items.Should().ContainSingle();
+        payload.Items.Should().OnlyContain(n => n.Title == "لمستخدم أ", "GET /notifications must never surface another user's rows even though B's rows exist in the same table");
         payload.Total.Should().Be(1);
     }
 
@@ -241,5 +241,5 @@ public sealed class ShorfahNotificationsIdorTests : IDisposable
 
     private sealed record NotificationDto(int Id, int? IssueId, int? SectionId, string Type, string Title, string? Body, string? Url, bool? IsRead, DateTime CreatedAt);
 
-    private sealed record NotificationsListPayload(List<NotificationDto> Notifications, int Page, int PageSize, int Total);
+    private sealed record NotificationsListPayload(List<NotificationDto> Items, int Page, int PageSize, int Total);
 }

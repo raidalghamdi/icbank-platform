@@ -61,13 +61,13 @@ public sealed class WeekStartController : ControllerBase
     /// <param name="page">The 1-based page number.</param>
     /// <param name="pageSize">The page size (capped at 100 per R-BE-033).</param>
     /// <param name="cancellationToken">A token used to observe cancellation requests.</param>
-    /// <returns>200 OK with <c>{count, entries}</c> paginated.</returns>
+    /// <returns>200 OK with the standard pagination envelope (R-BE-033).</returns>
     [HttpGet("archive")]
     public async Task<ActionResult> ListArchiveAsync([FromQuery] int page, [FromQuery] int pageSize, CancellationToken cancellationToken)
     {
         var pagedQuery = new PagedQuery { Page = page == 0 ? 1 : page, PageSize = pageSize == 0 ? DefaultPageSize : pageSize };
         Result<PagedResult<ArchiveEntryDto>> result = await _sender.Send(new ListArchiveEntriesQuery(pagedQuery), cancellationToken);
-        return Ok(new { count = result.Value!.Items.Count, entries = result.Value.Items, page = result.Value.Page, pageSize = result.Value.PageSize, total = result.Value.Total });
+        return Ok(result.Value);
     }
 
     /// <summary>Gets the learned style-profile singleton.</summary>
