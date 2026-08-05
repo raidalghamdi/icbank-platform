@@ -142,3 +142,50 @@ jobs:
         with:
           name: coverage-report
           path: backend/coveragereport
+
+  # Everything in the job above runs the app in-process through WebApplicationFactory with
+  # the database and clock swapped out. This job is the only place the API runs as a real
+  # process, against a real database, answering over a real socket - which is what proves
+  # the DI graph, configuration binding, migrations, middleware order and response
+  # pipeline actually work. An app can hold every test green and still fail to start.
+  smoke-test:
+    runs-on: ubuntu-latest
+    services:
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: 'Y'
+          MSSQL_SA_PASSWORD: 'P@ssw0rd_CI_Only!'
+        ports: ['1433:1433']
+        options: >-
+          --health-cmd "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P 'P@ssw0rd_CI_Only!' -Q 'SELECT 1'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 12
+          --health-start-period 30s
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore -c Release
+
+      - name: Install dotnet-ef
+        run: |
+          dotnet tool install -g dotnet-ef --version 8.*
+          echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
+
+      - name: Boot the API and assert live HTTP behaviour
+        run: |
+          chmod +x scripts/smoke-test.sh
+          ./scripts/smoke-test.sh
+        env:
+          ICBANK_SMOKE_CONNECTION: 'Server=localhost,1433;Database=IcbankSmoke;User Id=sa;Password=P@ssw0rd_CI_Only!;TrustServerCertificate=True;Encrypt=False;'
