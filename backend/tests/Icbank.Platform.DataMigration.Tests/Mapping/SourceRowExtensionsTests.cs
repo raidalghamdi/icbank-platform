@@ -208,6 +208,50 @@ public sealed class SourceRowExtensionsTests
     }
 
     [Fact]
+    public void GetDateOnly_ColumnPresentAsDateTime_ConvertsDropsTimeComponent()
+    {
+        SourceRow row = SourceRowFixture.Build(new Dictionary<string, object?> { ["report_date"] = new DateTime(2024, 3, 15, 10, 30, 0) });
+
+        row.GetDateOnly("report_date").Should().Be(new DateOnly(2024, 3, 15));
+    }
+
+    [Fact]
+    public void GetDateOnly_ColumnPresentAsDateOnly_ReturnsValue()
+    {
+        SourceRow row = SourceRowFixture.Build(new Dictionary<string, object?> { ["report_date"] = new DateOnly(2024, 3, 15) });
+
+        row.GetDateOnly("report_date").Should().Be(new DateOnly(2024, 3, 15));
+    }
+
+    [Fact]
+    public void GetDateOnly_ColumnPresentAsIsoString_Parses()
+    {
+        SourceRow row = SourceRowFixture.Build(new Dictionary<string, object?> { ["report_date"] = "2024-03-15" });
+
+        row.GetDateOnly("report_date").Should().Be(new DateOnly(2024, 3, 15));
+    }
+
+    [Fact]
+    public void GetDateOnly_ColumnNull_Throws()
+    {
+        SourceRow row = SourceRowFixture.Build(new Dictionary<string, object?> { ["report_date"] = null });
+
+        Action act = () => row.GetDateOnly("report_date");
+
+        act.Should().Throw<InvalidOperationException>();
+    }
+
+    [Fact]
+    public void GetDateOnly_ColumnMissing_Throws()
+    {
+        SourceRow row = SourceRowFixture.Build(new Dictionary<string, object?>());
+
+        Action act = () => row.GetDateOnly("report_date");
+
+        act.Should().Throw<InvalidOperationException>();
+    }
+
+    [Fact]
     public void ColumnNames_ReflectsProvidedColumns()
     {
         SourceRow row = SourceRowFixture.Build(new Dictionary<string, object?> { ["id"] = 1, ["email"] = "a@b.com" });

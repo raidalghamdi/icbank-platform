@@ -130,6 +130,26 @@ public static class SourceRowExtensions
         row[column] is null ? null : Convert.ToSingle(row[column], CultureInfo.InvariantCulture);
 
     /// <summary>
+    /// Reads a required non-null Postgres <c>date</c> column (no time-of-day component) as a
+    /// <see cref="DateOnly"/>, e.g. <c>daily_reports.report_date</c>. Modelled on
+    /// <see cref="GetRawTimestamp"/>: accepts a native <see cref="DateTime"/> (the live-database
+    /// shape) or a parseable ISO date string (the in-memory test-fixture shape), with no timezone
+    /// conversion applied since Postgres <c>date</c> has no time-of-day or offset to begin with.
+    /// </summary>
+    /// <param name="row">The source row.</param>
+    /// <param name="column">The column name.</param>
+    /// <returns>The column value as <see cref="DateOnly"/>.</returns>
+    /// <exception cref="InvalidOperationException">The column is null or absent.</exception>
+    public static DateOnly GetDateOnly(this Source.SourceRow row, string column) =>
+        row[column] switch
+        {
+            null => throw new InvalidOperationException($"Column '{column}' was required but null."),
+            DateOnly d => d,
+            DateTime dt => DateOnly.FromDateTime(dt),
+            object other => DateOnly.Parse(other.ToString() ?? string.Empty, CultureInfo.InvariantCulture),
+        };
+
+    /// <summary>
     /// Reads a numeric-array column (e.g. a <c>jsonb number[]</c> embedding vector) that may
     /// arrive as a native array, a JSON-text array, or <see langword="null"/>.
     /// </summary>

@@ -101,5 +101,9 @@ public static class TableMigratorRegistry
         new MediaReportTableMigrator(),
         new PromptFrameworkTableMigrator(),
         new ReportsQaQueryTableMigrator(),
+
+        // Daily Reports domain -- daily_reports has no FKs to any other table, so it is
+        // independent of ordering relative to every other migrator above.
+        new DailyReportTableMigrator(),
     };
 }
