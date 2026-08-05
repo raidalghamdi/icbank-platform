@@ -24,7 +24,7 @@ import {
 import { and, desc, eq, gte, lte, sql, ilike, or } from "drizzle-orm";
 import { z } from "zod";
 import * as crypto from "crypto";
-import { requireAdmin } from "../middleware/auth";
+import { requireAdmin, requireAuth } from "../middleware/auth";
 import { geminiText, geminiJSON, aiJSONWithFallback } from "../lib/aiProviders";
 import { buildFinalReportHtml } from "./final-media-reports-html";
 
@@ -319,7 +319,10 @@ const generateSchema = z.object({
   autoSave: z.boolean().default(false), // if true → admin-only auto-save as final
 });
 
-router.post("/final-media-reports/generate", async (req: Request, res: Response) => {
+// SEC-02: this router is mounted before requireAuth in routes/index.ts (so
+// the public GET reads above stay public); this AI-generating endpoint was
+// reachable by anyone unauthenticated — restrict to logged-in users.
+router.post("/final-media-reports/generate", requireAuth, async (req: Request, res: Response) => {
   try {
     const body = generateSchema.parse(req.body || {});
     const now = new Date();
@@ -522,7 +525,8 @@ router.post("/final-media-reports", requireAdmin, async (req: Request, res: Resp
 });
 
 // ─── POST /api/final-media-reports/:id/export-pdf ─────────────────────────
-router.post("/final-media-reports/:id/export-pdf", async (req: Request, res: Response) => {
+// SEC-02: spawns headless Chromium via Puppeteer — was reachable unauthenticated.
+router.post("/final-media-reports/:id/export-pdf", requireAuth, async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id, 10);
     if (isNaN(id)) return res.status(400).json({ ok: false, error: "Invalid id" });
@@ -581,7 +585,8 @@ const emailSchema = z.object({
   message: z.string().optional(),
 });
 
-router.post("/final-media-reports/:id/send-email", async (req: Request, res: Response) => {
+// SEC-02: sends email via the org's Resend account — was reachable unauthenticated.
+router.post("/final-media-reports/:id/send-email", requireAuth, async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id, 10);
     if (isNaN(id)) return res.status(400).json({ ok: false, error: "Invalid id" });
@@ -616,7 +621,8 @@ router.post("/final-media-reports/:id/send-email", async (req: Request, res: Res
 });
 
 // ─── POST /api/final-media-reports/:id/exec-summary ───────────────────────
-router.post("/final-media-reports/:id/exec-summary", async (req: Request, res: Response) => {
+// SEC-02: calls the AI provider — was reachable unauthenticated.
+router.post("/final-media-reports/:id/exec-summary", requireAuth, async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id, 10);
     if (isNaN(id)) return res.status(400).json({ ok: false, error: "Invalid id" });
@@ -650,7 +656,8 @@ const searchSchema = z.object({
   limit: z.number().int().min(1).max(20).default(8),
 });
 
-router.post("/final-media-reports/search", async (req: Request, res: Response) => {
+// SEC-02: can invoke Gemini search over the archive — was reachable unauthenticated.
+router.post("/final-media-reports/search", requireAuth, async (req: Request, res: Response) => {
   try {
     const body = searchSchema.parse(req.body || {});
     const q = `%${body.query}%`;
@@ -724,7 +731,9 @@ ${context}
 });
 
 // ─── POST /api/qa-queries — log wizard inputs (audit) ─────────────────────
-router.post("/qa-queries", async (req: Request, res: Response) => {
+// SEC-02: writes an audit-trail row — was reachable unauthenticated, allowing
+// anyone to pollute reportsQaQueriesTable with arbitrary userId/content.
+router.post("/qa-queries", requireAuth, async (req: Request, res: Response) => {
   try {
     const data = req.body || {};
     const user = (req as any).user || {};

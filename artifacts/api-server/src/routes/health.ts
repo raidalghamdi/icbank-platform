@@ -1,6 +1,5 @@
 import { Router, type IRouter } from "express";
 import { HealthCheckResponse } from "@workspace/api-zod";
-import { pool } from "@workspace/db";
 
 const router: IRouter = Router();
 
@@ -9,37 +8,10 @@ router.get("/healthz", (_req, res) => {
   res.json(data);
 });
 
-// trigger v3: pooler host updated to aws-1-eu-west-2
-router.get("/debug/db", async (_req, res) => {
-  try {
-    const result = await pool.query(
-      'select "id", "key", "value", "updated_at" from "system_settings" limit 1',
-    );
-    res.json({ ok: true, rowCount: result.rowCount, rows: result.rows });
-  } catch (err: any) {
-    res.status(500).json({
-      ok: false,
-      message: err?.message,
-      code: err?.code,
-    });
-  }
-});
-
-router.get("/debug/env", (_req, res) => {
-  const dbUrl = process.env.DATABASE_URL || "";
-  let host = "";
-  let port = "";
-  try {
-    const u = new URL(dbUrl);
-    host = u.hostname;
-    port = u.port;
-  } catch {}
-  res.json({
-    hasDbUrl: !!dbUrl,
-    host,
-    port,
-    nodeEnv: process.env.NODE_ENV,
-  });
-});
+// SEC-03 / DATA-03 / C-3: /debug/db and /debug/env were removed outright.
+// They were mounted before the auth gate (routes/index.ts) and returned, to any
+// unauthenticated caller, raw system_settings rows (including Azure AD secrets)
+// and the database host/port parsed from DATABASE_URL. No functionality in this
+// app depends on them (confirmed via repo-wide grep for "debug/db"/"debug/env").
 
 export default router;
