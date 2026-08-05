@@ -64,6 +64,24 @@ public static class DependencyInjection
         services.AddSingleton<Icbank.Platform.Application.Storage.IObjectStorageReader, Storage.FileSystemObjectStorageReader>();
         services.AddSingleton<Icbank.Platform.Application.Storage.IObjectUploadUrlIssuer, Storage.FileSystemObjectUploadUrlIssuer>();
         services.AddOptions<Storage.ObjectStorageOptions>().Bind(configuration.GetSection(Storage.ObjectStorageOptions.SectionName));
+
+        services.AddOptions<JwtOptions>()
+            .Bind(configuration.GetSection(JwtOptions.SectionName))
+            .Validate(options => !string.IsNullOrWhiteSpace(options.SigningKey), "Jwt:SigningKey must be configured.")
+            .ValidateOnStart();
+
+        AddTemplateGeneratorServices(services);
+    }
+
+    /// <summary>
+    /// Registers the template-driven content-generator ports (dashboard, weekend, international
+    /// days, media monitoring) that <see cref="AddSecurityServices"/> used to inline directly.
+    /// Split out purely to keep both methods under the R-BE-091 40-line/method ceiling as the
+    /// registration list grows; this is DI wiring, not a meaningful behavioural seam.
+    /// </summary>
+    /// <param name="services">The DI service collection.</param>
+    private static void AddTemplateGeneratorServices(IServiceCollection services)
+    {
         services.AddScoped<Icbank.Platform.Application.Dashboard.IExecutiveSummaryGenerator, Dashboard.TemplateExecutiveSummaryGenerator>();
         services.AddScoped<Icbank.Platform.Application.Weekend.IWeekendContentGenerator, Weekend.TemplateWeekendContentGenerator>();
         services.AddScoped<Icbank.Platform.Application.Weekend.IWeekStartMessageGenerator, Weekend.TemplateWeekStartMessageGenerator>();
@@ -77,11 +95,6 @@ public static class DependencyInjection
         services.AddScoped<Icbank.Platform.Application.MediaMonitoring.IReportEmailSender, MediaMonitoring.NullReportEmailSender>();
         services.AddScoped<Icbank.Platform.Application.MediaMonitoring.IExecutiveSummaryRegenerator, MediaMonitoring.TemplateExecutiveSummaryRegenerator>();
         services.AddScoped<Icbank.Platform.Application.MediaMonitoring.IReportArchiveQaEngine, MediaMonitoring.TemplateReportArchiveQaEngine>();
-
-        services.AddOptions<JwtOptions>()
-            .Bind(configuration.GetSection(JwtOptions.SectionName))
-            .Validate(options => !string.IsNullOrWhiteSpace(options.SigningKey), "Jwt:SigningKey must be configured.")
-            .ValidateOnStart();
     }
 
     /// <summary>Registers Wave 3b Designs/Composer and Icon Event Designs ports: storage writer, rate limiter, seed catalogs, and AI/rendering placeholders.</summary>
