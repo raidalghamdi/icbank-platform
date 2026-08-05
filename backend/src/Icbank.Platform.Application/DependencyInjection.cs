@@ -1,5 +1,6 @@
 using System.Reflection;
 using FluentValidation;
+using Icbank.Platform.Application.AiYear;
 using Icbank.Platform.Application.Auth;
 using Icbank.Platform.Application.Common.Behaviors;
 using Icbank.Platform.Application.Shorfah;
@@ -30,6 +31,7 @@ public static class DependencyInjection
         services.AddScoped<AuthSessionFactory>();
         services.AddScoped<ShorfahSectionSeeder>();
         services.AddScoped<ShorfahExportSectionSelector>();
+        services.AddScoped<AiYearArchiveStreamWriter>();
 
         return services;
     }

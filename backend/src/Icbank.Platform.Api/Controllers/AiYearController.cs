@@ -1,3 +1,4 @@
+using System.IO.Compression;
 using Asp.Versioning;
 using Icbank.Platform.Api.Auth;
 using Icbank.Platform.Application.AiYear;
@@ -15,10 +16,10 @@ namespace Icbank.Platform.Api.Controllers;
 /// Ports <c>routes/ai-year.ts</c> (API-SURFACE.md §13), gated by the seeded <c>ai_year:{verb}</c>
 /// policy family. Closes DEFECT-LOG.md DATA-06 (N+1 query pattern, see
 /// <see cref="ListAiYearActivationsQueryHandler"/>) and DATA-05 (untransactioned multi-table
-/// writes, see the create/update handlers). The ZIP-export and DOCX-report endpoints port their
-/// full data-assembly/business logic but defer the actual binary generation -- no
-/// ZIP-streaming/DOCX/real-object-storage dependency exists in <c>backend/</c> yet (see
-/// WAVE2-PORT-NOTES.md).
+/// writes, see the create/update handlers). The ZIP-export endpoint now streams a real archive
+/// (<see cref="AiYearArchiveStreamWriter"/>) and the report endpoint now returns real
+/// <c>.docx</c> bytes (<see cref="IAiYearReportDocxRenderer"/>), closing the two Wave 2 binary
+/// deferrals recorded in WAVE2-PORT-NOTES.md.
 /// </summary>
 [ApiController]
 [ApiVersion("1.0")]
@@ -26,12 +27,18 @@ namespace Icbank.Platform.Api.Controllers;
 public sealed class AiYearController : ControllerBase
 {
     private readonly ISender _sender;
+    private readonly AiYearArchiveStreamWriter _archiveStreamWriter;
+    private readonly IAiYearReportDocxRenderer _reportDocxRenderer;
 
     /// <summary>Initializes a new instance of the <see cref="AiYearController"/> class.</summary>
     /// <param name="sender">The MediatR sender used to dispatch AI Year commands/queries.</param>
-    public AiYearController(ISender sender)
+    /// <param name="archiveStreamWriter">The ZIP-archive streaming writer for the media export endpoint.</param>
+    /// <param name="reportDocxRenderer">The real .docx renderer for the report endpoint.</param>
+    public AiYearController(ISender sender, AiYearArchiveStreamWriter archiveStreamWriter, IAiYearReportDocxRenderer reportDocxRenderer)
     {
         _sender = sender;
+        _archiveStreamWriter = archiveStreamWriter;
+        _reportDocxRenderer = reportDocxRenderer;
     }
 
     /// <summary>Lists activations with media/metrics, filterable by month/type/channel/search text.</summary>
@@ -170,25 +177,69 @@ public sealed class AiYearController : ControllerBase
         return result.IsSuccess ? Ok(result.Value) : Problem(result.Error, statusCode: StatusCodes.Status404NotFound);
     }
 
-    /// <summary>Returns the ZIP archive manifest for an activation's media (binary streaming deferred, see class remarks).</summary>
+    /// <summary>
+    /// Streams the activation's media as a real ZIP archive directly to the response body (ports
+    /// the Node source's <c>archiver</c> route, <c>ai-year.ts:360-437</c>). Replaces the Wave 2
+    /// deferral that returned only the manifest JSON.
+    /// </summary>
     /// <param name="activationId">The activation id.</param>
     /// <param name="cancellationToken">A token used to observe cancellation requests.</param>
-    /// <returns>200 OK with the manifest, or 404 if not found/no media.</returns>
+    /// <returns>200 with a streamed <c>application/zip</c> body, or 404 if not found/no media.</returns>
     [HttpGet("activations/{activationId:int}/zip")]
     [Authorize(Policy = "ai_year:view")]
-    public async Task<ActionResult<AiYearActivationMediaArchiveDto>> GetActivationZipManifestAsync(int activationId, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetActivationZipAsync(int activationId, CancellationToken cancellationToken)
     {
-        Result<AiYearActivationMediaArchiveDto> result =
+        Result<AiYearActivationMediaArchiveDto> manifestResult =
             await _sender.Send(new GetAiYearActivationMediaArchivePathsQuery(activationId), cancellationToken);
-        return result.IsSuccess ? Ok(result.Value) : NotFound(new { error = result.Error });
+        if (!manifestResult.IsSuccess)
+        {
+            return NotFound(new { error = manifestResult.Error });
+        }
+
+        AiYearActivationMediaArchiveDto manifest = manifestResult.Value!;
+        var asciiFallbackName = $"activation-{activationId}.zip";
+        var encodedTitle = Uri.EscapeDataString(manifest.ActivationTitle);
+
+        Response.ContentType = "application/zip";
+        Response.Headers.ContentDisposition = $"attachment; filename=\"{asciiFallbackName}\"; filename*=UTF-8''{encodedTitle}.zip";
+
+        await _archiveStreamWriter.WriteAsync(manifest.Entries, Response.Body, cancellationToken);
+        return new EmptyResult();
     }
 
-    /// <summary>Returns the assembled report data (DOCX byte generation deferred, see class remarks).</summary>
+    /// <summary>
+    /// Returns the AI Year report as a real <c>.docx</c> binary, matching the Node original
+    /// exactly (<c>ai-year.ts:440-569</c>). Closes the Wave 2 regression noted in
+    /// WAVE2-PORT-NOTES.md item 16, where this endpoint had been returning the assembled
+    /// <see cref="AiYearReportDataDto"/> as JSON instead of a document binary.
+    /// </summary>
     /// <param name="cancellationToken">A token used to observe cancellation requests.</param>
-    /// <returns>200 OK with the report data.</returns>
+    /// <returns>200 OK with the <c>.docx</c> bytes.</returns>
     [HttpPost("report")]
     [Authorize(Policy = "ai_year:view")]
-    public async Task<ActionResult<AiYearReportDataDto>> GetReportDataAsync(CancellationToken cancellationToken)
+    public async Task<IActionResult> GetReportDataAsync(CancellationToken cancellationToken)
+    {
+        Result<AiYearReportDataDto> result = await _sender.Send(new GetAiYearReportDataQuery(), cancellationToken);
+        var docxBytes = await _reportDocxRenderer.RenderAsync(result.Value!, cancellationToken);
+        return File(
+            docxBytes,
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "AI-Year-2026-Report.docx");
+    }
+
+    /// <summary>
+    /// Returns the AI Year report's underlying assembled data as JSON, kept available as a
+    /// separate read path now that <see cref="GetReportDataAsync"/> returns document bytes
+    /// (documented decision, see RENDERING-NOTES.md: a distinct endpoint rather than a
+    /// content-negotiated/query-flag switch on the existing route, since the two responses have
+    /// fundamentally different shapes and callers should be able to discover the JSON path from
+    /// the route itself).
+    /// </summary>
+    /// <param name="cancellationToken">A token used to observe cancellation requests.</param>
+    /// <returns>200 OK with the report data as JSON.</returns>
+    [HttpGet("report/data")]
+    [Authorize(Policy = "ai_year:view")]
+    public async Task<ActionResult<AiYearReportDataDto>> GetReportDataJsonAsync(CancellationToken cancellationToken)
     {
         Result<AiYearReportDataDto> result = await _sender.Send(new GetAiYearReportDataQuery(), cancellationToken);
         return Ok(result.Value);

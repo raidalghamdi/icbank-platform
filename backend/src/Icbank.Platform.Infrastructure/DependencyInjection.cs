@@ -74,10 +74,10 @@ public static class DependencyInjection
     }
 
     /// <summary>
-    /// Registers the template-driven content-generator ports (dashboard, weekend, international
-    /// days, media monitoring) that <see cref="AddSecurityServices"/> used to inline directly.
-    /// Split out purely to keep both methods under the R-BE-091 40-line/method ceiling as the
-    /// registration list grows; this is DI wiring, not a meaningful behavioural seam.
+    /// Registers the template/content-generator and rendering ports (dashboard, weekend, AI Year,
+    /// international days, media monitoring) that <see cref="AddSecurityServices"/> used to inline
+    /// directly. Split out purely to keep both methods under the R-BE-091 40-line/method ceiling as
+    /// the registration list grows; this is DI wiring, not a meaningful behavioural seam.
     /// </summary>
     /// <param name="services">The DI service collection.</param>
     private static void AddTemplateGeneratorServices(IServiceCollection services)
@@ -85,13 +85,14 @@ public static class DependencyInjection
         services.AddScoped<Icbank.Platform.Application.Dashboard.IExecutiveSummaryGenerator, Dashboard.TemplateExecutiveSummaryGenerator>();
         services.AddScoped<Icbank.Platform.Application.Weekend.IWeekendContentGenerator, Weekend.TemplateWeekendContentGenerator>();
         services.AddScoped<Icbank.Platform.Application.Weekend.IWeekStartMessageGenerator, Weekend.TemplateWeekStartMessageGenerator>();
-        services.AddScoped<Icbank.Platform.Application.Weekend.IDocumentTextExtractor, Weekend.PlainTextDocumentTextExtractor>();
+        services.AddScoped<Icbank.Platform.Application.Weekend.IDocumentTextExtractor, Weekend.CompositeDocumentTextExtractor>();
+        services.AddScoped<Icbank.Platform.Application.AiYear.IAiYearReportDocxRenderer, AiYear.OpenXmlAiYearReportDocxBuilder>();
         services.AddScoped<Icbank.Platform.Application.InternationalDays.IInternationalDaySearchProvider, InternationalDays.TemplateInternationalDaySearchProvider>();
         services.AddSingleton<Icbank.Platform.Application.InternationalDays.IInternationalDaySearchRateLimiter, InternationalDays.InMemoryInternationalDaySearchRateLimiter>();
         services.AddScoped<Icbank.Platform.Application.MediaMonitoring.IMediaReportNarrativeGenerator, MediaMonitoring.TemplateMediaReportNarrativeGenerator>();
         services.AddScoped<Icbank.Platform.Application.MediaMonitoring.IPromptExecutionEngine, MediaMonitoring.TemplatePromptExecutionEngine>();
         services.AddScoped<Icbank.Platform.Application.MediaMonitoring.IFinalReportSectionGenerator, MediaMonitoring.TemplateFinalReportSectionGenerator>();
-        services.AddScoped<Icbank.Platform.Application.MediaMonitoring.IFinalReportPdfRenderer, MediaMonitoring.TemplateFinalReportPdfRenderer>();
+        services.AddScoped<Icbank.Platform.Application.MediaMonitoring.IFinalReportPdfRenderer, MediaMonitoring.QuestPdfFinalReportPdfRenderer>();
         services.AddScoped<Icbank.Platform.Application.MediaMonitoring.IReportEmailSender, MediaMonitoring.NullReportEmailSender>();
         services.AddScoped<Icbank.Platform.Application.MediaMonitoring.IExecutiveSummaryRegenerator, MediaMonitoring.TemplateExecutiveSummaryRegenerator>();
         services.AddScoped<Icbank.Platform.Application.MediaMonitoring.IReportArchiveQaEngine, MediaMonitoring.TemplateReportArchiveQaEngine>();
@@ -119,8 +120,8 @@ public static class DependencyInjection
         services.AddScoped<Icbank.Platform.Application.Shorfah.IShorfahNotificationSender, Shorfah.NullShorfahNotificationSender>();
         services.AddScoped<Icbank.Platform.Application.Shorfah.IShorfahUrlProvider, Shorfah.ConfigurationShorfahUrlProvider>();
         services.AddSingleton<Icbank.Platform.Application.Shorfah.IShorfahSendInitialRateLimiter, Shorfah.InMemoryShorfahSendInitialRateLimiter>();
-        services.AddScoped<Icbank.Platform.Application.Shorfah.IShorfahDocxRenderer, Shorfah.PlainTextShorfahDocxRenderer>();
-        services.AddScoped<Icbank.Platform.Application.Shorfah.IShorfahIssuePdfRenderer, Shorfah.TemplateShorfahIssuePdfRenderer>();
+        services.AddScoped<Icbank.Platform.Application.Shorfah.IShorfahDocxRenderer, Shorfah.OpenXmlShorfahDocxRenderer>();
+        services.AddScoped<Icbank.Platform.Application.Shorfah.IShorfahIssuePdfRenderer, Shorfah.QuestPdfShorfahIssuePdfRenderer>();
         services.AddScoped<Icbank.Platform.Application.Shorfah.IShorfahSectionAccessService, Shorfah.ShorfahSectionAccessService>();
         services.AddScoped<Icbank.Platform.Application.Shorfah.IShorfahSectionContentGenerator, Shorfah.TemplateShorfahSectionContentGenerator>();
         services.AddSingleton<Icbank.Platform.Application.Shorfah.IShorfahSectionGenerationRateLimiter, Shorfah.InMemoryShorfahSectionGenerationRateLimiter>();
