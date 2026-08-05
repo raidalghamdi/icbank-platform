@@ -75,6 +75,12 @@ fi
 # ── 2. Boot ────────────────────────────────────────────────────────────────────
 # Staging rather than Development: Development would enable Swagger and skip HSTS,
 # so it would not exercise the pipeline the platform actually deploys.
+#
+# --no-launch-profile matters. Without it dotnet run applies
+# src/Icbank.Platform.Api/Properties/launchSettings.json, whose applicationUrl overrides
+# ASPNETCORE_URLS - the app boots and seeds successfully but listens on a different
+# address, so every assertion below fails against a port nothing is bound to.
+# launchSettings is a local-development convenience and has no business in CI.
 log "2. Starting the API as a real process"
 ASPNETCORE_ENVIRONMENT=Staging \
 ASPNETCORE_URLS="$BASE" \
@@ -88,7 +94,7 @@ Seed__InitialSuperAdminEmail="$SEED_EMAIL" \
 Seed__InitialSuperAdminPassword="$SEED_PASSWORD" \
 Shorfah__FrontendBaseUrl="$BASE" \
 Shorfah__ApiBaseUrl="$BASE" \
-  dotnet run --project src/Icbank.Platform.Api --no-build --configuration Release \
+  dotnet run --project src/Icbank.Platform.Api --no-build --no-launch-profile --configuration Release \
   > "$LOG_FILE" 2>&1 &
 API_PID=$!
 
