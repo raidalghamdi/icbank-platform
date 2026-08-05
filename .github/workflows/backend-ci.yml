@@ -7,6 +7,8 @@ on:
   push:
     branches: [main]
     paths: ['backend/**', '.github/workflows/backend-ci.yml']
+  # Lets the full gate suite be run on demand against any branch before a PR exists.
+  workflow_dispatch:
 
 env:
   DOTNET_VERSION: '8.0.x'
@@ -28,6 +30,12 @@ jobs:
           ACCEPT_EULA: 'Y'
           MSSQL_SA_PASSWORD: 'P@ssw0rd_CI_Only!'
         ports: ['1433:1433']
+        options: >-
+          --health-cmd "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P 'P@ssw0rd_CI_Only!' -Q 'SELECT 1'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 12
+          --health-start-period 30s
 
     steps:
       - uses: actions/checkout@v4
@@ -83,14 +91,33 @@ jobs:
             exit 1
           fi
 
-      - name: Run tests with coverage
+      # The integration suite runs against the real SQL Server service container above.
+      # ICBANK_TEST_SQL_CONNECTION is what switches AuthWebApplicationFactory off the
+      # EF Core InMemory provider and onto SQL Server, where each test host applies the
+      # committed migrations into a throwaway database and drops it afterwards.
+      #
+      # This matters: InMemory enforces no foreign keys, no unique indexes, no cascade
+      # rules, no datetimeoffset(3) precision and no rowversion concurrency. A green run
+      # on InMemory says the code paths execute; only a green run here says the schema
+      # and its constraints actually hold.
+      - name: Run tests with coverage (real SQL Server)
         run: |
           dotnet test --no-build -c Release \
             --collect:"XPlat Code Coverage" \
             --results-directory ./coverage \
             --settings coverlet.runsettings
         env:
-          ConnectionStrings__Default: 'Server=localhost,1433;Database=IcbankPlatformTest;User Id=sa;Password=P@ssw0rd_CI_Only!;TrustServerCertificate=True;'
+          ICBANK_TEST_SQL_CONNECTION: 'Server=localhost,1433;User Id=sa;Password=P@ssw0rd_CI_Only!;TrustServerCertificate=True;Encrypt=False;'
+          ConnectionStrings__Default: 'Server=localhost,1433;Database=IcbankPlatformTest;User Id=sa;Password=P@ssw0rd_CI_Only!;TrustServerCertificate=True;Encrypt=False;'
+
+      # Guard against the harness silently regressing to InMemory in CI, which would make
+      # every relational assertion above vacuous while the suite still reported green.
+      - name: Assert tests ran against a relational provider
+        run: |
+          if ! grep -rq 'ICBANK_TEST_SQL_CONNECTION' tests/Icbank.Platform.IntegrationTests/Auth/AuthWebApplicationFactory.cs; then
+            echo "::error::The integration test harness no longer honours ICBANK_TEST_SQL_CONNECTION, so CI is not testing against SQL Server."
+            exit 1
+          fi
 
       # R-BE-080 — coverage gate, Application + Domain only
       - name: Coverage gate (R-BE-080)
