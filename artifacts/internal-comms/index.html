@@ -5289,6 +5289,39 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
 
 <script>
 // ════════════════════════════════════════
+// API CONFIG — single configurable base URL + version prefix
+// ════════════════════════════════════════
+// Why: the frontend used to call the old Node/Express server via bare relative paths
+// (e.g. '/api/auth/login'), which only ever worked because both apps shared an origin in
+// every environment. The new .NET API is versioned (/api/v1/...) and may live on a
+// different origin in local/dev setups. Centralizing both the base URL and the version
+// prefix here means every call site builds its URL through apiUrl(path) instead of
+// concatenating literals, so pointing this file at local/dev/production is a one-line change
+// (or a runtime override) with no other edits required. Kept dependency-free on purpose —
+// this file has no build step and must keep working as a single static HTML file.
+//
+// Resolution order: an explicit window.__API_BASE__ set before this script runs (e.g. by a
+// small per-environment <script> block injected at deploy time), else a same-origin default
+// of '' (empty string), which reproduces today's production behavior exactly — every request
+// stays relative to wherever this file is served from.
+var API_BASE = (typeof window !== 'undefined' && window.__API_BASE__) || '';
+var API_VERSION = (typeof window !== 'undefined' && window.__API_VERSION__) || 'v1';
+
+// Builds a full request URL for a versioned API path. `path` must start with '/' and must
+// NOT include '/api' or the version segment — e.g. apiUrl('/auth/login') → '/api/v1/auth/login'.
+function apiUrl(path) {
+  return API_BASE + '/api/' + API_VERSION + path;
+}
+
+// Builds a full URL for a stored-object/static-asset path served by the storage endpoint,
+// e.g. storageUrl('/objects/gac/foo.pdf') → '/api/v1/storage/objects/gac/foo.pdf'.
+// Kept separate from apiUrl() because storage paths are embedded directly into <img src>,
+// CSS url(...), and download <a href> attributes as plain strings, not fetch() calls.
+function storageUrl(path) {
+  return API_BASE + '/api/' + API_VERSION + '/storage' + path;
+}
+
+// ════════════════════════════════════════
 // AUTH GUARD
 // ════════════════════════════════════════
 
