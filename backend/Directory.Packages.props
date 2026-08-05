@@ -47,6 +47,10 @@
     <PackageVersion Include="Hangfire.AspNetCore" Version="1.8.18" />
     <PackageVersion Include="Hangfire.SqlServer" Version="1.8.18" />
 
+    <!-- HTML sanitization (SEC-11) — Ganss.Xss (MIT), pinned to the version that fixes
+         GHSA-j92c-7v7g-gj3f (template-tag sanitizer bypass); do not downgrade below 9.0.892. -->
+    <PackageVersion Include="HtmlSanitizer" Version="9.0.892" />
+
     <!-- Testing -->
     <PackageVersion Include="xunit" Version="2.9.2" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="2.8.2" />

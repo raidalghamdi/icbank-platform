@@ -58,6 +58,7 @@ public static class DependencyInjection
         services.AddScoped<Icbank.Platform.Application.Common.Interfaces.IAsyncQueryExecutor, Persistence.EfAsyncQueryExecutor>();
         services.AddScoped<IResourceAuthorizationService, Security.ResourceAuthorizationService>();
         services.AddSingleton<ISafeStoragePathValidator, Security.SafeStoragePathValidator>();
+        services.AddSingleton<IHtmlSanitizer, Security.GanssHtmlSanitizer>();
         services.AddSingleton<ITemporaryPasswordGenerator, TemporaryPasswordGenerator>();
         services.AddSingleton<Icbank.Platform.Application.Common.Interfaces.IDateTimeProvider, Identity.SystemDateTimeProvider>();
         services.AddSingleton<Icbank.Platform.Application.Storage.IObjectStorageReader, Storage.FileSystemObjectStorageReader>();

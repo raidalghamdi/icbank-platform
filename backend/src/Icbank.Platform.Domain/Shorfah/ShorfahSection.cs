@@ -64,10 +64,13 @@ public sealed class ShorfahSection : AuditableEntity
     public string? ContentMd { get; set; }
 
     /// <summary>
-    /// Gets or sets the HTML content body. DATA-MODEL.md flags this as a dead write path
-    /// (accepted but never rendered) and a latent stored-XSS risk (SEC-11) if a future refactor
-    /// renders it raw -- kept for source fidelity but any future renderer MUST sanitize this
-    /// value before display.
+    /// Gets or sets the HTML content body. DATA-MODEL.md originally flagged this as a dead write
+    /// path (accepted but never rendered) and a latent stored-XSS risk (SEC-11) if a future
+    /// refactor rendered it raw. SEC-11 is now closed at the write boundary:
+    /// <c>PatchShorfahSectionCommandHandler</c> sanitizes every value assigned here via
+    /// <c>IHtmlSanitizer</c> before it reaches this setter, so any future renderer consumes
+    /// already-allowlisted markup. Kept nullable/string for source fidelity with the original
+    /// schema.
     /// </summary>
     public string? ContentHtml { get; set; }
 
