@@ -57,6 +57,14 @@ public static class DependencyInjection
         services.AddScoped<IResourceAuthorizationService, Security.ResourceAuthorizationService>();
         services.AddSingleton<ISafeStoragePathValidator, Security.SafeStoragePathValidator>();
         services.AddSingleton<ITemporaryPasswordGenerator, TemporaryPasswordGenerator>();
+        services.AddSingleton<Icbank.Platform.Application.Common.Interfaces.IDateTimeProvider, Identity.SystemDateTimeProvider>();
+        services.AddSingleton<Icbank.Platform.Application.Storage.IObjectStorageReader, Storage.FileSystemObjectStorageReader>();
+        services.AddSingleton<Icbank.Platform.Application.Storage.IObjectUploadUrlIssuer, Storage.FileSystemObjectUploadUrlIssuer>();
+        services.AddOptions<Storage.ObjectStorageOptions>().Bind(configuration.GetSection(Storage.ObjectStorageOptions.SectionName));
+        services.AddScoped<Icbank.Platform.Application.Dashboard.IExecutiveSummaryGenerator, Dashboard.TemplateExecutiveSummaryGenerator>();
+        services.AddScoped<Icbank.Platform.Application.Weekend.IWeekendContentGenerator, Weekend.TemplateWeekendContentGenerator>();
+        services.AddScoped<Icbank.Platform.Application.Weekend.IWeekStartMessageGenerator, Weekend.TemplateWeekStartMessageGenerator>();
+        services.AddScoped<Icbank.Platform.Application.Weekend.IDocumentTextExtractor, Weekend.PlainTextDocumentTextExtractor>();
 
         services.AddOptions<JwtOptions>()
             .Bind(configuration.GetSection(JwtOptions.SectionName))

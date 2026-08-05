@@ -219,6 +219,30 @@ public sealed class AppDbContext : DbContext, IApplicationDbContext
     /// <inheritdoc cref="IApplicationDbContext.RefreshTokens" />
     IQueryable<RefreshToken> IApplicationDbContext.RefreshTokens => RefreshTokens;
 
+    /// <inheritdoc cref="IApplicationDbContext.DailyReports" />
+    IQueryable<DailyReport> IApplicationDbContext.DailyReports => DailyReports;
+
+    /// <inheritdoc cref="IApplicationDbContext.WeekendPlaces" />
+    IQueryable<WeekendPlace> IApplicationDbContext.WeekendPlaces => WeekendPlaces;
+
+    /// <inheritdoc cref="IApplicationDbContext.WeekendDrafts" />
+    IQueryable<WeekendDraft> IApplicationDbContext.WeekendDrafts => WeekendDrafts;
+
+    /// <inheritdoc cref="IApplicationDbContext.ArchiveEntries" />
+    IQueryable<ArchiveEntry> IApplicationDbContext.ArchiveEntries => ArchiveEntries;
+
+    /// <inheritdoc cref="IApplicationDbContext.StyleProfiles" />
+    IQueryable<StyleProfile> IApplicationDbContext.StyleProfiles => StyleProfiles;
+
+    /// <inheritdoc cref="IApplicationDbContext.GeneratedOutputs" />
+    IQueryable<GeneratedOutput> IApplicationDbContext.GeneratedOutputs => GeneratedOutputs;
+
+    /// <inheritdoc cref="IApplicationDbContext.AiYearActivations" />
+    IQueryable<AiYearActivation> IApplicationDbContext.AiYearActivations => AiYearActivations;
+
+    /// <inheritdoc cref="IApplicationDbContext.InternationalDays" />
+    IQueryable<InternationalDay> IApplicationDbContext.InternationalDays => InternationalDays;
+
     /// <inheritdoc cref="IApplicationDbContext.Add{TEntity}" />
     void IApplicationDbContext.Add<TEntity>(TEntity entity) => Set<TEntity>().Add(entity);
 

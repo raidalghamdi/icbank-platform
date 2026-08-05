@@ -36,6 +36,7 @@ public sealed class AuthWebApplicationFactory : WebApplicationFactory<Program>
                 ["AzureAd:Enabled"] = "true",
                 ["AzureAd:AllowedRedirectTargets:0"] = "/dashboard",
                 ["Seed:AllowInProduction"] = "false",
+                ["Cron:ApiKey"] = "test-cron-key",
             });
         });
 

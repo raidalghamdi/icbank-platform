@@ -1,4 +1,8 @@
+using Icbank.Platform.Domain.AiYear;
 using Icbank.Platform.Domain.Identity;
+using Icbank.Platform.Domain.InternationalDays;
+using Icbank.Platform.Domain.Reports;
+using Icbank.Platform.Domain.Weekend;
 
 namespace Icbank.Platform.Application.Common.Interfaces;
 
@@ -44,6 +48,30 @@ public interface IApplicationDbContext
 
     /// <summary>Gets a queryable over rotatable refresh tokens.</summary>
     IQueryable<RefreshToken> RefreshTokens { get; }
+
+    /// <summary>Gets a queryable over ingested daily-report payloads (Wave 1: Daily Report).</summary>
+    IQueryable<DailyReport> DailyReports { get; }
+
+    /// <summary>Gets a queryable over the curated library of weekend venues/places (Wave 1: Weekend Places).</summary>
+    IQueryable<WeekendPlace> WeekendPlaces { get; }
+
+    /// <summary>Gets a queryable over the AI-generated weekly weekend-content drafts (Wave 1: Weekend Drafts).</summary>
+    IQueryable<WeekendDraft> WeekendDrafts { get; }
+
+    /// <summary>Gets a queryable over the Week Start message archive (Wave 1: Week Start).</summary>
+    IQueryable<ArchiveEntry> ArchiveEntries { get; }
+
+    /// <summary>Gets a queryable over the singleton learned writing-style profile (Wave 1: Week Start).</summary>
+    IQueryable<StyleProfile> StyleProfiles { get; }
+
+    /// <summary>Gets a queryable over the AI-generated week-start message drafts (Wave 1: Week Start).</summary>
+    IQueryable<GeneratedOutput> GeneratedOutputs { get; }
+
+    /// <summary>Gets a queryable over AI Year 2026 activation records (Wave 1: Dashboard aggregation input).</summary>
+    IQueryable<AiYearActivation> AiYearActivations { get; }
+
+    /// <summary>Gets a queryable over the international-observance-day catalogue (Wave 1: Dashboard aggregation input).</summary>
+    IQueryable<InternationalDay> InternationalDays { get; }
 
     /// <summary>Tracks a new entity for insertion.</summary>
     /// <typeparam name="TEntity">The entity type.</typeparam>
