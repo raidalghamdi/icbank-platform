@@ -15,6 +15,24 @@ namespace Icbank.Platform.Application.Weekend.Commands;
 /// undone by a storage-side failure, so the storage delete is attempted after the row is already
 /// gone and its outcome does not affect the command's result.
 /// </summary>
+/// <remarks>
+/// Why: CA1031 (catch a more specific exception) is suppressed at the class level, mirroring the
+/// one other accepted catch-all in this codebase, Icbank.Platform.Api.Middleware.GlobalExceptionMiddleware.
+/// This handler's own XML doc, and IObjectStorageDeleter's, both promise that a storage-side
+/// failure must never surface as a failure of the command itself -- that was previously
+/// unenforced (a real bug: see
+/// DeleteWeekendPlaceCommandHandlerTests.Handle_StorageDeleteThrows_CommandStillSucceeds), so the
+/// delete call is now wrapped. There is no ILogger port in the Application layer (see
+/// Icbank.Platform.Application.csproj's package references), so System.Diagnostics.Trace is used
+/// here instead of an ILogger call -- it is part of the base class library, needs no new pinned
+/// package, and keeps the catch clause non-empty (RCS1075) with an observable trace of the
+/// swallowed failure. Introducing a full Application-layer logging abstraction is a reasonable
+/// follow-up but is a separate, larger architectural change than closing this bug warrants.
+/// </remarks>
+[System.Diagnostics.CodeAnalysis.SuppressMessage(
+    "Design",
+    "CA1031:Do not catch general exception types",
+    Justification = "Best-effort storage cleanup after the row delete is already committed and audited; the handler's and IObjectStorageDeleter's contracts both require a storage failure to never surface as a command failure.")]
 public sealed class DeleteWeekendPlaceCommandHandler : IRequestHandler<DeleteWeekendPlaceCommand, Result<bool>>
 {
     // Why: matches the exact prefix GetWeekendPlaceUploadUrlQueryHandler issues ImageUrl values
@@ -94,6 +112,16 @@ public sealed class DeleteWeekendPlaceCommandHandler : IRequestHandler<DeleteWee
             return;
         }
 
-        await _storageDeleter.DeleteAsync(validation.NormalizedPath!, cancellationToken);
+        try
+        {
+            await _storageDeleter.DeleteAsync(validation.NormalizedPath!, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Trace.TraceWarning(
+                "Best-effort delete of weekend place image '{0}' failed and was swallowed: {1}",
+                validation.NormalizedPath,
+                ex.Message);
+        }
     }
 }
