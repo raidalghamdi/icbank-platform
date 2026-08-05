@@ -5,10 +5,14 @@
       <DataCollector friendlyName="XPlat code coverage">
         <Configuration>
           <Format>cobertura</Format>
-          <!-- R-BE-080: the coverage floor applies to Application + Domain.
-               Infrastructure and Api are proven by integration tests, not by
-               a line-coverage number. -->
-          <Include>[Icbank.Platform.Application]*,[Icbank.Platform.Domain]*</Include>
+          <!-- R-BE-080: Application + Domain carry the primary 70% coverage floor.
+               Api and Infrastructure are now ALSO instrumented (widened this cycle after
+               two cross cutting response contract defects lived in the Api layer, went
+               unmeasured, and were caught only by a live boot test) under their own,
+               separately measured, honest floor in backend-ci.yml; see that file for
+               the exact number and why it is set where it is. Migrations remain excluded
+               everywhere: they are EF Core generated code, not hand written logic. -->
+          <Include>[Icbank.Platform.Application]*,[Icbank.Platform.Domain]*,[Icbank.Platform.Api]*,[Icbank.Platform.Infrastructure]*</Include>
           <Exclude>[*.Tests]*,[*]*.Migrations.*</Exclude>
           <ExcludeByAttribute>Obsolete,GeneratedCodeAttribute,CompilerGeneratedAttribute,ExcludeFromCodeCoverageAttribute</ExcludeByAttribute>
           <SkipAutoProps>true</SkipAutoProps>

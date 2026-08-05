@@ -20,6 +20,7 @@ public sealed class PatchShorfahSectionCommandHandler : IRequestHandler<PatchSho
     private readonly IShorfahSectionAccessService _accessService;
     private readonly IDateTimeProvider _dateTimeProvider;
     private readonly IAuditLogService _auditLogService;
+    private readonly IHtmlSanitizer _htmlSanitizer;
 
     /// <summary>Initializes a new instance of the <see cref="PatchShorfahSectionCommandHandler"/> class.</summary>
     /// <param name="dbContext">The persistence port.</param>
@@ -27,18 +28,21 @@ public sealed class PatchShorfahSectionCommandHandler : IRequestHandler<PatchSho
     /// <param name="accessService">The per-section permission-tier port.</param>
     /// <param name="dateTimeProvider">The injectable clock.</param>
     /// <param name="auditLogService">The privileged-action audit log port.</param>
+    /// <param name="htmlSanitizer">The HTML sanitization port (SEC-11) applied to <see cref="PatchShorfahSectionCommand.ContentHtml"/> before it is stored.</param>
     public PatchShorfahSectionCommandHandler(
         IApplicationDbContext dbContext,
         IAsyncQueryExecutor queryExecutor,
         IShorfahSectionAccessService accessService,
         IDateTimeProvider dateTimeProvider,
-        IAuditLogService auditLogService)
+        IAuditLogService auditLogService,
+        IHtmlSanitizer htmlSanitizer)
     {
         _dbContext = dbContext;
         _queryExecutor = queryExecutor;
         _accessService = accessService;
         _dateTimeProvider = dateTimeProvider;
         _auditLogService = auditLogService;
+        _htmlSanitizer = htmlSanitizer;
     }
 
     /// <inheritdoc />
@@ -177,10 +181,34 @@ public sealed class PatchShorfahSectionCommandHandler : IRequestHandler<PatchSho
 
         if (request.ContentHtml is not null)
         {
-            section.ContentHtml = request.ContentHtml;
+            section.ContentHtml = await SanitizeContentHtmlAsync(request, section, cancellationToken);
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Sanitizes <see cref="PatchShorfahSectionCommand.ContentHtml"/> before it is ever assigned
+    /// onto <see cref="ShorfahSection.ContentHtml"/> (closes SEC-11). If sanitization changed the
+    /// input, that is recorded as its own audit-log entry rather than silently dropped -- the task
+    /// explicitly requires an audit trail for altered content, not just a clean write.
+    /// </summary>
+    private async Task<string> SanitizeContentHtmlAsync(PatchShorfahSectionCommand request, ShorfahSection section, CancellationToken cancellationToken)
+    {
+        HtmlSanitizationResult sanitizationResult = _htmlSanitizer.Sanitize(request.ContentHtml!);
+        if (sanitizationResult.WasModified)
+        {
+            await _auditLogService.RecordAsync(
+                request.ActorUserId,
+                "shorfah_section.content_html.sanitized",
+                "ShorfahSection",
+                ShorfahMappers.IdString(section.Id),
+                before: new { request.ContentHtml },
+                after: new { ContentHtml = sanitizationResult.SanitizedHtml },
+                cancellationToken);
+        }
+
+        return sanitizationResult.SanitizedHtml;
     }
 
     private async Task<Result<ShorfahSectionDto>?> ApplyIncludeInPdfAsync(

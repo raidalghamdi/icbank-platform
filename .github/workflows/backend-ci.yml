@@ -13,6 +13,13 @@ on:
 env:
   DOTNET_VERSION: '8.0.x'
   COVERAGE_THRESHOLD: 70
+  # Api + Infrastructure were widened into coverlet.runsettings' Include list and measured at
+  # 87.4% line coverage (see SECURITY-HARDENING-NOTES.md for the exact run this floor is derived
+  # from). 80 is set deliberately below that number, not at it: it is a floor that catches a real
+  # regression without being so tight that routine, unrelated changes trip it on branch-coverage
+  # noise. It must never be raised to match a lucky measurement, and never lowered to paper over
+  # a regression -- if it needs to move, the number and the reason both belong in this comment.
+  API_INFRASTRUCTURE_COVERAGE_THRESHOLD: 80
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 'true'
   DOTNET_NOLOGO: 'true'
 
@@ -119,7 +126,7 @@ jobs:
             exit 1
           fi
 
-      # R-BE-080 — coverage gate, Application + Domain only
+      # R-BE-080 — coverage gate, Application + Domain (the primary, longest-standing floor)
       - name: Coverage gate (R-BE-080)
         run: |
           dotnet tool install -g dotnet-reportgenerator-globaltool
@@ -136,12 +143,36 @@ jobs:
             exit 1
           fi
 
+      # Api + Infrastructure coverage gate — separate and honest, not the same number as R-BE-080.
+      # These two layers used to be excluded from coverlet.runsettings entirely on the theory that
+      # integration tests alone proved them; two cross-cutting response-contract defects that lived
+      # in the Api layer and were only caught by a live boot test showed that theory was wrong for
+      # at least some of this code. The floor below is the layers' actual measured coverage, minus
+      # margin — see the API_INFRASTRUCTURE_COVERAGE_THRESHOLD comment above and
+      # SECURITY-HARDENING-NOTES.md for what is and is not covered.
+      - name: Coverage gate — Api + Infrastructure (separate honest floor)
+        run: |
+          export PATH="$PATH:$HOME/.dotnet/tools"
+          reportgenerator \
+            -reports:"coverage/**/coverage.cobertura.xml" \
+            -targetdir:coveragereport-apiinfra \
+            -reporttypes:JsonSummary \
+            -classfilters:"+Icbank.Platform.Api.*;+Icbank.Platform.Infrastructure.*"
+          LINE_RATE=$(jq '.summary.linecoverage' coveragereport-apiinfra/Summary.json)
+          echo "Line coverage (Api + Infrastructure): $LINE_RATE%"
+          if (( $(echo "$LINE_RATE < ${{ env.API_INFRASTRUCTURE_COVERAGE_THRESHOLD }}" | bc -l) )); then
+            echo "::error::Coverage $LINE_RATE% is below the ${{ env.API_INFRASTRUCTURE_COVERAGE_THRESHOLD }}% Api+Infrastructure threshold"
+            exit 1
+          fi
+
       - name: Publish coverage artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
-          path: backend/coveragereport
+          path: |
+            backend/coveragereport
+            backend/coveragereport-apiinfra
 
   # Everything in the job above runs the app in-process through WebApplicationFactory with
   # the database and clock swapped out. This job is the only place the API runs as a real
