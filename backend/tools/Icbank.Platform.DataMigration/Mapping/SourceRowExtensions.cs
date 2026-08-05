@@ -82,4 +82,69 @@ public static class SourceRowExtensions
     /// <returns>The column value as <see langword="decimal"/>, or <see langword="null"/>.</returns>
     public static decimal? GetNullableDecimal(this Source.SourceRow row, string column) =>
         row[column] is null ? null : Convert.ToDecimal(row[column], CultureInfo.InvariantCulture);
+
+    /// <summary>
+    /// Reads a column that may arrive as a native Npgsql array, a JSON-text array (jsonb column,
+    /// or an in-memory test fixture modelling the array as JSON text), or <see langword="null"/>.
+    /// Shared by every transformer/migrator touching a Postgres <c>text[]</c> or
+    /// <c>jsonb</c>-array column, so array-shape handling lives in one place.
+    /// </summary>
+    /// <param name="row">The source row.</param>
+    /// <param name="column">The column name.</param>
+    /// <returns>The array elements as strings, or an empty list if the column was null/absent.</returns>
+    public static IReadOnlyList<string> GetStringArray(this Source.SourceRow row, string column) =>
+        row[column] switch
+        {
+            null => Array.Empty<string>(),
+            string[] array => array,
+            IEnumerable<string> enumerable => enumerable.ToArray(),
+            string json when !string.IsNullOrWhiteSpace(json) =>
+                System.Text.Json.JsonSerializer.Deserialize<List<string>>(json) ?? new List<string>(),
+            _ => Array.Empty<string>(),
+        };
+
+    /// <summary>
+    /// Reads a column that may arrive as a native Npgsql <see langword="int"/> array, a JSON-text
+    /// array (jsonb column, or an in-memory test fixture modelling the array as JSON text), or
+    /// <see langword="null"/>.
+    /// </summary>
+    /// <param name="row">The source row.</param>
+    /// <param name="column">The column name.</param>
+    /// <returns>The array elements as ints, or an empty list if the column was null/absent.</returns>
+    public static IReadOnlyList<int> GetInt32Array(this Source.SourceRow row, string column) =>
+        row[column] switch
+        {
+            null => Array.Empty<int>(),
+            int[] array => array,
+            IEnumerable<int> enumerable => enumerable.ToArray(),
+            string json when !string.IsNullOrWhiteSpace(json) =>
+                System.Text.Json.JsonSerializer.Deserialize<List<int>>(json) ?? new List<int>(),
+            _ => Array.Empty<int>(),
+        };
+
+    /// <summary>Reads a nullable <see langword="float"/> column.</summary>
+    /// <param name="row">The source row.</param>
+    /// <param name="column">The column name.</param>
+    /// <returns>The column value as <see langword="float"/>, or <see langword="null"/>.</returns>
+    public static float? GetNullableFloat(this Source.SourceRow row, string column) =>
+        row[column] is null ? null : Convert.ToSingle(row[column], CultureInfo.InvariantCulture);
+
+    /// <summary>
+    /// Reads a numeric-array column (e.g. a <c>jsonb number[]</c> embedding vector) that may
+    /// arrive as a native array, a JSON-text array, or <see langword="null"/>.
+    /// </summary>
+    /// <param name="row">The source row.</param>
+    /// <param name="column">The column name.</param>
+    /// <returns>The array elements as floats, or an empty list if the column was null/absent.</returns>
+    public static IReadOnlyList<float> GetFloatArray(this Source.SourceRow row, string column) =>
+        row[column] switch
+        {
+            null => Array.Empty<float>(),
+            float[] array => array,
+            double[] array => Array.ConvertAll(array, Convert.ToSingle),
+            IEnumerable<float> enumerable => enumerable.ToArray(),
+            string json when !string.IsNullOrWhiteSpace(json) =>
+                System.Text.Json.JsonSerializer.Deserialize<List<float>>(json) ?? new List<float>(),
+            _ => Array.Empty<float>(),
+        };
 }

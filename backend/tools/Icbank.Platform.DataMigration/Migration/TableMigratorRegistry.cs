@@ -55,5 +55,16 @@ public static class TableMigratorRegistry
         // Notifications reference Users (required) plus optional Issue/Section -- must run last
         // in the Shorfah group so both optional FKs can resolve.
         new ShorfahNotificationTableMigrator(),
+
+        // Week-start content-generation domain -- ArchiveEntry has no FKs; GeneratedOutput
+        // re-points its archive_refs list through ArchiveEntry's id mapping, so it must follow.
+        new ArchiveEntryTableMigrator(),
+        new StyleProfileTableMigrator(),
+        new GeneratedOutputTableMigrator(),
+
+        // Weekend content domain -- WeekendPlace has no FKs; WeekendDraft optionally FKs to
+        // Users (generated_by/approved_by), already migrated above.
+        new WeekendPlaceTableMigrator(),
+        new WeekendDraftTableMigrator(),
     };
 }
