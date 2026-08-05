@@ -25,6 +25,12 @@
     <PackageVersion Include="Serilog.AspNetCore" Version="8.0.3" />
     <PackageVersion Include="Serilog.Sinks.Console" Version="6.0.0" />
     <PackageVersion Include="Serilog.Sinks.Seq" Version="8.0.0" />
+    <!-- Pinned to the pre-3.x AspNetCore/ApplicationInsights line: Serilog.Sinks.ApplicationInsights
+         5.0.1 (latest stable) requires Microsoft.ApplicationInsights < 3.0.0, which conflicts with
+         Microsoft.ApplicationInsights.AspNetCore 3.x (needs ApplicationInsights >= 3.1.2). 2.23.0
+         is the latest AspNetCore package compatible with the Serilog sink and still supports net8.0. -->
+    <PackageVersion Include="Serilog.Sinks.ApplicationInsights" Version="5.0.1" />
+    <PackageVersion Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.23.0" />
     <PackageVersion Include="Serilog.Enrichers.Environment" Version="3.0.1" />
     <PackageVersion Include="Serilog.Exceptions" Version="8.4.0" />
 
@@ -35,6 +41,7 @@
 
     <!-- Resilience (Polly v8 wrapper) -->
     <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="8.10.0" />
+    <PackageVersion Include="Polly" Version="8.6.6" />
 
     <!-- Auth -->
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.29" />
@@ -58,6 +65,15 @@
          downgrade below 9.1.973. -->
     <PackageVersion Include="HtmlSanitizer" Version="9.1.982" />
 
+    <!-- Azure integration — Key Vault configuration provider, managed-identity credential,
+         Blob Storage adapters, Application Insights sink, Communication Services email.
+         See spec/AZURE-NOTES.md for why each was chosen and pinned at this version. -->
+    <PackageVersion Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.5.1" />
+    <PackageVersion Include="Azure.Security.KeyVault.Secrets" Version="4.11.0" />
+    <PackageVersion Include="Azure.Identity" Version="1.13.2" />
+    <PackageVersion Include="Azure.Storage.Blobs" Version="12.29.1" />
+    <PackageVersion Include="Azure.Communication.Email" Version="1.1.0" />
+
     <!-- Testing -->
     <PackageVersion Include="xunit" Version="2.9.2" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="2.8.2" />
@@ -77,10 +93,13 @@
     -->
     <!-- GHSA-5crp-9r3c-p9vr (High) - pulled in by Hangfire.SqlServer 1.8.18 -->
     <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
-    <!-- GHSA-wvxc-855f-jvrv (Moderate) - pulled in by Microsoft.Identity.Web / Azure SDK -->
-    <PackageVersion Include="Azure.Identity" Version="1.13.2" />
-    <!-- GHSA-x674-v45j-fwxw (Low) - transitive of Azure.Identity -->
-    <PackageVersion Include="Microsoft.Identity.Client" Version="4.67.2" />
+    <!-- GHSA-wvxc-855f-jvrv (Moderate) - Azure.Identity is now also a direct dependency
+         (Key Vault + managed identity for Blob/SQL), not just transitive; version unchanged. -->
+    <!-- GHSA-x674-v45j-fwxw (Low) - transitive of Azure.Identity. Bumped 4.67.2 -> 4.87.0:
+         Azure.Storage.Blobs 12.29.1 pulls Azure.Core 1.55.0, which floors this at >= 4.83.1;
+         4.87.0 is the latest stable and satisfies both the floor and the original advisory.
+         (Kept at azure branch's floor across the merge — do not revert to 4.67.2.) -->
+    <PackageVersion Include="Microsoft.Identity.Client" Version="4.87.0" />
 
     <!-- Rendering/document providers (feat/rendering) — pure libraries, no external API keys.
          QuestPDF Community license (free under $1M annual revenue; not OSI-approved but no-cost

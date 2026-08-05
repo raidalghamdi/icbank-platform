@@ -24,6 +24,7 @@ public sealed class IcbankWebApplicationFactory : WebApplicationFactory<Program>
                 ["Jwt:Issuer"] = "icbank-platform-tests",
                 ["Jwt:Audience"] = "icbank-platform-tests-clients",
                 ["Seed:AllowInProduction"] = "false",
+                ["Cron:ApiKey"] = "test-cron-key",
             });
         });
     }

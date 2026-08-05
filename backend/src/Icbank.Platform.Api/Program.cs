@@ -22,8 +22,26 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 // cannot suppress it; it must be disabled at the server level too.
 builder.WebHost.ConfigureKestrel(options => options.AddServerHeader = false);
 
+// Why: must run before anything reads ConnectionStrings/Jwt/Cron config -- this is the Key Vault
+// configuration source itself, layered on top of appsettings.json/environment variables using
+// the App Service's managed identity (R-BE-043). A no-op in Development/Testing/local runs
+// that never set KeyVault:VaultUri.
+builder.AddIcbankKeyVault();
+
+// Why: fails fast with a clear error before the host builds if a required secret is still empty
+// after Key Vault has had a chance to supply it, rather than booting with an empty JWT signing
+// key or connection string and failing confusingly later, or -- worse -- silently signing tokens
+// with a guessable key.
+builder.AddIcbankStartupSecretsGuard();
+
+// Why: registers the Application Insights SDK (request/dependency/exception auto-collection)
+// before Serilog is wired, so the Serilog sink's ReadFrom.Services(services) call below can see
+// and reuse the same TelemetryConfiguration instead of building an uncorrelated second one.
+builder.AddIcbankApplicationInsights();
+
 // Why: Serilog replaces the default provider entirely so every log line — framework and
-// application — flows through the same structured sinks (R-BE-050).
+// application — flows through the same structured sinks (R-BE-050), including the Application
+// Insights sink enabled in deployed environments.
 builder.AddIcbankSerilog();
 
 builder.Services.AddControllers();
@@ -40,7 +58,9 @@ builder.Services.AddIcbankJwtAuthentication(builder.Configuration);
 builder.Services.AddIcbankAuthorization();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddOptions<Icbank.Platform.Api.Auth.CronApiKeyOptions>()
-    .Bind(builder.Configuration.GetSection(Icbank.Platform.Api.Auth.CronApiKeyOptions.SectionName));
+    .Bind(builder.Configuration.GetSection(Icbank.Platform.Api.Auth.CronApiKeyOptions.SectionName))
+    .Validate(options => !string.IsNullOrWhiteSpace(options.ApiKey), "Cron:ApiKey must be configured.")
+    .ValidateOnStart();
 
 builder.Services.AddProblemDetails(options =>
 {

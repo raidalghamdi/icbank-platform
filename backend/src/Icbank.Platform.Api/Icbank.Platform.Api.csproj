@@ -14,8 +14,16 @@
     <PackageReference Include="Serilog.AspNetCore" />
     <PackageReference Include="Serilog.Sinks.Console" />
     <PackageReference Include="Serilog.Sinks.Seq" />
+    <PackageReference Include="Serilog.Sinks.ApplicationInsights" />
+    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" />
     <PackageReference Include="Serilog.Enrichers.Environment" />
     <PackageReference Include="Serilog.Exceptions" />
+    <PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" />
+    <PackageReference Include="Azure.Security.KeyVault.Secrets" />
+    <!-- Aliased: see Icbank.Platform.Infrastructure.csproj for why (Azure.Core >= 1.55.0, pulled
+         transitively via the Infrastructure project reference, embeds a colliding
+         Azure.Identity.DefaultAzureCredential type). -->
+    <PackageReference Include="Azure.Identity" Aliases="identity" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
     <PackageReference Include="AspNetCore.HealthChecks.SqlServer" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design">

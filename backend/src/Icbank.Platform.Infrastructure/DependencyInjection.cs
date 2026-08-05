@@ -1,7 +1,12 @@
+extern alias identity;
+
+using Azure.Communication.Email;
+using Azure.Storage.Blobs;
 using Icbank.Platform.Application.Auth;
 using Icbank.Platform.Application.Common.Interfaces;
 using Icbank.Platform.Infrastructure.Http;
 using Icbank.Platform.Infrastructure.Identity;
+using Icbank.Platform.Infrastructure.Notifications;
 using Icbank.Platform.Infrastructure.Persistence;
 using Icbank.Platform.Infrastructure.Persistence.Interceptors;
 using Microsoft.EntityFrameworkCore;
@@ -44,6 +49,19 @@ public static class DependencyInjection
     /// <param name="configuration">The application configuration, used for JWT options binding.</param>
     private static void AddSecurityServices(IServiceCollection services, IConfiguration configuration)
     {
+        AddCoreIdentityAndAuthServices(services);
+        AddContentGenerationServices(services, configuration);
+
+        services.AddOptions<JwtOptions>()
+            .Bind(configuration.GetSection(JwtOptions.SectionName))
+            .Validate(options => !string.IsNullOrWhiteSpace(options.SigningKey), "Jwt:SigningKey must be configured.")
+            .ValidateOnStart();
+    }
+
+    /// <summary>Registers the current-user/request-context ports and the core identity/auth singletons/scoped services (R-BE-004: composition root only).</summary>
+    /// <param name="services">The DI service collection.</param>
+    private static void AddCoreIdentityAndAuthServices(IServiceCollection services)
+    {
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddScoped<IRequestContext, HttpRequestContext>();
@@ -61,9 +79,22 @@ public static class DependencyInjection
         services.AddSingleton<IHtmlSanitizer, Security.GanssHtmlSanitizer>();
         services.AddSingleton<ITemporaryPasswordGenerator, TemporaryPasswordGenerator>();
         services.AddSingleton<Icbank.Platform.Application.Common.Interfaces.IDateTimeProvider, Identity.SystemDateTimeProvider>();
-        services.AddSingleton<Icbank.Platform.Application.Storage.IObjectStorageReader, Storage.FileSystemObjectStorageReader>();
-        services.AddSingleton<Icbank.Platform.Application.Storage.IObjectUploadUrlIssuer, Storage.FileSystemObjectUploadUrlIssuer>();
+    }
+
+    /// <summary>
+    /// Registers storage-backed and notification-backed content-generation ports (dashboard,
+    /// weekend, international days, media monitoring), plus the storage/notification provider
+    /// switches themselves. Split out of <see cref="AddSecurityServices"/> purely to keep each
+    /// method within the project's method-length limit: the registrations still all run as one
+    /// step from <see cref="AddInfrastructure"/>'s point of view.
+    /// </summary>
+    /// <param name="services">The DI service collection.</param>
+    /// <param name="configuration">The application configuration, used for options binding and the storage/notification provider switches.</param>
+    private static void AddContentGenerationServices(IServiceCollection services, IConfiguration configuration)
+    {
         services.AddOptions<Storage.ObjectStorageOptions>().Bind(configuration.GetSection(Storage.ObjectStorageOptions.SectionName));
+        services.AddOptions<Storage.AzureBlobStorageOptions>().Bind(configuration.GetSection(Storage.AzureBlobStorageOptions.SectionName));
+        AddObjectStorageServices(services, configuration);
 
         services.AddOptions<JwtOptions>()
             .Bind(configuration.GetSection(JwtOptions.SectionName))
@@ -71,6 +102,10 @@ public static class DependencyInjection
             .ValidateOnStart();
 
         AddTemplateGeneratorServices(services);
+
+        services.AddOptions<NotificationsOptions>().Bind(configuration.GetSection(NotificationsOptions.SectionName));
+        services.AddOptions<AzureCommunicationServicesOptions>().Bind(configuration.GetSection(AzureCommunicationServicesOptions.SectionName));
+        AddNotificationServices(services, configuration);
     }
 
     /// <summary>
@@ -93,16 +128,77 @@ public static class DependencyInjection
         services.AddScoped<Icbank.Platform.Application.MediaMonitoring.IPromptExecutionEngine, MediaMonitoring.TemplatePromptExecutionEngine>();
         services.AddScoped<Icbank.Platform.Application.MediaMonitoring.IFinalReportSectionGenerator, MediaMonitoring.TemplateFinalReportSectionGenerator>();
         services.AddScoped<Icbank.Platform.Application.MediaMonitoring.IFinalReportPdfRenderer, MediaMonitoring.QuestPdfFinalReportPdfRenderer>();
-        services.AddScoped<Icbank.Platform.Application.MediaMonitoring.IReportEmailSender, MediaMonitoring.NullReportEmailSender>();
         services.AddScoped<Icbank.Platform.Application.MediaMonitoring.IExecutiveSummaryRegenerator, MediaMonitoring.TemplateExecutiveSummaryRegenerator>();
         services.AddScoped<Icbank.Platform.Application.MediaMonitoring.IReportArchiveQaEngine, MediaMonitoring.TemplateReportArchiveQaEngine>();
+    }
+
+    /// <summary>
+    /// Registers <c>IObjectStorageReader</c>, <c>IObjectUploadUrlIssuer</c>, <c>IObjectStorageWriter</c>,
+    /// and <c>IObjectStorageDeleter</c> using either the FileSystem or AzureBlob backend, selected by
+    /// <c>ObjectStorage:Provider</c> (default <see cref="Storage.ObjectStorageProvider.FileSystem"/>).
+    /// All four ports are switched together so they can never point at different backends. The
+    /// <see cref="BlobServiceClient"/> is authenticated with <c>Azure.Identity.DefaultAzureCredential</c>
+    /// (the API's managed identity in a deployed environment) -- no storage account key is ever
+    /// read from configuration.
+    /// </summary>
+    /// <param name="services">The DI service collection.</param>
+    /// <param name="configuration">The application configuration, used to read <c>ObjectStorage:Provider</c> and <c>ObjectStorage:AzureBlob:ServiceUri</c>.</param>
+    private static void AddObjectStorageServices(IServiceCollection services, IConfiguration configuration)
+    {
+        Storage.ObjectStorageProvider provider = configuration.GetValue<Storage.ObjectStorageProvider>("ObjectStorage:Provider");
+        if (provider == Storage.ObjectStorageProvider.AzureBlob)
+        {
+            var serviceUri = configuration["ObjectStorage:AzureBlob:ServiceUri"]
+                ?? throw new InvalidOperationException("ObjectStorage:AzureBlob:ServiceUri must be configured when ObjectStorage:Provider is AzureBlob.");
+            services.AddSingleton(new BlobServiceClient(new Uri(serviceUri), new identity::Azure.Identity.DefaultAzureCredential()));
+            services.AddSingleton<Icbank.Platform.Application.Storage.IObjectStorageReader, Storage.AzureBlobObjectStorageReader>();
+            services.AddSingleton<Icbank.Platform.Application.Storage.IObjectUploadUrlIssuer, Storage.AzureBlobObjectUploadUrlIssuer>();
+            services.AddSingleton<Icbank.Platform.Application.Storage.IObjectStorageWriter, Storage.AzureBlobObjectStorageWriter>();
+            services.AddSingleton<Icbank.Platform.Application.Storage.IObjectStorageDeleter, Storage.AzureBlobObjectStorageDeleter>();
+        }
+        else
+        {
+            services.AddSingleton<Icbank.Platform.Application.Storage.IObjectStorageReader, Storage.FileSystemObjectStorageReader>();
+            services.AddSingleton<Icbank.Platform.Application.Storage.IObjectUploadUrlIssuer, Storage.FileSystemObjectUploadUrlIssuer>();
+            services.AddSingleton<Icbank.Platform.Application.Storage.IObjectStorageWriter, Storage.FileSystemObjectStorageWriter>();
+            services.AddSingleton<Icbank.Platform.Application.Storage.IObjectStorageDeleter, Storage.FileSystemObjectStorageDeleter>();
+        }
+    }
+
+    /// <summary>
+    /// Registers <c>IReportEmailSender</c> and <c>IShorfahNotificationSender</c> using either the
+    /// Null (honest no-op) or AzureCommunicationServices backend, selected by
+    /// <c>Notifications:Provider</c> (default <see cref="NotificationsProvider.Null"/>). Both ports
+    /// are switched together. The <see cref="EmailClient"/> is authenticated with
+    /// <c>Azure.Identity.DefaultAzureCredential</c> -- no connection string/key is ever read from configuration.
+    /// </summary>
+    /// <param name="services">The DI service collection.</param>
+    /// <param name="configuration">The application configuration, used to read <c>Notifications:Provider</c> and <c>Notifications:AzureCommunicationServices:Endpoint</c>.</param>
+    private static void AddNotificationServices(IServiceCollection services, IConfiguration configuration)
+    {
+        NotificationsProvider provider = configuration.GetValue<NotificationsProvider>("Notifications:Provider");
+        if (provider == NotificationsProvider.AzureCommunicationServices)
+        {
+            var endpoint = configuration["Notifications:AzureCommunicationServices:Endpoint"]
+                ?? throw new InvalidOperationException("Notifications:AzureCommunicationServices:Endpoint must be configured when Notifications:Provider is AzureCommunicationServices.");
+            services.AddSingleton(new EmailClient(new Uri(endpoint), new identity::Azure.Identity.DefaultAzureCredential()));
+            services.AddScoped<Icbank.Platform.Application.MediaMonitoring.IReportEmailSender, AzureCommunicationServicesReportEmailSender>();
+            services.AddScoped<Icbank.Platform.Application.Shorfah.IShorfahNotificationSender, AzureCommunicationServicesShorfahNotificationSender>();
+        }
+        else
+        {
+            services.AddScoped<Icbank.Platform.Application.MediaMonitoring.IReportEmailSender, MediaMonitoring.NullReportEmailSender>();
+            services.AddScoped<Icbank.Platform.Application.Shorfah.IShorfahNotificationSender, Shorfah.NullShorfahNotificationSender>();
+        }
     }
 
     /// <summary>Registers Wave 3b Designs/Composer and Icon Event Designs ports: storage writer, rate limiter, seed catalogs, and AI/rendering placeholders.</summary>
     /// <param name="services">The DI service collection.</param>
     private static void AddDesignsServices(IServiceCollection services)
     {
-        services.AddSingleton<Icbank.Platform.Application.Storage.IObjectStorageWriter, Storage.FileSystemObjectStorageWriter>();
+        // Why: IObjectStorageWriter's provider selection is wired in AddObjectStorageServices
+        // (called from AddSecurityServices) alongside the other three storage ports, so all four
+        // share one Provider switch instead of being able to drift independently.
         services.AddSingleton<Icbank.Platform.Application.Designs.IDesignGenerationRateLimiter, Designs.InMemoryDesignGenerationRateLimiter>();
         services.AddScoped<Icbank.Platform.Application.Designs.IconEvent.IIconEventDesignExtractor, Designs.TemplateIconEventDesignExtractor>();
         services.AddScoped<Icbank.Platform.Application.Designs.IconEvent.IIconEventHtmlRenderer, Designs.EncodedIconEventHtmlRenderer>();
@@ -117,7 +213,8 @@ public static class DependencyInjection
     /// <param name="services">The DI service collection.</param>
     private static void AddShorfahServices(IServiceCollection services)
     {
-        services.AddScoped<Icbank.Platform.Application.Shorfah.IShorfahNotificationSender, Shorfah.NullShorfahNotificationSender>();
+        // Why: IShorfahNotificationSender's provider selection is wired in AddNotificationServices
+        // alongside IReportEmailSender's, so the two email-sending ports share one Provider switch.
         services.AddScoped<Icbank.Platform.Application.Shorfah.IShorfahUrlProvider, Shorfah.ConfigurationShorfahUrlProvider>();
         services.AddSingleton<Icbank.Platform.Application.Shorfah.IShorfahSendInitialRateLimiter, Shorfah.InMemoryShorfahSendInitialRateLimiter>();
         services.AddScoped<Icbank.Platform.Application.Shorfah.IShorfahDocxRenderer, Shorfah.OpenXmlShorfahDocxRenderer>();

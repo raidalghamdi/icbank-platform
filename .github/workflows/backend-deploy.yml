@@ -1,0 +1,263 @@
+name: Backend CD
+
+# Manual dispatch only, on purpose: this pipeline was written and validated (bicep build,
+# YAML parse, gate suite) without any live Azure access -- see docs/DEPLOYMENT.md
+# "Unverified without a live subscription". Wiring it to auto-fire on every push to main
+# before a human has watched it succeed once against the real tenant would turn an unverified
+# assumption into an unattended production deploy. Once the operator has run this manually
+# against staging/prod and confirmed the OIDC federation, migration step, and smoke test all
+# behave as documented, switching the `on:` block to `push: branches: [main]` is a one-line
+# change they can make with confidence.
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment (must match a GitHub Environment with its own secrets/variables and, for prod, required reviewers)'
+        type: choice
+        required: true
+        options: [dev, staging, prod]
+
+env:
+  DOTNET_VERSION: '8.0.x'
+  COVERAGE_THRESHOLD: 70
+
+defaults:
+  run:
+    working-directory: backend
+
+# Why: OIDC federated credentials (azure/login) exchange a short-lived GitHub Actions OIDC
+# token for an Azure AD access token -- no client secret or publish profile is ever stored as a
+# GitHub secret. This requires id-token: write. See docs/DEPLOYMENT.md "App registration and
+# OIDC federation setup" for how AZURE_CLIENT_ID/AZURE_TENANT_ID/AZURE_SUBSCRIPTION_ID and the
+# federated credential itself are created.
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  # Every gate the CI workflow enforces on a PR is re-run here before anything is deployed.
+  # A pipeline that deploys code no gate has verified is worse than no pipeline at all.
+  gate:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    services:
+      sqlserver:
+        image: mcr.microsoft.com/mssql/server:2022-latest
+        env:
+          ACCEPT_EULA: 'Y'
+          MSSQL_SA_PASSWORD: 'P@ssw0rd_CI_Only!'
+        ports: ['1433:1433']
+        options: >-
+          --health-cmd "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P 'P@ssw0rd_CI_Only!' -Q 'SELECT 1'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 12
+          --health-start-period 30s
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Format verification (R-BE-090)
+        run: dotnet format --verify-no-changes --no-restore
+
+      - name: Method-length gate (R-BE-091)
+        run: |
+          pip install --quiet lizard
+          lizard --CCN 15 -L 40 -w src/ -x "*/Migrations/*" \
+            | grep -v '\*global\*' > lizard.txt || true
+          if [ -s lizard.txt ]; then
+            cat lizard.txt
+            echo "::error::Method exceeds 40 lines or CCN 15 (R-BE-091)"
+            exit 1
+          fi
+
+      - name: No skip-to-green gate (R-BE-083)
+        run: |
+          if grep -rn 'Skip = "' tests/ | grep -v 'Ticket:'; then
+            echo "::error::Found Skip= without a linked Ticket: trailer (R-BE-083)"
+            exit 1
+          fi
+
+      - name: Build (warnings-as-errors, nullable enforced)
+        run: dotnet build --no-restore -c Release
+
+      - name: Vulnerable package scan (R-BE-076)
+        run: |
+          dotnet list package --vulnerable --include-transitive 2>&1 | tee vuln.txt
+          if grep -qiE "Critical|High" vuln.txt; then
+            echo "::error::Critical/High vulnerable package found (R-BE-076)"
+            exit 1
+          fi
+
+      - name: Run tests with coverage (real SQL Server)
+        run: |
+          dotnet test --no-build -c Release \
+            --collect:"XPlat Code Coverage" \
+            --results-directory ./coverage \
+            --settings coverlet.runsettings
+        env:
+          ICBANK_TEST_SQL_CONNECTION: 'Server=localhost,1433;User Id=sa;Password=P@ssw0rd_CI_Only!;TrustServerCertificate=True;Encrypt=False;'
+          ConnectionStrings__Default: 'Server=localhost,1433;Database=IcbankPlatformTest;User Id=sa;Password=P@ssw0rd_CI_Only!;TrustServerCertificate=True;Encrypt=False;'
+
+      - name: Coverage gate (R-BE-080)
+        run: |
+          dotnet tool install -g dotnet-reportgenerator-globaltool
+          export PATH="$PATH:$HOME/.dotnet/tools"
+          reportgenerator \
+            -reports:"coverage/**/coverage.cobertura.xml" \
+            -targetdir:coveragereport \
+            -reporttypes:JsonSummary \
+            -classfilters:"+Icbank.Platform.Application.*;+Icbank.Platform.Domain.*"
+          LINE_RATE=$(jq '.summary.linecoverage' coveragereport/Summary.json)
+          echo "Line coverage (Application + Domain): $LINE_RATE%"
+          if (( $(echo "$LINE_RATE < ${{ env.COVERAGE_THRESHOLD }}" | bc -l) )); then
+            echo "::error::Coverage $LINE_RATE% is below the ${{ env.COVERAGE_THRESHOLD }}% threshold (R-BE-080)"
+            exit 1
+          fi
+
+      - name: Publish the app
+        run: dotnet publish src/Icbank.Platform.Api -c Release --no-build -o publish
+
+      - name: Upload publish artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-publish
+          path: backend/publish
+          retention-days: 7
+
+  # Migrations are applied as their own explicit step against the real target database, never
+  # as an app-startup side effect -- an app that silently migrates its own database on boot can
+  # apply a destructive schema change to production the moment a new instance happens to start,
+  # with no gate, review, or rollback point in between.
+  migrate:
+    needs: gate
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Azure login (OIDC federated credential)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Open a temporary SQL firewall rule for this runner
+        id: firewall
+        run: |
+          RUNNER_IP=$(curl -sS https://ifconfig.me)
+          echo "runner_ip=$RUNNER_IP" >> "$GITHUB_OUTPUT"
+          az sql server firewall-rule create \
+            --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
+            --server "${{ vars.SQL_SERVER_NAME }}" \
+            --name "gh-actions-migrate-${{ github.run_id }}" \
+            --start-ip-address "$RUNNER_IP" \
+            --end-ip-address "$RUNNER_IP"
+
+      - name: Restore and build (no-op if cached, needed for dotnet ef)
+        run: |
+          dotnet restore
+          dotnet build --no-restore -c Release
+
+      - name: Install dotnet-ef
+        run: |
+          dotnet tool install -g dotnet-ef --version 8.*
+          echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
+
+      - name: Apply EF Core migrations to the target database
+        run: |
+          dotnet ef database update \
+            --project src/Icbank.Platform.Infrastructure \
+            --startup-project src/Icbank.Platform.Api \
+            --no-build --configuration Release
+        env:
+          # Why Active Directory Default and not a SQL login/password: sql.bicep provisions the
+          # server with azureADOnlyAuthentication: true, so there is no SQL credential to use even
+          # if we wanted one. The federated OIDC identity that azure/login just authenticated as
+          # must itself be a member of the sqlEntraAdminObjectId admin group (or otherwise granted
+          # db_ddladmin) for this to succeed -- see docs/DEPLOYMENT.md "Letting the CD pipeline
+          # reach SQL".
+          ConnectionStrings__Default: 'Server=tcp:${{ vars.SQL_SERVER_FQDN }},1433;Database=${{ vars.SQL_DATABASE_NAME }};Authentication=Active Directory Default;Encrypt=True;TrustServerCertificate=False;'
+
+      - name: Remove the temporary SQL firewall rule
+        if: always()
+        run: |
+          az sql server firewall-rule delete \
+            --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
+            --server "${{ vars.SQL_SERVER_NAME }}" \
+            --name "gh-actions-migrate-${{ github.run_id }}" \
+            --yes || true
+
+  deploy:
+    needs: migrate
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    outputs:
+      app-url: ${{ steps.resolve-url.outputs.app_url }}
+    steps:
+      - name: Download publish artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-publish
+          path: publish
+
+      - name: Azure login (OIDC federated credential)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy to App Service
+        run: |
+          cd publish
+          zip -r ../publish.zip .
+          cd ..
+          az webapp deploy \
+            --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
+            --name "${{ vars.APP_SERVICE_NAME }}" \
+            --src-path publish.zip \
+            --type zip
+
+      - name: Resolve the deployed app URL
+        id: resolve-url
+        run: |
+          HOSTNAME=$(az webapp show \
+            --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
+            --name "${{ vars.APP_SERVICE_NAME }}" \
+            --query defaultHostName -o tsv)
+          echo "app_url=https://$HOSTNAME" >> "$GITHUB_OUTPUT"
+
+  # The gate job proves the code is correct in isolation (WebApplicationFactory, swapped
+  # database/clock). This job is the only place that proves the actual deployed instance -- real
+  # App Service configuration, real Key Vault references, real managed identity, real SQL
+  # connectivity -- answers live traffic correctly. A deploy that fails this is rolled back
+  # (see docs/DEPLOYMENT.md "Rollback"), not left in place "to investigate later".
+  smoke-test:
+    needs: deploy
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run smoke assertions against the deployed instance
+        run: |
+          chmod +x scripts/smoke-test.sh
+          ./scripts/smoke-test.sh
+        env:
+          SMOKE_BASE_URL: ${{ needs.deploy.outputs.app-url }}
+          SMOKE_SEED_EMAIL: ${{ secrets.SMOKE_SEED_EMAIL }}
+          SMOKE_SEED_PASSWORD: ${{ secrets.SMOKE_SEED_PASSWORD }}
