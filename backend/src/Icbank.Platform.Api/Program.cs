@@ -9,6 +9,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 
+// Why: QuestPDF requires an explicit license acceptance before any Document is composed
+// (the Rendering feature's PDF renderers -- see Icbank.Platform.Infrastructure.Rendering).
+// Community is free for individuals/small businesses/FOSS under the current QuestPDF terms;
+// see RENDERING-NOTES.md for the exact license text and eligibility discussion.
+QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
+
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 // Why: R-BE-079 — the Server header reveals the framework/version to attackers. Kestrel adds it

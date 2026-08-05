@@ -71,6 +71,15 @@
     <!-- GHSA-x674-v45j-fwxw (Low) - transitive of Azure.Identity -->
     <PackageVersion Include="Microsoft.Identity.Client" Version="4.67.2" />
 
+    <!-- Rendering/document providers (feat/rendering) — pure libraries, no external API keys.
+         QuestPDF Community license (free under $1M annual revenue; not OSI-approved but no-cost
+         for this project) — set QuestPDF.Settings.License = LicenseType.Community at startup.
+         PdfPig and DocumentFormat.OpenXml are MIT/MS-PL-style permissive/Apache 2.0. -->
+    <PackageVersion Include="QuestPDF" Version="2026.7.2" />
+    <PackageVersion Include="DocumentFormat.OpenXml" Version="3.5.1" />
+    <PackageVersion Include="PdfPig" Version="0.1.15" />
+    <PackageVersion Include="HtmlAgilityPack" Version="1.12.4" />
+
     <!-- Analyzers (root Directory.Build.props) -->
     <PackageVersion Include="Roslynator.Analyzers" Version="4.12.9" />
     <PackageVersion Include="StyleCop.Analyzers" Version="1.2.0-beta.556" />
