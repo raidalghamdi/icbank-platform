@@ -14,7 +14,7 @@ import {
   systemSettingsTable,
 } from "@workspace/db";
 import { eq, desc, ilike, or, and, count, sql, asc } from "drizzle-orm";
-import { requireAdmin } from "../middleware/auth";
+import { requireAdmin, requireSuperAdmin } from "../middleware/auth";
 import { getSettings, validatePassword, invalidateSettingsCache } from "../services/settings";
 
 const router = Router();
@@ -23,6 +23,16 @@ const router = Router();
 router.use(requireAdmin);
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
+
+// SEC-01: requireAdmin (router.use above) treats "admin" and "super_admin" as
+// equivalent, so without this check any plain "admin" could assign the
+// super_admin role to themselves or anyone else via POST/PATCH below. This
+// looks up the target role's name and refuses the assignment for non-
+// super_admin callers.
+async function isSuperAdminRole(roleId: number): Promise<boolean> {
+  const [role] = await db.select({ name: rolesTable.name }).from(rolesTable).where(eq(rolesTable.id, roleId)).limit(1);
+  return role?.name === "super_admin";
+}
 
 function genTempPassword(): string {
   const chars = "ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$";
@@ -131,6 +141,12 @@ router.post("/admin/users", async (req: Request, res: Response) => {
     return;
   }
 
+  // SEC-01: block a plain "admin" from creating a super_admin account.
+  if (req.user!.role !== "super_admin" && (await isSuperAdminRole(Number(roleId)))) {
+    res.status(403).json({ error: "لا يمكنك تعيين دور المدير الأعلى", code: "FORBIDDEN" });
+    return;
+  }
+
   const tempPassword = password || genTempPassword();
 
   if (password) {
@@ -166,6 +182,25 @@ router.patch("/admin/users/:id", async (req: Request, res: Response) => {
     email?: string;
     roleId?: number;
   };
+
+  // SEC-01: block a plain "admin" from promoting anyone (including themselves)
+  // to super_admin, and from changing the role of an existing super_admin.
+  if (req.user!.role !== "super_admin") {
+    if (roleId && (await isSuperAdminRole(Number(roleId)))) {
+      res.status(403).json({ error: "لا يمكنك تعيين دور المدير الأعلى", code: "FORBIDDEN" });
+      return;
+    }
+    const [targetRole] = await db
+      .select({ roleName: rolesTable.name })
+      .from(userRolesTable)
+      .innerJoin(rolesTable, eq(userRolesTable.roleId, rolesTable.id))
+      .where(eq(userRolesTable.userId, id))
+      .limit(1);
+    if (targetRole?.roleName === "super_admin") {
+      res.status(403).json({ error: "لا يمكنك تعديل حساب مدير أعلى", code: "FORBIDDEN" });
+      return;
+    }
+  }
 
   await db
     .update(usersTable)
@@ -353,7 +388,9 @@ router.get("/admin/roles/:id/permissions", async (req: Request, res: Response) =
   res.json({ pages, permissions: perms, matrix });
 });
 
-router.put("/admin/roles/:id/permissions", async (req: Request, res: Response) => {
+// SEC-01: rewriting a role's permission matrix (including super_admin's own)
+// must not be reachable by a plain "admin" — restrict to super_admin only.
+router.put("/admin/roles/:id/permissions", requireSuperAdmin, async (req: Request, res: Response) => {
   const roleId = parseInt(req.params["id"] as string);
   const { permissions } = req.body as { permissions?: Record<string, string[]> };
   if (!permissions) {

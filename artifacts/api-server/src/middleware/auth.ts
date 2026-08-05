@@ -161,6 +161,22 @@ export function requireAdmin(req: Request, res: Response, next: NextFunction) {
   next();
 }
 
+// SEC-01: super_admin-only gate. Unlike requireAdmin (which treats "admin" and
+// "super_admin" as equivalent), this rejects plain "admin" callers. Used to close
+// the admin -> super_admin privilege-escalation path: role assignment and the
+// role/permission matrix must not be reachable by a mere "admin".
+export function requireSuperAdmin(req: Request, res: Response, next: NextFunction) {
+  if (!req.user) {
+    res.status(401).json({ error: "غير مصرح", code: "UNAUTHORIZED" });
+    return;
+  }
+  if (req.user.role !== "super_admin") {
+    res.status(403).json({ error: "ليس لديك صلاحية", code: "FORBIDDEN" });
+    return;
+  }
+  next();
+}
+
 export function requirePermission(pageSlug: string, permission: string) {
   return (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) {

@@ -2735,25 +2735,18 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
     <div class="sidebar-section">
       <div class="sidebar-section-title">التواصل الداخلي</div>
       <div class="sidebar-nav">
-        <a class="nav-item" data-page="internal_requests" onclick="showSection('internal_requests')">
-          <span class="ico"><svg><use href="#i-inbox"/></svg></span>
-          <span>الطلبات الداخلية</span>
-        </a>
-        <a class="nav-item" data-page="internal_campaigns" onclick="showSection('internal_campaigns')">
-          <span class="ico"><svg><use href="#i-trending-up"/></svg></span>
-          <span>الحملات الداخلية</span>
-        </a>
-        <!-- Review Round 5: حملات التغيير — صفحة مستقلة -->
-        <a class="nav-item" data-page="change_campaigns" onclick="showSection('change_campaigns')">
-          <span class="ico"><svg><use href="#i-refresh"/></svg></span>
-          <span>حملات التغيير</span>
-        </a>
         <a class="nav-item" data-page="shorfah" onclick="showSection('shorfah')">
           <span class="ico"><svg><use href="#i-book"/></svg></span>
           <span>نشرة شُرفة</span>
           <span class="nav-item-count" id="shorfah-nav-count">—</span>
         </a>
-        <div style="font-size:11px;font-weight:700;color:var(--text-muted);padding:12px 16px 4px;letter-spacing:.5px;">• رسائل أسبوعية</div>
+      </div>
+    </div>
+
+    <!-- ═ 2. الرسائل الأسبوعية ═ -->
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">الرسائل الأسبوعية</div>
+      <div class="sidebar-nav">
         <a class="nav-item" data-page="weekstart" onclick="showSection('weekstart')">
           <span class="ico"><svg><use href="#i-star"/></svg></span>
           <span>بداية الأسبوع</span>
@@ -2765,30 +2758,10 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
       </div>
     </div>
 
-    <!-- ═ 2. التواصل الخارجي ═ -->
+    <!-- ═ 3. التواصل الخارجي ═ -->
     <div class="sidebar-section">
       <div class="sidebar-section-title">التواصل الخارجي</div>
       <div class="sidebar-nav">
-        <a class="nav-item" data-page="external_requests" onclick="showSection('external_requests')">
-          <span class="ico"><svg><use href="#i-inbox"/></svg></span>
-          <span>الطلبات الخارجية</span>
-        </a>
-        <a class="nav-item" data-page="external_campaigns" onclick="showSection('external_campaigns')">
-          <span class="ico"><svg><use href="#i-globe"/></svg></span>
-          <span>الحملات الخارجية</span>
-        </a>
-        <a class="nav-item" data-page="social_platforms" onclick="showSection('social_platforms')">
-          <span class="ico"><svg><use href="#i-globe"/></svg></span>
-          <span>إدارة منصات التواصل</span>
-        </a>
-        <a class="nav-item" data-page="press_releases" onclick="showSection('press_releases')">
-          <span class="ico"><svg><use href="#i-file-text"/></svg></span>
-          <span>البيانات الصحفية</span>
-        </a>
-        <a class="nav-item" data-page="media_coverage" onclick="showSection('media_coverage')">
-          <span class="ico"><svg><use href="#i-image"/></svg></span>
-          <span>التغطيات الإعلامية</span>
-        </a>
         <a class="nav-item" data-page="media_monitoring" onclick="showSection('media_monitoring')">
           <span class="ico"><svg><use href="#i-news"/></svg></span>
           <span>الرصد الإعلامي</span>
@@ -2797,36 +2770,7 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
       </div>
     </div>
 
-    <!-- ═ 4. تقارير الأداء ═ -->
-    <div class="sidebar-section">
-      <div class="sidebar-section-title">تقارير الأداء</div>
-      <div class="sidebar-nav">
-        <a class="nav-item" data-page="performance_reports" onclick="showSection('performance_reports')">
-          <span class="ico"><svg><use href="#i-trending-up"/></svg></span>
-          <span>تقارير الأداء</span>
-        </a>
-        <a class="nav-item" data-page="campaigns_analytics" onclick="showSection('campaigns_analytics')">
-          <span class="ico"><svg><use href="#i-chart"/></svg></span>
-          <span>تحليلات الحملات</span>
-          <span class="nav-item-count" id="camp-nav-count">معاينة</span>
-        </a>
-      </div>
-    </div>
-
-    <!-- ═ 5. المبادرات ═ -->
-    <div class="sidebar-section">
-      <div class="sidebar-section-title">المبادرات</div>
-      <div class="sidebar-nav">
-        <a class="nav-item" data-page="initiatives" onclick="showSection('initiatives')">
-          <span class="ico"><svg><use href="#i-bulb"/></svg></span>
-          <span>المبادرات</span>
-          <span class="nav-item-count">42</span>
-        </a>
-        <!-- Review Round 5: حذف قسم عام الذكاء الاصطناعي من Sidebar -->
-      </div>
-    </div>
-
-    <!-- ═ 6. ستوديو المحتوى ═ -->
+    <!-- ═ 4. ستوديو المحتوى ═ -->
     <div class="sidebar-section">
       <div class="sidebar-section-title">ستوديو المحتوى</div>
       <div class="sidebar-nav">
@@ -2848,6 +2792,7 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
       </div>
     </div>
 
+    <!-- ═ 5. الإدارة ═ -->
     <div class="sidebar-section">
       <div class="sidebar-section-title">الإدارة</div>
       <div class="sidebar-nav">
@@ -2990,19 +2935,22 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
 
     <!-- ── KPI Strip — مؤشرات عمل الفريق ── -->
     <div class="dash-kpi-strip">
-      <div class="dash-kpi-card" onclick="showSection('internal_requests')" style="cursor:pointer">
+      <!-- FE cleanup: onclick="showSection('internal_requests')" removed — target section
+           was deleted in the nav-IA consolidation; this card is now a static KPI display
+           only (value is already a hardcoded '—' placeholder, requests KPI not implemented). -->
+      <div class="dash-kpi-card">
         <div class="dash-kpi-val" id="dash-kpi-req-internal">—</div>
         <div class="dash-kpi-label">إجمالي طلبات التصاميم الداخلية</div>
       </div>
-      <div class="dash-kpi-card" onclick="showSection('external_requests')" style="cursor:pointer">
+      <div class="dash-kpi-card">
         <div class="dash-kpi-val" id="dash-kpi-req-external">—</div>
         <div class="dash-kpi-label">إجمالي طلبات التصاميم الخارجية</div>
       </div>
-      <div class="dash-kpi-card" onclick="showSection('internal_campaigns')" style="cursor:pointer">
+      <div class="dash-kpi-card">
         <div class="dash-kpi-val" id="dash-kpi-camp-internal">—</div>
         <div class="dash-kpi-label">إجمالي الحملات الداخلية</div>
       </div>
-      <div class="dash-kpi-card" onclick="showSection('external_campaigns')" style="cursor:pointer">
+      <div class="dash-kpi-card">
         <div class="dash-kpi-val" id="dash-kpi-camp-external">—</div>
         <div class="dash-kpi-label">إجمالي الحملات الخارجية</div>
       </div>
@@ -3026,7 +2974,10 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
       <div class="dash-col-card">
         <div class="dash-col-head">
           <span class="dash-col-title">📅 الفعاليات القادمة</span>
-          <button class="link-action" onclick="showSection('external_requests')">إدارة الفعاليات <span class="ico"><svg><use href="#i-arrow-left"/></svg></span></button>
+          <!-- FE cleanup: onclick="showSection('external_requests')" removed — target section
+               was deleted in the nav-IA consolidation, and this widget's data (intl days /
+               AI-year activations, see dashLoadUpcomingEvents) was never sourced from the
+               external_requests page anyway. No live equivalent destination exists. -->
         </div>
         <div id="home-upcoming-events">
           <div class="loading-wrap"><div class="spinner"></div></div>
@@ -3083,56 +3034,6 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
 
   </div>
 
-  <!-- ══════════════════════════════════
-       INITIATIVES PAGE — المبادرات
-  ══════════════════════════════════ -->
-  <div class="page-section" id="section-initiatives">
-
-    <div class="page-head">
-      <div>
-        <h1 class="page-title">المبادرات</h1>
-        <p class="page-sub">مبادرات التواصل المؤسسي — تشغيلية واستراتيجية — مع حالة الإنجاز ونسبة التقدّم لكل مبادرة.</p>
-      </div>
-      <div class="page-actions">
-        <span id="init-count" style="font-size:12px;color:var(--text-3);font-weight:600;padding:8px 0;"></span>
-      </div>
-    </div>
-
-    <!-- KPIs row -->
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:18px;">
-      <div class="kpi-card"><div class="kpi-label">تشغيلية</div><div class="kpi-value" id="init-kpi-op" style="color:#3B82F6;">—</div></div>
-      <div class="kpi-card"><div class="kpi-label">استراتيجية</div><div class="kpi-value" id="init-kpi-st" style="color:#8B5CF6;">—</div></div>
-      <div class="kpi-card"><div class="kpi-label">متوسط الإنجاز</div><div class="kpi-value" id="init-kpi-avg" style="color:#059669;">—</div></div>
-      <div class="kpi-card"><div class="kpi-label">قيد التنفيذ</div><div class="kpi-value" id="init-kpi-exec" style="color:#F59E0B;">—</div></div>
-      <div class="kpi-card"><div class="kpi-label">المبادرات المكتملة</div><div class="kpi-value" id="init-kpi-done" style="color:#10B981;">—</div></div>
-    </div>
-
-    <div class="init-search-wrap">
-      <span class="ico" style="color:var(--text-4);"><svg><use href="#i-search"/></svg></span>
-      <input type="text" id="init-search" placeholder="ابحث في المبادرات..." oninput="searchInitiatives(this.value)">
-    </div>
-
-    <!-- Primary split: operational vs strategic -->
-    <div class="sub-tabs" role="tablist" style="margin-bottom:8px;">
-      <button class="sub-tab active" data-tab="all" onclick="filterInitiatives('all',this)">📚 الكل</button>
-      <button class="sub-tab" data-tab="operational" onclick="filterInitiatives('operational',this)">⚙️ تشغيلية</button>
-      <button class="sub-tab" data-tab="strategic" onclick="filterInitiatives('strategic',this)">🎯 استراتيجية</button>
-    </div>
-
-    <div class="filter-tabs" style="flex-wrap:wrap;gap:6px;">
-      <button class="filter-tab" onclick="filterInitiatives('global',this)">🌐 عالمية</button>
-      <button class="filter-tab" onclick="filterInitiatives('local',this)">🇸🇦 محلية</button>
-      <button class="filter-tab" onclick="filterInitiatives('ai',this)">🤖 مقترحة بالذكاء</button>
-      <span style="display:inline-block;width:1px;height:24px;background:var(--border);margin:0 4px;"></span>
-      <button class="filter-tab" onclick="filterInitiatives('planning',this)">📋 التخطيط</button>
-      <button class="filter-tab" onclick="filterInitiatives('execution',this)">⚙️ التنفيذ</button>
-      <button class="filter-tab" onclick="filterInitiatives('results',this)">📊 النتائج</button>
-      <button class="filter-tab" onclick="filterInitiatives('impact',this)">🎯 قياس الأثر</button>
-    </div>
-
-    <div class="init-cards-grid" id="all-initiatives"></div>
-
-  </div>
 
   <!-- ══════════════════════════════════
        NEWS PAGE — الأخبار
@@ -3168,78 +3069,6 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
 
   </div>
 
-  <!-- ══ Campaigns Analytics (MVP — Task 13) ══ -->
-  <div class="page-section" id="section-campaigns_analytics">
-    <div class="page-head">
-      <div>
-        <h1 class="page-title">📊 تحليلات الحملات</h1>
-        <p class="page-sub">تتبّع أداء حملات التواصل المؤسسي (X / LinkedIn / واتساب / إيميل) مع إدخال يدوي للمؤشرات وتصدير تقارير.</p>
-      </div>
-      <div class="page-actions">
-        <!-- ملحوظة: زر «إضافة حملة جديدة» أُزيل — تحليلات الحملات تعتمد على الحملات الموجودة فقط (الداخلية/الخارجية). Review Round 4 -->
-        <button class="btn btn-ghost" onclick="campExportReport('md')">📄 Markdown</button>
-        <button class="btn btn-ghost" onclick="campExportReport('pdf')">📑 PDF</button>
-      </div>
-    </div>
-
-    <div id="camp-kpis" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:20px;">
-      <div style="background:linear-gradient(135deg,#0069A7,#003C5A);color:#fff;padding:18px;border-radius:12px;"><div style="font-size:12px;opacity:.85;margin-bottom:6px;">إجمالي الحملات</div><div id="camp-kpi-total" style="font-size:32px;font-weight:800;">0</div></div>
-      <div style="background:linear-gradient(135deg,#61A60E,#005A2E);color:#fff;padding:18px;border-radius:12px;"><div style="font-size:12px;opacity:.85;margin-bottom:6px;">إجمالي المشاهدات</div><div id="camp-kpi-impressions" style="font-size:32px;font-weight:800;">0</div></div>
-      <div style="background:linear-gradient(135deg,#46BCCD,#0069A7);color:#fff;padding:18px;border-radius:12px;"><div style="font-size:12px;opacity:.85;margin-bottom:6px;">إجمالي التفاعل</div><div id="camp-kpi-engagement" style="font-size:32px;font-weight:800;">0</div></div>
-      <div style="background:linear-gradient(135deg,#9DC41A,#61A60E);color:#fff;padding:18px;border-radius:12px;"><div style="font-size:12px;opacity:.85;margin-bottom:6px;">متوسط معدل التفاعل</div><div id="camp-kpi-engagement-rate" style="font-size:32px;font-weight:800;">0%</div></div>
-    </div>
-
-    <div class="adm-card" style="padding:0;overflow:hidden;background:#fff;border:1px solid var(--border);border-radius:12px;">
-      <div style="padding:14px 18px;border-bottom:1px solid var(--border);background:var(--surface-2);display:flex;justify-content:space-between;align-items:center;">
-        <strong style="font-size:14px;">سجل الحملات</strong>
-        <div style="font-size:12px;color:var(--text-3);">جميع المنصّات تدخل يدوياً في هذه النسخة التجريبية</div>
-      </div>
-      <div style="overflow-x:auto;">
-        <table id="camp-table" style="width:100%;border-collapse:collapse;font-size:13px;">
-          <thead style="background:#f8fafc;"><tr>
-            <th style="padding:10px;text-align:right;border-bottom:1px solid var(--border);">الحملة</th>
-            <th style="padding:10px;text-align:right;border-bottom:1px solid var(--border);">المنصّة</th>
-            <th style="padding:10px;text-align:right;border-bottom:1px solid var(--border);">التاريخ</th>
-            <th style="padding:10px;text-align:right;border-bottom:1px solid var(--border);">المشاهدات</th>
-            <th style="padding:10px;text-align:right;border-bottom:1px solid var(--border);">إعجابات</th>
-            <th style="padding:10px;text-align:right;border-bottom:1px solid var(--border);">تعليقات</th>
-            <th style="padding:10px;text-align:right;border-bottom:1px solid var(--border);">مشاركات</th>
-            <th style="padding:10px;text-align:right;border-bottom:1px solid var(--border);">معدل التفاعل</th>
-            <th style="padding:10px;text-align:right;border-bottom:1px solid var(--border);"></th>
-          </tr></thead>
-          <tbody id="camp-tbody"><tr><td colspan="9" style="padding:30px;text-align:center;color:var(--text-3);">لا توجد حملات بعد. اضغط “حملة جديدة” لتبدأ.</td></tr></tbody>
-        </table>
-      </div>
-    </div>
-
-    <div id="camp-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center;">
-      <div style="background:#fff;padding:24px;border-radius:14px;width:min(580px,90vw);max-height:90vh;overflow:auto;">
-        <h3 style="margin:0 0 16px;">إضافة حملة جديدة</h3>
-        <div style="display:grid;gap:12px;">
-          <input id="camp-name" placeholder="اسم الحملة" style="padding:10px;border:1px solid var(--border);border-radius:8px;">
-          <select id="camp-platform" style="padding:10px;border:1px solid var(--border);border-radius:8px;">
-            <option value="X">X (تويتر)</option>
-            <option value="LinkedIn">LinkedIn</option>
-            <option value="WhatsApp">واتساب</option>
-            <option value="Email">إيميل</option>
-            <option value="Instagram">Instagram</option>
-          </select>
-          <input id="camp-date" type="date" style="padding:10px;border:1px solid var(--border);border-radius:8px;">
-          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">
-            <input id="camp-impr" type="number" placeholder="مشاهدات" style="padding:10px;border:1px solid var(--border);border-radius:8px;">
-            <input id="camp-likes" type="number" placeholder="إعجابات" style="padding:10px;border:1px solid var(--border);border-radius:8px;">
-            <input id="camp-comments" type="number" placeholder="تعليقات" style="padding:10px;border:1px solid var(--border);border-radius:8px;">
-            <input id="camp-shares" type="number" placeholder="مشاركات" style="padding:10px;border:1px solid var(--border);border-radius:8px;">
-          </div>
-          <textarea id="camp-notes" placeholder="ملاحظات (رابط الحملة/الجمهور المستهدف)" style="padding:10px;border:1px solid var(--border);border-radius:8px;min-height:60px;"></textarea>
-        </div>
-        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px;">
-          <button class="btn btn-ghost" onclick="campCloseModal()">إلغاء</button>
-          <button class="btn btn-primary" onclick="campSaveNew()">حفظ</button>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <!-- ══════════════════════════════════
        WEEKEND PAGE — نهاية الأسبوع
@@ -5429,370 +5258,17 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
     </div>
   </div><!-- /section-prompts_lib -->
 
-  <!-- ══ Review Round 1 — التواصل الداخلي (5 subs) + التواصل الخارجي (6 subs) ══ -->
 
-  <!-- ═══════ التواصل الداخلي ═══════ -->
 
-  <!-- 1. الطلبات الداخلية -->
-  <div class="page-section" id="section-internal_requests">
-    <div class="page-head">
-      <div>
-        <h1 class="page-title"><span class="ico" style="vertical-align:middle;margin-left:8px;"><svg width="24" height="24"><use href="#i-inbox"/></svg></span> الطلبات الداخلية</h1>
-        <p class="page-sub">جميع الطلبات الداخلية من فرق الهيئة — تصاميم، أخبار، إعلانات، اعتماد بريد، شاشات، تغطيات فعاليات.</p>
-      </div>
-      <div style="display:flex;gap:8px;">
-        <button class="btn btn-primary" onclick="reqOpenNew('internal')">
-          <span class="ico"><svg width="16" height="16"><use href="#i-plus"/></svg></span>
-          <span>طلب جديد</span>
-        </button>
-      </div>
-    </div>
-
-    <!-- KPI strip -->
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px;" id="req-int-kpi">
-      <div class="kpi-card"><div class="kpi-label">قيد المعالجة</div><div class="kpi-value" style="color:#F59E0B;">—</div></div>
-      <div class="kpi-card"><div class="kpi-label">مكتملة</div><div class="kpi-value" style="color:#059669;">—</div></div>
-      <div class="kpi-card"><div class="kpi-label">متأخرة</div><div class="kpi-value" style="color:#DC2626;">—</div></div>
-      <div class="kpi-card"><div class="kpi-label">هذا الشهر</div><div class="kpi-value">—</div></div>
-    </div>
-
-    <!-- Sub-tabs: types + متابعة + أرشيف -->
-    <div class="sub-tabs" role="tablist" style="margin-bottom:16px;">
-      <!-- Review Round 5: Sub-tabs موحّدة (6 أنواع داخلية) -->
-      <button class="sub-tab active" data-tab="all" onclick="reqSwitchTab('internal','all')">الكل</button>
-      <button class="sub-tab" data-tab="design_internal_ad" onclick="reqSwitchTab('internal','design_internal_ad')">تصميم إعلان داخلي</button>
-      <button class="sub-tab" data-tab="design_visual" onclick="reqSwitchTab('internal','design_visual')">تصميم عرض مرئي</button>
-      <button class="sub-tab" data-tab="workshop_ad" onclick="reqSwitchTab('internal','workshop_ad')">إعلان ورشة</button>
-      <button class="sub-tab" data-tab="announcement_ad" onclick="reqSwitchTab('internal','announcement_ad')">إعلان تعميم</button>
-      <button class="sub-tab" data-tab="internal_publish" onclick="reqSwitchTab('internal','internal_publish')">نشر داخلي</button>
-      <button class="sub-tab" data-tab="world_days" onclick="reqSwitchTab('internal','world_days')">أيام عالمية</button>
-      <button class="sub-tab" data-tab="tracking" onclick="reqSwitchTab('internal','tracking')">متابعة الطلبات</button>
-      <button class="sub-tab" data-tab="archive" onclick="reqSwitchTab('internal','archive')">الأرشيف</button>
-    </div>
-
-    <div id="req-int-list" style="background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;">
-      <div style="padding:40px 24px;text-align:center;color:var(--text-3);">
-        <div style="font-size:40px;margin-bottom:8px;opacity:.5;">📥</div>
-        <div style="font-size:14px;">لا توجد طلبات — أنشئ أول طلب باستخدام زر «طلب جديد»</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 2. الحملات الداخلية -->
-  <div class="page-section" id="section-internal_campaigns">
-    <div class="page-head">
-      <div>
-        <h1 class="page-title"><span class="ico" style="vertical-align:middle;margin-left:8px;">📣</span> الحملات الداخلية</h1>
-        <p class="page-sub">حملات التواصل والتوعية الموجهة لموظفي الهيئة — من التخطيط إلى التقرير الختامي.</p>
-      </div>
-      <div style="display:flex;gap:8px;">
-        <button class="btn btn-primary" onclick="campaignOpenNew('internal')">
-          <span class="ico"><svg width="16" height="16"><use href="#i-plus"/></svg></span>
-          <span>حملة جديدة</span>
-        </button>
-      </div>
-    </div>
-
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:20px;">
-      <div class="kpi-card"><div class="kpi-label">حملات نشطة</div><div class="kpi-value">—</div></div>
-      <div class="kpi-card"><div class="kpi-label">قيد التخطيط</div><div class="kpi-value">—</div></div>
-      <div class="kpi-card"><div class="kpi-label">منتهية</div><div class="kpi-value">—</div></div>
-      <div class="kpi-card"><div class="kpi-label">مؤشرات مجمعة</div><div class="kpi-value">—</div></div>
-    </div>
-
-    <!-- Campaign fields spec -->
-    <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px;">
-      <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:12px;">حقول الحملة</div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;">
-        <div class="chip">📝 نبذة عن الحملة</div>
-        <div class="chip">🎯 الهدف</div>
-        <div class="chip">👥 الفئة المستهدفة</div>
-        <div class="chip">💬 الرسائل الرئيسية</div>
-        <div class="chip">🎨 المواد الإبداعية</div>
-        <div class="chip">📋 خطة التنفيذ</div>
-        <div class="chip">📅 الجدول الزمني</div>
-        <div class="chip">🔄 حالة الحملة</div>
-        <div class="chip">📊 مؤشرات الأداء</div>
-        <div class="chip">📑 التقرير الختامي</div>
-      </div>
-    </div>
-
-    <div id="camp-int-list" style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:40px 24px;text-align:center;color:var(--text-3);">
-      <div style="font-size:40px;margin-bottom:8px;opacity:.5;">🎯</div>
-      <div style="font-size:14px;">لا توجد حملات داخلية بعد — أنشئ أول حملة</div>
-    </div>
-  </div>
-
-  <!-- Review Round 5: حملات التغيير — صفحة مستقلة -->
-  <div class="page-section" id="section-change_campaigns">
-    <div class="page-head">
-      <div>
-        <h1 class="page-title"><span class="ico" style="vertical-align:middle;margin-left:8px;">🔄</span> حملات التغيير</h1>
-        <p class="page-sub">حملات متكاملة لإدارة التغيير داخل الهيئة — مخطط شامل + خدمات ديناميكية + مساحة عمل لكل حملة.</p>
-      </div>
-      <div style="display:flex;gap:8px;">
-        <button class="btn btn-primary" onclick="openChangeCampaign()">
-          <span class="ico"><svg width="16" height="16"><use href="#i-plus"/></svg></span>
-          <span>حملة تغيير جديدة</span>
-        </button>
-      </div>
-    </div>
-
-    <div id="change-camp-list" style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:40px 24px;text-align:center;color:var(--text-3);">
-      <div style="font-size:40px;margin-bottom:8px;opacity:.5;">🔄</div>
-      <div style="font-size:14px;">لا توجد حملات تغيير بعد — أنشئ أول حملة</div>
-    </div>
-  </div>
 
   <!-- 3. Shorfah stays as its own section (already exists) -->
   <!-- 4. weekstart already exists -->
   <!-- 5. weekend already exists -->
 
-  <!-- ═══════ التواصل الخارجي ═══════ -->
 
-  <!-- 1. الطلبات الخارجية -->
-  <div class="page-section" id="section-external_requests">
-    <div class="page-head">
-      <div>
-        <h1 class="page-title"><span class="ico" style="vertical-align:middle;margin-left:8px;">📬</span> الطلبات الخارجية</h1>
-        <p class="page-sub">طلبات الجهات الخارجية والشركاء والإعلام — تصاميم، بيانات صحفية، مشاركات، دعم إعلامي، نشر تواصل.</p>
-      </div>
-      <div style="display:flex;gap:8px;">
-        <button class="btn btn-primary" onclick="reqOpenNew('external')">
-          <span class="ico"><svg width="16" height="16"><use href="#i-plus"/></svg></span>
-          <span>طلب جديد</span>
-        </button>
-      </div>
-    </div>
 
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px;">
-      <div class="kpi-card"><div class="kpi-label">قيد المعالجة</div><div class="kpi-value" style="color:#F59E0B;">—</div></div>
-      <div class="kpi-card"><div class="kpi-label">مكتملة</div><div class="kpi-value" style="color:#059669;">—</div></div>
-      <div class="kpi-card"><div class="kpi-label">متأخرة</div><div class="kpi-value" style="color:#DC2626;">—</div></div>
-      <div class="kpi-card"><div class="kpi-label">هذا الشهر</div><div class="kpi-value">—</div></div>
-    </div>
 
-    <div class="sub-tabs" role="tablist" style="margin-bottom:16px;">
-      <!-- Review Round 5: Sub-tabs موحّدة (3 أنواع خارجية) -->
-      <button class="sub-tab active" data-tab="all" onclick="reqSwitchTab('external','all')">الكل</button>
-      <button class="sub-tab" data-tab="design_external" onclick="reqSwitchTab('external','design_external')">تصميم خارجي</button>
-      <button class="sub-tab" data-tab="external_publish" onclick="reqSwitchTab('external','external_publish')">نشر خارجي</button>
-      <button class="sub-tab" data-tab="partner_campaign" onclick="reqSwitchTab('external','partner_campaign')">مشاركة مع جهة خارجية</button>
-      <button class="sub-tab" data-tab="tracking" onclick="reqSwitchTab('external','tracking')">متابعة الطلبات</button>
-      <button class="sub-tab" data-tab="archive" onclick="reqSwitchTab('external','archive')">الأرشيف</button>
-    </div>
 
-    <div id="req-ext-list" style="background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;">
-      <div style="padding:40px 24px;text-align:center;color:var(--text-3);">
-        <div style="font-size:40px;margin-bottom:8px;opacity:.5;">📮</div>
-        <div style="font-size:14px;">لا توجد طلبات خارجية — أنشئ أول طلب</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 2. الحملات الخارجية -->
-  <div class="page-section" id="section-external_campaigns">
-    <div class="page-head">
-      <div>
-        <h1 class="page-title"><span class="ico" style="vertical-align:middle;margin-left:8px;">🌐</span> الحملات الخارجية</h1>
-        <p class="page-sub">حملات التواصل مع الجمهور والشركاء الخارجيين — من التخطيط إلى قياس الأثر.</p>
-      </div>
-      <div style="display:flex;gap:8px;">
-        <button class="btn btn-primary" onclick="campaignOpenNew('external')">
-          <span class="ico"><svg width="16" height="16"><use href="#i-plus"/></svg></span>
-          <span>حملة جديدة</span>
-        </button>
-      </div>
-    </div>
-
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:20px;">
-      <div class="kpi-card"><div class="kpi-label">حملات نشطة</div><div class="kpi-value">—</div></div>
-      <div class="kpi-card"><div class="kpi-label">قيد التخطيط</div><div class="kpi-value">—</div></div>
-      <div class="kpi-card"><div class="kpi-label">منتهية</div><div class="kpi-value">—</div></div>
-      <div class="kpi-card"><div class="kpi-label">مؤشرات مجمعة</div><div class="kpi-value">—</div></div>
-    </div>
-
-    <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px;">
-      <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:12px;">حقول الحملة</div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;">
-        <div class="chip">📝 نبذة عن الحملة</div>
-        <div class="chip">🎯 الهدف</div>
-        <div class="chip">👥 الفئة المستهدفة</div>
-        <div class="chip">💬 الرسائل الرئيسية</div>
-        <div class="chip">🎨 المواد الإبداعية</div>
-        <div class="chip">📋 خطة التنفيذ</div>
-        <div class="chip">📅 الجدول الزمني</div>
-        <div class="chip">🔄 حالة الحملة</div>
-        <div class="chip">📊 مؤشرات الأداء</div>
-        <div class="chip">📑 التقرير الختامي</div>
-      </div>
-    </div>
-
-    <div id="camp-ext-list" style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:40px 24px;text-align:center;color:var(--text-3);">
-      <div style="font-size:40px;margin-bottom:8px;opacity:.5;">🌍</div>
-      <div style="font-size:14px;">لا توجد حملات خارجية بعد — أنشئ أول حملة</div>
-    </div>
-  </div>
-
-  <!-- 3. إدارة منصات التواصل -->
-  <div class="page-section" id="section-social_platforms">
-    <div class="page-head">
-      <div>
-        <h1 class="page-title"><span class="ico" style="vertical-align:middle;margin-left:8px;"><svg width="24" height="24"><use href="#i-globe"/></svg></span> إدارة منصات التواصل</h1>
-        <p class="page-sub">لينكدإن · X · سناب شات · يوتيوب — لكل منصة: محتوى مجدول، منشورات، تقويم تحريري، أداء.</p>
-      </div>
-      <div style="display:flex;gap:8px;">
-        <button class="btn btn-secondary" onclick="socialRefresh()">
-          <span class="ico"><svg width="16" height="16"><use href="#i-refresh"/></svg></span>
-          <span>تحديث البيانات</span>
-        </button>
-      </div>
-    </div>
-
-    <!-- Platform tabs -->
-    <div class="sub-tabs" role="tablist" style="margin-bottom:16px;">
-      <button class="sub-tab active" data-platform="linkedin" onclick="socialSwitchPlatform('linkedin')">💼 لينكدإن</button>
-      <button class="sub-tab" data-platform="x" onclick="socialSwitchPlatform('x')">✖ X (تويتر)</button>
-      <button class="sub-tab" data-platform="snapchat" onclick="socialSwitchPlatform('snapchat')">👻 سناب شات</button>
-      <button class="sub-tab" data-platform="youtube" onclick="socialSwitchPlatform('youtube')">▶ يوتيوب</button>
-    </div>
-
-    <!-- Per-platform view tabs -->
-    <div class="sub-tabs" role="tablist" style="margin-bottom:16px;">
-      <button class="sub-tab active" data-view="scheduled" onclick="socialSwitchView('scheduled')">🗓 محتوى مجدول</button>
-      <button class="sub-tab" data-view="posts" onclick="socialSwitchView('posts')">📝 المنشورات</button>
-      <!-- تقويم تحريري أُزيل — يكفي جدول النشر. Review Round 4 -->
-      <button class="sub-tab" data-view="performance" onclick="socialSwitchView('performance')">📊 أداء المنصة</button>
-    </div>
-
-    <div id="social-content-body" style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:24px;min-height:400px;">
-      <div style="padding:40px 20px;text-align:center;color:var(--text-3);" id="social-empty">
-        <div style="font-size:40px;margin-bottom:8px;opacity:.5;">📱</div>
-        <div style="font-size:14px;">اختر منصة وعرض لبدء الإدارة</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 4. البيانات الصحفية -->
-  <div class="page-section" id="section-press_releases">
-    <div class="page-head">
-      <div>
-        <h1 class="page-title"><span class="ico" style="vertical-align:middle;margin-left:8px;"><svg width="24" height="24"><use href="#i-file-text"/></svg></span> البيانات الصحفية</h1>
-        <p class="page-sub">إنشاء البيانات الصحفية ومراجعتها واعتمادها ونشرها وأرشفتها.</p>
-      </div>
-      <div style="display:flex;gap:8px;">
-        <button class="btn btn-primary" onclick="prNew()">
-          <span class="ico"><svg width="16" height="16"><use href="#i-plus"/></svg></span>
-          <span>بيان جديد</span>
-        </button>
-      </div>
-    </div>
-
-    <div class="sub-tabs" role="tablist" style="margin-bottom:16px;">
-      <button class="sub-tab active" data-tab="all" onclick="prSwitch('all')">الكل</button>
-      <button class="sub-tab" data-tab="draft" onclick="prSwitch('draft')">إنشاء (مسودة)</button>
-      <button class="sub-tab" data-tab="review" onclick="prSwitch('review')">قيد المراجعة</button>
-      <button class="sub-tab" data-tab="approved" onclick="prSwitch('approved')">معتمد</button>
-      <button class="sub-tab" data-tab="published" onclick="prSwitch('published')">منشور</button>
-      <button class="sub-tab" data-tab="archive" onclick="prSwitch('archive')">أرشيف</button>
-    </div>
-
-    <div id="pr-list" style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:40px 24px;text-align:center;color:var(--text-3);">
-      <div style="font-size:40px;margin-bottom:8px;opacity:.5;">📰</div>
-      <div style="font-size:14px;">لا توجد بيانات صحفية — أنشئ أول بيان</div>
-    </div>
-  </div>
-
-  <!-- 5. التغطيات الإعلامية -->
-  <div class="page-section" id="section-media_coverage">
-    <div class="page-head">
-      <div>
-        <h1 class="page-title"><span class="ico" style="vertical-align:middle;margin-left:8px;"><svg width="24" height="24"><use href="#i-image"/></svg></span> التغطيات الإعلامية</h1>
-        <p class="page-sub">إدارة التغطيات — الطلب، التفاصيل، الصور، الفيديو، المخرجات، والتقرير النهائي.</p>
-      </div>
-      <div style="display:flex;gap:8px;">
-        <button class="btn btn-primary" onclick="mcNew()">
-          <span class="ico"><svg width="16" height="16"><use href="#i-plus"/></svg></span>
-          <span>طلب تغطية جديد</span>
-        </button>
-      </div>
-    </div>
-
-    <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px;">
-      <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:12px;">مراحل التغطية</div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;">
-        <div class="chip">📥 طلب التغطية</div>
-        <div class="chip">📋 تفاصيل الفعالية</div>
-        <div class="chip">📸 الصور</div>
-        <div class="chip">🎥 الفيديو</div>
-        <div class="chip">📦 المخرجات النهائية</div>
-        <div class="chip">📑 تقرير التغطية</div>
-      </div>
-    </div>
-
-    <div id="mc-list" style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:40px 24px;text-align:center;color:var(--text-3);">
-      <div style="font-size:40px;margin-bottom:8px;opacity:.5;">🎬</div>
-      <div style="font-size:14px;">لا توجد تغطيات مسجلة — سجّل أول تغطية</div>
-    </div>
-  </div>
-
-  <!-- 6. الرصد الإعلامي stays as its own section (already exists at line ~4964) -->
-
-  <div class="page-section" id="section-performance_reports">
-    <div class="page-head">
-      <div>
-        <h1 class="page-title"><span class="ico" style="vertical-align:middle;margin-left:8px;"><svg width="24" height="24"><use href="#i-trending-up"/></svg></span> تقارير الأداء</h1>
-        <p class="page-sub">تقارير أداء الحملات والطلبات والمنصات — شهرية وربع سنوية.</p>
-      </div>
-    </div>
-    <!-- Review Round 5: real tabs + inline reports -->
-    <div style="display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:20px;flex-wrap:wrap;">
-      <button class="pr-tab active" data-prtab="requests" onclick="perfSwitchTab('requests')" style="padding:10px 18px;font-size:13px;font-weight:700;background:none;border:none;border-bottom:2px solid var(--primary);color:var(--primary);cursor:pointer;margin-bottom:-2px;">📥 أداء الطلبات</button>
-      <button class="pr-tab" data-prtab="platforms" onclick="perfSwitchTab('platforms')" style="padding:10px 18px;font-size:13px;font-weight:700;background:none;border:none;border-bottom:2px solid transparent;color:var(--text-3);cursor:pointer;margin-bottom:-2px;">📱 أداء المنصات</button>
-      <button class="pr-tab" data-prtab="periodic" onclick="perfSwitchTab('periodic')" style="padding:10px 18px;font-size:13px;font-weight:700;background:none;border:none;border-bottom:2px solid transparent;color:var(--text-3);cursor:pointer;margin-bottom:-2px;">📅 التقارير الدورية</button>
-    </div>
-
-    <!-- أداء الطلبات -->
-    <div id="pr-pane-requests" class="pr-pane" style="display:block;">
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:20px;">
-        <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px;"><div style="font-size:11px;color:var(--text-3);margin-bottom:6px;">إجمالي الطلبات</div><div id="pr-req-total" style="font-size:24px;font-weight:900;color:#1a6e7a;">—</div></div>
-        <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px;"><div style="font-size:11px;color:var(--text-3);margin-bottom:6px;">مكتملة</div><div id="pr-req-done" style="font-size:24px;font-weight:900;color:#059669;">—</div></div>
-        <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px;"><div style="font-size:11px;color:var(--text-3);margin-bottom:6px;">قيد المعالجة</div><div id="pr-req-progress" style="font-size:24px;font-weight:900;color:#4338CA;">—</div></div>
-        <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px;"><div style="font-size:11px;color:var(--text-3);margin-bottom:6px;">متأخرة</div><div id="pr-req-late" style="font-size:24px;font-weight:900;color:#DC2626;">—</div></div>
-        <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px;"><div style="font-size:11px;color:var(--text-3);margin-bottom:6px;">معدل الإنجاز</div><div id="pr-req-pct" style="font-size:24px;font-weight:900;color:#7C3AED;">—</div></div>
-      </div>
-      <div class="card"><div class="card-body">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;"><div style="font-weight:800;">توزيع الطلبات حسب النوع</div><button class="btn btn-ghost btn-sm" onclick="perfLoadRequests()">🔄 تحديث</button></div>
-        <div id="pr-req-breakdown" style="font-size:13px;color:var(--text-2);">—</div>
-      </div></div>
-    </div>
-
-    <!-- أداء المنصات -->
-    <div id="pr-pane-platforms" class="pr-pane" style="display:none;">
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:20px;">
-        <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px;"><div style="font-size:11px;color:var(--text-3);margin-bottom:6px;">إجمالي المنشورات</div><div id="pr-pl-posts" style="font-size:24px;font-weight:900;color:#1a6e7a;">—</div></div>
-        <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px;"><div style="font-size:11px;color:var(--text-3);margin-bottom:6px;">إجمالي التفاعل</div><div id="pr-pl-engage" style="font-size:24px;font-weight:900;color:#059669;">—</div></div>
-        <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px;"><div style="font-size:11px;color:var(--text-3);margin-bottom:6px;">متوسط الوصول</div><div id="pr-pl-reach" style="font-size:24px;font-weight:900;color:#4338CA;">—</div></div>
-        <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px;"><div style="font-size:11px;color:var(--text-3);margin-bottom:6px;">معدل النمو</div><div id="pr-pl-growth" style="font-size:24px;font-weight:900;color:#7C3AED;">—</div></div>
-      </div>
-      <div class="card"><div class="card-body">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;"><div style="font-weight:800;">توزيع الأداء حسب المنصة</div><button class="btn btn-ghost btn-sm" onclick="perfLoadPlatforms()">🔄 تحديث</button></div>
-        <div id="pr-pl-breakdown" style="font-size:13px;color:var(--text-2);">—</div>
-      </div></div>
-    </div>
-
-    <!-- التقارير الدورية -->
-    <div id="pr-pane-periodic" class="pr-pane" style="display:none;">
-      <div class="card" style="margin-bottom:16px;"><div class="card-body">
-        <div style="display:flex;gap:10px;align-items:end;flex-wrap:wrap;margin-bottom:16px;">
-          <div style="flex:1;min-width:180px;"><label style="display:block;font-size:12px;color:var(--text-3);margin-bottom:4px;">فترة التقرير</label><select id="pr-period-type" class="ws-input" style="width:100%;"><option value="monthly">شهري</option><option value="quarterly">ربع سنوي</option><option value="annual">سنوي</option></select></div>
-          <div style="flex:1;min-width:140px;"><label style="display:block;font-size:12px;color:var(--text-3);margin-bottom:4px;">السنة</label><select id="pr-period-year" class="ws-input" style="width:100%;"></select></div>
-          <button class="btn btn-primary" onclick="perfGeneratePeriodic()">✨ توليد التقرير</button>
-        </div>
-        <div id="pr-periodic-result" style="font-size:13px;color:var(--text-2);">📄 اختر فترة ثم اضغط زر التوليد — سيتم إنشاء تقرير تجميعي من الطلبات والحملات والمنشورات.</div>
-      </div></div>
-    </div>
-  </div>
 
   <!-- ══ 403 Forbidden Section ══ -->
   <div class="page-section" id="section-403" style="display:none;">
@@ -6021,14 +5497,9 @@ function authUpdateUI() {
   if (adminNavEl && (u.role === 'super_admin' || u.role === 'admin')) {
     adminNavEl.style.display = '';
   }
-  var placesNavEl = document.getElementById('nav-places');
-  if (placesNavEl && (u.role === 'super_admin' || u.role === 'admin')) {
-    placesNavEl.style.display = '';
-  }
-  var designsNavEl = document.getElementById('nav-designs');
-  if (designsNavEl && (u.role === 'super_admin' || u.role === 'admin')) {
-    designsNavEl.style.display = '';
-  }
+  // SEC/FE cleanup: removed dead getElementById('nav-places') / ('nav-designs')
+  // lookups here — no element with either id exists anywhere in this file, so
+  // both blocks were permanent no-ops (confirmed via repo-wide grep).
 
   var perms = u.permissions || {};
   document.querySelectorAll('.nav-item[data-page]').forEach(function(el) {
@@ -6080,11 +5551,12 @@ function authCanView(pageName) {
   if (pageName === 'shorfah') return !!AUTH_USER;
   if (pageName === 'media_monitoring') return !!AUTH_USER;
   if (pageName === 'prompts_lib') return !!AUTH_USER;
-  if (pageName === 'internal_requests' || pageName === 'external_requests') return !!AUTH_USER;
-  if (pageName === 'internal_campaigns' || pageName === 'external_campaigns') return !!AUTH_USER;
-  if (pageName === 'change_campaigns') return !!AUTH_USER;
-  if (pageName === 'social_platforms' || pageName === 'press_releases' || pageName === 'media_coverage') return !!AUTH_USER;
-  if (pageName === 'performance_reports') return !!AUTH_USER;
+  // FE cleanup: removed dead branches for internal_requests, external_requests,
+  // internal_campaigns, external_campaigns, change_campaigns, social_platforms,
+  // press_releases, media_coverage and performance_reports -- all nine page names were
+  // deleted from the sidebar and their page-section blocks removed in the nav-IA
+  // consolidation, so these authCanView() branches could no longer be reached from any
+  // live showSection() call site (confirmed via repo-wide grep for each string literal).
   var permKey = PAGE_PERM_MAP[pageName] || pageName;
   var pagePerms = (AUTH_USER.permissions || {})[permKey] || [];
   return pagePerms.includes('view');
@@ -7440,12 +6912,6 @@ function showSection(name) {
   if (name === 'shorfah') shorfahInit();
   if (name === 'media_monitoring') MM.load();
   if (name === 'prompts_lib') PL.load();
-  if (name === 'initiatives') initiativesRender();
-  if (name === 'internal_campaigns') renderCampaignsList('internal');
-  if (name === 'external_campaigns') renderCampaignsList('external');
-  if (name === 'press_releases') prRender();
-  if (name === 'change_campaigns') renderChangeCampaignsList();
-  if (name === 'media_coverage') mcRender();
   navUpdateBackBtn();
 }
 
@@ -7969,7 +7435,6 @@ function dashCopyAISummary() {
 document.addEventListener('DOMContentLoaded', async () => {
   await authCheckSession();
   homeDashboardInit();
-  renderAllInitiatives(INITIATIVES);
   initWeekend();
   fetchNews();
   loadGacSocialFeed();
@@ -8190,118 +7655,16 @@ function renderSidebarQuick(articles) {
     </div>`).join('');
 }
 
-// ════════════════════════════════════════
-// RENDER INITIATIVES
-// ════════════════════════════════════════
-function renderHomeInitiatives() {
-  const el = document.getElementById('home-initiatives');
-  if (!el) return;
-  el.innerHTML = INITIATIVES.slice(0,4).map((i, idx) => {
-    const tagCls = i.type==='global'?'global':i.type==='local'?'local':'ai';
-    const tagLabel = i.type==='global'?'عالمية':i.type==='local'?'محلية':'مقترحة AI';
-    return `
-    <div class="init-card-new" onclick="showSection('initiatives')">
-      <div class="init-meta">
-        <span class="init-tag ${tagCls}">${tagLabel}</span>
-        <span class="init-num">№ ${String(i.id).padStart(3,'0')}</span>
-      </div>
-      <div class="init-name-new">${i.name}</div>
-      <div class="init-en-new">${i.en}</div>
-      <div class="init-desc-new">${i.desc.slice(0,100)}${i.desc.length>100?'...':''}</div>
-      <div class="init-foot">
-        <div class="init-applicability">
-          <span class="init-app-label">قابلية محلية</span>
-          <div class="init-app-bar"><div class="init-app-fill" style="width:${i.applicability}%;"></div></div>
-          <span class="init-app-pct">${i.applicability}%</span>
-        </div>
-        <span class="init-org">${i.org}</span>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function renderAllInitiatives(list = INITIATIVES) {
-  const el = document.getElementById('all-initiatives');
-  const countEl = document.getElementById('init-count');
-  if (!list.length) { if (el) el.innerHTML = emptyState('لا توجد مبادرات مطابقة'); return; }
-  if (el) el.innerHTML = list.map(i => initFullCardHTML(i)).join('');
-  if (countEl) countEl.textContent = `${list.length} مبادرة`;
-}
-
-function initFullCardHTML(i) {
-  const isAI  = i.type === 'ai';
-  const isLoc = i.type === 'local';
-  const cardClass  = isAI ? 'is-ai' : isLoc ? 'is-loc' : '';
-  const iconClass  = isAI ? 'ai-icon' : isLoc ? 'loc-icon' : '';
-  const fillClass  = isAI ? 'ai-fill' : isLoc ? 'local-fill' : 'global-fill';
-  const pctColor   = isAI ? 'color:var(--purple)' : isLoc ? 'color:var(--success)' : 'color:var(--primary)';
-  const statusCls  = isAI ? 'status-ai' : isLoc ? 'status-new' : 'status-done';
-  const statusTxt  = isAI ? '🤖 مقترحة AI' : isLoc ? '🇸🇦 محلية' : '🌐 عالمية';
-  const tagMap = { 'عالمي':'b-blue','محلي':'b-green','تقنية':'b-purple','مقترحة':'b-purple','رؤية 2030':'b-teal','اندماج':'b-orange','تواصل داخلي':'b-blue','تواصل القيادة':'b-orange','قنوات التواصل':'b-teal','ثقافة مؤسسية':'b-gray','الأداء':'b-gray','ذكاء اصطناعي':'b-purple' };
-  const tagsHTML  = i.tags.map(t=>`<span class="badge ${tagMap[t]||'b-gray'}">${t}</span>`).join('');
-  const goalsHTML = i.goals.map(g=>`<div class="init-goal-item"><div class="init-goal-dot"></div><span>${g}</span></div>`).join('');
-  const govMap = { high:{ cls:'gov-high', txt:'✅ جاهز للتطبيق الحكومي' }, medium:{ cls:'gov-medium', txt:'⚙️ يحتاج تكييف' }, low:{ cls:'gov-low', txt:'⚠️ يتطلب بيئة تمهيدية' } };
-  const gov = govMap[i.govReady] || govMap.medium;
-  const initImgSrc = INIT_IMG[i.type] || INIT_IMG.global;
-  return `
-  <div class="init-full-card ${cardClass}">
-    <img class="init-full-card-img" src="${initImgSrc}" alt="" loading="lazy" onerror="this.style.display='none'">
-    <span class="status-badge ${statusCls}">${statusTxt}</span>
-    <div class="init-card-header">
-      <div class="init-card-icon ${iconClass}">${i.icon}</div>
-      <div class="init-card-titles">
-        <div class="init-card-name">${i.name}</div>
-        <div class="init-card-en">${i.en}</div>
-      </div>
-    </div>
-    <div class="init-badges">${tagsHTML}</div>
-    ${i.impact ? `<div class="init-impact-highlight"><div class="init-impact-metric">${i.impact}</div><div class="init-impact-label">${i.impactLabel}</div></div>` : ''}
-    <div class="init-card-desc">${i.desc}</div>
-    <div class="init-goals"><div class="init-goals-title">🎯 الأهداف الرئيسية</div>${goalsHTML}</div>
-    ${i.govNotes ? `<div class="init-gov-section"><div class="init-gov-label">🏛️ التفعيل في البيئة الحكومية السعودية</div><span class="gov-ready-badge ${gov.cls}">${gov.txt}</span><div class="init-gov-notes">${i.govNotes}</div></div>` : ''}
-    ${i.phase ? renderInitiativePhases(i) : ''}
-    ${i.timeline ? renderInitiativeTimeline(i) : ''}
-    ${i.kpis ? renderInitiativeKPIs(i) : ''}
-    <div class="init-card-footer">
-      <div class="applicability-wrap">
-        <span class="applicability-label">قابلية التطبيق</span>
-        <div class="applicability-bar"><div class="applicability-fill ${fillClass}" style="width:${i.applicability}%"></div></div>
-        <span class="applicability-pct" style="${pctColor}">${i.applicability}%</span>
-      </div>
-      <div class="init-org">📍 ${i.org} — ${i.country}</div>
-      <a href="https://www.google.com/search?q=${encodeURIComponent((i.en||i.name)+' '+i.org)}" target="_blank" rel="noopener" class="translate-btn" style="text-decoration:none;margin-top:4px;display:inline-flex;align-items:center;gap:5px;" onclick="event.stopPropagation()">↗ بحث عن المبادرة</a>
-    </div>
-  </div>`;
-}
-
-// ═══ مراحل المبادرة (PMI: تخطيط→تنفيذ→نتائج→أثر) — ملاحظة 5 ═══
-function renderInitiativePhases(i) {
-  const phases = [
-    { k:'planning',  ar:'التخطيط', en:'Planning', ico:'📋' },
-    { k:'execution', ar:'التنفيذ', en:'Execution', ico:'⚙️' },
-    { k:'results',   ar:'النتائج', en:'Results', ico:'📊' },
-    { k:'impact',    ar:'قياس الأثر', en:'Impact', ico:'🎯' },
-  ];
-  const currentIdx = phases.findIndex(p=>p.k===i.phase);
-  return `<div class="init-phases">
-    <div class="init-phases-title">📍 مرحلة المبادرة</div>
-    <div class="init-phases-track">
-      ${phases.map((p,idx)=>{
-        const state = idx<currentIdx?'done':(idx===currentIdx?'current':'pending');
-        return `<div class="init-phase ${state}" title="${p.ar}"><span class="init-phase-dot">${p.ico}</span><span class="init-phase-lbl">${p.ar}</span></div>${idx<phases.length-1?'<div class="init-phase-conn '+(state==='done'?'done':'')+'"></div>':''}`;
-      }).join('')}
-    </div>
-  </div>`;
-}
-
-function renderInitiativeTimeline(i) {
-  return `<div class="init-timeline">
-    <div class="init-timeline-title">📅 الخط الزمني</div>
-    <div class="init-timeline-list">
-      ${i.timeline.map(t=>`<div class="init-timeline-item ${t.done?'done':''}"><span class="init-tl-marker"></span><div class="init-tl-content"><div class="init-tl-date">${t.date||''}</div><div class="init-tl-text">${t.text}</div></div></div>`).join('')}
-    </div>
-  </div>`;
-}
+// FE cleanup: removed renderAllInitiatives(), initFullCardHTML(), renderInitiativePhases()
+// and renderInitiativeTimeline() (plus the DOMContentLoaded call to renderAllInitiatives()
+// further below, and the INIT_IMG constant they used). All existed solely to render the
+// #all-initiatives / #init-count DOM nodes inside section-initiatives, which was deleted in
+// the nav-IA consolidation; those nodes no longer exist anywhere in this file. Verified no
+// other caller: initFullCardHTML was the only caller of the two render* phase/timeline
+// helpers, and renderAllInitiatives's only caller was the DOMContentLoaded init below.
+// The INITIATIVES data array itself is kept because updateStats() still reads
+// INITIATIVES.length -- updateStats is a separate, pre-existing orphan (zero callers even
+// before this edit) that is explicitly out of scope for this cleanup.
 
 // ═══ إرسال تقرير نهاية الأسبوع (ملاحظة 7+8) ═══
 async function sendWeekendReport() {
@@ -8329,16 +7692,6 @@ async function sendWeekendReport() {
     status.innerHTML = '<span style="color:var(--warning)">⚠️ تم تجهيز الإرسال لـ ' + channels.length + ' قناة. واجهة الخادم /api/weekend/send غير متوفرة بعد. (' + (e.message||e) + ')</span>';
   }
 }
-
-function renderInitiativeKPIs(i) {
-  return `<div class="init-kpis">
-    <div class="init-kpis-title">🎯 مؤشرات قياس الأثر</div>
-    <div class="init-kpis-grid">
-      ${i.kpis.map(k=>`<div class="init-kpi-box"><div class="init-kpi-val">${k.value}</div><div class="init-kpi-lbl">${k.label}</div></div>`).join('')}
-    </div>
-  </div>`;
-}
-
 const NEWS_IMG = {
   'تواصل داخلي':     'https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=600&h=200&fit=crop&q=75',
   'مشاركة الموظفين': 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600&h=200&fit=crop&q=75',
@@ -8349,12 +7702,6 @@ const NEWS_IMG = {
 };
 const NEWS_IMG_DEFAULT = 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=600&h=200&fit=crop&q=75';
 
-const INIT_IMG = {
-  global: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=600&h=200&fit=crop&q=75',
-  local:  'https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&h=200&fit=crop&q=75',
-  ai:     'https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=600&h=200&fit=crop&q=75',
-};
-
 function resolveNewsUrl(url, title) {
   if (!url || url === '#') return `https://www.google.com/search?q=${encodeURIComponent(title)}`;
   try {
@@ -8364,61 +7711,6 @@ function resolveNewsUrl(url, title) {
   } catch { return `https://www.google.com/search?q=${encodeURIComponent(title)}`; }
 }
 
-function filterInitiatives(f, btn) {
-  // Reset all tabs (both sub-tabs and filter-tabs) then activate the clicked one
-  document.querySelectorAll('#section-initiatives .filter-tab, #section-initiatives .sub-tab').forEach(t=>t.classList.remove('active'));
-  if (btn) btn.classList.add('active');
-  const si = document.getElementById('init-search');
-  if (si) si.value = '';
-  // Classify: operational = execution/results phases OR local + implementation tag
-  // strategic = planning/impact phases OR AI-suggested OR tag includes 'استراتيجي'
-  const isOperational = i => i.phase === 'execution' || i.phase === 'results' || (i.tags && i.tags.some(t=>/تشغيل|تنفيذ|الداخل|اندماج/.test(t)));
-  const isStrategic  = i => i.phase === 'planning' || i.phase === 'impact' || i.type === 'ai' || (i.tags && i.tags.some(t=>/استراتيج|تحول|رؤية|تخطيط/.test(t)));
-  const map = {
-    all:INITIATIVES,
-    operational: INITIATIVES.filter(isOperational),
-    strategic:   INITIATIVES.filter(isStrategic),
-    global:INITIATIVES.filter(i=>i.type==='global'),
-    local:INITIATIVES.filter(i=>i.type==='local'),
-    ai:INITIATIVES.filter(i=>i.type==='ai'),
-    new:INITIATIVES.filter(i=>i.status==='جديدة'),
-    planning:INITIATIVES.filter(i=>i.phase==='planning'),
-    execution:INITIATIVES.filter(i=>i.phase==='execution'),
-    results:INITIATIVES.filter(i=>i.phase==='results'),
-    impact:INITIATIVES.filter(i=>i.phase==='impact'),
-  };
-  renderAllInitiatives(map[f] || INITIATIVES);
-}
-
-// Alias called from showSection when navigating to initiatives page
-function initiativesRender() {
-  renderAllInitiatives(INITIATIVES);
-  // Update KPI cards
-  var op = INITIATIVES.filter(function(i){ return i.phase==='execution' || i.phase==='results' || (i.tags && i.tags.some(function(t){ return /تشغيل|تنفيذ|الداخل|اندماج/.test(t); })); }).length;
-  var st = INITIATIVES.filter(function(i){ return i.phase==='planning' || i.phase==='impact' || i.type==='ai' || (i.tags && i.tags.some(function(t){ return /استراتيج|تحول|رؤية|تخطيط/.test(t); })); }).length;
-  var exec = INITIATIVES.filter(function(i){ return i.phase==='execution'; }).length;
-  // Review Round 5: حساب المبادرات المكتملة (impact/results أو applicability=100)
-  var done = INITIATIVES.filter(function(i){
-    return i.phase==='impact' || i.phase==='results' || i.status==='completed' || (typeof i.applicability==='number' && i.applicability>=100);
-  }).length;
-  var vals = INITIATIVES.map(function(i){ return typeof i.applicability === 'number' ? i.applicability : 0; }).filter(function(v){ return v>0; });
-  var avg = vals.length ? Math.round(vals.reduce(function(a,b){ return a+b; },0) / vals.length) : 0;
-  var $ = function(id){ return document.getElementById(id); };
-  if ($('init-kpi-op'))   $('init-kpi-op').textContent = op;
-  if ($('init-kpi-st'))   $('init-kpi-st').textContent = st;
-  if ($('init-kpi-avg'))  $('init-kpi-avg').textContent = avg + '%';
-  if ($('init-kpi-exec')) $('init-kpi-exec').textContent = exec;
-  if ($('init-kpi-done')) $('init-kpi-done').textContent = done;
-}
-
-function searchInitiatives(q) {
-  if (!q.trim()) { renderAllInitiatives(INITIATIVES); return; }
-  const lower = q.toLowerCase();
-  renderAllInitiatives(INITIATIVES.filter(i =>
-    i.name.includes(q) || i.en.toLowerCase().includes(lower) ||
-    i.desc.includes(q) || i.tags.some(t=>t.includes(q)) || i.goals.some(g=>g.includes(q))
-  ));
-}
 
 // ════════════════════════════════════════
 // FILTERS & SEARCH
@@ -8892,6 +8184,15 @@ function escHtml(str) {
   if (!str) return '';
   return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
+
+// FE cleanup fix: escapeHtml() was accidentally deleted along with the removed campaign
+// mock code (it sat textually between campEngagementRate-related code and
+// campExportReport() in the pre-edit file, but was never itself part of that dead code).
+// It is still called 6 times by iesRenderVariants() in the Icon Event Studio feature
+// (a real, retained section under "ستوديو المحتوى"), so its removal was a regression
+// introduced by the nav-IA consolidation, not something these edits meant to orphan.
+// Restored verbatim from commit 1d1f902.
+function escapeHtml(s) { return String(s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 
 function emptyState(msg) {
   return `<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-title">${msg}</div></div>`;
@@ -12123,14 +11424,9 @@ async function aiyGenerateReport() {
 <!-- ═══ QUICK ACTIONS FAB ═══ -->
 <div class="fab-wrap" id="fab-wrap">
   <div class="fab-menu">
-    <button class="fab-action" onclick="fabGo('performance_reports')">
-      <span class="fab-icon"><span class="ico"><svg><use href="#i-trending-up"/></svg></span></span>
-      <span>تقرير الأداء</span>
-    </button>
-    <button class="fab-action" onclick="fabGo('internal_requests')">
-      <span class="fab-icon"><span class="ico"><svg><use href="#i-inbox"/></svg></span></span>
-      <span>الطلبات</span>
-    </button>
+    <!-- FE cleanup: removed "تقرير الأداء" (fabGo('performance_reports')) and "الطلبات"
+         (fabGo('internal_requests')) quick-action buttons — both targeted sections deleted
+         in the nav-IA consolidation; a dead quick-action button is worse UX than none. -->
     <button class="fab-action" onclick="fabGo('shorfah')">
       <span class="fab-icon"><span class="ico"><svg><use href="#i-file-text"/></svg></span></span>
       <span>نشرة شرفة</span>
@@ -12163,7 +11459,8 @@ function updateHijriPill() {
 const SEARCH_INDEX = [
   // Pages
   { kind:'page', title:'الرئيسية', sub:'لوحة التحكم وملخص الأداء', section:'home', icon:'i-home' },
-  { kind:'page', title:'المبادرات', sub:'مبادرات الهيئة + تقييم AI', section:'initiatives', icon:'i-bot' },
+  // FE cleanup: removed "المبادرات" entry (section:'initiatives') — section-initiatives
+  // was deleted in the nav-IA consolidation; global search must not surface a dead result.
   { kind:'page', title:'أخبار التواصل المؤسسي', sub:'آخر الأخبار والتحديثات', section:'news', icon:'i-news' },
   { kind:'page', title:'نهاية الأسبوع', sub:'أماكن وعروض وبودكاست', section:'weekend', icon:'i-calendar' },
   { kind:'page', title:'بداية الأسبوع', sub:'مولّد المحتوى الأسبوعي', section:'weekstart', icon:'i-bulb' },
@@ -14530,143 +13827,8 @@ document.addEventListener('DOMContentLoaded', () => {
   renderNotifications();
   // Start API-backed notification polling after auth is ready
   setTimeout(startNotifPolling, 1500);
-  // Initial render of campaigns analytics (loads from localStorage)
-  try { if (typeof campRender === 'function') campRender(); } catch(_) {}
 });
 
-// ═══ Campaigns Analytics (Task 13 — Manual MVP) ═══
-// Stored in localStorage. Real backend integration TBD.
-function campLoad() {
-  try { return JSON.parse(localStorage.getItem('icbank.campaigns') || '[]'); } catch(_) { return []; }
-}
-function campSave(list) {
-  localStorage.setItem('icbank.campaigns', JSON.stringify(list));
-}
-function campEngagementRate(c) {
-  const impressions = Number(c.impressions || 0);
-  if (!impressions) return 0;
-  const total = Number(c.likes||0) + Number(c.comments||0) + Number(c.shares||0);
-  return (total / impressions) * 100;
-}
-function campOpenNewModal() {
-  document.getElementById('camp-modal').style.display = 'flex';
-  document.getElementById('camp-name').value = '';
-  document.getElementById('camp-date').value = new Date().toISOString().slice(0,10);
-  ['camp-impr','camp-likes','camp-comments','camp-shares','camp-notes'].forEach(id => document.getElementById(id).value = '');
-}
-function campCloseModal() {
-  document.getElementById('camp-modal').style.display = 'none';
-}
-function campSaveNew() {
-  const name = document.getElementById('camp-name').value.trim();
-  if (!name) { alert('أدخل اسم الحملة'); return; }
-  const row = {
-    id: 'c_' + Date.now(),
-    name: name,
-    platform: document.getElementById('camp-platform').value,
-    date: document.getElementById('camp-date').value,
-    impressions: Number(document.getElementById('camp-impr').value || 0),
-    likes: Number(document.getElementById('camp-likes').value || 0),
-    comments: Number(document.getElementById('camp-comments').value || 0),
-    shares: Number(document.getElementById('camp-shares').value || 0),
-    notes: document.getElementById('camp-notes').value.trim(),
-  };
-  const list = campLoad();
-  list.push(row);
-  campSave(list);
-  campCloseModal();
-  campRender();
-}
-function campDelete(id) {
-  if (!confirm('حذف الحملة؟')) return;
-  campSave(campLoad().filter(c => c.id !== id));
-  campRender();
-}
-function campRender() {
-  const list = campLoad();
-  const tbody = document.getElementById('camp-tbody');
-  if (!tbody) return;
-  const platformIcons = { X:'𝕏', LinkedIn:'💼', WhatsApp:'💬', Email:'📧', Instagram:'📸' };
-  const platformColors = { X:'#000', LinkedIn:'#0A66C2', WhatsApp:'#25D366', Email:'#0069A7', Instagram:'#E1306C' };
-  if (!list.length) {
-    tbody.innerHTML = '<tr><td colspan="9" style="padding:30px;text-align:center;color:var(--text-3);">لا توجد حملات بعد. اضغط “حملة جديدة” لتبدأ.</td></tr>';
-  } else {
-    tbody.innerHTML = list.map(c => {
-      const rate = campEngagementRate(c).toFixed(2);
-      const color = platformColors[c.platform] || '#666';
-      return '<tr>' +
-        '<td style="padding:10px;border-bottom:1px solid var(--border-subtle);font-weight:600;">'+escapeHtml(c.name)+'</td>' +
-        '<td style="padding:10px;border-bottom:1px solid var(--border-subtle);"><span style="background:'+color+'15;color:'+color+';padding:3px 8px;border-radius:6px;font-size:11px;font-weight:700;">'+(platformIcons[c.platform]||'')+' '+c.platform+'</span></td>' +
-        '<td style="padding:10px;border-bottom:1px solid var(--border-subtle);color:var(--text-3);">'+(c.date||'—')+'</td>' +
-        '<td style="padding:10px;border-bottom:1px solid var(--border-subtle);">'+(c.impressions||0).toLocaleString('ar')+'</td>' +
-        '<td style="padding:10px;border-bottom:1px solid var(--border-subtle);">'+(c.likes||0).toLocaleString('ar')+'</td>' +
-        '<td style="padding:10px;border-bottom:1px solid var(--border-subtle);">'+(c.comments||0).toLocaleString('ar')+'</td>' +
-        '<td style="padding:10px;border-bottom:1px solid var(--border-subtle);">'+(c.shares||0).toLocaleString('ar')+'</td>' +
-        '<td style="padding:10px;border-bottom:1px solid var(--border-subtle);font-weight:700;color:'+(rate>2?'#61A60E':rate>0.5?'#9DC41A':'#76777A')+';">'+rate+'%</td>' +
-        '<td style="padding:10px;border-bottom:1px solid var(--border-subtle);"><button onclick="campDelete(\''+c.id+'\')" style="background:none;border:none;color:#dc2626;cursor:pointer;font-size:13px;">🗑️</button></td>' +
-      '</tr>';
-    }).join('');
-  }
-  // Update KPIs
-  const total = list.length;
-  const totalImpr = list.reduce((s,c) => s + Number(c.impressions||0), 0);
-  const totalEng = list.reduce((s,c) => s + Number(c.likes||0) + Number(c.comments||0) + Number(c.shares||0), 0);
-  const avgRate = total ? (list.reduce((s,c) => s + campEngagementRate(c), 0) / total) : 0;
-  document.getElementById('camp-kpi-total').textContent = total.toLocaleString('ar');
-  document.getElementById('camp-kpi-impressions').textContent = totalImpr.toLocaleString('ar');
-  document.getElementById('camp-kpi-engagement').textContent = totalEng.toLocaleString('ar');
-  document.getElementById('camp-kpi-engagement-rate').textContent = avgRate.toFixed(2) + '%';
-}
-function escapeHtml(s) { return String(s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
-function campExportReport(format) {
-  const list = campLoad();
-  if (!list.length) { alert('لا توجد حملات لتصديرها'); return; }
-  const totalImpr = list.reduce((s,c) => s + Number(c.impressions||0), 0);
-  const totalEng = list.reduce((s,c) => s + Number(c.likes||0) + Number(c.comments||0) + Number(c.shares||0), 0);
-  const avgRate = list.length ? (list.reduce((s,c) => s + campEngagementRate(c), 0) / list.length) : 0;
-  const today = new Date().toLocaleDateString('ar-SA');
-  if (format === 'md') {
-    let md = '# تقرير تحليلات الحملات — الهيئة العامة للمنافسة\n\n';
-    md += '**تاريخ التقرير:** ' + today + '\n\n';
-    md += '## ملخص تنفيذي\n\n';
-    md += '- **إجمالي الحملات:** ' + list.length + '\n';
-    md += '- **إجمالي المشاهدات:** ' + totalImpr.toLocaleString('ar') + '\n';
-    md += '- **إجمالي التفاعل:** ' + totalEng.toLocaleString('ar') + '\n';
-    md += '- **متوسط معدل التفاعل:** ' + avgRate.toFixed(2) + '%\n\n';
-    md += '## تفاصيل الحملات\n\n';
-    md += '| الحملة | المنصّة | التاريخ | مشاهدات | إعجابات | تعليقات | مشاركات | معدل التفاعل |\n';
-    md += '|---|---|---|---|---|---|---|---|\n';
-    list.forEach(c => {
-      md += '| ' + c.name + ' | ' + c.platform + ' | ' + (c.date||'—') + ' | ' + (c.impressions||0) + ' | ' + (c.likes||0) + ' | ' + (c.comments||0) + ' | ' + (c.shares||0) + ' | ' + campEngagementRate(c).toFixed(2) + '% |\n';
-    });
-    md += '\n---\n*تم التوليد تلقائياً من منصة التواصل المؤسسي*\n';
-    const blob = new Blob([md], { type:'text/markdown;charset=utf-8' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'campaigns-report-' + new Date().toISOString().slice(0,10) + '.md';
-    a.click();
-  } else {
-    // PDF — use print-to-pdf via window.print on a temporary print container
-    const w = window.open('', '_blank');
-    if (!w) { alert('يجب السماح بفتح نوافذ منبثقة'); return; }
-    let html = '<!doctype html><html dir="rtl" lang="ar"><head><meta charset="utf-8"><title>تقرير الحملات</title>';
-    html += '<style>body{font-family:"Cairo",sans-serif;padding:30px;color:#333;}h1{color:#0069A7;border-bottom:3px solid #61A60E;padding-bottom:8px;}table{width:100%;border-collapse:collapse;margin:20px 0;font-size:12px;}th{background:#0069A7;color:#fff;padding:8px;text-align:right;}td{padding:6px;border-bottom:1px solid #eee;}.kpi{display:inline-block;background:#f0f9ff;padding:12px 18px;border-radius:8px;margin:5px;border-right:3px solid #0069A7;}</style></head><body>';
-    html += '<h1>📊 تقرير تحليلات الحملات</h1>';
-    html += '<p><strong>تاريخ التقرير:</strong> ' + today + '</p>';
-    html += '<div><div class="kpi">إجمالي الحملات: <strong>' + list.length + '</strong></div>';
-    html += '<div class="kpi">المشاهدات: <strong>' + totalImpr.toLocaleString('ar') + '</strong></div>';
-    html += '<div class="kpi">التفاعل: <strong>' + totalEng.toLocaleString('ar') + '</strong></div>';
-    html += '<div class="kpi">متوسط التفاعل: <strong>' + avgRate.toFixed(2) + '%</strong></div></div>';
-    html += '<table><thead><tr><th>الحملة</th><th>المنصّة</th><th>التاريخ</th><th>مشاهدات</th><th>إعجابات</th><th>تعليقات</th><th>مشاركات</th><th>معدل التفاعل</th></tr></thead><tbody>';
-    list.forEach(c => {
-      html += '<tr><td>' + escapeHtml(c.name) + '</td><td>' + c.platform + '</td><td>' + (c.date||'—') + '</td><td>' + (c.impressions||0) + '</td><td>' + (c.likes||0) + '</td><td>' + (c.comments||0) + '</td><td>' + (c.shares||0) + '</td><td>' + campEngagementRate(c).toFixed(2) + '%</td></tr>';
-    });
-    html += '</tbody></table><p style="text-align:center;color:#999;font-size:11px;margin-top:30px;">تم التوليد تلقائياً — منصة التواصل المؤسسي</p>';
-    html += '<script>window.print();<\/script></body></html>';
-    w.document.write(html);
-    w.document.close();
-  }
-}
 
 // ===== Icon Event Studio (IES) =====
 let iesVariants = [];
@@ -14912,773 +14074,27 @@ function iesPreviewFullscreen(idx) {
   w.document.close();
 }
 
-/* ══════ Review Round 2 — Requests / Campaigns / Social / PR / Coverage stubs ══════ */
-// Review Round 5: Persistence حقيقية — تحميل الطلبات من localStorage عند الإقلاع
-function reqLoad(scope){
-  try { return JSON.parse(localStorage.getItem('gac_requests_'+scope) || '[]'); }
-  catch(e){ return []; }
-}
-function reqSave(scope, items){
-  try { localStorage.setItem('gac_requests_'+scope, JSON.stringify(items)); } catch(e){}
-}
-var REQ_STATE = {
-  internal:{ tab:'all', items: reqLoad('internal') },
-  external:{ tab:'all', items: reqLoad('external') }
-};
-var SOCIAL_STATE = { platform:'linkedin', view:'scheduled' };
 
-function reqSwitchTab(scope, tab) {
-  REQ_STATE[scope].tab = tab;
-  var pageId = scope === 'internal' ? 'section-internal_requests' : 'section-external_requests';
-  var page = document.getElementById(pageId);
-  if (page) {
-    page.querySelectorAll('.sub-tab').forEach(function(b){ b.classList.remove('active'); });
-    var btn = page.querySelector('.sub-tab[data-tab="'+tab+'"]');
-    if (btn) btn.classList.add('active');
-  }
-  reqRender(scope);
-}
 
-function reqRender(scope) {
-  var listId = scope === 'internal' ? 'req-int-list' : 'req-ext-list';
-  var host = document.getElementById(listId);
-  if (!host) return;
-  var items = REQ_STATE[scope].items || [];
-  var tab = REQ_STATE[scope].tab;
-  if (tab !== 'all' && tab !== 'tracking' && tab !== 'archive') {
-    items = items.filter(function(x){ return x.type === tab; });
-  } else if (tab === 'archive') {
-    items = items.filter(function(x){ return x.status === 'archived'; });
-  } else if (tab === 'tracking') {
-    items = items.filter(function(x){ return x.status !== 'archived'; });
-  }
-  if (items.length === 0) {
-    host.innerHTML = '<div style="padding:40px 24px;text-align:center;color:var(--text-3);"><div style="font-size:40px;margin-bottom:8px;opacity:.5;">'+(scope==='internal'?'📥':'📮')+'</div><div style="font-size:14px;">لا توجد طلبات في هذا التصنيف</div></div>';
-    return;
-  }
-  // Review Round 5: label مقروء للنوع + زر رسائل البدء + حالة فارغة مرئية
-  var typeMap = {};
-  (REQUEST_TYPES[scope]||[]).forEach(function(t){ typeMap[t.value] = t.label; });
-  host.innerHTML = items.map(function(r){
-    var typeLabel = typeMap[r.type] || r.type || '';
-    var statusHtml;
-    if (!r.kickoffSent && (!r.status || r.status==='')) {
-      statusHtml = '<button class="btn btn-sm" style="background:#F59E0B;color:#fff;border:none;padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer;" onclick="reqSendKickoff(\''+scope+'\', \''+r.id+'\')">إرسال رسائل البدء</button>';
-    } else {
-      statusHtml = '<span class="chip">'+(r.status||'جديد')+'</span>';
-    }
-    return '<div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:12px;">' +
-      '<div style="flex:1;min-width:0;">' +
-        '<div style="font-weight:600;">'+r.title+'</div>' +
-        '<div style="font-size:12px;color:var(--text-3);margin-top:4px;">'+typeLabel+' · '+(r.requester||'')+'</div>' +
-      '</div>' +
-      statusHtml +
-    '</div>';
-  }).join('');
-}
 
-// ─── Shared Modal Helper (Review Round 4) ─────────────────────────────────────────────────
-// Renders an on-the-fly modal with a form. Returns a Promise resolving to the
-// form values as an object, or null if the user cancelled.
-function openFormModal(config) {
-  return new Promise(function(resolve) {
-    var overlay = document.createElement('div');
-    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto;';
-    var w = (config.width || 640);
-    var fieldsHtml = (config.fields || []).map(function(f) {
-      var id = 'fm-' + f.key;
-      var label = '<label style="display:block;font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px;">' + f.label + (f.required ? ' <span style="color:#DC2626">*</span>' : '') + '</label>';
-      var input = '';
-      if (f.type === 'textarea') {
-        input = '<textarea id="' + id + '" ' + (f.required?'required':'') + ' style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;resize:vertical;min-height:'+(f.rows?f.rows*24:80)+'px;" placeholder="' + (f.placeholder||'') + '">' + (f.default||'') + '</textarea>';
-      } else if (f.type === 'select') {
-        input = '<select id="' + id + '" ' + (f.required?'required':'') + ' style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:#fff;">' +
-          (f.options||[]).map(function(o){
-            var v = typeof o === 'string' ? o : o.value;
-            var l = typeof o === 'string' ? o : o.label;
-            return '<option value="'+v+'"'+(f.default===v?' selected':'')+'>'+l+'</option>';
-          }).join('') + '</select>';
-      } else if (f.type === 'multi') {
-        input = '<div style="display:flex;flex-wrap:wrap;gap:8px;padding:10px;border:1px solid var(--border);border-radius:8px;background:#fff;">' +
-          (f.options||[]).map(function(o, i){
-            var v = typeof o === 'string' ? o : o.value;
-            var l = typeof o === 'string' ? o : o.label;
-            return '<label style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:#F3F4F6;border-radius:6px;cursor:pointer;font-size:12.5px;"><input type="checkbox" data-multi="'+f.key+'" value="'+v+'" style="margin:0"/> '+l+'</label>';
-          }).join('') + '</div>';
-      } else {
-        input = '<input id="' + id + '" type="' + (f.type || 'text') + '" ' + (f.required?'required':'') + ' style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;" placeholder="' + (f.placeholder||'') + '" value="' + (f.default||'') + '"' + (f.min!==undefined?' min="'+f.min+'"':'') + (f.max!==undefined?' max="'+f.max+'"':'') + '/>';
-      }
-      var hint = f.hint ? '<div style="font-size:11px;color:var(--text-3);margin-top:4px;">' + f.hint + '</div>' : '';
-      var cls = f.dynamic ? ' data-dynamic-for="'+f.dynamic+'"' : '';
-      var display = f.hidden ? 'display:none;' : '';
-      return '<div class="fm-field" data-key="' + f.key + '" ' + cls + ' style="margin-bottom:14px;'+display+'">' + label + input + hint + '</div>';
-    }).join('');
+// FE cleanup: removed openFormModal() ("Shared Modal Helper", Review Round 4) and the
+// lsGet()/lsSet() localStorage helpers ("Local storage helpers for demo persistence").
+// All three were exclusively used by the change_campaigns / press_releases /
+// media_coverage mock pages, which were deleted in the nav-IA consolidation along with
+// their onclick handlers -- openFormModal, lsGet and lsSet had zero remaining callers
+// after that removal (verified: 7 callers of openFormModal and 15/9 callers of
+// lsGet/lsSet in the pre-edit file, all inside the three removed mock sections; 0 in the
+// current file besides the now-deleted definitions).
 
-    overlay.innerHTML = '<div style="background:#fff;border-radius:14px;width:min('+w+'px,100%);max-height:90vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3);">' +
-      '<div style="padding:18px 22px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:#fff;z-index:1;">' +
-        '<h3 style="margin:0;font-size:17px;font-weight:700;color:var(--text);">' + (config.title||'نموذج') + '</h3>' +
-        '<button type="button" id="fm-close" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--text-3);line-height:1;">✕</button>' +
-      '</div>' +
-      (config.description ? '<div style="padding:12px 22px;background:#F9FAFB;border-bottom:1px solid var(--border);font-size:12.5px;color:var(--text-2);">' + config.description + '</div>' : '') +
-      '<div style="padding:20px 22px;">' + fieldsHtml + '</div>' +
-      '<div style="padding:14px 22px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;background:#F9FAFB;position:sticky;bottom:0;">' +
-        '<button type="button" id="fm-cancel" class="btn btn-ghost">إلغاء</button>' +
-        '<button type="button" id="fm-submit" class="btn btn-primary">' + (config.submitLabel||'حفظ') + '</button>' +
-      '</div></div>';
-    document.body.appendChild(overlay);
 
-    function close(val) { document.body.removeChild(overlay); resolve(val); }
-    overlay.querySelector('#fm-close').onclick = function(){ close(null); };
-    overlay.querySelector('#fm-cancel').onclick = function(){ close(null); };
-    overlay.onclick = function(e){ if (e.target === overlay) close(null); };
 
-    // Dynamic field visibility (fields with a .dynamic key visible only when their trigger is set)
-    function updateDynamicFields() {
-      overlay.querySelectorAll('[data-dynamic-for]').forEach(function(el){
-        var triggerSpec = el.getAttribute('data-dynamic-for'); // format: "triggerKey:value1,value2"
-        var parts = triggerSpec.split(':');
-        var triggerKey = parts[0];
-        var wantedValues = parts[1] ? parts[1].split(',') : [];
-        var trigEl = overlay.querySelector('#fm-' + triggerKey);
-        var multiChecks = overlay.querySelectorAll('[data-multi="'+triggerKey+'"]:checked');
-        var currentVals = [];
-        if (trigEl) currentVals.push(trigEl.value);
-        multiChecks.forEach(function(m){ currentVals.push(m.value); });
-        var show = wantedValues.some(function(v){ return currentVals.indexOf(v) !== -1; });
-        el.style.display = show ? '' : 'none';
-      });
-    }
-    overlay.querySelectorAll('input, select, textarea').forEach(function(el){
-      el.addEventListener('change', updateDynamicFields);
-      el.addEventListener('input', updateDynamicFields);
-    });
-    updateDynamicFields();
 
-    overlay.querySelector('#fm-submit').onclick = function() {
-      var result = {};
-      var missing = [];
-      (config.fields||[]).forEach(function(f) {
-        var fieldEl = overlay.querySelector('.fm-field[data-key="'+f.key+'"]');
-        var isHidden = fieldEl && fieldEl.style.display === 'none';
-        if (f.type === 'multi') {
-          if (isHidden) { result[f.key] = []; return; }
-          var vals = [];
-          overlay.querySelectorAll('[data-multi="'+f.key+'"]:checked').forEach(function(c){ vals.push(c.value); });
-          result[f.key] = vals;
-          if (f.required && !vals.length) missing.push(f.label);
-        } else {
-          var el = overlay.querySelector('#fm-' + f.key);
-          if (!el) return;
-          var field = overlay.querySelector('.fm-field[data-key="'+f.key+'"]');
-          if (field && field.style.display === 'none') { result[f.key] = null; return; }
-          var v = el.value.trim();
-          result[f.key] = v;
-          if (f.required && !v) missing.push(f.label);
-        }
-      });
-      if (missing.length) { alert('يرجى تعبئة: ' + missing.join(' ، ')); return; }
-      close(result);
-    };
-  });
-}
 
-// ─── Local storage helpers for demo persistence ──────────────────────────────────
-// Until we wire proper backend endpoints for press releases & media coverage,
-// items are stored per-user in localStorage so the demo feels real.
-function lsGet(key) { try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch(e) { return []; } }
-function lsSet(key, arr) { try { localStorage.setItem(key, JSON.stringify(arr)); } catch(e) {} }
 
-// Review Round 5: قوائم الأنواع الموحّدة (داخلي 6 أنواع + خارجي 3 أنواع)
-var REQUEST_TYPES = {
-  internal: [
-    { value:'design_internal_ad',   label:'طلب تصميم إعلان داخلي' },
-    { value:'design_visual',        label:'طلب تصميم عرض مرئي' },
-    { value:'workshop_ad',          label:'طلب إعلان ورشة' },
-    { value:'announcement_ad',      label:'طلب إعلان تعميم' },
-    { value:'internal_publish',     label:'طلب نشر داخلي' },
-    { value:'world_days',           label:'طلب أيام عالمية' }
-  ],
-  external: [
-    { value:'design_external',      label:'طلب تصميم خارجي' },
-    { value:'external_publish',     label:'طلب نشر خارجي' },
-    { value:'partner_campaign',     label:'طلب مشاركة في حملة مع جهة خارجية' }
-  ]
-};
 
-async function reqOpenNew(scope) {
-  var internalTypes = REQUEST_TYPES.internal;
-  var externalTypes = REQUEST_TYPES.external;
-  var types = scope==='internal' ? internalTypes : externalTypes;
-  var isChange = false;
-  var data = await openFormModal({
-    title: 'طلب ' + (scope==='internal'?'داخلي':'خارجي') + ' جديد',
-    submitLabel: 'إرسال الطلب',
-    width: 640,
-    fields: [
-      { key:'title', label:'عنوان الطلب', required:true, placeholder:'مثال: تصميم منشور لليوم الوطني' },
-      { key:'type',  label:'نوع الطلب', type:'select', required:true, options:types, default:types[0].value },
-      { key:'priority', label:'الأولوية', type:'select', options:[{value:'normal',label:'عادي'},{value:'high',label:'عالية'}], default:'normal' },
-      { key:'dueDate', label:'التاريخ المطلوب', type:'date' },
-      { key:'description', label:'وصف الطلب', type:'textarea', rows:4, placeholder:'تفاصيل إضافية...' }
-    ]
-  });
-  if (!data) return;
-  // Review Round 5: إضافة الطلب بدون حالة — تظهر الحالة فقط بعد إرسال رسائل البدء
-  REQ_STATE[scope].items.push({
-    id: 'req-' + Date.now(),
-    title: data.title,
-    type: data.type,
-    priority: data.priority,
-    dueDate: data.dueDate,
-    description: data.description,
-    requester: (AUTH_USER&&AUTH_USER.name)||'المستخدم',
-    status: '',  // فارغة ابتداءً — تمتلئ لاحقاً عند إرسال رسائل البدء
-    kickoffSent: false,
-    createdAt: new Date().toISOString()
-  });
-  reqSave(scope, REQ_STATE[scope].items);
-  reqRender(scope);
-  alert('تم إرسال الطلب بنجاح');
-}
 
-// Review Round 5: دالة إرسال رسائل البدء — تفعّل حالة الطلب
-function reqSendKickoff(scope, reqId) {
-  var items = REQ_STATE[scope].items || [];
-  var it = items.find(function(x){ return x.id === reqId; });
-  if (!it) return;
-  it.kickoffSent = true;
-  it.status = 'جديد';
-  it.kickoffAt = new Date().toISOString();
-  reqSave(scope, items);
-  reqRender(scope);
-  alert('تم إرسال رسائل البدء — تم تفعيل حالة الطلب');
-}
 
-// ═══ CHANGE CAMPAIGN (حملة تغيير شاملة) — MVP ═══
-// User specified: long form + dynamic fields + save to DB + auto-create Workspace
-async function openChangeCampaign(prefilledTitle) {
-  var data = await openFormModal({
-    title: '🚀 حملة تغيير شاملة',
-    submitLabel: 'إنشاء الحملة وفتح مساحة العمل',
-    width: 780,
-    description: 'نموذج شامل لحملات التغيير. الحقول الديناميكية تظهر حسب متطلبات الحملة التي تختارها.',
-    fields: [
-      { key:'name',        label:'اسم الحملة', required:true, default: prefilledTitle||'', placeholder:'مثال: حملة تبني النظام المحدّث' },
-      { key:'goal',        label:'الهدف الرئيسي', required:true, type:'textarea', rows:2, placeholder:'ما الذي تريد تحقيقه من هذه الحملة؟' },
-      { key:'description', label:'وصف تفصيلي', type:'textarea', rows:4, placeholder:'لماذا هذه الحملة؟ ما التغيير المطلوب؟' },
-      { key:'audience',    label:'الجمهور المستهدف', required:true, placeholder:'مثال: موظفو الهيئة · قيادات · شركاء' },
-      { key:'startDate',   label:'تاريخ البدء', type:'date', required:true },
-      { key:'endDate',     label:'تاريخ الانتهاء', type:'date', required:true },
-      { key:'priority',    label:'الأولوية', type:'select', options:[{value:'high',label:'عالية'},{value:'medium',label:'متوسطة'},{value:'low',label:'منخفضة'}], default:'medium' },
-      { key:'keyMessages', label:'الرسائل الرئيسية', type:'textarea', rows:3, placeholder:'الرسائل التي نريد إيصالها — رسالة في كل سطر' },
-      { key:'services',    label:'الخدمات المطلوبة', type:'multi', required:true, options:[
-          '🎥 فيديو','🎨 ورش عمل','🖼️ تصاميم داخلية','🌐 تصاميم خارجية',
-          '📢 نشر داخلي','🌐 نشر خارجي','📧 بريد إلكتروني',
-          '📺 شاشات داخلية','📰 تغطية إعلامية','📷 تصوير',
-          '📅 خطة نشر','🔧 متطلبات إضافية'
-        ] },
-      /* Dynamic fields shown based on chosen services */
-      { key:'videoBrief',   label:'🎥 موجز الفيديو', type:'textarea', rows:2, placeholder:'مدة · جمهور · رسائل رئيسية', dynamic:'services:🎥 فيديو' },
-      { key:'workshopBrief',label:'🎨 تفاصيل الورش', type:'textarea', rows:2, placeholder:'عدد الورش · المدة · الموقع', dynamic:'services:🎨 ورش عمل' },
-      { key:'internalDesignBrief',   label:'🖼️ موجز التصاميم الداخلية', type:'textarea', rows:2, placeholder:'أنواع · أحجام · أماكن', dynamic:'services:🖼️ تصاميم داخلية' },
-      { key:'externalDesignBrief',   label:'🌐 موجز التصاميم الخارجية', type:'textarea', rows:2, placeholder:'منصات النشر · المقاسات', dynamic:'services:🌐 تصاميم خارجية' },
-      { key:'internalChannels',label:'📢 قنوات النشر الداخلي', type:'multi', options:['الإنترانت','الإيميل الداخلي','الشاشات','منصة بيم','واتساب داخلي'], dynamic:'services:📢 نشر داخلي' },
-      { key:'externalChannels',label:'🌐 قنوات النشر الخارجي', type:'multi', options:['موقع الهيئة','إكس','لينكدإن','إنستجرام','يوتيوب','تيك توك','إعلام مدفوع'], dynamic:'services:🌐 نشر خارجي' },
-      { key:'emailDetails',label:'📧 تفاصيل البريد الإلكتروني', type:'textarea', rows:2, placeholder:'عدد الرسائل · الجدول الزمني · القوالب', dynamic:'services:📧 بريد إلكتروني' },
-      { key:'screensDetails',label:'📺 تفاصيل الشاشات', type:'textarea', rows:2, placeholder:'مواقع · مدة العرض · المحتوى', dynamic:'services:📺 شاشات داخلية' },
-      { key:'mediaCoverageBrief',label:'📰 موجز التغطية الإعلامية', type:'textarea', rows:2, placeholder:'الفعالية · التاريخ · القنوات المستهدفة', dynamic:'services:📰 تغطية إعلامية' },
-      { key:'photoBrief',   label:'📷 موجز التصوير', type:'textarea', rows:2, placeholder:'الموقع · الفعالية · عدد المحترفين', dynamic:'services:📷 تصوير' },
-      { key:'publishPlan',  label:'📅 خطة النشر', type:'textarea', rows:2, placeholder:'جدول زمني · تتابع المحتوى', dynamic:'services:📅 خطة نشر' },
-      { key:'otherReq',     label:'🔧 متطلبات إضافية', type:'textarea', rows:2, placeholder:'أي متطلبات أخرى...', dynamic:'services:🔧 متطلبات إضافية' }
-    ]
-  });
-  if (!data) return;
-  var arr = lsGet('gac_change_campaigns');
-  var id = 'cc-' + Date.now();
-  var record = Object.assign({
-    id: id,
-    status: 'planning',        // planning | active | completed | archived
-    progress: 0,
-    createdAt: new Date().toISOString(),
-    createdBy: (AUTH_USER && AUTH_USER.name) || 'المستخدم',
-    workspaceId: 'ws-' + id,
-    timeline: [
-      { date: new Date().toISOString(), text: 'تم إنشاء الحملة', done: true }
-    ],
-    attachments: [],
-    tasks: []
-  }, data);
-  arr.unshift(record);
-  lsSet('gac_change_campaigns', arr);
-  alert('✅ تم إنشاء حملة التغيير الشاملة بنجاح.\n📂 مساحة العمل: ' + record.workspaceId);
-  // Auto-open the workspace page
-  showChangeCampaignWorkspace(id);
-}
 
-// Simple workspace page for Change Campaigns
-function showChangeCampaignWorkspace(id) {
-  var arr = lsGet('gac_change_campaigns');
-  var c = arr.find(function(x){ return x.id === id; });
-  if (!c) { alert('الحملة غير موجودة'); return; }
-  var statusColor = { planning:'#6B7280', active:'#059669', completed:'#3B82F6', archived:'#9CA3AF' }[c.status] || '#6B7280';
-  var statusLbl   = { planning:'تخطيط', active:'نشطة', completed:'مكتملة', archived:'مؤرشفة' }[c.status] || c.status;
-  var services = Array.isArray(c.services) ? c.services : (c.services ? [c.services] : []);
-  var timeline = (c.timeline||[]).map(function(t){
-    return '<div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px dashed #E5E7EB;font-size:13px;"><span style="color:#9CA3AF;min-width:110px;">'+ new Date(t.date).toLocaleDateString('ar-SA') +'</span><span>'+ (t.done?'✅':'⏳') +' '+ t.text +'</span></div>';
-  }).join('');
-  var view = document.createElement('div');
-  view.className = '__ccw';
-  view.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto;';
-  view.innerHTML = '<div style="background:#fff;border-radius:14px;width:min(900px,100%);max-height:92vh;overflow:auto;">'+
-    '<div style="padding:20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;"><div><strong style="font-size:16px;">🚀 '+c.name+'</strong><div style="font-size:12px;color:var(--text-3);margin-top:2px;">مساحة عمل '+c.workspaceId+'</div></div><button style="background:none;border:none;font-size:22px;cursor:pointer;" onclick="this.closest(\'.__ccw\').remove()">✕</button></div>'+
-    '<div style="padding:24px;">'+
-      '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:20px;">'+
-        '<div style="padding:12px;background:#F9FAFB;border-radius:10px;"><div style="font-size:11px;color:#6B7280;margin-bottom:4px;">الحالة</div><span style="padding:3px 10px;background:'+statusColor+'22;color:'+statusColor+';border-radius:999px;font-size:12px;font-weight:600;">'+statusLbl+'</span></div>'+
-        '<div style="padding:12px;background:#F9FAFB;border-radius:10px;"><div style="font-size:11px;color:#6B7280;margin-bottom:4px;">نسبة التقدّم</div><div style="font-size:20px;font-weight:800;color:#059669;">'+(c.progress||0)+'%</div></div>'+
-        '<div style="padding:12px;background:#F9FAFB;border-radius:10px;"><div style="font-size:11px;color:#6B7280;margin-bottom:4px;">الجمهور</div><div style="font-size:13px;">'+(c.audience||'—')+'</div></div>'+
-        '<div style="padding:12px;background:#F9FAFB;border-radius:10px;"><div style="font-size:11px;color:#6B7280;margin-bottom:4px;">الفترة</div><div style="font-size:12px;">'+(c.startDate||'')+' → '+(c.endDate||'')+'</div></div>'+
-      '</div>'+
-      '<div style="margin-bottom:20px;"><div style="font-weight:700;margin-bottom:8px;">🎯 الهدف</div><div style="padding:12px;background:#EFF6FF;border-radius:8px;font-size:13px;line-height:1.7;">'+(c.goal||'—')+'</div></div>'+
-      (c.description?'<div style="margin-bottom:20px;"><div style="font-weight:700;margin-bottom:8px;">📝 الوصف</div><div style="font-size:13px;line-height:1.9;white-space:pre-wrap;color:var(--text);">'+c.description+'</div></div>':'')+
-      (c.keyMessages?'<div style="margin-bottom:20px;"><div style="font-weight:700;margin-bottom:8px;">💬 الرسائل الرئيسية</div><div style="font-size:13px;line-height:1.9;white-space:pre-wrap;">'+c.keyMessages+'</div></div>':'')+
-      (services.length?'<div style="margin-bottom:20px;"><div style="font-weight:700;margin-bottom:8px;">🔧 الخدمات المطلوبة</div><div style="display:flex;flex-wrap:wrap;gap:6px;">'+services.map(function(s){ return '<span class="chip">'+s+'</span>'; }).join('')+'</div></div>':'')+
-      '<div style="margin-bottom:20px;"><div style="font-weight:700;margin-bottom:8px;">📅 الجدول الزمني</div>'+(timeline||'<div style="font-size:12px;color:#9CA3AF;">لا أحداث بعد</div>')+'</div>'+
-      '<div style="margin-bottom:12px;"><div style="font-weight:700;margin-bottom:8px;">📎 المرفقات</div><div style="padding:20px;text-align:center;color:#9CA3AF;font-size:12px;background:#F9FAFB;border-radius:8px;border:1px dashed #D1D5DB;">الرفع قريباً — متوفر في المرحلة التالية</div></div>'+
-    '</div>'+
-    '<div style="padding:16px 20px;border-top:1px solid var(--border);background:#F9FAFB;display:flex;justify-content:space-between;gap:8px;">'+
-      '<button class="btn btn-primary" onclick="advanceChangeCampaign(\''+id+'\')">→ المرحلة التالية</button>'+
-      '<button class="btn btn-ghost" onclick="this.closest(\'.__ccw\').remove()">إغلاق</button>'+
-    '</div>'+
-  '</div>';
-  document.body.appendChild(view);
-}
-
-function advanceChangeCampaign(id) {
-  var arr = lsGet('gac_change_campaigns');
-  var idx = arr.findIndex(function(x){ return x.id === id; });
-  if (idx === -1) return;
-  var next = { planning:'active', active:'completed', completed:'archived' };
-  var progressMap = { planning:25, active:75, completed:100, archived:100 };
-  var newStatus = next[arr[idx].status] || arr[idx].status;
-  arr[idx].status = newStatus;
-  arr[idx].progress = progressMap[newStatus] || arr[idx].progress;
-  arr[idx].timeline = arr[idx].timeline || [];
-  arr[idx].timeline.push({ date:new Date().toISOString(), text:'تم الانتقال إلى: '+newStatus, done:true });
-  lsSet('gac_change_campaigns', arr);
-  document.querySelectorAll('.__ccw').forEach(function(v){ v.remove(); });
-  showChangeCampaignWorkspace(id);
-}
-
-// Review Round 5: عرض قائمة حملات التغيير في الصفحة المستقلة
-function renderChangeCampaignsList() {
-  var host = document.getElementById('change-camp-list');
-  if (!host) return;
-  var arr = lsGet('gac_change_campaigns');
-  if (!arr.length) {
-    host.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-3);"><div style="font-size:40px;opacity:.4;margin-bottom:8px;">🔄</div><div>لا توجد حملات تغيير بعد — أنشئ أول حملة</div></div>';
-    host.style.padding = '0';
-    host.style.textAlign = 'right';
-    return;
-  }
-  host.style.padding = '0';
-  host.style.textAlign = 'right';
-  host.innerHTML = arr.map(function(c){
-    // canonical status migration for change campaigns
-    if (!c.status || c.status==='مسودة') c.status = 'planning';
-    else if (c.status==='نشطة') c.status = 'in_progress';
-    var info = campaignStatusInfo(c.status);
-    var opts = CAMPAIGN_STATUSES.map(function(s){
-      return '<option value="'+s.value+'" '+(s.value===c.status?'selected':'')+'>'+s.label+'</option>';
-    }).join('');
-    return '<div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;gap:14px;align-items:flex-start;cursor:pointer;" onclick="showChangeCampaignWorkspace(\''+c.id+'\')">' +
-      '<div style="flex:1;min-width:0;">' +
-        '<div style="font-weight:700;font-size:14px;color:var(--text);margin-bottom:4px;">'+(c.name||'—')+'</div>' +
-        '<div style="font-size:12px;color:var(--text-3);margin-bottom:6px;">'+(c.goal||'')+'</div>' +
-        '<div style="font-size:11px;color:var(--text-4);">'+(c.startDate||'')+' → '+(c.endDate||'')+' · جمهور: '+(c.audience||'—')+'</div>' +
-      '</div>' +
-      '<div style="text-align:left;flex-shrink:0;" onclick="event.stopPropagation()">' +
-        '<select onchange="changeCampaignStatusUpdate(\''+c.id+'\',this.value)" style="padding:5px 10px;border:1px solid '+info.color+';color:'+info.color+';background:'+info.color+'11;border-radius:999px;font-size:11px;font-weight:600;cursor:pointer;">'+opts+'</select>' +
-      '</div>' +
-    '</div>';
-  }).join('');
-}
-function changeCampaignStatusUpdate(id, newStatus){
-  var arr = lsGet('gac_change_campaigns');
-  var it = arr.find(function(x){ return x.id===id; });
-  if (!it) return;
-  it.status = newStatus;
-  lsSet('gac_change_campaigns', arr);
-  renderChangeCampaignsList();
-}
-
-async function campaignOpenNew(scope) {
-  var data = await openFormModal({
-    title: 'حملة ' + (scope==='internal'?'داخلية':'خارجية') + ' جديدة',
-    submitLabel: 'إنشاء الحملة',
-    width: 720,
-    fields: [
-      { key:'name',        label:'اسم الحملة', required:true, placeholder:'مثال: حملة التوعية بنظام المنافسة' },
-      { key:'goal',        label:'الهدف', required:true, placeholder:'الهدف المحدد من الحملة' },
-      { key:'description', label:'وصف مختصر', type:'textarea', rows:3 },
-      { key:'audience',    label:'الفئة المستهدفة', required:true, placeholder:'مثال: الموظفين الجدد' },
-      { key:'startDate',   label:'تاريخ البداية', type:'date', required:true },
-      { key:'endDate',     label:'تاريخ النهاية', type:'date', required:true },
-      { key:'priority',    label:'الأولوية', type:'select', options:[{value:'normal',label:'عادي'},{value:'high',label:'عالية'}], default:'normal' },
-      { key:'messages',    label:'الرسائل الرئيسية', type:'textarea', rows:3, placeholder:'رسالة في كل سطر...' },
-      { key:'budget',      label:'الميزانية (ر.س)', type:'number', min:0 },
-      { key:'channels',    label:'قنوات النشر', type:'multi', options: scope==='internal' ? ['إيميل داخلي','الشاشات الداخلية','منصة بيم','مطبوعات'] : ['X (تويتر)','لينكدإن','يوتيوب','الموقع الرسمي','واتساب بيزنس'] }
-    ]
-  });
-  if (!data) return;
-  var key = 'gac_campaigns_' + scope;
-  var arr = lsGet(key);
-  // Review Round 5: default status is canonical 'planning'
-  arr.unshift(Object.assign({ id:'camp-'+Date.now(), status:'planning', progress:0, createdAt:new Date().toISOString(), createdBy:(AUTH_USER&&AUTH_USER.name)||'' }, data));
-  lsSet(key, arr);
-  alert('تم إنشاء الحملة «' + data.name + '».\nالحالة: قيد التخطيط — اضغط على البطاقة لإضافة التفاصيل.');
-  // Reload the campaigns page if visible
-  var pageId = scope === 'internal' ? 'section-internal_campaigns' : 'section-external_campaigns';
-  var page = document.getElementById(pageId);
-  if (page && page.classList.contains('active')) renderCampaignsList(scope);
-}
-
-// Review Round 5: Unified campaign status list
-var CAMPAIGN_STATUSES = [
-  { value:'planning',   label:'قيد التخطيط',   color:'#6B7280' },
-  { value:'in_progress',label:'قيد التنفيذ',    color:'#3B82F6' },
-  { value:'awaiting',   label:'بانتظار الاعتماد', color:'#F59E0B' },
-  { value:'completed',  label:'مكتملة',        color:'#10B981' }
-];
-function campaignStatusInfo(v){
-  return CAMPAIGN_STATUSES.find(function(s){ return s.value===v; }) || CAMPAIGN_STATUSES[0];
-}
-function campaignStatusUpdate(scope, id, newStatus){
-  var key = 'gac_campaigns_' + scope;
-  var arr = lsGet(key);
-  var it = arr.find(function(x){ return x.id===id; });
-  if (!it) return;
-  it.status = newStatus;
-  lsSet(key, arr);
-  renderCampaignsList(scope);
-}
-
-// Review Round 5: Render campaigns list — status is a dropdown, cards clickable
-function renderCampaignsList(scope) {
-  var listId = scope === 'internal' ? 'camp-int-list' : 'camp-ext-list';
-  var host = document.getElementById(listId);
-  if (!host) return;
-  var items = lsGet('gac_campaigns_' + scope);
-  if (!items.length) {
-    host.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-3);"><div style="font-size:40px;opacity:.4;margin-bottom:8px;">📢</div><div>لا توجد حملات بعد — أنشئ أول حملة</div></div>';
-    return;
-  }
-  host.innerHTML = items.map(function(c) {
-    // Migrate legacy status strings to canonical values
-    if (!c.status || c.status==='مسودة') c.status = 'planning';
-    else if (c.status==='نشطة') c.status = 'in_progress';
-    var info = campaignStatusInfo(c.status);
-    var opts = CAMPAIGN_STATUSES.map(function(s){
-      return '<option value="'+s.value+'" '+(s.value===c.status?'selected':'')+'>'+s.label+'</option>';
-    }).join('');
-    return '<div class="campaign-card" style="padding:14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;gap:14px;align-items:flex-start;cursor:pointer;" onclick="campaignOpenDetail(\''+scope+'\',\''+c.id+'\')">' +
-      '<div style="flex:1;min-width:0;">' +
-        '<div style="font-weight:700;font-size:14px;color:var(--text);margin-bottom:4px;">'+c.name+'</div>' +
-        '<div style="font-size:12px;color:var(--text-3);margin-bottom:6px;">'+(c.goal||'')+'</div>' +
-        '<div style="font-size:11px;color:var(--text-4);">'+(c.startDate||'')+' → '+(c.endDate||'')+' · جمهور: '+(c.audience||'—')+'</div>' +
-      '</div>' +
-      '<div style="text-align:left;flex-shrink:0;" onclick="event.stopPropagation()">' +
-        '<select onchange="campaignStatusUpdate(\''+scope+'\',\''+c.id+'\',this.value)" style="padding:5px 10px;border:1px solid '+info.color+';color:'+info.color+';background:'+info.color+'11;border-radius:999px;font-size:11px;font-weight:600;cursor:pointer;">'+opts+'</select>' +
-        '<div style="font-size:11px;color:var(--text-3);margin-top:4px;">'+(c.progress||0)+'% اكتمال</div>' +
-      '</div>' +
-    '</div>';
-  }).join('');
-}
-
-// Review Round 5: فتح تفاصيل الحملة — بطاقات قابلة للتعديل
-async function campaignOpenDetail(scope, id){
-  var key = 'gac_campaigns_' + scope;
-  var arr = lsGet(key);
-  var c = arr.find(function(x){ return x.id===id; });
-  if (!c) return;
-  var CAMPAIGN_FIELDS = [
-    { key:'description', label:'📝 النبذة', type:'textarea', rows:3 },
-    { key:'goal',        label:'🎯 الهدف', type:'textarea', rows:2, required:true },
-    { key:'audience',    label:'👥 الفئة', required:true },
-    { key:'messages',    label:'💬 الرسائل الرئيسية', type:'textarea', rows:4 },
-    { key:'creatives',   label:'🎨 المواد الإبداعية', type:'textarea', rows:3, placeholder:'روابط • ملاحظات • حالة الإنتاج' },
-    { key:'executionPlan', label:'📅 خطة التنفيذ', type:'textarea', rows:4 },
-    { key:'timeline',    label:'⏰ الجدول الزمني', type:'textarea', rows:3 },
-    { key:'status',      label:'⚙️ حالة الحملة', type:'select', options: CAMPAIGN_STATUSES.map(function(s){return {value:s.value,label:s.label};}) },
-    { key:'finalReport', label:'📊 التقرير الختامي', type:'textarea', rows:4 },
-    { key:'kpis',        label:'📈 مؤشرات الأداء', type:'textarea', rows:3 }
-  ];
-  // Preload defaults from existing record
-  var fields = CAMPAIGN_FIELDS.map(function(f){
-    return Object.assign({}, f, { default: (c[f.key]!==undefined ? c[f.key] : '') });
-  });
-  var data = await openFormModal({
-    title: '📋 ' + c.name + ' — تفاصيل الحملة',
-    submitLabel: 'حفظ التعديلات',
-    width: 780,
-    fields: fields
-  });
-  if (!data) return;
-  Object.assign(c, data);
-  c.updatedAt = new Date().toISOString();
-  lsSet(key, arr);
-  renderCampaignsList(scope);
-}
-
-function socialSwitchPlatform(p) {
-  SOCIAL_STATE.platform = p;
-  var page = document.getElementById('section-social_platforms');
-  if (!page) return;
-  page.querySelectorAll('.sub-tab[data-platform]').forEach(function(b){ b.classList.remove('active'); });
-  var btn = page.querySelector('.sub-tab[data-platform="'+p+'"]');
-  if (btn) btn.classList.add('active');
-  socialRender();
-}
-
-function socialSwitchView(v) {
-  SOCIAL_STATE.view = v;
-  var page = document.getElementById('section-social_platforms');
-  if (!page) return;
-  page.querySelectorAll('.sub-tab[data-view]').forEach(function(b){ b.classList.remove('active'); });
-  var btn = page.querySelector('.sub-tab[data-view="'+v+'"]');
-  if (btn) btn.classList.add('active');
-  socialRender();
-}
-
-var PLATFORM_LABEL = { linkedin:'لينكدإن', x:'X (تويتر)', snapchat:'سناب شات', youtube:'يوتيوب' };
-var VIEW_LABEL = { scheduled:'المحتوى المجدول', posts:'المنشورات', performance:'أداء المنصة' };
-
-function socialRender() {
-  var host = document.getElementById('social-content-body');
-  if (!host) return;
-  var p = SOCIAL_STATE.platform, v = SOCIAL_STATE.view;
-
-  // Handle LinkedIn and X (twitter) performance/posts — pull from feed API
-  if ((p === 'linkedin' || p === 'x') && (v === 'posts' || v === 'performance')) {
-    var apiPlatform = p === 'x' ? 'twitter' : 'linkedin';
-    var statusBanner = '';
-    if (p === 'x') {
-      statusBanner = '<div style="padding:14px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;margin-bottom:16px;font-size:13px;"><b>حالة الربط:</b> X API v2 يتطلب Bearer Token مدفوع (Basic tier من $100/شهرياً). ' +
-        (window.AUTH_USER && (AUTH_USER.role==='admin'||AUTH_USER.role==='sysadmin') ? '<button class="btn btn-secondary" style="margin-right:8px;" onclick="socialSeedTwitter()">🌱 توليد بيانات تجريبية</button>' : '') +
-        '</div>';
-    }
-    host.innerHTML = '<div style="font-weight:700;font-size:15px;margin-bottom:14px;color:var(--text);">'+PLATFORM_LABEL[p]+' · '+VIEW_LABEL[v]+'</div>'+statusBanner+'<div id="soc-linkedin-body" style="min-height:300px;"><div style="text-align:center;padding:40px;color:var(--text-3);">جارٍ التحميل…</div></div>';
-    socialLoadFeed(apiPlatform, v);
-    return;
-  }
-
-  // For X, Snapchat, YouTube — clear message about integration status
-  var stubMsg = '';
-  if (p === 'x') stubMsg = '<div style="padding:20px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;margin-bottom:16px;"><b>حالة الربط:</b> X API v2 يتطلب Bearer Token مدفوع (Basic tier من $100/شهرياً). يُمكن إضافة المفتاح في إعدادات المنصة لاحقاً.</div>';
-  else if (p === 'snapchat') stubMsg = '<div style="padding:20px;background:#FEF3C7;border:1px solid #FDE68A;border-radius:8px;margin-bottom:16px;"><b>قيد الإعداد:</b> Snap Kit / Business API يحتاج تفعيل حساب الأعمال.</div>';
-  else if (p === 'youtube') stubMsg = '<div style="padding:20px;background:#E0F2FE;border:1px solid #BAE6FD;border-radius:8px;margin-bottom:16px;"><b>قيد الإعداد:</b> YouTube Data API v3 — يحتاج OAuth للقناة الرسمية.</div>';
-
-  host.innerHTML = '<div style="font-weight:700;font-size:15px;margin-bottom:14px;color:var(--text);">'+PLATFORM_LABEL[p]+' · '+VIEW_LABEL[v]+'</div>'+stubMsg+'<div style="text-align:center;padding:40px;color:var(--text-3);"><div style="font-size:40px;margin-bottom:8px;opacity:.5;">📅</div><div style="font-size:14px;">'+VIEW_LABEL[v]+' — لا توجد بيانات للعرض</div></div>';
-}
-
-async function socialSeedTwitter() {
-  if (!confirm('سيتم إضافة 5 منشورات تجريبية لحساب X — للاختبار فقط. المتابعة؟')) return;
-  try {
-    var res = await apiFetch('/api/gac/social-feed/seed-twitter', {method:'POST'});
-    var data = await res.json();
-    if (data.ok) {
-      alert('تمت إضافة ' + (data.inserted||0) + ' منشور (تم تجاوز ' + (data.skipped||0) + ' موجود مسبقاً).');
-      socialRender();
-    } else {
-      alert('تعذر التنفيذ: ' + (data.error||'خطأ غير معروف'));
-    }
-  } catch (e) {
-    alert('تعذر الاتصال بالخادم');
-  }
-}
-
-async function socialLoadFeed(platform, view) {
-  var host = document.getElementById('soc-linkedin-body');
-  if (!host) return;
-  try {
-    var res = await apiFetch('/api/gac/social-feed?platform='+platform+'&limit=20');
-    var data = await res.json();
-    var posts = data.items || data.posts || [];
-    if (!posts.length) {
-      var hint = platform === 'twitter'
-        ? '<div style="font-size:12px;margin-top:8px;">لا توجد منشورات — استخدم زر «توليد بيانات تجريبية» أعلاه لإضافة عينة.</div>'
-        : '';
-      host.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-3);">لا توجد منشورات'+hint+'</div>';
-      return;
-    }
-    if (view === 'performance') {
-      var totalLikes = posts.reduce(function(a,p){ return a + (p.metrics?.likes||p.likes||p.reactions||0); }, 0);
-      var totalComments = posts.reduce(function(a,p){ return a + (p.metrics?.comments||p.metrics?.replies||p.comments||0); }, 0);
-      var totalReach = posts.reduce(function(a,p){ return a + (p.metrics?.reach||0); }, 0);
-      host.innerHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px;"><div class="kpi-card"><div class="kpi-label">إجمالي المنشورات</div><div class="kpi-value">'+posts.length+'</div></div><div class="kpi-card"><div class="kpi-label">إجمالي التفاعل</div><div class="kpi-value">'+totalLikes.toLocaleString('ar')+'</div></div><div class="kpi-card"><div class="kpi-label">إجمالي التعليقات</div><div class="kpi-value">'+totalComments.toLocaleString('ar')+'</div></div><div class="kpi-card"><div class="kpi-label">إجمالي الوصول</div><div class="kpi-value">'+totalReach.toLocaleString('ar')+'</div></div></div>';
-    } else {
-      host.innerHTML = posts.map(function(p){
-        var text = (p.contentAr||p.text||p.content||'').substring(0,240);
-        var likes = p.metrics?.likes || p.likes || p.reactions || 0;
-        var comments = p.metrics?.comments || p.metrics?.replies || p.comments || 0;
-        var date = p.postedAt ? new Date(p.postedAt).toLocaleDateString('ar-SA') : '';
-        return '<div style="padding:14px;border-bottom:1px solid var(--border);"><div style="font-size:13px;color:var(--text);line-height:1.6;">'+text+'…</div><div style="font-size:11px;color:var(--text-3);margin-top:6px;">👍 '+likes+' · 💬 '+comments+' · 📅 '+date+'</div></div>';
-      }).join('');
-    }
-  } catch (e) {
-    host.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-3);">تعذر تحميل بيانات المنصة</div>';
-  }
-}
-// Backward-compat wrapper
-async function socialLoadLinkedIn(view) { return socialLoadFeed('linkedin', view); }
-
-function socialRefresh() { socialRender(); }
-
-async function prNew() {
-  var data = await openFormModal({
-    title: 'بيان صحفي جديد',
-    submitLabel: 'حفظ كمسودة',
-    width: 720,
-    description: 'دورة الحياة: مسودة → قيد المراجعة → معتمد → منشور → أرشيف',
-    fields: [
-      { key:'title',      label:'عنوان البيان', required:true, placeholder:'مثال: إصدار تقرير الربع الثالث' },
-      { key:'subtitle',   label:'العنوان الفرعي' },
-      { key:'summary',    label:'الملخص التنفيذي', type:'textarea', rows:3, required:true, placeholder:'فقرة افتتاحية مختصرة...' },
-      { key:'body',       label:'متن البيان', type:'textarea', rows:8, required:true },
-      { key:'category',   label:'التصنيف', type:'select', options:[{value:'decision',label:'قرار'},{value:'report',label:'تقرير'},{value:'campaign',label:'حملة'},{value:'partnership',label:'شراكة'},{value:'general',label:'عام'}], default:'general' },
-      { key:'quotes',     label:'الاقتباسات', type:'textarea', rows:3, placeholder:'اقتباس من المسؤولين...' },
-      { key:'contact',    label:'جهة التواصل الإعلامي', placeholder:'الاسم · البريد' },
-      { key:'embargoDate', label:'تاريخ النشر المستهدف', type:'date' }
-    ]
-  });
-  if (!data) return;
-  var arr = lsGet('gac_press_releases');
-  arr.unshift(Object.assign({ id:'pr-'+Date.now(), status:'draft', createdAt:new Date().toISOString(), createdBy:(AUTH_USER&&AUTH_USER.name)||'' }, data));
-  lsSet('gac_press_releases', arr);
-  alert('تم حفظ البيان الصحفي كمسودة.');
-  prRender();
-}
-
-function prRender() {
-  var host = document.getElementById('pr-list');
-  if (!host) return;
-  var items = lsGet('gac_press_releases');
-  var tab = document.querySelector('#section-press_releases .sub-tab.active');
-  var filter = tab ? tab.getAttribute('data-tab') : 'all';
-  if (filter !== 'all') items = items.filter(function(x){ return x.status === filter; });
-  if (!items.length) {
-    host.innerHTML = '<div style="font-size:40px;margin-bottom:8px;opacity:.5;text-align:center;">📰</div>' +
-      '<div style="font-size:14px;text-align:center;">لا توجد بيانات صحفية — أنشئ أول بيان</div>';
-    return;
-  }
-  var statusLbl = { draft:'مسودة', review:'قيد المراجعة', approved:'معتمد', published:'منشور', archive:'أرشيف' };
-  var statusColor = { draft:'#6B7280', review:'#F59E0B', approved:'#3B82F6', published:'#059669', archive:'#9CA3AF' };
-  host.style.padding = '0';
-  host.style.textAlign = 'right';
-  host.innerHTML = items.map(function(p) {
-    var color = statusColor[p.status] || '#6B7280';
-    return '<div style="padding:16px 20px;border-bottom:1px solid var(--border);cursor:pointer;" onclick="prOpen(\''+p.id+'\')">' +
-      '<div style="display:flex;justify-content:space-between;gap:14px;align-items:flex-start;">' +
-        '<div style="flex:1;min-width:0;">' +
-          '<div style="font-weight:700;font-size:14px;color:var(--text);margin-bottom:4px;">'+p.title+'</div>' +
-          '<div style="font-size:12px;color:var(--text-3);">'+(p.summary||'').substring(0,140)+'…</div>' +
-          '<div style="font-size:11px;color:var(--text-4);margin-top:6px;">'+(new Date(p.createdAt).toLocaleDateString('ar-SA'))+' · أنشأها: '+(p.createdBy||'—')+'</div>' +
-        '</div>' +
-        '<span style="display:inline-block;padding:3px 10px;background:'+color+'22;color:'+color+';border-radius:999px;font-size:11px;font-weight:600;white-space:nowrap;">'+(statusLbl[p.status]||p.status)+'</span>' +
-      '</div></div>';
-  }).join('');
-}
-
-function prOpen(id) {
-  var items = lsGet('gac_press_releases');
-  var pr = items.find(function(x){ return x.id === id; });
-  if (!pr) return;
-  var actions = '';
-  var next = { draft:'review', review:'approved', approved:'published', published:'archive' };
-  var actionLabel = { draft:'إرسال للمراجعة', review:'اعتماد', approved:'نشر', published:'أرشفة' };
-  if (next[pr.status]) actions = '<button class="btn btn-primary" onclick="prAdvance(\''+id+'\',\''+next[pr.status]+'\')">'+actionLabel[pr.status]+'</button>';
-  var content = '<h2 style="margin:0 0 6px;">'+pr.title+'</h2>' +
-    (pr.subtitle?'<div style="color:var(--text-2);margin-bottom:16px;">'+pr.subtitle+'</div>':'') +
-    '<div style="padding:14px;background:#F9FAFB;border-right:3px solid var(--primary);margin-bottom:16px;font-size:13px;line-height:1.7;">'+pr.summary+'</div>' +
-    '<div style="font-size:13px;line-height:1.9;white-space:pre-wrap;color:var(--text);">'+pr.body+'</div>' +
-    (pr.quotes?'<div style="margin-top:16px;padding:12px;background:#EFF6FF;border-radius:8px;font-size:13px;font-style:italic;">«'+pr.quotes+'»</div>':'') +
-    (pr.contact?'<div style="margin-top:16px;font-size:12px;color:var(--text-3);">للتواصل الإعلامي: '+pr.contact+'</div>':'');
-  var view = document.createElement('div');
-  view.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto;';
-  view.innerHTML = '<div style="background:#fff;border-radius:14px;width:min(760px,100%);max-height:90vh;overflow:auto;"><div style="padding:20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;"><strong>معاينة بيان صحفي</strong><button style="background:none;border:none;font-size:22px;cursor:pointer;" onclick="this.closest(\'.__prv\').remove()">✕</button></div><div style="padding:24px;">'+content+'</div><div style="padding:16px 20px;border-top:1px solid var(--border);background:#F9FAFB;display:flex;justify-content:flex-end;gap:8px;">'+actions+'<button class="btn btn-ghost" onclick="this.closest(\'.__prv\').remove()">إغلاق</button></div></div>';
-  view.className = '__prv';
-  document.body.appendChild(view);
-}
-
-function prAdvance(id, nextStatus) {
-  var arr = lsGet('gac_press_releases');
-  var idx = arr.findIndex(function(x){ return x.id === id; });
-  if (idx === -1) return;
-  arr[idx].status = nextStatus;
-  lsSet('gac_press_releases', arr);
-  document.querySelectorAll('.__prv').forEach(function(v){ v.remove(); });
-  prRender();
-  alert('تم تحديث حالة البيان إلى: ' + nextStatus);
-}
-function prSwitch(t) {
-  var page = document.getElementById('section-press_releases');
-  if (!page) return;
-  page.querySelectorAll('.sub-tab').forEach(function(b){ b.classList.remove('active'); });
-  var btn = page.querySelector('.sub-tab[data-tab="'+t+'"]');
-  if (btn) btn.classList.add('active');
-}
-
-async function mcNew() {
-  var data = await openFormModal({
-    title: 'طلب تغطية إعلامية جديد',
-    submitLabel: 'حفظ طلب التغطية',
-    width: 720,
-    description: 'المراحل: طلب التغطية → تفاصيل الفعالية → الصور → الفيديو → المخرجات النهائية → تقرير التغطية',
-    fields: [
-      { key:'eventName',   label:'اسم الفعالية', required:true, placeholder:'مثال: ملتقى المنافسة' },
-      { key:'eventDate',   label:'تاريخ الفعالية', type:'date', required:true },
-      // Review Round 5: موقع التغطية — dropdown (داخل الهيئة / خارج الهيئة)
-      { key:'coverageLocation', label:'موقع التغطية', type:'select', required:true, options:[{value:'internal',label:'داخل الهيئة'},{value:'external',label:'خارج الهيئة'}], default:'internal' },
-      { key:'location',    label:'العنوان التفصيلي', placeholder:'الرياض — فندق فور سيزونز', dynamic:'coverageLocation:external' },
-      { key:'coverageType',label:'نوع التغطية', type:'multi', options:['تغطية مصورة','تغطية فيديو','مقابلات','بث مباشر','بيان صحفي'] },
-      { key:'mediaOutlets',label:'القنوات الإعلامية المستهدفة', type:'textarea', rows:2, placeholder:'لكل قناة سطر...' },
-      { key:'attendees',   label:'أبرز الحضور', type:'textarea', rows:2 },
-      { key:'notes',       label:'ملاحظات إضافية', type:'textarea', rows:3 },
-      // Review Round 5: جهة التنسيق — موضّحة أكثر
-      { key:'contact',     label:'جهة التنسيق (منسّق الفعالية)', placeholder:'الاسم • الجهة • البريد • الجوال' }
-    ]
-  });
-  if (!data) return;
-  var arr = lsGet('gac_media_coverage');
-  arr.unshift(Object.assign({ id:'mc-'+Date.now(), stage:'requested', createdAt:new Date().toISOString(), createdBy:(AUTH_USER&&AUTH_USER.name)||'' }, data));
-  lsSet('gac_media_coverage', arr);
-  alert('تم تسجيل طلب التغطية الإعلامية.');
-  mcRender();
-}
-
-function mcRender() {
-  var host = document.getElementById('mc-list');
-  if (!host) return;
-  var items = lsGet('gac_media_coverage');
-  if (!items.length) {
-    host.style.padding = '40px 24px';
-    host.style.textAlign = 'center';
-    host.innerHTML = '<div style="font-size:40px;margin-bottom:8px;opacity:.5;">🎬</div><div style="font-size:14px;color:var(--text-3);">لا توجد تغطيات مسجلة — سجّل أول تغطية</div>';
-    return;
-  }
-  var stageLbl = { requested:'طلب', details:'تفاصيل', photos:'صور', video:'فيديو', outputs:'مخرجات', report:'تقرير' };
-  var stageColor = { requested:'#6B7280', details:'#F59E0B', photos:'#8B5CF6', video:'#EC4899', outputs:'#3B82F6', report:'#059669' };
-  host.style.padding = '0';
-  host.style.textAlign = 'right';
-  host.innerHTML = items.map(function(m) {
-    var color = stageColor[m.stage] || '#6B7280';
-    return '<div style="padding:16px 20px;border-bottom:1px solid var(--border);">' +
-      '<div style="display:flex;justify-content:space-between;gap:14px;align-items:flex-start;">' +
-        '<div style="flex:1;"><div style="font-weight:700;font-size:14px;color:var(--text);margin-bottom:4px;">'+m.eventName+'</div>' +
-        '<div style="font-size:12px;color:var(--text-3);">📅 '+m.eventDate+' · 📍 '+m.location+'</div></div>' +
-        '<span style="padding:3px 10px;background:'+color+'22;color:'+color+';border-radius:999px;font-size:11px;font-weight:600;">'+(stageLbl[m.stage]||m.stage)+'</span>' +
-      '</div></div>';
-  }).join('');
-}
 
 /* Smart Assistant — unified tools */
 var SA_TOOL = null;
@@ -15736,127 +14152,6 @@ function saClear() {
   document.querySelectorAll('.sa-tool').forEach(function(el){ el.classList.remove('active'); });
   document.getElementById('sa-panel-empty').style.display = 'block';
   document.getElementById('sa-panel-body').style.display = 'none';
-}
-
-/* Review Round 5: Performance Reports handlers */
-function perfSwitchTab(tab) {
-  document.querySelectorAll('.pr-tab').forEach(function(b){
-    var active = b.getAttribute('data-prtab') === tab;
-    b.style.color = active ? 'var(--primary)' : 'var(--text-3)';
-    b.style.borderBottomColor = active ? 'var(--primary)' : 'transparent';
-  });
-  document.querySelectorAll('.pr-pane').forEach(function(p){ p.style.display = 'none'; });
-  var pane = document.getElementById('pr-pane-' + tab);
-  if (pane) pane.style.display = 'block';
-  if (tab === 'requests') perfLoadRequests();
-  else if (tab === 'platforms') perfLoadPlatforms();
-  else if (tab === 'periodic') perfInitPeriodic();
-}
-
-function perfLoadRequests() {
-  var internal = [], external = [];
-  try { internal = JSON.parse(localStorage.getItem('gac_requests_internal') || '[]'); } catch(_) {}
-  try { external = JSON.parse(localStorage.getItem('gac_requests_external') || '[]'); } catch(_) {}
-  var all = internal.concat(external);
-  var total = all.length;
-  var done = all.filter(function(r){ return (r.status||'').indexOf('مكتمل') >= 0 || r.status === 'done' || r.status === 'closed'; }).length;
-  var progress = all.filter(function(r){ return r.kickoffSent && !(((r.status||'').indexOf('مكتمل') >= 0) || r.status==='done'); }).length;
-  var late = all.filter(function(r){
-    if (!r.dueDate) return false;
-    var due = new Date(r.dueDate);
-    return due < new Date() && !(((r.status||'').indexOf('مكتمل') >= 0) || r.status==='done');
-  }).length;
-  var pct = total ? Math.round((done/total)*100) : 0;
-  var $ = function(id){ return document.getElementById(id); };
-  if ($('pr-req-total')) $('pr-req-total').textContent = total;
-  if ($('pr-req-done')) $('pr-req-done').textContent = done;
-  if ($('pr-req-progress')) $('pr-req-progress').textContent = progress;
-  if ($('pr-req-late')) $('pr-req-late').textContent = late;
-  if ($('pr-req-pct')) $('pr-req-pct').textContent = pct + '%';
-  // Breakdown by type
-  var byType = {};
-  all.forEach(function(r){ var t = r.typeLabel || r.type || 'غير مصنف'; byType[t] = (byType[t]||0)+1; });
-  var rows = Object.keys(byType).sort(function(a,b){ return byType[b]-byType[a]; }).map(function(k){
-    var count = byType[k]; var pct2 = total ? Math.round(count/total*100) : 0;
-    return '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;"><div style="flex:0 0 200px;font-weight:600;">'+k+'</div><div style="flex:1;background:#F3F4F6;border-radius:6px;height:22px;position:relative;overflow:hidden;"><div style="background:linear-gradient(90deg,#1a6e7a,#3ec0d0);height:100%;width:'+pct2+'%;"></div></div><div style="flex:0 0 60px;text-align:left;font-weight:700;">'+count+' ('+pct2+'%)</div></div>';
-  });
-  var el = document.getElementById('pr-req-breakdown');
-  if (el) el.innerHTML = rows.length ? rows.join('') : '<div style="color:var(--text-3);text-align:center;padding:24px;">لا توجد طلبات حتى الآن.</div>';
-}
-
-function perfLoadPlatforms() {
-  // يقرأ من قائمة المنشورات إن وجدت أو يعرض أرقام توضيحية
-  var posts = [];
-  try { posts = JSON.parse(localStorage.getItem('gac_social_posts') || '[]'); } catch(_) {}
-  var totalPosts = posts.length || 0;
-  var totalEng = posts.reduce(function(s,p){ return s + (parseInt(p.engagement)||0); }, 0);
-  var totalReach = posts.reduce(function(s,p){ return s + (parseInt(p.reach)||0); }, 0);
-  var avgReach = totalPosts ? Math.round(totalReach/totalPosts) : 0;
-  var $ = function(id){ return document.getElementById(id); };
-  if ($('pr-pl-posts')) $('pr-pl-posts').textContent = totalPosts;
-  if ($('pr-pl-engage')) $('pr-pl-engage').textContent = totalEng.toLocaleString('ar-SA');
-  if ($('pr-pl-reach')) $('pr-pl-reach').textContent = avgReach.toLocaleString('ar-SA');
-  if ($('pr-pl-growth')) $('pr-pl-growth').textContent = totalPosts > 0 ? '+' + Math.round(totalEng/Math.max(totalPosts,1)/10) + '%' : '0%';
-  // By platform breakdown
-  var byPlatform = {};
-  posts.forEach(function(p){ var pl = p.platform || 'X'; byPlatform[pl] = (byPlatform[pl]||0)+1; });
-  var el = document.getElementById('pr-pl-breakdown');
-  if (!Object.keys(byPlatform).length) {
-    if (el) el.innerHTML = '<div style="color:var(--text-3);text-align:center;padding:24px;">لا توجد منشورات حتى الآن — أضف من صفحة منصات التواصل.</div>';
-    return;
-  }
-  var rows = Object.keys(byPlatform).sort(function(a,b){ return byPlatform[b]-byPlatform[a]; }).map(function(k){
-    var count = byPlatform[k]; var pct2 = totalPosts ? Math.round(count/totalPosts*100) : 0;
-    return '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;"><div style="flex:0 0 140px;font-weight:600;">'+k+'</div><div style="flex:1;background:#F3F4F6;border-radius:6px;height:22px;position:relative;overflow:hidden;"><div style="background:linear-gradient(90deg,#7C3AED,#EC4899);height:100%;width:'+pct2+'%;"></div></div><div style="flex:0 0 60px;text-align:left;font-weight:700;">'+count+' ('+pct2+'%)</div></div>';
-  });
-  if (el) el.innerHTML = rows.join('');
-}
-
-function perfInitPeriodic() {
-  var sel = document.getElementById('pr-period-year');
-  if (!sel || sel.options.length) return;
-  var y = new Date().getFullYear();
-  for (var i = y+1; i >= y-3; i--) {
-    var opt = document.createElement('option');
-    opt.value = i; opt.textContent = i;
-    if (i === y) opt.selected = true;
-    sel.appendChild(opt);
-  }
-}
-
-function perfGeneratePeriodic() {
-  var type = document.getElementById('pr-period-type').value;
-  var year = document.getElementById('pr-period-year').value;
-  var typeLabel = { monthly:'شهري', quarterly:'ربع سنوي', annual:'سنوي' }[type] || type;
-  // تجميع الإحصاءات
-  var internal=[], external=[], campaigns=[];
-  try { internal = JSON.parse(localStorage.getItem('gac_requests_internal') || '[]'); } catch(_) {}
-  try { external = JSON.parse(localStorage.getItem('gac_requests_external') || '[]'); } catch(_) {}
-  try { campaigns = JSON.parse(localStorage.getItem('gac_campaigns_internal') || '[]').concat(JSON.parse(localStorage.getItem('gac_campaigns_external') || '[]')); } catch(_) {}
-  var totalReq = internal.length + external.length;
-  var doneReq = [].concat(internal, external).filter(function(r){ return (r.status||'').indexOf('مكتمل') >= 0; }).length;
-  var totalCmp = campaigns.length;
-  var doneCmp = campaigns.filter(function(c){ return c.status === 'completed'; }).length;
-  var html = '<div style="background:linear-gradient(135deg,#F3F0FF,#E9E5FF);border-radius:12px;padding:20px;">'+
-    '<div style="font-size:16px;font-weight:800;color:#4C1D95;margin-bottom:14px;">📊 تقرير الأداء ال'+typeLabel+' لعام '+year+'</div>'+
-    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px;">'+
-      '<div style="background:#fff;padding:12px;border-radius:10px;"><div style="font-size:11px;color:#6B7280;margin-bottom:4px;">إجمالي الطلبات</div><div style="font-size:22px;font-weight:900;color:#1a6e7a;">'+totalReq+'</div></div>'+
-      '<div style="background:#fff;padding:12px;border-radius:10px;"><div style="font-size:11px;color:#6B7280;margin-bottom:4px;">منجز منها</div><div style="font-size:22px;font-weight:900;color:#059669;">'+doneReq+'</div></div>'+
-      '<div style="background:#fff;padding:12px;border-radius:10px;"><div style="font-size:11px;color:#6B7280;margin-bottom:4px;">إجمالي الحملات</div><div style="font-size:22px;font-weight:900;color:#4338CA;">'+totalCmp+'</div></div>'+
-      '<div style="background:#fff;padding:12px;border-radius:10px;"><div style="font-size:11px;color:#6B7280;margin-bottom:4px;">حملات مكتملة</div><div style="font-size:22px;font-weight:900;color:#7C3AED;">'+doneCmp+'</div></div>'+
-    '</div>'+
-    '<div style="padding:12px;background:#fff;border-radius:10px;font-size:13px;line-height:1.8;color:#4B5563;">'+
-      '<b>ملخص تنفيذي:</b> تم معالجة '+totalReq+' طلباً خلال هذه الفترة، منها '+doneReq+' مكتملة ('+(totalReq?Math.round(doneReq/totalReq*100):0)+'%). '+
-      'تم إطلاق '+totalCmp+' حملة، وأنجز منها '+doneCmp+' حملة بنسبة '+(totalCmp?Math.round(doneCmp/totalCmp*100):0)+'%.'+
-    '</div>'+
-    '<button class="btn btn-ghost btn-sm" style="margin-top:12px;" onclick="perfExportPeriodic()">📄 تصدير PDF</button>'+
-  '</div>';
-  var el = document.getElementById('pr-periodic-result');
-  if (el) el.innerHTML = html;
-}
-
-function perfExportPeriodic() {
-  window.print();
 }
 
 /* Review Round 5: Settings page handlers */
@@ -15926,11 +14221,7 @@ document.addEventListener('DOMContentLoaded', function() {
   if (typeof origShow === 'function') {
     window.showSection = function(name) {
       origShow(name);
-      if (name === 'internal_requests') reqRender('internal');
-      else if (name === 'external_requests') reqRender('external');
-      else if (name === 'social_platforms') socialRender();
-      else if (name === 'settings') settingsLoad();
-      else if (name === 'performance_reports') { perfInitPeriodic(); perfLoadRequests(); }
+      if (name === 'settings') settingsLoad();
       // admin_panel init handled by existing adminInit() in showSection
     };
   }
