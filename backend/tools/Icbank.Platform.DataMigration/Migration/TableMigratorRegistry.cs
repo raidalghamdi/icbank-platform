@@ -31,10 +31,29 @@ public static class TableMigratorRegistry
         new UserTableMigrator(),
         new RolePermissionTableMigrator(),
         new UserRoleTableMigrator(),
+        new UserPageOverrideTableMigrator(),
+        new ActivityLogTableMigrator(),
+        new SystemSettingTableMigrator(),
 
         // Feature-domain "hard case" tables demonstrated end-to-end in this engagement.
         new AiYearActivationTableMigrator(),
         new GacSocialPostTableMigrator(),
+
+        // AI Year and GAC children -- both FK to their respective parent/sibling tables above.
+        new AiYearMediaTableMigrator(),
+        new AiYearMetricTableMigrator(),
+        new GacPublicationTableMigrator(),
+        new GacNewsItemTableMigrator(),
+
+        // International Days domain -- InternationalDay is the root; DayYearlyTheme and
+        // DayActivation both cascade-FK to it. IntlDaySource's related_id is polymorphic but in
+        // practice only ever targets international_days, and IntlSearchHistory's day_id is an
+        // unenforced/optional implied FK, so both must still follow InternationalDay to resolve.
+        new InternationalDayTableMigrator(),
+        new DayYearlyThemeTableMigrator(),
+        new DayActivationTableMigrator(),
+        new IntlDaySourceTableMigrator(),
+        new IntlSearchHistoryTableMigrator(),
 
         // ShorfahIssue is the top-level workflow container; ShorfahSection FKs to it (issue_id)
         // and to Users for the four actor FKs, so issues must be migrated first.
