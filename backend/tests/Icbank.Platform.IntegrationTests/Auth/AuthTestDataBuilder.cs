@@ -2,6 +2,7 @@ using Icbank.Platform.Domain.Identity;
 using Icbank.Platform.Infrastructure.Identity;
 using Icbank.Platform.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace Icbank.Platform.IntegrationTests.Auth;
 
@@ -22,13 +23,12 @@ public static class AuthTestDataBuilder
         Role superAdminRole = new() { Name = "super_admin", NameAr = "super_admin", CreatedBy = "test" };
         dbContext.AddRange(viewerRole, adminRole, superAdminRole);
 
-        Page adminPanelPage = new() { Slug = "admin_panel", NameAr = "admin_panel", CreatedBy = "test" };
-        Page settingsPage = new() { Slug = "settings", NameAr = "settings", CreatedBy = "test" };
-        Permission viewPermission = new() { Name = "view", NameAr = "view", CreatedBy = "test" };
-        Permission createPermission = new() { Name = "create", NameAr = "create", CreatedBy = "test" };
-        Permission editPermission = new() { Name = "edit", NameAr = "edit", CreatedBy = "test" };
-        Permission deletePermission = new() { Name = "delete", NameAr = "delete", CreatedBy = "test" };
-        dbContext.AddRange(adminPanelPage, settingsPage, viewPermission, createPermission, editPermission, deletePermission);
+        Page adminPanelPage = await EnsurePageAsync(dbContext, "admin_panel");
+        Page settingsPage = await EnsurePageAsync(dbContext, "settings");
+        Permission viewPermission = await EnsurePermissionAsync(dbContext, "view");
+        Permission createPermission = await EnsurePermissionAsync(dbContext, "create");
+        Permission editPermission = await EnsurePermissionAsync(dbContext, "edit");
+        Permission deletePermission = await EnsurePermissionAsync(dbContext, "delete");
         await dbContext.SaveChangesAsync(CancellationToken.None);
 
         // Why: a plain admin gets every admin_panel:* verb plus settings:view, so authz tests can
@@ -57,6 +57,65 @@ public static class AuthTestDataBuilder
         await dbContext.SaveChangesAsync(CancellationToken.None);
 
         return new SeededUsers(viewerUser, adminUser, superAdminUser, superAdminRole.Id);
+    }
+
+    /// <summary>
+    /// Returns the permission row with the given verb name, inserting it only if it is absent.
+    /// <para>
+    /// The permission catalogue is global: <c>permissions.name</c> carries a unique index
+    /// (<c>ux_permissions_name</c>), so a verb like <c>view</c> exists at most once per database
+    /// and is shared by every page grant. Test setup must therefore claim it rather than insert
+    /// it. Blind inserts were invisible under the EF Core InMemory provider, which enforces no
+    /// unique indexes, and failed immediately once the suite ran against real SQL Server.
+    /// </para>
+    /// </summary>
+    /// <param name="dbContext">The database context to read and seed.</param>
+    /// <param name="name">The verb name, one of <see cref="PermissionVerbName"/>.</param>
+    /// <returns>The existing or newly inserted permission.</returns>
+    public static async Task<Permission> EnsurePermissionAsync(AppDbContext dbContext, string name)
+    {
+        Permission? existing = dbContext.ChangeTracker.Entries<Permission>()
+            .Select(entry => entry.Entity)
+            .FirstOrDefault(permission => permission.Name == name)
+            ?? await dbContext.Permissions.FirstOrDefaultAsync(
+                permission => permission.Name == name,
+                CancellationToken.None);
+
+        if (existing is not null)
+        {
+            return existing;
+        }
+
+        Permission created = new() { Name = name, NameAr = name, CreatedBy = "test" };
+        dbContext.Add(created);
+        await dbContext.SaveChangesAsync(CancellationToken.None);
+        return created;
+    }
+
+    /// <summary>
+    /// Returns the page row with the given slug, inserting it only if it is absent.
+    /// <c>pages.slug</c> is likewise globally unique, so two test fixtures both needing the same
+    /// page must share one row.
+    /// </summary>
+    /// <param name="dbContext">The database context to read and seed.</param>
+    /// <param name="slug">The page slug, one of <see cref="PageSlugs"/>.</param>
+    /// <returns>The existing or newly inserted page.</returns>
+    public static async Task<Page> EnsurePageAsync(AppDbContext dbContext, string slug)
+    {
+        Page? existing = dbContext.ChangeTracker.Entries<Page>()
+            .Select(entry => entry.Entity)
+            .FirstOrDefault(page => page.Slug == slug)
+            ?? await dbContext.Pages.FirstOrDefaultAsync(page => page.Slug == slug, CancellationToken.None);
+
+        if (existing is not null)
+        {
+            return existing;
+        }
+
+        Page created = new() { Slug = slug, NameAr = slug, CreatedBy = "test" };
+        dbContext.Add(created);
+        await dbContext.SaveChangesAsync(CancellationToken.None);
+        return created;
     }
 
     /// <summary>The seeded fixture users and the super-admin role's id (for escalation-attempt tests).</summary>

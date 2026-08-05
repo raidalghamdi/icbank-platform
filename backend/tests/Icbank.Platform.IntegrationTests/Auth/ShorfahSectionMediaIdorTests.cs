@@ -179,10 +179,9 @@ public sealed class ShorfahSectionMediaIdorTests : IDisposable
 
         Role editorRole = new() { Name = $"shorfah_media_editor_{Guid.NewGuid()}", NameAr = "shorfah_editor", CreatedBy = "test" };
         dbContext.Add(editorRole);
-        Page shorfahPage = new() { Slug = PageSlugs.Shorfah, NameAr = "shorfah", CreatedBy = "test" };
-        Permission viewPermission = new() { Name = "view", NameAr = "view", CreatedBy = "test" };
-        Permission editPermission = new() { Name = "edit", NameAr = "edit", CreatedBy = "test" };
-        dbContext.AddRange(shorfahPage, viewPermission, editPermission);
+        Page shorfahPage = await AuthTestDataBuilder.EnsurePageAsync(dbContext, PageSlugs.Shorfah);
+        Permission viewPermission = await AuthTestDataBuilder.EnsurePermissionAsync(dbContext, "view");
+        Permission editPermission = await AuthTestDataBuilder.EnsurePermissionAsync(dbContext, "edit");
         await dbContext.SaveChangesAsync(CancellationToken.None);
 
         dbContext.RolePermissions.Add(new RolePermission { RoleId = editorRole.Id, PageId = shorfahPage.Id, PermissionId = viewPermission.Id, CreatedBy = "test" });

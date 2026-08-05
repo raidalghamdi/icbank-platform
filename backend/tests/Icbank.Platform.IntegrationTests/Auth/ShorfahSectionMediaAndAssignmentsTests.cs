@@ -389,13 +389,14 @@ public sealed class ShorfahSectionMediaAndAssignmentsTests : IDisposable
         await SeedOnceAsync();
         using AppDbContext dbContext = CreateDbContext();
 
-        Role shorfahEditorRole = new() { Name = "shorfah_editor", NameAr = "shorfah_editor", CreatedBy = "test" };
+        // roles.name is unique, so the role name is per-call unique to keep this helper safe to
+        // invoke more than once against the same database.
+        Role shorfahEditorRole = new() { Name = $"shorfah_editor_{Guid.NewGuid()}", NameAr = "shorfah_editor", CreatedBy = "test" };
         dbContext.Add(shorfahEditorRole);
 
-        Page shorfahPage = new() { Slug = "shorfah", NameAr = "shorfah", CreatedBy = "test" };
-        Permission viewPermission = new() { Name = "view", NameAr = "view", CreatedBy = "test" };
-        Permission editPermission = new() { Name = "edit", NameAr = "edit", CreatedBy = "test" };
-        dbContext.AddRange(shorfahPage, viewPermission, editPermission);
+        Page shorfahPage = await AuthTestDataBuilder.EnsurePageAsync(dbContext, PageSlugs.Shorfah);
+        Permission viewPermission = await AuthTestDataBuilder.EnsurePermissionAsync(dbContext, "view");
+        Permission editPermission = await AuthTestDataBuilder.EnsurePermissionAsync(dbContext, "edit");
         await dbContext.SaveChangesAsync(CancellationToken.None);
 
         dbContext.RolePermissions.Add(new RolePermission { RoleId = shorfahEditorRole.Id, PageId = shorfahPage.Id, PermissionId = viewPermission.Id, CreatedBy = "test" });

@@ -198,9 +198,8 @@ public sealed class ShorfahNotificationsIdorTests : IDisposable
 
         Role viewerRole = new() { Name = $"shorfah_notification_viewer_{Guid.NewGuid()}", NameAr = "shorfah_viewer", CreatedBy = "test" };
         dbContext.Add(viewerRole);
-        Page shorfahPage = new() { Slug = PageSlugs.Shorfah, NameAr = "shorfah", CreatedBy = "test" };
-        Permission viewPermission = new() { Name = "view", NameAr = "view", CreatedBy = "test" };
-        dbContext.AddRange(shorfahPage, viewPermission);
+        Page shorfahPage = await AuthTestDataBuilder.EnsurePageAsync(dbContext, PageSlugs.Shorfah);
+        Permission viewPermission = await AuthTestDataBuilder.EnsurePermissionAsync(dbContext, "view");
         await dbContext.SaveChangesAsync(CancellationToken.None);
 
         dbContext.RolePermissions.Add(new RolePermission { RoleId = viewerRole.Id, PageId = shorfahPage.Id, PermissionId = viewPermission.Id, CreatedBy = "test" });
