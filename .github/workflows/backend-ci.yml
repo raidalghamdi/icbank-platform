@@ -20,6 +20,19 @@ env:
   # noise. It must never be raised to match a lucky measurement, and never lowered to paper over
   # a regression -- if it needs to move, the number and the reason both belong in this comment.
   API_INFRASTRUCTURE_COVERAGE_THRESHOLD: 80
+  # Icbank.Platform.DataMigration was added to coverlet.runsettings' Include list (it was
+  # previously entirely uninstrumented -- see DATA-MIGRATION-NOTES.md "Coverage instrumentation
+  # gap") and measured at 91.8% line coverage in a sandbox with no reachable SQL Server, after
+  # adding a TableMigratorRegistry reflection test (every ITableMigrator implementation must be
+  # registered -- the exact defect shape that shipped once for the five International Days
+  # migrators), ValidationRunner tests, and SQL-Server-gated ReconciliationRunner/UserTableMigrator
+  # tests that only execute their real assertions when ICBANK_TEST_SQL_CONNECTION is set (as it is
+  # in this CI job). 85 is set deliberately below the measured 91.8%, not at it, for the same
+  # reason as API_INFRASTRUCTURE_COVERAGE_THRESHOLD: a floor that catches a real regression
+  # without tripping on routine, unrelated branch-coverage noise. It must never be raised to match
+  # a lucky measurement, and never lowered to paper over a regression -- if it needs to move, the
+  # number and the reason both belong in this comment.
+  DATAMIGRATION_COVERAGE_THRESHOLD: 85
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 'true'
   DOTNET_NOLOGO: 'true'
 
@@ -165,6 +178,28 @@ jobs:
             exit 1
           fi
 
+      # DataMigration coverage gate — separate and honest, not the same number as R-BE-080 or the
+      # Api+Infrastructure gate above. This tool moves production data with no reversible undo; a
+      # migrator that compiles, has its own transformer unit tests, and is simply never registered
+      # reports success while migrating zero rows (see DATA-MIGRATION-NOTES.md — this exact defect
+      # shipped once for the five International Days migrators). The floor below is the layer's
+      # actual measured coverage, minus margin — see the DATAMIGRATION_COVERAGE_THRESHOLD comment
+      # above for what is and is not covered.
+      - name: Coverage gate — DataMigration (separate honest floor)
+        run: |
+          export PATH="$PATH:$HOME/.dotnet/tools"
+          reportgenerator \
+            -reports:"coverage/**/coverage.cobertura.xml" \
+            -targetdir:coveragereport-datamigration \
+            -reporttypes:JsonSummary \
+            -classfilters:"+Icbank.Platform.DataMigration.*"
+          LINE_RATE=$(jq '.summary.linecoverage' coveragereport-datamigration/Summary.json)
+          echo "Line coverage (DataMigration): $LINE_RATE%"
+          if (( $(echo "$LINE_RATE < ${{ env.DATAMIGRATION_COVERAGE_THRESHOLD }}" | bc -l) )); then
+            echo "::error::Coverage $LINE_RATE% is below the ${{ env.DATAMIGRATION_COVERAGE_THRESHOLD }}% DataMigration threshold"
+            exit 1
+          fi
+
       - name: Publish coverage artifact
         if: always()
         uses: actions/upload-artifact@v4
@@ -173,6 +208,7 @@ jobs:
           path: |
             backend/coveragereport
             backend/coveragereport-apiinfra
+            backend/coveragereport-datamigration
 
   # Everything in the job above runs the app in-process through WebApplicationFactory with
   # the database and clock swapped out. This job is the only place the API runs as a real
