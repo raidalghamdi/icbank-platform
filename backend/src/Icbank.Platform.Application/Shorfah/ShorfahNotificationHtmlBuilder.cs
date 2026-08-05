@@ -54,5 +54,25 @@ public static class ShorfahNotificationHtmlBuilder
         return builder.ToString();
     }
 
+    /// <summary>Builds the overdue-reminder email body (BUSINESS-RULES.md §1.6/§1.7, <c>buildOverdueEmailHtml</c>).</summary>
+    /// <param name="recipientName">The recipient's display name.</param>
+    /// <param name="sectionTitleAr">The section's Arabic title.</param>
+    /// <param name="issueTitleAr">The issue's Arabic title.</param>
+    /// <param name="daysOverdue">The number of days past the SLA deadline.</param>
+    /// <param name="url">The absolute in-app URL to the issue.</param>
+    /// <returns>The fully HTML-encoded email body.</returns>
+    public static string BuildOverdue(string recipientName, string sectionTitleAr, string issueTitleAr, int daysOverdue, string url)
+    {
+        var builder = new StringBuilder();
+        builder.Append("<!DOCTYPE html><html dir=\"rtl\" lang=\"ar\"><body>");
+        builder.Append("<p>عزيزي ").Append(Encode(recipientName)).Append("،</p>");
+        builder.Append("<p>قسم \"").Append(Encode(sectionTitleAr)).Append("\" في عدد \"")
+            .Append(Encode(issueTitleAr)).Append("\" تأخر بمقدار ").Append(daysOverdue).Append(" يوم عن الموعد المحدد.</p>");
+        builder.Append("<p>يُرجى تسليم المحتوى في أقرب وقت ممكن.</p>");
+        builder.Append("<p><a href=\"").Append(Encode(url)).Append("\">فتح العدد</a></p>");
+        builder.Append("</body></html>");
+        return builder.ToString();
+    }
+
     private static string Encode(string? value) => WebUtility.HtmlEncode(value ?? string.Empty);
 }

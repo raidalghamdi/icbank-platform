@@ -66,4 +66,43 @@ public sealed class ResourceAuthorizationService : IResourceAuthorizationService
         var exists = await _dbContext.ShorfahIssues.AnyAsync(i => i.Id == issueId, cancellationToken);
         return exists ? ResourceAuthorizationResult.Authorized : ResourceAuthorizationResult.NotFound;
     }
+
+    /// <inheritdoc />
+    public async Task<ResourceAuthorizationResult> AuthorizeShorfahSectionResourceAsync(int sectionId, CancellationToken cancellationToken)
+    {
+        var exists = await _dbContext.ShorfahSections.AnyAsync(s => s.Id == sectionId, cancellationToken);
+        return exists ? ResourceAuthorizationResult.Authorized : ResourceAuthorizationResult.NotFound;
+    }
+
+    /// <inheritdoc />
+    public async Task<ResourceAuthorizationResult> AuthorizeShorfahMediaResourceAsync(int mediaId, CancellationToken cancellationToken)
+    {
+        var exists = await _dbContext.ShorfahSectionMedia.AnyAsync(m => m.Id == mediaId, cancellationToken);
+        return exists ? ResourceAuthorizationResult.Authorized : ResourceAuthorizationResult.NotFound;
+    }
+
+    /// <inheritdoc />
+    public async Task<ResourceAuthorizationResult> AuthorizeShorfahAssignmentResourceAsync(int assignmentId, CancellationToken cancellationToken)
+    {
+        var exists = await _dbContext.ShorfahAssignments.AnyAsync(a => a.Id == assignmentId, cancellationToken);
+        return exists ? ResourceAuthorizationResult.Authorized : ResourceAuthorizationResult.NotFound;
+    }
+
+    /// <inheritdoc />
+    public async Task<ResourceAuthorizationResult> AuthorizeShorfahPermissionResourceAsync(int permissionId, CancellationToken cancellationToken)
+    {
+        var exists = await _dbContext.ShorfahSectionPermissions.AnyAsync(p => p.Id == permissionId, cancellationToken);
+        return exists ? ResourceAuthorizationResult.Authorized : ResourceAuthorizationResult.NotFound;
+    }
+
+    /// <inheritdoc />
+    public async Task<ResourceAuthorizationResult> AuthorizeShorfahNotificationResourceAsync(int actorUserId, int notificationId, CancellationToken cancellationToken)
+    {
+        // Why: the IDOR-closing check the task brief calls out explicitly -- existence AND
+        // ownership are checked in the same predicate, so a notification belonging to another
+        // user is indistinguishable from a notification that does not exist at all.
+        var owned = await _dbContext.ShorfahNotifications
+            .AnyAsync(n => n.Id == notificationId && n.UserId == actorUserId, cancellationToken);
+        return owned ? ResourceAuthorizationResult.Authorized : ResourceAuthorizationResult.NotFound;
+    }
 }

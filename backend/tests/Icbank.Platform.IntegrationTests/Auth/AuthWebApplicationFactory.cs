@@ -1,3 +1,4 @@
+using Icbank.Platform.Application.Common.Interfaces;
 using Icbank.Platform.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -18,6 +19,14 @@ public sealed class AuthWebApplicationFactory : WebApplicationFactory<Program>
 {
     /// <summary>Gets the unique InMemory database name for this factory instance. Exposed so tests can reset/reseed per-test without cross-test data bleed.</summary>
     public string DatabaseName { get; } = Guid.NewGuid().ToString();
+
+    /// <summary>
+    /// Gets the mutable <see cref="IDateTimeProvider"/> test double registered in place of
+    /// <c>SystemDateTimeProvider</c> for this factory instance. Tests that need a controllable
+    /// Riyadh-day boundary (e.g. cron idempotency) mutate <see cref="FakeDateTimeProvider.FixedUtcNow"/>
+    /// between calls instead of depending on the real system clock.
+    /// </summary>
+    public FakeDateTimeProvider Clock { get; } = new();
 
     /// <inheritdoc />
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -50,6 +59,14 @@ public sealed class AuthWebApplicationFactory : WebApplicationFactory<Program>
             }
 
             services.AddDbContext<AppDbContext>(options => options.UseInMemoryDatabase(DatabaseName));
+
+            ServiceDescriptor? dateTimeDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IDateTimeProvider));
+            if (dateTimeDescriptor is not null)
+            {
+                services.Remove(dateTimeDescriptor);
+            }
+
+            services.AddSingleton<IDateTimeProvider>(Clock);
         });
     }
 }

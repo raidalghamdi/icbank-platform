@@ -107,6 +107,9 @@ public static class DependencyInjection
         services.AddSingleton<Icbank.Platform.Application.Shorfah.IShorfahSendInitialRateLimiter, Shorfah.InMemoryShorfahSendInitialRateLimiter>();
         services.AddScoped<Icbank.Platform.Application.Shorfah.IShorfahDocxRenderer, Shorfah.PlainTextShorfahDocxRenderer>();
         services.AddScoped<Icbank.Platform.Application.Shorfah.IShorfahIssuePdfRenderer, Shorfah.TemplateShorfahIssuePdfRenderer>();
+        services.AddScoped<Icbank.Platform.Application.Shorfah.IShorfahSectionAccessService, Shorfah.ShorfahSectionAccessService>();
+        services.AddScoped<Icbank.Platform.Application.Shorfah.IShorfahSectionContentGenerator, Shorfah.TemplateShorfahSectionContentGenerator>();
+        services.AddSingleton<Icbank.Platform.Application.Shorfah.IShorfahSectionGenerationRateLimiter, Shorfah.InMemoryShorfahSectionGenerationRateLimiter>();
     }
 
     /// <summary>Registers Azure AD SSO support: the distributed state cache, options binding, the IdP <c>HttpClient</c>, and the SSO ports.</summary>

@@ -45,4 +45,42 @@ public interface IResourceAuthorizationService
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A <see cref="ResourceAuthorizationResult"/> describing whether the issue exists.</returns>
     Task<ResourceAuthorizationResult> AuthorizeShorfahIssueResourceAsync(int issueId, CancellationToken cancellationToken);
+
+    /// <summary>Confirms a targeted Shorfah section row exists (Wave 4b: SEC-16 applied to the section workflow).</summary>
+    /// <param name="sectionId">The client-supplied section id.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A <see cref="ResourceAuthorizationResult"/> describing whether the section exists.</returns>
+    Task<ResourceAuthorizationResult> AuthorizeShorfahSectionResourceAsync(int sectionId, CancellationToken cancellationToken);
+
+    /// <summary>Confirms a targeted Shorfah section-media row exists (Wave 4b: SEC-16/SEC-17 -- media is per-section data).</summary>
+    /// <param name="mediaId">The client-supplied media id.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A <see cref="ResourceAuthorizationResult"/> describing whether the media row exists.</returns>
+    Task<ResourceAuthorizationResult> AuthorizeShorfahMediaResourceAsync(int mediaId, CancellationToken cancellationToken);
+
+    /// <summary>Confirms a targeted Shorfah assignment row exists (Wave 4b: SEC-16).</summary>
+    /// <param name="assignmentId">The client-supplied assignment id.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A <see cref="ResourceAuthorizationResult"/> describing whether the assignment exists.</returns>
+    Task<ResourceAuthorizationResult> AuthorizeShorfahAssignmentResourceAsync(int assignmentId, CancellationToken cancellationToken);
+
+    /// <summary>Confirms a targeted Shorfah section-permission grant row exists (Wave 4b: SEC-16).</summary>
+    /// <param name="permissionId">The client-supplied permission-grant id.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A <see cref="ResourceAuthorizationResult"/> describing whether the grant exists.</returns>
+    Task<ResourceAuthorizationResult> AuthorizeShorfahPermissionResourceAsync(int permissionId, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Confirms a targeted notification row exists AND belongs to the acting user (Wave 4b: the
+    /// primary IDOR surface named by the task brief -- a user must never read or mark-read another
+    /// user's notification). Unlike the other Shorfah checks above, this one is ownership-scoped,
+    /// not a pure existence guard: a notification belonging to a different user resolves to
+    /// <see cref="ResourceAuthorizationOutcome.NotFound"/> (not <c>ForbiddenPeer</c>), so a probing
+    /// caller cannot distinguish "belongs to someone else" from "does not exist".
+    /// </summary>
+    /// <param name="actorUserId">The authenticated caller's id.</param>
+    /// <param name="notificationId">The client-supplied notification id.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A <see cref="ResourceAuthorizationResult"/> describing whether the notification exists and belongs to the caller.</returns>
+    Task<ResourceAuthorizationResult> AuthorizeShorfahNotificationResourceAsync(int actorUserId, int notificationId, CancellationToken cancellationToken);
 }
