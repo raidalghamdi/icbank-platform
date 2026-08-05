@@ -36,6 +36,7 @@ public sealed class AuthWebApplicationFactory : WebApplicationFactory<Program>
 
     private readonly string relationalDatabaseName = $"IcbankTest_{Guid.NewGuid():N}";
     private bool hostCreated;
+    private bool cleanedUp;
 
     /// <summary>
     /// Gets a value indicating whether the suite is backed by a real SQL Server database
@@ -128,14 +129,53 @@ public sealed class AuthWebApplicationFactory : WebApplicationFactory<Program>
     /// <inheritdoc />
     protected override void Dispose(bool disposing)
     {
-        if (disposing && this.hostCreated && UsesRelationalDatabase)
+        // base.Dispose re-enters this method via WebApplicationFactory.DisposeAsync, so the
+        // cleanup below must be guarded and must not touch the DI container - by the second
+        // entry the service provider is already disposed.
+        base.Dispose(disposing);
+
+        if (!disposing || this.cleanedUp || !this.hostCreated || !UsesRelationalDatabase)
         {
-            using IServiceScope scope = this.Services.CreateScope();
-            AppDbContext context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            context.Database.EnsureDeleted();
+            return;
         }
 
-        base.Dispose(disposing);
+        this.cleanedUp = true;
+        this.DropRelationalDatabase();
+    }
+
+    /// <summary>
+    /// Drops this factory's throwaway database once the host is down, connecting to
+    /// <c>master</c> directly rather than through EF or DI. Leftover pooled connections would
+    /// otherwise block the drop, hence SINGLE_USER WITH ROLLBACK IMMEDIATE.
+    /// </summary>
+    private void DropRelationalDatabase()
+    {
+        SqlConnection.ClearAllPools();
+
+        var masterBuilder = new SqlConnectionStringBuilder(SqlServerConnectionTemplate)
+        {
+            InitialCatalog = "master",
+        };
+
+        try
+        {
+            using var connection = new SqlConnection(masterBuilder.ConnectionString);
+            connection.Open();
+            using SqlCommand command = connection.CreateCommand();
+
+            // The database name is a locally generated GUID-suffixed literal, never external
+            // input, but it is still bracket-quoted rather than concatenated blind.
+            command.CommandText =
+                $"IF DB_ID(N'{this.relationalDatabaseName}') IS NOT NULL BEGIN " +
+                $"ALTER DATABASE [{this.relationalDatabaseName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE; " +
+                $"DROP DATABASE [{this.relationalDatabaseName}]; END";
+            command.ExecuteNonQuery();
+        }
+        catch (SqlException)
+        {
+            // A failed cleanup must never fail the test that owned the database. CI databases
+            // are ephemeral with the container, so a leaked one is harmless.
+        }
     }
 
     private string ResolveConnectionString()
