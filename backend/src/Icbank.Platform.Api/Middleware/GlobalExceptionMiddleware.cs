@@ -55,8 +55,12 @@ public sealed class GlobalExceptionMiddleware
             problem.Extensions["traceId"] = context.TraceIdentifier;
 
             context.Response.StatusCode = problem.Status ?? StatusCodes.Status500InternalServerError;
-            context.Response.ContentType = "application/problem+json";
-            await context.Response.WriteAsJsonAsync(problem);
+
+            // Why: WriteAsJsonAsync(object) ignores a Response.ContentType set beforehand and
+            // always emits "application/json" unless a content type is passed explicitly here.
+            // The line this replaces silently had no effect -- the wire response was never
+            // actually application/problem+json despite the assignment above it looking correct.
+            await context.Response.WriteAsJsonAsync<ProblemDetails>(problem, options: null, contentType: "application/problem+json");
         }
     }
 
