@@ -5449,7 +5449,11 @@ async function apiError(res) {
 function friendlyError(err, fallback) {
   fallback = fallback || 'حدث خطأ غير متوقع. حاول مرة أخرى.';
   if (!err) return fallback;
-  var msg = typeof err === 'string' ? err : (err.message || err.error || err.toString());
+  // Accepts either a JS Error (possibly built by apiError() with .title/.detail/.error) or a
+  // raw parsed Problem Details body passed straight through by call sites that don't go
+  // through apiError() — detail is preferred (most specific), then title, then the old
+  // Node-era .error field, then .message, then a plain string/toString fallback.
+  var msg = typeof err === 'string' ? err : (err.detail || err.title || err.message || err.error || err.toString());
   if (!msg || typeof msg !== 'string') return fallback;
 
   // Strip JSON wrapper if message contains a nested JSON error

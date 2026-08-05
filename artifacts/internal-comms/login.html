@@ -360,7 +360,7 @@ body {
 
     <div id="sso-section">
       <div class="sso-divider">أو</div>
-      <a href="/api/auth/sso/azure/start" class="btn-sso" id="sso-btn">
+      <a href="/api/v1/auth/sso/azure/start" class="btn-sso" id="sso-btn">
         <svg class="sso-icon" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
           <rect x="1" y="1" width="9" height="9" fill="#F25022"/>
           <rect x="11" y="1" width="9" height="9" fill="#7FBA00"/>
@@ -379,6 +379,14 @@ body {
 
 <script>
 (function() {
+  // Same single-configurable-base-URL mechanism as index.html (see its API CONFIG block
+  // for the full rationale) — kept duplicated rather than shared via an extra <script src>
+  // tag, since this file has no build step and must keep working as a single static file
+  // that can be opened/served independently of index.html.
+  var API_BASE = (typeof window !== 'undefined' && window.__API_BASE__) || '';
+  var API_VERSION = (typeof window !== 'undefined' && window.__API_VERSION__) || 'v1';
+  function apiUrl(path) { return API_BASE + '/api/' + API_VERSION + path; }
+
   const form = document.getElementById('login-form');
   const emailInput = document.getElementById('email');
   const passInput = document.getElementById('password');
@@ -430,7 +438,7 @@ body {
 
     setLoading(true);
     try {
-      const resp = await fetch('/api/auth/login', {
+      const resp = await fetch(apiUrl('/auth/login'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -439,7 +447,9 @@ body {
       const data = await resp.json();
 
       if (!resp.ok) {
-        showError(data.error || 'خطأ في تسجيل الدخول');
+        // New API returns application/problem+json ({title,detail}) instead of the old
+        // {error} shape — prefer detail, then title, then the old key, then a fallback.
+        showError(data.detail || data.title || data.error || 'خطأ في تسجيل الدخول');
         setLoading(false);
         return;
       }
@@ -474,7 +484,7 @@ body {
 
   (async function loadSsoConfig() {
     try {
-      const resp = await fetch('/api/auth/sso/config');
+      const resp = await fetch(apiUrl('/auth/sso/config'));
       if (!resp.ok) return;
       const data = await resp.json();
       if (data.enabled) {
