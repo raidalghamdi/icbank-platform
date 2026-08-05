@@ -54,7 +54,14 @@ public sealed class UploadArchiveDocumentsCommandHandler
 
     private async Task<UploadedDocumentResultDto> ProcessFileAsync(UploadedDocument file, int actorUserId, CancellationToken cancellationToken)
     {
-        var text = await _textExtractor.ExtractAsync(file.Content, file.ContentType, file.FileName, cancellationToken);
+        DocumentTextExtractionResult extraction = await _textExtractor.ExtractAsync(file.Content, file.ContentType, file.FileName, cancellationToken);
+
+        if (extraction.Status != DocumentTextExtractionStatus.Success)
+        {
+            return new UploadedDocumentResultDto(null, null, null, file.FileName, extraction.Reason ?? NoExtractableTextReason, null);
+        }
+
+        var text = extraction.Text ?? string.Empty;
         if (string.IsNullOrWhiteSpace(text))
         {
             return new UploadedDocumentResultDto(null, null, null, file.FileName, NoExtractableTextReason, null);
