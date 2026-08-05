@@ -276,6 +276,18 @@ public sealed class AppDbContext : DbContext, IApplicationDbContext
     /// <inheritdoc cref="IApplicationDbContext.GacNewsItems" />
     IQueryable<GacNewsItem> IApplicationDbContext.GacNewsItems => GacNewsItems;
 
+    /// <inheritdoc cref="IApplicationDbContext.MediaReports" />
+    IQueryable<MediaReport> IApplicationDbContext.MediaReports => MediaReports;
+
+    /// <inheritdoc cref="IApplicationDbContext.PromptFrameworks" />
+    IQueryable<PromptFramework> IApplicationDbContext.PromptFrameworks => PromptFrameworks;
+
+    /// <inheritdoc cref="IApplicationDbContext.FinalMediaReports" />
+    IQueryable<FinalMediaReport> IApplicationDbContext.FinalMediaReports => FinalMediaReports;
+
+    /// <inheritdoc cref="IApplicationDbContext.ReportsQaQueries" />
+    IQueryable<ReportsQaQuery> IApplicationDbContext.ReportsQaQueries => ReportsQaQueries;
+
     /// <inheritdoc cref="IApplicationDbContext.Add{TEntity}" />
     void IApplicationDbContext.Add<TEntity>(TEntity entity) => Set<TEntity>().Add(entity);
 

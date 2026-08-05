@@ -2,6 +2,7 @@ using Icbank.Platform.Domain.AiYear;
 using Icbank.Platform.Domain.Gac;
 using Icbank.Platform.Domain.Identity;
 using Icbank.Platform.Domain.InternationalDays;
+using Icbank.Platform.Domain.MediaMonitoring;
 using Icbank.Platform.Domain.Reports;
 using Icbank.Platform.Domain.Weekend;
 
@@ -103,6 +104,18 @@ public interface IApplicationDbContext
 
     /// <summary>Gets a queryable over cached GAC news/decision items (Wave 2: GAC Content).</summary>
     IQueryable<GacNewsItem> GacNewsItems { get; }
+
+    /// <summary>Gets a queryable over editable, audience-tiered media-monitoring reports (Wave 3a: Media Monitoring).</summary>
+    IQueryable<MediaReport> MediaReports { get; }
+
+    /// <summary>Gets a queryable over reusable AI prompt frameworks (Wave 3a: Media Monitoring + Prompts).</summary>
+    IQueryable<PromptFramework> PromptFrameworks { get; }
+
+    /// <summary>Gets a queryable over immutable, officially-numbered final media reports (Wave 3a: Final Media Reports).</summary>
+    IQueryable<FinalMediaReport> FinalMediaReports { get; }
+
+    /// <summary>Gets a queryable over the QA/search query audit trail against final reports (Wave 3a: Final Media Reports).</summary>
+    IQueryable<ReportsQaQuery> ReportsQaQueries { get; }
 
     /// <summary>Tracks a new entity for insertion.</summary>
     /// <typeparam name="TEntity">The entity type.</typeparam>

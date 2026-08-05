@@ -67,6 +67,13 @@ public static class DependencyInjection
         services.AddScoped<Icbank.Platform.Application.Weekend.IDocumentTextExtractor, Weekend.PlainTextDocumentTextExtractor>();
         services.AddScoped<Icbank.Platform.Application.InternationalDays.IInternationalDaySearchProvider, InternationalDays.TemplateInternationalDaySearchProvider>();
         services.AddSingleton<Icbank.Platform.Application.InternationalDays.IInternationalDaySearchRateLimiter, InternationalDays.InMemoryInternationalDaySearchRateLimiter>();
+        services.AddScoped<Icbank.Platform.Application.MediaMonitoring.IMediaReportNarrativeGenerator, MediaMonitoring.TemplateMediaReportNarrativeGenerator>();
+        services.AddScoped<Icbank.Platform.Application.MediaMonitoring.IPromptExecutionEngine, MediaMonitoring.TemplatePromptExecutionEngine>();
+        services.AddScoped<Icbank.Platform.Application.MediaMonitoring.IFinalReportSectionGenerator, MediaMonitoring.TemplateFinalReportSectionGenerator>();
+        services.AddScoped<Icbank.Platform.Application.MediaMonitoring.IFinalReportPdfRenderer, MediaMonitoring.TemplateFinalReportPdfRenderer>();
+        services.AddScoped<Icbank.Platform.Application.MediaMonitoring.IReportEmailSender, MediaMonitoring.NullReportEmailSender>();
+        services.AddScoped<Icbank.Platform.Application.MediaMonitoring.IExecutiveSummaryRegenerator, MediaMonitoring.TemplateExecutiveSummaryRegenerator>();
+        services.AddScoped<Icbank.Platform.Application.MediaMonitoring.IReportArchiveQaEngine, MediaMonitoring.TemplateReportArchiveQaEngine>();
 
         services.AddOptions<JwtOptions>()
             .Bind(configuration.GetSection(JwtOptions.SectionName))
