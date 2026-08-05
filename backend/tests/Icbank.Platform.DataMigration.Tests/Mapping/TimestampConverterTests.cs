@@ -39,7 +39,7 @@ public sealed class TimestampConverterTests
     public void ToDestinationOffset_TruncatesSubMillisecondPrecision()
     {
         // 100-nanosecond ticks beyond whole milliseconds must be dropped to match datetimeoffset(3).
-        var raw = new DateTime(2024, 6, 1, 12, 0, 0, 500).AddTicks(4567);
+        DateTime raw = new DateTime(2024, 6, 1, 12, 0, 0, 500).AddTicks(4567);
 
         DateTimeOffset result = TimestampConverter.ToDestinationOffset(raw);
 

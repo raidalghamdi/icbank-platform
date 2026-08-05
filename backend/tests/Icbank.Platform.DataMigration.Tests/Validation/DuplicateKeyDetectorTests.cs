@@ -16,7 +16,7 @@ public sealed class DuplicateKeyDetectorTests
     [Fact]
     public void FindDuplicates_NoDuplicateKeys_ReturnsEmpty()
     {
-        var items = new[]
+        Item[] items = new[]
         {
             new Item(1, "linkedin", "abc"),
             new Item(2, "twitter", "abc"),
@@ -32,7 +32,7 @@ public sealed class DuplicateKeyDetectorTests
     [Fact]
     public void FindDuplicates_OneDuplicatePair_ReturnsOneGroupWithBothSourceIds()
     {
-        var items = new[]
+        Item[] items = new[]
         {
             new Item(1, "linkedin", "abc"),
             new Item(2, "linkedin", "abc"),
@@ -49,7 +49,7 @@ public sealed class DuplicateKeyDetectorTests
     [Fact]
     public void FindDuplicates_ThreeRowsShareOneKey_ReturnsAllThreeSourceIds()
     {
-        var items = new[]
+        Item[] items = new[]
         {
             new Item(1, "twitter", "x"),
             new Item(2, "twitter", "x"),
@@ -66,7 +66,7 @@ public sealed class DuplicateKeyDetectorTests
     [Fact]
     public void FindDuplicates_MultipleIndependentDuplicateGroups_ReturnsEachGroup()
     {
-        var items = new[]
+        Item[] items = new[]
         {
             new Item(1, "linkedin", "a"),
             new Item(2, "linkedin", "a"),
@@ -84,7 +84,7 @@ public sealed class DuplicateKeyDetectorTests
     [Fact]
     public void FindDuplicates_SamePlatformDifferentExternalId_IsNotADuplicate()
     {
-        var items = new[]
+        Item[] items = new[]
         {
             new Item(1, "linkedin", "a"),
             new Item(2, "linkedin", "b"),
@@ -101,7 +101,7 @@ public sealed class DuplicateKeyDetectorTests
     {
         // Realistic hard case: two platforms can coincidentally share the same numeric/opaque
         // external id -- the composite key means this must NOT be flagged.
-        var items = new[]
+        Item[] items = new[]
         {
             new Item(1, "linkedin", "12345"),
             new Item(2, "twitter", "12345"),
@@ -127,7 +127,7 @@ public sealed class DuplicateKeyDetectorTests
     {
         // The key selector, not the detector, decides case sensitivity; string tuple equality is
         // ordinal by default, so "LinkedIn" and "linkedin" are distinct keys here.
-        var items = new[]
+        Item[] items = new[]
         {
             new Item(1, "linkedin", "a"),
             new Item(2, "LinkedIn", "a"),
