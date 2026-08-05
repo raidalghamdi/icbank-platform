@@ -70,6 +70,9 @@ public sealed class AppDbContext : DbContext, IApplicationDbContext
     public DbSet<AiYearActivation> AiYearActivations => Set<AiYearActivation>();
 
     /// <summary>Gets the set of media attached to AI Year activations.</summary>
+    public DbSet<AiYearActivationChannel> AiYearActivationChannels => Set<AiYearActivationChannel>();
+
+    /// <summary>Gets the set of AI Year activation media.</summary>
     public DbSet<AiYearMedia> AiYearMedia => Set<AiYearMedia>();
 
     /// <summary>Gets the set of free-form metrics attached to AI Year activations.</summary>
@@ -240,8 +243,38 @@ public sealed class AppDbContext : DbContext, IApplicationDbContext
     /// <inheritdoc cref="IApplicationDbContext.AiYearActivations" />
     IQueryable<AiYearActivation> IApplicationDbContext.AiYearActivations => AiYearActivations;
 
+    /// <inheritdoc cref="IApplicationDbContext.AiYearActivationChannels" />
+    IQueryable<AiYearActivationChannel> IApplicationDbContext.AiYearActivationChannels => AiYearActivationChannels;
+
+    /// <inheritdoc cref="IApplicationDbContext.AiYearMedia" />
+    IQueryable<AiYearMedia> IApplicationDbContext.AiYearMedia => AiYearMedia;
+
+    /// <inheritdoc cref="IApplicationDbContext.AiYearMetrics" />
+    IQueryable<AiYearMetric> IApplicationDbContext.AiYearMetrics => AiYearMetrics;
+
     /// <inheritdoc cref="IApplicationDbContext.InternationalDays" />
     IQueryable<InternationalDay> IApplicationDbContext.InternationalDays => InternationalDays;
+
+    /// <inheritdoc cref="IApplicationDbContext.DayYearlyThemes" />
+    IQueryable<DayYearlyTheme> IApplicationDbContext.DayYearlyThemes => DayYearlyThemes;
+
+    /// <inheritdoc cref="IApplicationDbContext.DayActivations" />
+    IQueryable<DayActivation> IApplicationDbContext.DayActivations => DayActivations;
+
+    /// <inheritdoc cref="IApplicationDbContext.IntlDaySources" />
+    IQueryable<IntlDaySource> IApplicationDbContext.IntlDaySources => IntlDaySources;
+
+    /// <inheritdoc cref="IApplicationDbContext.IntlSearchHistories" />
+    IQueryable<IntlSearchHistory> IApplicationDbContext.IntlSearchHistories => IntlSearchHistories;
+
+    /// <inheritdoc cref="IApplicationDbContext.GacPublications" />
+    IQueryable<GacPublication> IApplicationDbContext.GacPublications => GacPublications;
+
+    /// <inheritdoc cref="IApplicationDbContext.GacSocialPosts" />
+    IQueryable<GacSocialPost> IApplicationDbContext.GacSocialPosts => GacSocialPosts;
+
+    /// <inheritdoc cref="IApplicationDbContext.GacNewsItems" />
+    IQueryable<GacNewsItem> IApplicationDbContext.GacNewsItems => GacNewsItems;
 
     /// <inheritdoc cref="IApplicationDbContext.Add{TEntity}" />
     void IApplicationDbContext.Add<TEntity>(TEntity entity) => Set<TEntity>().Add(entity);

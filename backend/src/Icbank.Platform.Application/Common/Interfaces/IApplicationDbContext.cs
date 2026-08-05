@@ -1,4 +1,5 @@
 using Icbank.Platform.Domain.AiYear;
+using Icbank.Platform.Domain.Gac;
 using Icbank.Platform.Domain.Identity;
 using Icbank.Platform.Domain.InternationalDays;
 using Icbank.Platform.Domain.Reports;
@@ -67,11 +68,41 @@ public interface IApplicationDbContext
     /// <summary>Gets a queryable over the AI-generated week-start message drafts (Wave 1: Week Start).</summary>
     IQueryable<GeneratedOutput> GeneratedOutputs { get; }
 
-    /// <summary>Gets a queryable over AI Year 2026 activation records (Wave 1: Dashboard aggregation input).</summary>
+    /// <summary>Gets a queryable over AI Year 2026 activation records (Wave 1: Dashboard aggregation input; Wave 2: full CRUD).</summary>
     IQueryable<AiYearActivation> AiYearActivations { get; }
 
-    /// <summary>Gets a queryable over the international-observance-day catalogue (Wave 1: Dashboard aggregation input).</summary>
+    /// <summary>Gets a queryable over AI Year activation channels (Wave 2: AI Year).</summary>
+    IQueryable<AiYearActivationChannel> AiYearActivationChannels { get; }
+
+    /// <summary>Gets a queryable over AI Year activation media (Wave 2: AI Year).</summary>
+    IQueryable<AiYearMedia> AiYearMedia { get; }
+
+    /// <summary>Gets a queryable over AI Year activation metrics (Wave 2: AI Year).</summary>
+    IQueryable<AiYearMetric> AiYearMetrics { get; }
+
+    /// <summary>Gets a queryable over the international-observance-day catalogue (Wave 1: Dashboard aggregation input; Wave 2: full CRUD).</summary>
     IQueryable<InternationalDay> InternationalDays { get; }
+
+    /// <summary>Gets a queryable over per-year day themes (Wave 2: International Days).</summary>
+    IQueryable<DayYearlyTheme> DayYearlyThemes { get; }
+
+    /// <summary>Gets a queryable over recorded day activations (Wave 2: International Days).</summary>
+    IQueryable<DayActivation> DayActivations { get; }
+
+    /// <summary>Gets a queryable over AI-search source citations (Wave 2: International Days).</summary>
+    IQueryable<IntlDaySource> IntlDaySources { get; }
+
+    /// <summary>Gets a queryable over the AI-search rate-limit/audit history (Wave 2: International Days).</summary>
+    IQueryable<IntlSearchHistory> IntlSearchHistories { get; }
+
+    /// <summary>Gets a queryable over the GAC publications library (Wave 2: GAC Content).</summary>
+    IQueryable<GacPublication> GacPublications { get; }
+
+    /// <summary>Gets a queryable over cached GAC social posts (Wave 2: GAC Content).</summary>
+    IQueryable<GacSocialPost> GacSocialPosts { get; }
+
+    /// <summary>Gets a queryable over cached GAC news/decision items (Wave 2: GAC Content).</summary>
+    IQueryable<GacNewsItem> GacNewsItems { get; }
 
     /// <summary>Tracks a new entity for insertion.</summary>
     /// <typeparam name="TEntity">The entity type.</typeparam>
