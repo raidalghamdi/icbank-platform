@@ -27,7 +27,7 @@ public sealed class AzureBlobObjectStorageWriter : IObjectStorageWriter
         var safeExtension = ContentTypeExtensions.Resolve(contentType);
         var relativePath = $"{folderPrefix.TrimEnd('/')}/{Guid.NewGuid():N}{safeExtension}";
 
-        (BlobContainerClient container, string blobName) = BlobPathResolver.Resolve(_blobServiceClient, relativePath);
+        (BlobContainerClient container, var blobName) = BlobPathResolver.Resolve(_blobServiceClient, relativePath);
         BlobClient blobClient = container.GetBlobClient(blobName);
 
         using var stream = new MemoryStream(content);

@@ -24,7 +24,7 @@ public sealed class AzureBlobObjectStorageDeleter : IObjectStorageDeleter
     /// <inheritdoc />
     public async Task<bool> DeleteAsync(string normalizedRelativePath, CancellationToken cancellationToken)
     {
-        (BlobContainerClient container, string blobName) = BlobPathResolver.Resolve(_blobServiceClient, normalizedRelativePath);
+        (BlobContainerClient container, var blobName) = BlobPathResolver.Resolve(_blobServiceClient, normalizedRelativePath);
         BlobClient blobClient = container.GetBlobClient(blobName);
 
         Azure.Response<bool> response = await blobClient.DeleteIfExistsAsync(

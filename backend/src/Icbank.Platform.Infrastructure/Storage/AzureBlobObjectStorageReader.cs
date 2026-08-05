@@ -27,7 +27,7 @@ public sealed class AzureBlobObjectStorageReader : IObjectStorageReader
     /// <inheritdoc />
     public async Task<StoredObject?> OpenAsync(string normalizedRelativePath, CancellationToken cancellationToken)
     {
-        (BlobContainerClient container, string blobName) = BlobPathResolver.Resolve(_blobServiceClient, normalizedRelativePath);
+        (BlobContainerClient container, var blobName) = BlobPathResolver.Resolve(_blobServiceClient, normalizedRelativePath);
         BlobClient blobClient = container.GetBlobClient(blobName);
 
         try

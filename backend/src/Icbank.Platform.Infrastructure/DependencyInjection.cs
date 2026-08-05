@@ -49,6 +49,19 @@ public static class DependencyInjection
     /// <param name="configuration">The application configuration, used for JWT options binding.</param>
     private static void AddSecurityServices(IServiceCollection services, IConfiguration configuration)
     {
+        AddCoreIdentityAndAuthServices(services);
+        AddContentGenerationServices(services, configuration);
+
+        services.AddOptions<JwtOptions>()
+            .Bind(configuration.GetSection(JwtOptions.SectionName))
+            .Validate(options => !string.IsNullOrWhiteSpace(options.SigningKey), "Jwt:SigningKey must be configured.")
+            .ValidateOnStart();
+    }
+
+    /// <summary>Registers the current-user/request-context ports and the core identity/auth singletons/scoped services (R-BE-004: composition root only).</summary>
+    /// <param name="services">The DI service collection.</param>
+    private static void AddCoreIdentityAndAuthServices(IServiceCollection services)
+    {
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddScoped<IRequestContext, HttpRequestContext>();
@@ -65,6 +78,19 @@ public static class DependencyInjection
         services.AddSingleton<ISafeStoragePathValidator, Security.SafeStoragePathValidator>();
         services.AddSingleton<ITemporaryPasswordGenerator, TemporaryPasswordGenerator>();
         services.AddSingleton<Icbank.Platform.Application.Common.Interfaces.IDateTimeProvider, Identity.SystemDateTimeProvider>();
+    }
+
+    /// <summary>
+    /// Registers storage-backed and notification-backed content-generation ports (dashboard,
+    /// weekend, international days, media monitoring), plus the storage/notification provider
+    /// switches themselves. Split out of <see cref="AddSecurityServices"/> purely to keep each
+    /// method within the project's method-length limit: the registrations still all run as one
+    /// step from <see cref="AddInfrastructure"/>'s point of view.
+    /// </summary>
+    /// <param name="services">The DI service collection.</param>
+    /// <param name="configuration">The application configuration, used for options binding and the storage/notification provider switches.</param>
+    private static void AddContentGenerationServices(IServiceCollection services, IConfiguration configuration)
+    {
         services.AddOptions<Storage.ObjectStorageOptions>().Bind(configuration.GetSection(Storage.ObjectStorageOptions.SectionName));
         services.AddOptions<Storage.AzureBlobStorageOptions>().Bind(configuration.GetSection(Storage.AzureBlobStorageOptions.SectionName));
         AddObjectStorageServices(services, configuration);
@@ -83,11 +109,6 @@ public static class DependencyInjection
         AddNotificationServices(services, configuration);
         services.AddScoped<Icbank.Platform.Application.MediaMonitoring.IExecutiveSummaryRegenerator, MediaMonitoring.TemplateExecutiveSummaryRegenerator>();
         services.AddScoped<Icbank.Platform.Application.MediaMonitoring.IReportArchiveQaEngine, MediaMonitoring.TemplateReportArchiveQaEngine>();
-
-        services.AddOptions<JwtOptions>()
-            .Bind(configuration.GetSection(JwtOptions.SectionName))
-            .Validate(options => !string.IsNullOrWhiteSpace(options.SigningKey), "Jwt:SigningKey must be configured.")
-            .ValidateOnStart();
     }
 
     /// <summary>
@@ -103,7 +124,7 @@ public static class DependencyInjection
     /// <param name="configuration">The application configuration, used to read <c>ObjectStorage:Provider</c> and <c>ObjectStorage:AzureBlob:ServiceUri</c>.</param>
     private static void AddObjectStorageServices(IServiceCollection services, IConfiguration configuration)
     {
-        var provider = configuration.GetValue<Storage.ObjectStorageProvider>("ObjectStorage:Provider");
+        Storage.ObjectStorageProvider provider = configuration.GetValue<Storage.ObjectStorageProvider>("ObjectStorage:Provider");
         if (provider == Storage.ObjectStorageProvider.AzureBlob)
         {
             var serviceUri = configuration["ObjectStorage:AzureBlob:ServiceUri"]
@@ -134,7 +155,7 @@ public static class DependencyInjection
     /// <param name="configuration">The application configuration, used to read <c>Notifications:Provider</c> and <c>Notifications:AzureCommunicationServices:Endpoint</c>.</param>
     private static void AddNotificationServices(IServiceCollection services, IConfiguration configuration)
     {
-        var provider = configuration.GetValue<NotificationsProvider>("Notifications:Provider");
+        NotificationsProvider provider = configuration.GetValue<NotificationsProvider>("Notifications:Provider");
         if (provider == NotificationsProvider.AzureCommunicationServices)
         {
             var endpoint = configuration["Notifications:AzureCommunicationServices:Endpoint"]

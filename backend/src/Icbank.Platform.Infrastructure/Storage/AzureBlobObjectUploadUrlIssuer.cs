@@ -34,11 +34,11 @@ public sealed class AzureBlobObjectUploadUrlIssuer : IObjectUploadUrlIssuer
         var safeExtension = Path.GetExtension(fileName);
         var objectPath = $"{folderPrefix.TrimEnd('/')}/{Guid.NewGuid():N}{safeExtension}";
 
-        (BlobContainerClient container, string blobName) = BlobPathResolver.Resolve(_blobServiceClient, objectPath);
+        (BlobContainerClient container, var blobName) = BlobPathResolver.Resolve(_blobServiceClient, objectPath);
         BlobClient blobClient = container.GetBlobClient(blobName);
 
-        var startsOn = DateTimeOffset.UtcNow.AddMinutes(-5); // Why: tolerate minor clock skew between the API host and Azure Storage.
-        var expiresOn = DateTimeOffset.UtcNow.AddMinutes(_options.UploadUrlLifetimeMinutes);
+        DateTimeOffset startsOn = DateTimeOffset.UtcNow.AddMinutes(-5); // Why: tolerate minor clock skew between the API host and Azure Storage.
+        DateTimeOffset expiresOn = DateTimeOffset.UtcNow.AddMinutes(_options.UploadUrlLifetimeMinutes);
 
         UserDelegationKey userDelegationKey = await _blobServiceClient.GetUserDelegationKeyAsync(startsOn, expiresOn, cancellationToken);
 
