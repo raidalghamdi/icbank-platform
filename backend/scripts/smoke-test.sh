@@ -13,17 +13,31 @@
 # applies the committed migrations first (migrations are a deploy step here, not a
 # startup side effect), and then asserts observable HTTP behaviour end to end.
 #
-# Requires: ICBANK_SMOKE_CONNECTION pointing at a reachable SQL Server.
+# Two modes:
+#   Local/CI mode (default): requires ICBANK_SMOKE_CONNECTION pointing at a reachable SQL
+#     Server. Applies migrations, boots the API as a local process, asserts against it.
+#   Deployed mode: set SMOKE_BASE_URL to the already-running deployment's base URL (e.g.
+#     https://icbank-prod.azurewebsites.net). Skips the local boot step entirely -- the CD
+#     pipeline applies migrations and deploys as separate prior steps -- and runs the exact
+#     same HTTP assertions (sections 3 onward) against the deployed instance, so a passing
+#     deploy is held to the same bar as a passing local/CI run instead of a weaker copy.
+#     Deployed mode also requires SMOKE_SEED_EMAIL/SMOKE_SEED_PASSWORD, since a deployed
+#     database is seeded once at first deploy rather than fresh on every run.
 set -uo pipefail
 
 BACKEND_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$BACKEND_DIR"
 
+DEPLOYED_MODE=0
+if [[ -n "${SMOKE_BASE_URL:-}" ]]; then
+  DEPLOYED_MODE=1
+fi
+
 PORT="${ICBANK_SMOKE_PORT:-5080}"
-BASE="http://127.0.0.1:${PORT}"
+BASE="${SMOKE_BASE_URL:-http://127.0.0.1:${PORT}}"
 LOG_FILE="$(mktemp)"
-SEED_EMAIL="smoke-superadmin@icbank.local"
-SEED_PASSWORD='Sm0ke!Test-Password_2026'
+SEED_EMAIL="${SMOKE_SEED_EMAIL:-smoke-superadmin@icbank.local}"
+SEED_PASSWORD="${SMOKE_SEED_PASSWORD:-Sm0ke!Test-Password_2026}"
 FAILURES=0
 API_PID=""
 
@@ -39,8 +53,15 @@ cleanup() {
 }
 trap cleanup EXIT
 
-if [[ -z "${ICBANK_SMOKE_CONNECTION:-}" ]]; then
+if [[ "$DEPLOYED_MODE" -eq 0 && -z "${ICBANK_SMOKE_CONNECTION:-}" ]]; then
   echo "ICBANK_SMOKE_CONNECTION is not set. It must point at a reachable SQL Server." >&2
+  exit 1
+fi
+
+if [[ "$DEPLOYED_MODE" -eq 1 && ( -z "${SMOKE_SEED_EMAIL:-}" || -z "${SMOKE_SEED_PASSWORD:-}" ) ]]; then
+  echo "SMOKE_BASE_URL is set but SMOKE_SEED_EMAIL/SMOKE_SEED_PASSWORD are not. Deployed mode" >&2
+  echo "needs real credentials for an account that already exists in that environment -- it" >&2
+  echo "does not seed one, unlike local/CI mode." >&2
   exit 1
 fi
 
@@ -58,66 +79,87 @@ assert_status() {
   fi
 }
 
-# ── 1. Migrations ──────────────────────────────────────────────────────────────
-log "1. Applying migrations to an empty database"
-if ConnectionStrings__Default="$ICBANK_SMOKE_CONNECTION" \
-   dotnet ef database update \
-     --project src/Icbank.Platform.Infrastructure \
-     --startup-project src/Icbank.Platform.Api \
-     --no-build --configuration Release > "$LOG_FILE" 2>&1; then
-  pass "migrations applied to a real SQL Server database"
-else
-  fail "migrations did not apply"
-  tail -40 "$LOG_FILE"
-  exit 1
-fi
+if [[ "$DEPLOYED_MODE" -eq 0 ]]; then
+  # ── 1. Migrations ────────────────────────────────────────────────────────────
+  log "1. Applying migrations to an empty database"
+  if ConnectionStrings__Default="$ICBANK_SMOKE_CONNECTION" \
+     dotnet ef database update \
+       --project src/Icbank.Platform.Infrastructure \
+       --startup-project src/Icbank.Platform.Api \
+       --no-build --configuration Release > "$LOG_FILE" 2>&1; then
+    pass "migrations applied to a real SQL Server database"
+  else
+    fail "migrations did not apply"
+    tail -40 "$LOG_FILE"
+    exit 1
+  fi
 
-# ── 2. Boot ────────────────────────────────────────────────────────────────────
-# Staging rather than Development: Development would enable Swagger and skip HSTS,
-# so it would not exercise the pipeline the platform actually deploys.
-#
-# --no-launch-profile matters. Without it dotnet run applies
-# src/Icbank.Platform.Api/Properties/launchSettings.json, whose applicationUrl overrides
-# ASPNETCORE_URLS - the app boots and seeds successfully but listens on a different
-# address, so every assertion below fails against a port nothing is bound to.
-# launchSettings is a local-development convenience and has no business in CI.
-log "2. Starting the API as a real process"
-ASPNETCORE_ENVIRONMENT=Staging \
-ASPNETCORE_URLS="$BASE" \
-ConnectionStrings__Default="$ICBANK_SMOKE_CONNECTION" \
-Jwt__SigningKey='smoke-test-signing-key-not-for-production-use-32bytes' \
-Jwt__Issuer='icbank-platform' \
-Jwt__Audience='icbank-platform-clients' \
-Cors__AllowedOrigins__0='http://127.0.0.1:3000' \
-Cron__ApiKey='smoke-cron-key' \
-Seed__InitialSuperAdminEmail="$SEED_EMAIL" \
-Seed__InitialSuperAdminPassword="$SEED_PASSWORD" \
-Shorfah__FrontendBaseUrl="$BASE" \
-Shorfah__ApiBaseUrl="$BASE" \
-  dotnet run --project src/Icbank.Platform.Api --no-build --no-launch-profile --configuration Release \
-  > "$LOG_FILE" 2>&1 &
-API_PID=$!
+  # ── 2. Boot ──────────────────────────────────────────────────────────────────
+  # Staging rather than Development: Development would enable Swagger and skip HSTS,
+  # so it would not exercise the pipeline the platform actually deploys.
+  #
+  # --no-launch-profile matters. Without it dotnet run applies
+  # src/Icbank.Platform.Api/Properties/launchSettings.json, whose applicationUrl overrides
+  # ASPNETCORE_URLS - the app boots and seeds successfully but listens on a different
+  # address, so every assertion below fails against a port nothing is bound to.
+  # launchSettings is a local-development convenience and has no business in CI.
+  log "2. Starting the API as a real process"
+  ASPNETCORE_ENVIRONMENT=Staging \
+  ASPNETCORE_URLS="$BASE" \
+  ConnectionStrings__Default="$ICBANK_SMOKE_CONNECTION" \
+  Jwt__SigningKey='smoke-test-signing-key-not-for-production-use-32bytes' \
+  Jwt__Issuer='icbank-platform' \
+  Jwt__Audience='icbank-platform-clients' \
+  Cors__AllowedOrigins__0='http://127.0.0.1:3000' \
+  Cron__ApiKey='smoke-cron-key' \
+  Seed__InitialSuperAdminEmail="$SEED_EMAIL" \
+  Seed__InitialSuperAdminPassword="$SEED_PASSWORD" \
+  Shorfah__FrontendBaseUrl="$BASE" \
+  Shorfah__ApiBaseUrl="$BASE" \
+    dotnet run --project src/Icbank.Platform.Api --no-build --no-launch-profile --configuration Release \
+    > "$LOG_FILE" 2>&1 &
+  API_PID=$!
 
-booted=0
-for _ in $(seq 1 60); do
-  if ! kill -0 "$API_PID" 2>/dev/null; then
-    fail "the process exited during startup"
+  booted=0
+  for _ in $(seq 1 60); do
+    if ! kill -0 "$API_PID" 2>/dev/null; then
+      fail "the process exited during startup"
+      echo "── startup log ──"; tail -60 "$LOG_FILE"
+      exit 1
+    fi
+    if [[ "$(curl -sS -o /dev/null -w '%{http_code}' "${BASE}/health/live" 2>/dev/null)" == "200" ]]; then
+      booted=1
+      break
+    fi
+    sleep 2
+  done
+
+  if [[ "$booted" != "1" ]]; then
+    fail "the API never answered /health/live within 120s"
     echo "── startup log ──"; tail -60 "$LOG_FILE"
     exit 1
   fi
-  if [[ "$(curl -sS -o /dev/null -w '%{http_code}' "${BASE}/health/live" 2>/dev/null)" == "200" ]]; then
-    booted=1
-    break
-  fi
-  sleep 2
-done
+  pass "process started and is serving HTTP"
+else
+  # ── 1-2. Deployed mode ──────────────────────────────────────────────────────
+  # The CD pipeline already applied migrations and deployed the app as separate,
+  # explicit prior steps -- redoing either here would blur which step actually failed.
+  log "1-2. Deployed mode: verifying the already-deployed instance is live"
+  booted=0
+  for _ in $(seq 1 30); do
+    if [[ "$(curl -sS -o /dev/null -w '%{http_code}' "${BASE}/health/live" 2>/dev/null)" == "200" ]]; then
+      booted=1
+      break
+    fi
+    sleep 2
+  done
 
-if [[ "$booted" != "1" ]]; then
-  fail "the API never answered /health/live within 120s"
-  echo "── startup log ──"; tail -60 "$LOG_FILE"
-  exit 1
+  if [[ "$booted" != "1" ]]; then
+    fail "the deployed API never answered /health/live within 60s"
+    exit 1
+  fi
+  pass "deployed instance is serving HTTP at ${BASE}"
 fi
-pass "process started and is serving HTTP"
 
 # ── 3. Health ──────────────────────────────────────────────────────────────────
 log "3. Health endpoints"
@@ -198,11 +240,17 @@ else
 fi
 
 # ── 10. Credentials must never reach the logs ──────────────────────────────────
-log "10. No credentials in the logs (R-BE-054)"
-if grep -qF "$SEED_PASSWORD" "$LOG_FILE"; then
-  fail "the seeded password appears in the application log"
+if [[ "$DEPLOYED_MODE" -eq 0 ]]; then
+  log "10. No credentials in the logs (R-BE-054)"
+  if grep -qF "$SEED_PASSWORD" "$LOG_FILE"; then
+    fail "the seeded password appears in the application log"
+  else
+    pass "no seeded password in the application log"
+  fi
 else
-  pass "no seeded password in the application log"
+  log "10. No credentials in the logs (R-BE-054)"
+  echo "  SKIPPED in deployed mode: this script has no access to the deployed instance's own" \
+       "application logs (they live in Azure Monitor/App Insights, not on this runner)."
 fi
 
 log "Result"
@@ -212,6 +260,11 @@ if [[ "$FAILURES" -eq 0 ]]; then
 fi
 
 printf '\033[31m%s smoke assertion(s) failed.\033[0m\n' "$FAILURES"
-echo "── application log (tail) ──"
-tail -60 "$LOG_FILE"
+if [[ "$DEPLOYED_MODE" -eq 0 ]]; then
+  echo "── application log (tail) ──"
+  tail -60 "$LOG_FILE"
+else
+  echo "This ran in deployed mode: check Azure Monitor/App Insights for the deployed" \
+       "instance's application log."
+fi
 exit 1
