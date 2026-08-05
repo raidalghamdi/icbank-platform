@@ -40,5 +40,20 @@ public static class TableMigratorRegistry
         // and to Users for the four actor FKs, so issues must be migrated first.
         new ShorfahIssueTableMigrator(),
         new ShorfahSectionTableMigrator(),
+
+        // Section-scoped children -- all FK to ShorfahSection, some also to Users.
+        // ShorfahAssignment must precede ShorfahReminder (optional assignment_id FK).
+        new ShorfahSectionPermissionTableMigrator(),
+        new ShorfahSectionMediaTableMigrator(),
+        new ShorfahWorkflowLogTableMigrator(),
+        new ShorfahAssignmentTableMigrator(),
+        new ShorfahReminderTableMigrator(),
+
+        // Natural-key (section_type) template config -- independent of any issue/section row.
+        new ShorfahSectionSlaDefaultTableMigrator(),
+
+        // Notifications reference Users (required) plus optional Issue/Section -- must run last
+        // in the Shorfah group so both optional FKs can resolve.
+        new ShorfahNotificationTableMigrator(),
     };
 }
