@@ -7478,7 +7478,7 @@ async function dashGenerateAISummary() {
   try {
     var res = await apiFetch(apiUrl('/dashboard/ai-summary'), { method:'POST' });
     var data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'فشل التوليد');
+    if (!res.ok) throw new Error((data.detail || data.title || data.error) || 'فشل التوليد');
     dashAISummaryText = data.summary || '';
     // Render summary points
     var points = dashAISummaryText.split('\n').filter(function(l) { return l.trim(); });
@@ -8177,7 +8177,7 @@ async function wk2AdminGenerate() {
     });
     if (!res.ok) {
       var err = await res.json().catch(function(){ return {}; });
-      throw new Error(err.error || err.detail || ('HTTP ' + res.status));
+      throw new Error(err.detail || err.title || err.error || ('HTTP ' + res.status));
     }
     var data = await res.json();
     alert('تم توليد المسودة بنجاح. الآن يمكنك مراجعتها واعتمادها.');
@@ -8196,7 +8196,7 @@ async function wk2AdminApprove(id) {
   if (!confirm('اعتماد هذه المسودة؟')) return;
   try {
     var res = await apiFetch(apiUrl('/weekend/drafts/') + id + '/approve', { method:'POST' });
-    if (!res.ok) { var e = await res.json(); throw new Error(e.error || res.status); }
+    if (!res.ok) { var e = await res.json(); throw new Error(e.detail || e.title || e.error || res.status); }
     await wk2AdminLoadDrafts();
   } catch (e) { alert('فشل الاعتماد: ' + friendlyError(e)); }
 }
@@ -8205,7 +8205,7 @@ async function wk2AdminPublish(id) {
   if (!confirm('نشر هذه المسودة على صفحة نهاية الأسبوع؟ سيستبدل المحتوى الحالي.')) return;
   try {
     var res = await apiFetch(apiUrl('/weekend/drafts/') + id + '/publish', { method:'POST' });
-    if (!res.ok) { var e = await res.json(); throw new Error(e.error || res.status); }
+    if (!res.ok) { var e = await res.json(); throw new Error(e.detail || e.title || e.error || res.status); }
     alert('تم النشر. حدّث الصفحة لعرض المحتوى الجديد للموظفين.');
     await wk2AdminLoadDrafts();
   } catch (e) { alert('فشل النشر: ' + friendlyError(e)); }
@@ -8218,7 +8218,7 @@ async function wk2AdminReject(id) {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ reason: reason }),
     });
-    if (!res.ok) { var e = await res.json(); throw new Error(e.error || res.status); }
+    if (!res.ok) { var e = await res.json(); throw new Error(e.detail || e.title || e.error || res.status); }
     await wk2AdminLoadDrafts();
   } catch (e) { alert('فشل الرفض: ' + friendlyError(e)); }
 }
@@ -8227,7 +8227,7 @@ async function wk2AdminDelete(id) {
   if (!confirm('حذف هذه المسودة نهائياً؟')) return;
   try {
     var res = await apiFetch(apiUrl('/weekend/drafts/') + id, { method:'DELETE' });
-    if (!res.ok) { var e = await res.json(); throw new Error(e.error || res.status); }
+    if (!res.ok) { var e = await res.json(); throw new Error(e.detail || e.title || e.error || res.status); }
     await wk2AdminLoadDrafts();
   } catch (e) { alert('فشل الحذف: ' + friendlyError(e)); }
 }
@@ -8917,7 +8917,7 @@ async function idDeepSearch(forceRefresh) {
 
     if (!res.ok) {
       var errData = await res.json().catch(function() { return {}; });
-      throw new Error(errData.error || 'خطأ في البحث: ' + res.status);
+      throw new Error((errData.detail || errData.title || errData.error) || 'خطأ في البحث: ' + res.status);
     }
 
     var contentType = res.headers.get('content-type') || '';
@@ -9795,7 +9795,7 @@ async function aiyLBDownloadZip() {
     var res = await apiFetch(apiUrl('/ai-year/activations/') + aiyCurrentId + '/zip');
     if (!res.ok) {
       var err = await res.json().catch(function() { return {}; });
-      alert(err.error || 'فشل التنزيل');
+      alert(err.detail || err.title || err.error || 'فشل التنزيل');
       return;
     }
     var blob = await res.blob();
@@ -10043,7 +10043,7 @@ async function aiySaveActivation() {
         body: JSON.stringify({ activation: activationPayload, media: [] })
       });
       var createData = await createRes.json();
-      if (!createData.ok) throw new Error(createData.error || JSON.stringify(createData));
+      if (!createData.ok) throw new Error((createData.detail || createData.title || createData.error) || JSON.stringify(createData));
       activationId = createData.id;
     }
 
@@ -10062,7 +10062,7 @@ async function aiySaveActivation() {
             body: JSON.stringify({ name: pf.name, contentType: pf.type, activationId: activationId, month: month })
           });
           var urlData = await urlRes.json();
-          if (urlData.error) throw new Error(urlData.error);
+          if (!urlRes.ok || urlData.error) throw new Error(urlData.detail || urlData.title || urlData.error);
           // Upload directly to GCS via presigned PUT URL
           var putRes = await fetch(urlData.uploadURL, {
             method: 'PUT',
@@ -10184,7 +10184,7 @@ var DES = (function() {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ logoName: name, fileUrl: objectPath, transparent: transparent, defaultWidth: width })
       });
-    }).then(function(r) { if (!r.ok) return r.json().then(function(e) { throw new Error(e.error||'خطأ'); }); })
+    }).then(function(r) { if (!r.ok) return r.json().then(function(e) { throw new Error(e.detail || e.title || e.error || 'خطأ'); }); })
     .then(function() {
       input.value = '';
       document.getElementById('des-logo-name').value = '';
@@ -10246,7 +10246,7 @@ var DES = (function() {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ fontName: name, fontFileUrl: objectPath, isDefault: false })
       });
-    }).then(function(r) { if (!r.ok) return r.json().then(function(e) { throw new Error(e.error||'خطأ'); }); })
+    }).then(function(r) { if (!r.ok) return r.json().then(function(e) { throw new Error(e.detail || e.title || e.error || 'خطأ'); }); })
     .then(function() {
       input.value = ''; document.getElementById('des-font-name').value = '';
       loadFonts();
@@ -10878,7 +10878,7 @@ var DES = (function() {
       body: JSON.stringify({ prompt: prompt, templateId: _edTpl.id }),
     })
     .then(function(r) {
-      if (!r.ok) return r.json().then(function(e) { throw new Error(e.error || r.status); });
+      if (!r.ok) return r.json().then(function(e) { throw new Error(e.detail || e.title || e.error || r.status); });
       return r.json();
     })
     .then(function(data) {
@@ -10975,7 +10975,7 @@ var DES = (function() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     }).then(function(r) { return r.json(); }).then(function(d) {
-      if (!d || !d.url) throw new Error(d && d.error ? d.error : 'فشل التركيب');
+      if (!d || !d.url) throw new Error(d && (d.detail || d.title || d.error) ? (d.detail || d.title || d.error) : 'فشل التركيب');
       // d.url is an objectPath like /objects/designs/renders/<uuid>.png
       // Fetch via storage endpoint which streams the PNG bytes.
       var fetchUrl = storageUrl(d.url);
@@ -11271,7 +11271,7 @@ var PLCS = (function() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       }).then(function(r) {
-        if (!r.ok) return r.json().then(function(e) { throw new Error(e.error || 'خطأ'); });
+        if (!r.ok) return r.json().then(function(e) { throw new Error(e.detail || e.title || e.error || 'خطأ'); });
       });
     }).then(function() {
       closeForm();
@@ -12147,7 +12147,7 @@ async function shorfahNewIssue() {
       body: JSON.stringify({ titleAr: 'شُرفة', subtitleAr: 'نشرة داخلية شهرية', month: month, year: year, status: 'collecting' })
     });
     var data = await res.json();
-    if (!res.ok) { alert('خطأ: '+(data.error || res.status)); return; }
+    if (!res.ok) { alert('خطأ: '+((data.detail || data.title || data.error) || res.status)); return; }
     await shorfahLoadIssues();
   } catch(e) { alert('خطأ: '+e.message); }
 }
@@ -12232,7 +12232,7 @@ async function shorfahUploadMedia(ev) {
         body: JSON.stringify({ dataBase64: b64, contentType: f.type, displayOrder: nextOrder + i })
       });
       var data = await res.json();
-      if (!res.ok) { alert('خطأ في رفع ' + f.name + ': ' + (data.error || res.status)); }
+      if (!res.ok) { alert('خطأ في رفع ' + f.name + ': ' + ((data.detail || data.title || data.error) || res.status)); }
     } catch(e) { alert(friendlyError(e, 'حدث خطأ غير متوقع')); }
   }
   status.textContent = '';
@@ -12245,7 +12245,7 @@ async function shorfahDeleteMedia(mediaId) {
   var sid = parseInt(modal.dataset.sectionId, 10);
   try {
     var res = await apiFetch(apiUrl('/shorfah/media/')+mediaId, { method: 'DELETE' });
-    if (!res.ok) { var d = await res.json(); alert('خطأ: ' + (d.error || res.status)); return; }
+    if (!res.ok) { var d = await res.json(); alert('خطأ: ' + (d.detail || d.title || d.error || res.status)); return; }
     await shorfahLoadMedia(sid);
   } catch(e) { alert(friendlyError(e, 'حدث خطأ غير متوقع')); }
 }
@@ -12262,7 +12262,7 @@ async function shorfahSaveDraft() {
       body: JSON.stringify({ contentMd: contentMd, includeInPdf: includeInPdf })
     });
     var data = await res.json();
-    if (!res.ok) { alert('خطأ في الحفظ: '+(data.error || res.status)); return false; }
+    if (!res.ok) { alert('خطأ في الحفظ: '+((data.detail || data.title || data.error) || res.status)); return false; }
     shorfahCloseEditor();
     await shorfahOpenIssue(SHORFAH_STATE.currentIssueId);
     return true;
@@ -12279,10 +12279,10 @@ async function shorfahSubmitContent() {
       method: 'PATCH', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ contentMd: contentMd, includeInPdf: includeInPdf })
     });
-    if (!saveRes.ok) { var sd = await saveRes.json(); alert('خطأ في الحفظ: '+(sd.error || saveRes.status)); return; }
+    if (!saveRes.ok) { var sd = await saveRes.json(); alert('خطأ في الحفظ: '+((sd.detail || sd.title || sd.error) || saveRes.status)); return; }
     var subRes = await apiFetch(apiUrl('/shorfah/sections/')+sid+'/submit', { method: 'POST' });
     var sub = await subRes.json();
-    if (!subRes.ok) { alert('خطأ في التسليم: '+(sub.error || subRes.status)); return; }
+    if (!subRes.ok) { alert('خطأ في التسليم: '+((sub.detail || sub.title || sub.error) || subRes.status)); return; }
     shorfahCloseEditor();
     await shorfahOpenIssue(SHORFAH_STATE.currentIssueId);
   } catch(e) { alert('خطأ: '+e.message); }
@@ -12296,7 +12296,7 @@ async function shorfahGenerateAI() {
   try {
     var res = await apiFetch(apiUrl('/shorfah/sections/')+sid+'/generate', { method: 'POST' });
     var data = await res.json();
-    if (!res.ok) { alert('خطأ في التوليد: '+(data.error || res.status)); return; }
+    if (!res.ok) { alert('خطأ في التوليد: '+((data.detail || data.title || data.error) || res.status)); return; }
     if (data.section && data.section.contentMd) {
       document.getElementById('shorfah-editor-content').value = data.section.contentMd;
       alert('تم توليد المحتوى وحفظه كمسودة مسلَّمة.');
@@ -12314,7 +12314,7 @@ async function shorfahReviewSection(sectionId, decision) {
       body: JSON.stringify({ decision: decision, notes: notes })
     });
     var data = await res.json();
-    if (!res.ok) { alert('خطأ: '+(data.error || res.status)); return; }
+    if (!res.ok) { alert('خطأ: '+((data.detail || data.title || data.error) || res.status)); return; }
     await shorfahOpenIssue(SHORFAH_STATE.currentIssueId);
   } catch(e) { alert('خطأ: '+e.message); }
 }
@@ -12323,7 +12323,7 @@ async function shorfahApproveSection(sectionId) {
   try {
     var res = await apiFetch(apiUrl('/shorfah/sections/')+sectionId+'/approve', { method: 'POST' });
     var data = await res.json();
-    if (!res.ok) { alert('خطأ: '+(data.error || res.status)); return; }
+    if (!res.ok) { alert('خطأ: '+((data.detail || data.title || data.error) || res.status)); return; }
     await shorfahOpenIssue(SHORFAH_STATE.currentIssueId);
   } catch(e) { alert('خطأ: '+e.message); }
 }
@@ -12335,7 +12335,7 @@ async function shorfahToggleInclude(sectionId, checked) {
     });
     var data = await res.json();
     if (!res.ok) {
-      alert('خطأ في التحديث: '+(data.error || res.status));
+      alert('خطأ في التحديث: '+((data.detail || data.title || data.error) || res.status));
       await shorfahOpenIssue(SHORFAH_STATE.currentIssueId); // refresh
     } else {
       // Update local cache silently
@@ -12363,7 +12363,7 @@ async function shorfahStartDataCollection() {
       // Endpoint not deployed yet — show friendly hand-off
       alert('تم تسجيل طلب بدء تجميع البيانات. سيتولى مسؤولو الأقسام إدخال المحتوى من تبويب تحديث الحالة.');
     } else {
-      alert('تعذر بدء تجميع البيانات: '+(data.error || res.status));
+      alert('تعذر بدء تجميع البيانات: '+((data.detail || data.title || data.error) || res.status));
     }
   } catch(e) {
     alert('خطأ في الاتصال: '+e.message);
@@ -12378,7 +12378,7 @@ async function shorfahPublishIssue() {
   try {
     var res = await apiFetch(apiUrl('/shorfah/issues/')+SHORFAH_STATE.currentIssueId+'/publish', { method: 'POST' });
     var data = await res.json();
-    if (!res.ok) { alert('خطأ في النشر: '+(data.error || res.status)); return; }
+    if (!res.ok) { alert('خطأ في النشر: '+((data.detail || data.title || data.error) || res.status)); return; }
     alert('تم نشر العدد بنجاح.');
     await shorfahOpenIssue(SHORFAH_STATE.currentIssueId);
   } catch(e) { alert('خطأ: '+e.message); }
@@ -12393,7 +12393,7 @@ async function shorfahStartReview() {
   try {
     var res = await apiFetch(apiUrl('/shorfah/issues/')+id+'/start-review', { method: 'POST' });
     var data = await res.json();
-    if (!res.ok) { alert('خطأ: '+(data.error || res.status)); return; }
+    if (!res.ok) { alert('خطأ: '+((data.detail || data.title || data.error) || res.status)); return; }
     alert('تم نقل العدد لمرحلة المراجعة النهائية.');
     await shorfahOpenIssue(id);
   } catch(e) { alert('خطأ: '+e.message); }
@@ -12593,7 +12593,7 @@ async function shorfahSaveSlaDefaults() {
       body: JSON.stringify({ defaults: defaults })
     });
     var data = await res.json();
-    if (!res.ok) { alert('خطأ: '+(data.error || res.status)); return; }
+    if (!res.ok) { alert('خطأ: '+((data.detail || data.title || data.error) || res.status)); return; }
     var pn = data.propagatedSections || 0;
     alert('تم حفظ قوالب SLA.\n• تُطبَّق تلقائيًا على كل الأعداد الجديدة.\n• تم تحديث ' + pn + ' قسمًا في الأعداد الحالية (الأقسام التي لم تبدأ بعد).');
     shorfahAdminRenderSla();
@@ -12696,7 +12696,7 @@ async function shorfahAddAssignment(sectionId) {
       body: JSON.stringify({ userId: userId, role: role })
     });
     var data = await res.json();
-    if (!res.ok) { alert('خطأ: '+(data.error || res.status)); return; }
+    if (!res.ok) { alert('خطأ: '+((data.detail || data.title || data.error) || res.status)); return; }
     await shorfahAdminLoadData();
     shorfahAdminRenderAssign();
   } catch(e) { alert('خطأ: '+e.message); }
@@ -12812,7 +12812,7 @@ async function shorfahSendReminder(sectionId, userId) {
       body: JSON.stringify({ userId: userId })
     });
     var data = await res.json();
-    if (!res.ok) { alert('خطأ: '+(data.error || res.status)); return; }
+    if (!res.ok) { alert('خطأ: '+((data.detail || data.title || data.error) || res.status)); return; }
     alert('تم إرسال التذكير');
     await shorfahAdminLoadData();
     shorfahAdminRenderStatus();
@@ -12854,7 +12854,7 @@ async function shorfahSendInitialMessages() {
   try {
     var res = await apiFetch(apiUrl('/shorfah/issues/')+issueId+'/send-initial', { method: 'POST' });
     var data = await res.json();
-    if (!res.ok) { alert('خطأ: '+(data.error || res.status)); return; }
+    if (!res.ok) { alert('خطأ: '+((data.detail || data.title || data.error) || res.status)); return; }
     alert('تم إرسال '+data.sent+' إشعار للمساهمين');
     await shorfahAdminLoadData();
     shorfahAdminRenderStatus();
@@ -13100,52 +13100,37 @@ window.MM = (function(){
       var res = await apiFetch(apiUrl('/final-media-reports/generate'), { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
       if (!res.ok) {
         var errTxt = await res.text();
-        // Parse nested AI provider errors gracefully
-        var friendly = errTxt;
-        var errCode = null;
         var ejFull = {};
-        try {
-          var ej = JSON.parse(errTxt);
-          ejFull = ej || {};
-          errCode = ej && ej.code;
-          if (ej && ej.error) {
-            var inner = ej.error;
-            if (typeof inner === 'string') { try { inner = JSON.parse(inner); } catch(_){} }
-            var msg = (inner && inner.error && inner.error.message) || (inner && inner.message) || ej.error;
-            var code = (inner && inner.error && inner.error.code) || (inner && inner.code);
-            if (ej.code === 'NO_SOURCE_DATA') {
-              friendly = String(ej.error || '').slice(0,500);
-            } else if (code === 429 || /prepayment|quota|depleted|exceeded/i.test(String(msg))) {
-              friendly = '⚠️ نفد رصيد الذكاء الاصطناعي (Gemini API).\n\nيجب على المسؤول تجديد رصيد المفتاح من https://ai.studio/projects ثم المحاولة لاحقاً.';
-            } else if (code === 503 || /unavailable|high demand|overloaded|temporary/i.test(String(msg))) {
-              friendly = '⏱️ خدمة الذكاء الاصطناعي تعاني من ضغط مؤقت الآن.\n\nالرجاء إعادة المحاولة خلال 30 ثانية.';
-            } else if (/valid JSON|no JSON/i.test(String(msg))) {
-              friendly = '⚠️ الذكاء الاصطناعي لم يرجع إجابة صحيحة. أعاد النظام المحاولة 3 مرات.\n\nالرجاء المحاولة مرة أخرى.';
-            } else {
-              friendly = String(msg).slice(0,300);
-            }
-          }
-        } catch(_){}
-        // If NO_SOURCE_DATA, show custom modal with action buttons (matches runGenerate flow)
-        if (errCode === 'NO_SOURCE_DATA') {
-          var hint = (ejFull && ejFull.hint) || {};
-          var avail = hint.dataAvailable || {};
-          var hasExisting = avail.postsTotal > 0 || avail.newsTotal > 0;
-          var oldest = avail.oldestDate ? avail.oldestDate.slice(0, 10) : null;
-          var newest = avail.newestDate ? avail.newestDate.slice(0, 10) : null;
+        try { ejFull = JSON.parse(errTxt) || {}; } catch(_){}
+        // Why this block changed: the old Node API returned NO_SOURCE_DATA as a nested
+        // {code,error,hint:{dataAvailable:{postsTotal,newsTotal,oldestDate,newestDate}}}
+        // envelope wrapping a raw AI-provider error for every other failure. The new .NET
+        // API returns NO_SOURCE_DATA as its own flat 422 body
+        // {code,totalPostsAvailable,totalNewsAvailable,earliestAvailableDate,latestAvailableDate}
+        // (see NoSourceDataDto.cs), and every other failure as flat Problem Details
+        // {title,detail} via application/problem+json — there is no more nested
+        // AI-provider passthrough shape to unwrap, so the old quota/503/invalid-JSON
+        // string-sniffing on a nested inner.error.message no longer has anything to match
+        // against. friendlyError() (shared helper) already covers the generic
+        // network/5xx/validation Arabic translations, so it is reused here instead of
+        // duplicating that logic.
+        if (res.status === 422 && ejFull.code === 'NO_SOURCE_DATA') {
+          var hasExisting = (ejFull.totalPostsAvailable || 0) > 0 || (ejFull.totalNewsAvailable || 0) > 0;
+          var oldest = ejFull.earliestAvailableDate ? String(ejFull.earliestAvailableDate).slice(0, 10) : null;
+          var newest = ejFull.latestAvailableDate ? String(ejFull.latestAvailableDate).slice(0, 10) : null;
           nextBtn.disabled = false; nextBtn.textContent = orig;
           showNoDataModal({
-            message: ejFull.error || friendly,
+            message: 'لا توجد بيانات مصدرية (منشورات أو أخبار) للفترة المحددة.',
             hasExisting: hasExisting,
             oldest: oldest,
             newest: newest,
-            postsTotal: avail.postsTotal || 0,
-            newsTotal: avail.newsTotal || 0,
+            postsTotal: ejFull.totalPostsAvailable || 0,
+            newsTotal: ejFull.totalNewsAvailable || 0,
             fromWizard: true,
           });
           return;
         }
-        throw new Error(friendly);
+        throw new Error(friendlyError(ejFull.detail || ejFull.title || ejFull, 'فشل التوليد'));
       }
       var data = await res.json();
       state.draft = data.draft;
@@ -13193,7 +13178,7 @@ window.MM = (function(){
     try {
       var res = await apiFetch(apiUrl('/final-media-reports/search'), { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ mode: mode, query: q }) });
       var data = await res.json();
-      if (!data.ok) throw new Error(data.error || 'فشل البحث');
+      if (!data.ok) throw new Error((data.detail || data.title || data.error) || 'فشل البحث');
       if (mode === 'full') {
         if (!data.reports || data.reports.length === 0) {
           resEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-3);">لا توجد تقارير مطابقة.</div>';
@@ -13415,7 +13400,7 @@ window.MM = (function(){
     try {
       var res = await apiFetch(apiUrl('/final-media-reports/') + id);
       var data = await res.json();
-      if (!data.ok) throw new Error(data.error||'فشل التحميل');
+      if (!data.ok) throw new Error((data.detail || data.title || data.error)||'فشل التحميل');
       var r = data.item || data.report;
       if (!r) throw new Error('لم يتم العثور على بيانات التقرير');
       state.current = r;
@@ -13474,7 +13459,7 @@ window.MM = (function(){
       var res = await apiFetch(apiUrl('/final-media-reports/')+state.current.id+'/send-email', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ recipients: emails }) });
       var data = await res.json();
       if (data.ok) alert('تم الإرسال بنجاح إلى '+emails.length+' مستلم.');
-      else alert('تعذّر الإرسال: ' + (data.error||''));
+      else alert('تعذّر الإرسال: ' + ((data.detail || data.title || data.error)||''));
     } catch(e){ alert('تعذّر الإرسال: ' + (e.message||'')); }
   }
 
@@ -13484,7 +13469,7 @@ window.MM = (function(){
     try {
       var res = await apiFetch(apiUrl('/final-media-reports/')+state.current.id+'/exec-summary', { method:'POST' });
       var data = await res.json();
-      if (!data.ok) throw new Error(data.error||'فشل');
+      if (!data.ok) throw new Error((data.detail || data.title || data.error)||'فشل');
       var w = window.open('', '_blank');
       if (w){
         w.document.write('<html dir="rtl" lang="ar"><head><meta charset="utf-8"><title>ملخص تنفيذي — '+escHtml(state.current.reportNumber||'')+'</title><style>body{font-family:"Segoe UI",Tahoma,sans-serif;max-width:780px;margin:30px auto;padding:24px;background:#f9fafb;color:#0e3b4a;line-height:1.8;}h1{color:#1a6e7a;border-bottom:3px solid #b8924a;padding-bottom:8px;}.box{background:white;padding:20px;border-radius:10px;border-right:4px solid #1a6e7a;}</style></head><body><h1>ملخص تنفيذي</h1><div style="font-size:12px;color:#6b7280;margin-bottom:14px;">'+escHtml(state.current.reportNumber||'')+' · '+escHtml(state.current.title||'')+'</div><div class="box">'+mmRenderMarkdown(data.summary||'').replace(/\n/g,'<br>')+'</div></body></html>');
@@ -13548,46 +13533,28 @@ window.MM = (function(){
       });
       if (!res.ok) {
         var errTxt = await res.text();
-        var friendly = errTxt;
-        var errCode = null;
-        try {
-          var ej = JSON.parse(errTxt);
-          errCode = ej && ej.code;
-          if (ej && ej.error) {
-            var inner = ej.error;
-            if (typeof inner === 'string') { try { inner = JSON.parse(inner); } catch(_){} }
-            var msg = (inner && inner.error && inner.error.message) || (inner && inner.message) || ej.error;
-            var code = (inner && inner.error && inner.error.code) || (inner && inner.code) || ej.code;
-            if (ej.code === 'NO_SOURCE_DATA' || /لا توجد أخبار/.test(String(ej.error))) {
-              friendly = '📭 لا توجد بيانات إعلامية مرصودة في الفترة المختارة.\n\nحلول مقترحة:\n• استخدم زر «استيراد بيانات تجريبية» لاختبار الميزة\n• أو وسّع الفترة إلى «مخصص» واختر فترة أوسع';
-            } else if (code === 429 || /prepayment|quota|depleted|exceeded/i.test(String(msg))) {
-              friendly = '⚠️ نفد رصيد الذكاء الاصطناعي. يجب على مدير النظام تجديد الرصيد.';
-            } else if (code === 503 || /unavailable|high demand|overloaded|temporary/i.test(String(msg))) {
-              friendly = '⏱️ خدمة الذكاء الاصطناعي مشغولة حالياً. أعد المحاولة خلال 30 ثانية.';
-            } else {
-              friendly = String(msg).slice(0,300);
-            }
-          }
-        } catch(_){}
-        // If NO_SOURCE_DATA, show a custom modal with proper action buttons (not confirm/alert)
-        if (errCode === 'NO_SOURCE_DATA') {
-          try { var ejFull = JSON.parse(errTxt); } catch(_) { ejFull = {}; }
-          var hint = (ejFull && ejFull.hint) || {};
-          var avail = hint.dataAvailable || {};
-          var hasExisting = avail.postsTotal > 0 || avail.newsTotal > 0;
-          var oldest = avail.oldestDate ? avail.oldestDate.slice(0, 10) : null;
-          var newest = avail.newestDate ? avail.newestDate.slice(0, 10) : null;
+        var ejFull = {};
+        try { ejFull = JSON.parse(errTxt) || {}; } catch(_){}
+        // Why this block changed: same contract shift as the wizard's generate call above
+        // (see its comment) — NO_SOURCE_DATA is now a flat 422 body
+        // {code,totalPostsAvailable,totalNewsAvailable,earliestAvailableDate,latestAvailableDate},
+        // not a nested {hint:{dataAvailable:{...}}} envelope, and other failures are flat
+        // Problem Details {title,detail}, not a nested AI-provider passthrough.
+        if (res.status === 422 && ejFull.code === 'NO_SOURCE_DATA') {
+          var hasExisting = (ejFull.totalPostsAvailable || 0) > 0 || (ejFull.totalNewsAvailable || 0) > 0;
+          var oldest = ejFull.earliestAvailableDate ? String(ejFull.earliestAvailableDate).slice(0, 10) : null;
+          var newest = ejFull.latestAvailableDate ? String(ejFull.latestAvailableDate).slice(0, 10) : null;
           showNoDataModal({
-            message: ejFull.error || friendly,
+            message: '📭 لا توجد بيانات إعلامية مرصودة في الفترة المختارة.\n\nحلول مقترحة:\n• استخدم زر «استيراد بيانات تجريبية» لاختبار الميزة\n• أو وسّع الفترة إلى «مخصص» واختر فترة أوسع',
             hasExisting: hasExisting,
             oldest: oldest,
             newest: newest,
-            postsTotal: avail.postsTotal || 0,
-            newsTotal: avail.newsTotal || 0,
+            postsTotal: ejFull.totalPostsAvailable || 0,
+            newsTotal: ejFull.totalNewsAvailable || 0,
           });
           return;
         }
-        throw new Error(friendly);
+        throw new Error(friendlyError(ejFull.detail || ejFull.title || ejFull, 'فشل التوليد'));
       }
       var data = await res.json();
       closeGenerateModal();
@@ -13681,7 +13648,7 @@ window.MM = (function(){
             else runGenerate();
           }, 300);
         } else {
-          alert('❌ ' + (seedData.error || 'تعذر الاستيراد'));
+          alert('❌ ' + ((seedData.detail || seedData.title || seedData.error) || 'تعذر الاستيراد'));
           btn.disabled = false;
           btn.textContent = '➕ استيراد 12 عنصر تجريبي';
         }
@@ -14021,7 +13988,7 @@ async function iesGenerate() {
       body: JSON.stringify(body)
     });
     var data = await res.json();
-    if (!res.ok || !data.variants) throw new Error(data.error || 'فشل التوليد');
+    if (!res.ok || !data.variants) throw new Error((data.detail || data.title || data.error) || 'فشل التوليد');
     iesVariants = data.variants;
     iesRenderVariants(size, data.warning, data.extracted);
   } catch (err) {
@@ -14126,7 +14093,7 @@ async function iesDownloadPNG(idx, size) {
 
     if (!res.ok) {
       let msg = 'فشل التصدير (' + res.status + ')';
-      try { const j = await res.json(); if (j && j.error) msg = j.error; } catch(_) {}
+      try { const j = await res.json(); if (j) msg = j.detail || j.title || j.error || msg; } catch(_) {}
       throw new Error(msg);
     }
 
@@ -14231,7 +14198,7 @@ async function saRun() {
     if (count) body.count = count;
     var res = await apiFetch(apiUrl('/ai/quick'), { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
     var data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'فشل التشغيل');
+    if (!res.ok) throw new Error((data.detail || data.title || data.error) || 'فشل التشغيل');
     var textOut = data.output || '';
     out.innerHTML = '<div style="background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:16px;white-space:pre-wrap;font-size:14px;line-height:1.7;color:var(--text);">'+textOut.replace(/</g,'&lt;')+'</div><div style="margin-top:10px;"><button class="btn btn-ghost btn-sm" onclick="navigator.clipboard.writeText('+JSON.stringify(textOut)+')">📋 نسخ</button></div>';
   } catch (e) {
