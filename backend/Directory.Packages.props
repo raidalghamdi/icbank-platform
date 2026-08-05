@@ -48,8 +48,15 @@
     <PackageVersion Include="Hangfire.SqlServer" Version="1.8.18" />
 
     <!-- HTML sanitization (SEC-11) — Ganss.Xss (MIT), pinned to the version that fixes
-         GHSA-j92c-7v7g-gj3f (template-tag sanitizer bypass); do not downgrade below 9.0.892. -->
-    <PackageVersion Include="HtmlSanitizer" Version="9.0.892" />
+         GHSA-j92c-7v7g-gj3f (template-tag sanitizer bypass); do not downgrade below 9.0.892.
+         Bumped 9.0.892 -> 9.1.982 to resolve GHSA-pgww-w46g-26qg (CVE-2026-54570, mXSS via
+         annotation-xml HTML integration point bypass): 9.0.892 hard-pinned its transitive
+         AngleSharp dependency to exactly 0.17.1, which carries that advisory. Verified from
+         the published nuspec that HtmlSanitizer >= 9.1.973 depends on AngleSharp >= 1.6.0
+         (9.1.982 depends on AngleSharp 1.7.0), so upgrading the sanitizer itself resolves the
+         transitive vulnerability without needing to override HtmlSanitizer's own pin. Do not
+         downgrade below 9.1.973. -->
+    <PackageVersion Include="HtmlSanitizer" Version="9.1.982" />
 
     <!-- Testing -->
     <PackageVersion Include="xunit" Version="2.9.2" />
