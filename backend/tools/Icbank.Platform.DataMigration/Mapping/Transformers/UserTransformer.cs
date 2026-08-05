@@ -16,8 +16,8 @@ public static class UserTransformer
     /// <returns>The mapped, destination-ready DTO.</returns>
     public static MappedUser Transform(SourceRow row)
     {
-        string? sourcePasswordHash = row.GetNullableString("password_hash");
-        bool hadPassword = !string.IsNullOrEmpty(sourcePasswordHash);
+        var sourcePasswordHash = row.GetNullableString("password_hash");
+        var hadPassword = !string.IsNullOrEmpty(sourcePasswordHash);
 
         DateTime createdAtRaw = row.GetRawTimestamp("created_at")
             ?? throw new InvalidOperationException("users.created_at was null — source data is expected to always set this column.");

@@ -22,7 +22,7 @@ public static class ShorfahSectionTransformer
         // other backfill in this row falls back to it.
         DateTime? rawCreatedAt = row.GetRawTimestamp("created_at");
         DateTime resolvedCreatedAt = rawCreatedAt ?? migrationRunTimestamp;
-        bool createdAtBackfilled = !rawCreatedAt.HasValue;
+        var createdAtBackfilled = !rawCreatedAt.HasValue;
 
         DateTime? contributedAt = row.GetRawTimestamp("contributed_at");
         DateTime? reviewedAt = row.GetRawTimestamp("reviewed_at");

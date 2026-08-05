@@ -26,16 +26,16 @@ public sealed class PageTableMigrator : ITableMigrator
         await foreach (SourceRow row in context.Source.ReadTableAsync(SourceTableName, cancellationToken))
         {
             result.RowsRead++;
-            int sourceId = row.GetInt32("id");
+            var sourceId = row.GetInt32("id");
 
-            int? existingId = await context.IdMap.TryGetDestinationIdAsync(SourceTableName, sourceId, cancellationToken);
+            var existingId = await context.IdMap.TryGetDestinationIdAsync(SourceTableName, sourceId, cancellationToken);
             if (existingId.HasValue)
             {
                 result.RowsSkippedAlreadyMigrated++;
                 continue;
             }
 
-            string slug = row.GetString("slug");
+            var slug = row.GetString("slug");
             Page? existingBySlug = await destination.Pages.IgnoreQueryFilters().FirstOrDefaultAsync(p => p.Slug == slug, cancellationToken);
             if (existingBySlug is not null)
             {

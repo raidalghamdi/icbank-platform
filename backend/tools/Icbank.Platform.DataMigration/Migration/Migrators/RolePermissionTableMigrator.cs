@@ -32,22 +32,22 @@ public sealed class RolePermissionTableMigrator : ITableMigrator
         await foreach (SourceRow row in context.Source.ReadTableAsync(SourceTableName, cancellationToken))
         {
             result.RowsRead++;
-            int sourceId = row.GetInt32("id");
+            var sourceId = row.GetInt32("id");
 
-            int? existingId = await context.IdMap.TryGetDestinationIdAsync(SourceTableName, sourceId, cancellationToken);
+            var existingId = await context.IdMap.TryGetDestinationIdAsync(SourceTableName, sourceId, cancellationToken);
             if (existingId.HasValue)
             {
                 result.RowsSkippedAlreadyMigrated++;
                 continue;
             }
 
-            int sourceRoleId = row.GetInt32("role_id");
-            int sourcePageId = row.GetInt32("page_id");
-            int sourcePermissionId = row.GetInt32("permission_id");
+            var sourceRoleId = row.GetInt32("role_id");
+            var sourcePageId = row.GetInt32("page_id");
+            var sourcePermissionId = row.GetInt32("permission_id");
 
-            int? roleId = await context.IdMap.TryGetDestinationIdAsync("roles", sourceRoleId, cancellationToken);
-            int? pageId = await context.IdMap.TryGetDestinationIdAsync("pages", sourcePageId, cancellationToken);
-            int? permissionId = await context.IdMap.TryGetDestinationIdAsync("permissions", sourcePermissionId, cancellationToken);
+            var roleId = await context.IdMap.TryGetDestinationIdAsync("roles", sourceRoleId, cancellationToken);
+            var pageId = await context.IdMap.TryGetDestinationIdAsync("pages", sourcePageId, cancellationToken);
+            var permissionId = await context.IdMap.TryGetDestinationIdAsync("permissions", sourcePermissionId, cancellationToken);
 
             if (roleId is null || pageId is null || permissionId is null)
             {
@@ -56,7 +56,7 @@ public sealed class RolePermissionTableMigrator : ITableMigrator
                 continue;
             }
 
-            bool alreadyExists = await destination.RolePermissions.IgnoreQueryFilters()
+            var alreadyExists = await destination.RolePermissions.IgnoreQueryFilters()
                 .AnyAsync(rp => rp.RoleId == roleId && rp.PageId == pageId && rp.PermissionId == permissionId, cancellationToken);
             if (alreadyExists)
             {

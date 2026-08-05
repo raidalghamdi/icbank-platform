@@ -25,5 +25,5 @@ public sealed class SourceRow
     /// <summary>Gets the raw value for a column, or <see langword="null"/> if the column is SQL NULL or absent.</summary>
     /// <param name="column">The source column name.</param>
     /// <returns>The raw value, or <see langword="null"/>.</returns>
-    public object? this[string column] => _values.TryGetValue(column, out object? value) ? value : null;
+    public object? this[string column] => _values.TryGetValue(column, out var value) ? value : null;
 }

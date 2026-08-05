@@ -64,8 +64,8 @@ public static class TimestampConverter
 
     private static DateTime TruncateToMilliseconds(DateTime value)
     {
-        long ticksPerMillisecond = TimeSpan.TicksPerMillisecond;
-        long truncatedTicks = value.Ticks - (value.Ticks % ticksPerMillisecond);
+        var ticksPerMillisecond = TimeSpan.TicksPerMillisecond;
+        var truncatedTicks = value.Ticks - (value.Ticks % ticksPerMillisecond);
         return new DateTime(truncatedTicks, value.Kind);
     }
 }

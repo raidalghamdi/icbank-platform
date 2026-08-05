@@ -60,7 +60,7 @@ public sealed class IdMappingStore : IIdMappingStore, IAsyncDisposable
         command.Parameters.AddWithValue("@sourceTable", sourceTable);
         command.Parameters.AddWithValue("@sourceId", sourceId);
 
-        object? result = await command.ExecuteScalarAsync(cancellationToken);
+        var result = await command.ExecuteScalarAsync(cancellationToken);
         return result is null or DBNull ? null : Convert.ToInt32(result, System.Globalization.CultureInfo.InvariantCulture);
     }
 

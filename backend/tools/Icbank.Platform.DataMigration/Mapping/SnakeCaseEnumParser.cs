@@ -17,7 +17,7 @@ public static class SnakeCaseEnumParser
     public static TEnum Parse<TEnum>(string snakeCaseValue)
         where TEnum : struct, Enum
     {
-        string pascalCase = ToPascalCase(snakeCaseValue);
+        var pascalCase = ToPascalCase(snakeCaseValue);
         if (Enum.TryParse<TEnum>(pascalCase, ignoreCase: true, out TEnum parsed))
         {
             return parsed;
@@ -38,7 +38,7 @@ public static class SnakeCaseEnumParser
             return string.Empty;
         }
 
-        string[] parts = snakeCaseValue.Split('_', StringSplitOptions.RemoveEmptyEntries);
+        var parts = snakeCaseValue.Split('_', StringSplitOptions.RemoveEmptyEntries);
         return string.Concat(parts.Select(Capitalize));
     }
 

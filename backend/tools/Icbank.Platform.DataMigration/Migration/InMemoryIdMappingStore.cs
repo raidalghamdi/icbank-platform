@@ -14,7 +14,7 @@ public sealed class InMemoryIdMappingStore : IIdMappingStore
 
     /// <inheritdoc />
     public Task<int?> TryGetDestinationIdAsync(string sourceTable, int sourceId, CancellationToken cancellationToken) =>
-        Task.FromResult(_map.TryGetValue((sourceTable, sourceId), out int destinationId) ? destinationId : (int?)null);
+        Task.FromResult(_map.TryGetValue((sourceTable, sourceId), out var destinationId) ? destinationId : (int?)null);
 
     /// <inheritdoc />
     public Task RecordAsync(string sourceTable, int sourceId, int destinationId, DateTimeOffset migratedAt, CancellationToken cancellationToken)

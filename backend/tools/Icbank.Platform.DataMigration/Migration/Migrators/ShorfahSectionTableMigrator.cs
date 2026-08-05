@@ -37,14 +37,14 @@ public sealed class ShorfahSectionTableMigrator : ITableMigrator
 
         await using AppDbContext destination = context.CreateDestinationContext();
         var pendingParentLinks = new List<(int SourceId, int ParentSourceId)>();
-        int backfillCount = 0;
+        var backfillCount = 0;
 
         await foreach (SourceRow row in context.Source.ReadTableAsync(SourceTableName, cancellationToken))
         {
             result.RowsRead++;
             MappedShorfahSection mapped = ShorfahSectionTransformer.Transform(row, migrationRunTimestamp);
 
-            int? existingId = await context.IdMap.TryGetDestinationIdAsync(SourceTableName, mapped.SourceId, cancellationToken);
+            var existingId = await context.IdMap.TryGetDestinationIdAsync(SourceTableName, mapped.SourceId, cancellationToken);
             if (existingId.HasValue)
             {
                 result.RowsSkippedAlreadyMigrated++;
@@ -56,7 +56,7 @@ public sealed class ShorfahSectionTableMigrator : ITableMigrator
                 continue;
             }
 
-            int? issueId = await context.IdMap.TryGetDestinationIdAsync("shorfah_issues", mapped.IssueSourceId, cancellationToken);
+            var issueId = await context.IdMap.TryGetDestinationIdAsync("shorfah_issues", mapped.IssueSourceId, cancellationToken);
             if (issueId is null)
             {
                 result.RowsSkippedDueToDataIssue++;
@@ -64,10 +64,10 @@ public sealed class ShorfahSectionTableMigrator : ITableMigrator
                 continue;
             }
 
-            int? ownerUserId = await ResolveUserId(context, mapped.OwnerUserSourceId, cancellationToken);
-            int? contributedById = await ResolveUserId(context, mapped.ContributedBySourceId, cancellationToken);
-            int? reviewedById = await ResolveUserId(context, mapped.ReviewedBySourceId, cancellationToken);
-            int? approvedById = await ResolveUserId(context, mapped.ApprovedBySourceId, cancellationToken);
+            var ownerUserId = await ResolveUserId(context, mapped.OwnerUserSourceId, cancellationToken);
+            var contributedById = await ResolveUserId(context, mapped.ContributedBySourceId, cancellationToken);
+            var reviewedById = await ResolveUserId(context, mapped.ReviewedBySourceId, cancellationToken);
+            var approvedById = await ResolveUserId(context, mapped.ApprovedBySourceId, cancellationToken);
 
             var entity = new ShorfahSection
             {
@@ -116,10 +116,10 @@ public sealed class ShorfahSectionTableMigrator : ITableMigrator
             }
         }
 
-        foreach ((int sourceId, int parentSourceId) in pendingParentLinks)
+        foreach ((var sourceId, var parentSourceId) in pendingParentLinks)
         {
-            int? sectionId = await context.IdMap.TryGetDestinationIdAsync(SourceTableName, sourceId, cancellationToken);
-            int? parentId = await context.IdMap.TryGetDestinationIdAsync(SourceTableName, parentSourceId, cancellationToken);
+            var sectionId = await context.IdMap.TryGetDestinationIdAsync(SourceTableName, sourceId, cancellationToken);
+            var parentId = await context.IdMap.TryGetDestinationIdAsync(SourceTableName, parentSourceId, cancellationToken);
             if (sectionId is null || parentId is null)
             {
                 result.Notes.Add($"shorfah_sections source id {sourceId}: could not resolve parent_section_id {parentSourceId} in second pass — left unset.");

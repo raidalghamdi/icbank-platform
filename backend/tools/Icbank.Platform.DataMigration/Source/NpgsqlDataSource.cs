@@ -38,7 +38,7 @@ public sealed class NpgsqlDataSource : IPostgresDataSource, IAsyncDisposable
         await using NpgsqlConnection connection = await OpenReadOnlyConnectionAsync(cancellationToken);
         await using NpgsqlCommand command = connection.CreateCommand();
         command.CommandText = $"SELECT COUNT(*) FROM {QuoteIdentifier(tableName)}";
-        object? result = await command.ExecuteScalarAsync(cancellationToken);
+        var result = await command.ExecuteScalarAsync(cancellationToken);
         return result is null ? 0L : Convert.ToInt64(result, System.Globalization.CultureInfo.InvariantCulture);
     }
 
@@ -64,7 +64,7 @@ public sealed class NpgsqlDataSource : IPostgresDataSource, IAsyncDisposable
     private static SourceRow ReadRow(NpgsqlDataReader reader)
     {
         var values = new Dictionary<string, object?>(reader.FieldCount, StringComparer.OrdinalIgnoreCase);
-        for (int i = 0; i < reader.FieldCount; i++)
+        for (var i = 0; i < reader.FieldCount; i++)
         {
             values[reader.GetName(i)] = reader.IsDBNull(i) ? null : reader.GetValue(i);
         }

@@ -63,7 +63,7 @@ try
 {
     MigrationReport report = await RunModeAsync(mode, options, clock, logger, cancellationSource.Token);
 
-    (string jsonPath, string textPath) = ReportWriter.Write(report, options.ReportDirectory);
+    (var jsonPath, var textPath) = ReportWriter.Write(report, options.ReportDirectory);
     ProgramLog.LogReportWritten(logger, jsonPath, textPath);
     Console.WriteLine(ReportWriter.RenderText(report));
 

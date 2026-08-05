@@ -38,7 +38,7 @@ public sealed class UserTableMigrator : ITableMigrator
             result.RowsRead++;
             MappedUser mapped = UserTransformer.Transform(row);
 
-            int? existingId = await context.IdMap.TryGetDestinationIdAsync(SourceTableName, mapped.SourceId, cancellationToken);
+            var existingId = await context.IdMap.TryGetDestinationIdAsync(SourceTableName, mapped.SourceId, cancellationToken);
             if (existingId.HasValue)
             {
                 result.RowsSkippedAlreadyMigrated++;

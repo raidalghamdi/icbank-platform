@@ -27,14 +27,14 @@ public sealed class AiYearActivationTableMigrator : ITableMigrator
         DateTimeOffset startedAt = context.DateTimeProvider.UtcNow;
 
         await using AppDbContext destination = context.CreateDestinationContext();
-        int totalChannelsCreated = 0;
+        var totalChannelsCreated = 0;
 
         await foreach (SourceRow row in context.Source.ReadTableAsync(SourceTableName, cancellationToken))
         {
             result.RowsRead++;
             MappedAiYearActivation mapped = AiYearActivationTransformer.Transform(row);
 
-            int? existingId = await context.IdMap.TryGetDestinationIdAsync(SourceTableName, mapped.SourceId, cancellationToken);
+            var existingId = await context.IdMap.TryGetDestinationIdAsync(SourceTableName, mapped.SourceId, cancellationToken);
             if (existingId.HasValue)
             {
                 result.RowsSkippedAlreadyMigrated++;
@@ -58,7 +58,7 @@ public sealed class AiYearActivationTableMigrator : ITableMigrator
                 CreatedBy = "data-migration-tool",
             };
 
-            foreach (string channel in mapped.Channels)
+            foreach (var channel in mapped.Channels)
             {
                 entity.Channels.Add(new AiYearActivationChannel
                 {

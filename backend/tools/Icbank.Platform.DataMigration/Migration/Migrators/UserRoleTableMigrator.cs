@@ -27,7 +27,7 @@ public sealed class UserRoleTableMigrator : ITableMigrator
         DateTimeOffset startedAt = context.DateTimeProvider.UtcNow;
 
         await using AppDbContext destination = context.CreateDestinationContext();
-        int usersWithMoreThanOneRole = 0;
+        var usersWithMoreThanOneRole = 0;
         var roleCountPerUser = new Dictionary<int, int>();
 
         await foreach (SourceRow row in context.Source.ReadTableAsync(SourceTableName, cancellationToken))
@@ -41,16 +41,16 @@ public sealed class UserRoleTableMigrator : ITableMigrator
                 usersWithMoreThanOneRole++;
             }
 
-            int? existingId = await context.IdMap.TryGetDestinationIdAsync(SourceTableName, mapped.SourceId, cancellationToken);
+            var existingId = await context.IdMap.TryGetDestinationIdAsync(SourceTableName, mapped.SourceId, cancellationToken);
             if (existingId.HasValue)
             {
                 result.RowsSkippedAlreadyMigrated++;
                 continue;
             }
 
-            int? userId = await context.IdMap.TryGetDestinationIdAsync("users", mapped.UserSourceId, cancellationToken);
-            int? roleId = await context.IdMap.TryGetDestinationIdAsync("roles", mapped.RoleSourceId, cancellationToken);
-            int? assignedById = mapped.AssignedBySourceId.HasValue
+            var userId = await context.IdMap.TryGetDestinationIdAsync("users", mapped.UserSourceId, cancellationToken);
+            var roleId = await context.IdMap.TryGetDestinationIdAsync("roles", mapped.RoleSourceId, cancellationToken);
+            var assignedById = mapped.AssignedBySourceId.HasValue
                 ? await context.IdMap.TryGetDestinationIdAsync("users", mapped.AssignedBySourceId.Value, cancellationToken)
                 : null;
 

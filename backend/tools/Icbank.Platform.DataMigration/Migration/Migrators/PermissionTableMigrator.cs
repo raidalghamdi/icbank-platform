@@ -26,16 +26,16 @@ public sealed class PermissionTableMigrator : ITableMigrator
         await foreach (SourceRow row in context.Source.ReadTableAsync(SourceTableName, cancellationToken))
         {
             result.RowsRead++;
-            int sourceId = row.GetInt32("id");
+            var sourceId = row.GetInt32("id");
 
-            int? existingId = await context.IdMap.TryGetDestinationIdAsync(SourceTableName, sourceId, cancellationToken);
+            var existingId = await context.IdMap.TryGetDestinationIdAsync(SourceTableName, sourceId, cancellationToken);
             if (existingId.HasValue)
             {
                 result.RowsSkippedAlreadyMigrated++;
                 continue;
             }
 
-            string name = row.GetString("name");
+            var name = row.GetString("name");
             Permission? existingByName = await destination.Permissions.IgnoreQueryFilters().FirstOrDefaultAsync(p => p.Name == name, cancellationToken);
             if (existingByName is not null)
             {

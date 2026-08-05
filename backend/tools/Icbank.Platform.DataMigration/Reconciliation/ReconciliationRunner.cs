@@ -40,10 +40,10 @@ public sealed partial class ReconciliationRunner
 
         foreach (ITableMigrator migrator in TableMigratorRegistry.GetOrderedMigrators())
         {
-            long sourceCount = await _context.Source.CountRowsAsync(migrator.SourceTableName, cancellationToken);
-            long destinationCount = await migrator.CountDestinationRowsAsync(_context, cancellationToken);
+            var sourceCount = await _context.Source.CountRowsAsync(migrator.SourceTableName, cancellationToken);
+            var destinationCount = await migrator.CountDestinationRowsAsync(_context, cancellationToken);
 
-            bool matches = sourceCount == destinationCount;
+            var matches = sourceCount == destinationCount;
             var entry = new TableReportEntry
             {
                 TableName = migrator.SourceTableName,

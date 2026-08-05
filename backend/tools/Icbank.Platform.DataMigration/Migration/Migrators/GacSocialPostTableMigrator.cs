@@ -43,14 +43,14 @@ public sealed class GacSocialPostTableMigrator : ITableMigrator
         var sourceIdsToSkip = new HashSet<int>();
         foreach (DuplicateKeyGroup<(string Platform, string ExternalId)> group in duplicates)
         {
-            int keepSourceId = group.SourceIds
+            var keepSourceId = group.SourceIds
                 .Select(id => mappedRows.First(m => m.SourceId == id))
                 .OrderBy(m => m.CreatedAtUtc)
                 .First()
                 .SourceId;
 
             IEnumerable<int> skipped = group.SourceIds.Where(id => id != keepSourceId);
-            foreach (int id in skipped)
+            foreach (var id in skipped)
             {
                 sourceIdsToSkip.Add(id);
             }
@@ -71,14 +71,14 @@ public sealed class GacSocialPostTableMigrator : ITableMigrator
                 continue;
             }
 
-            int? existingId = await context.IdMap.TryGetDestinationIdAsync(SourceTableName, mapped.SourceId, cancellationToken);
+            var existingId = await context.IdMap.TryGetDestinationIdAsync(SourceTableName, mapped.SourceId, cancellationToken);
             if (existingId.HasValue)
             {
                 result.RowsSkippedAlreadyMigrated++;
                 continue;
             }
 
-            bool alreadyExists = await destination.GacSocialPosts.IgnoreQueryFilters()
+            var alreadyExists = await destination.GacSocialPosts.IgnoreQueryFilters()
                 .AnyAsync(p => p.Platform.ToString() == mapped.Platform && p.ExternalId == mapped.ExternalId, cancellationToken);
             if (alreadyExists)
             {

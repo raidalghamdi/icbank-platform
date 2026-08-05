@@ -40,7 +40,7 @@ public sealed partial class ValidationRunner
         long totalRows = 0;
         foreach (ITableMigrator migrator in TableMigratorRegistry.GetOrderedMigrators())
         {
-            long rowCount = await _source.CountRowsAsync(migrator.SourceTableName, cancellationToken);
+            var rowCount = await _source.CountRowsAsync(migrator.SourceTableName, cancellationToken);
             totalRows += rowCount;
 
             var entry = new TableReportEntry { TableName = migrator.SourceTableName, SourceRowCount = rowCount };
@@ -48,7 +48,7 @@ public sealed partial class ValidationRunner
             LogTableRowCount(_logger, migrator.SourceTableName, rowCount);
         }
 
-        double estimatedSeconds = totalRows / (double)EstimatedRowsPerSecond;
+        var estimatedSeconds = totalRows / (double)EstimatedRowsPerSecond;
         report.AddFinding($"Total source rows across {report.Tables.Count} registered table(s): {totalRows}.");
         report.AddFinding($"Estimated migration duration at ~{EstimatedRowsPerSecond} rows/sec: {TimeSpan.FromSeconds(estimatedSeconds):g}.");
         report.AddFinding(

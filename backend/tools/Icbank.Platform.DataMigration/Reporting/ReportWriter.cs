@@ -21,11 +21,11 @@ public static class ReportWriter
     public static (string JsonPath, string TextPath) Write(MigrationReport report, string reportDirectory)
     {
         Directory.CreateDirectory(reportDirectory);
-        string stamp = report.StartedAtUtc.UtcDateTime.ToString("yyyyMMdd-HHmmss", System.Globalization.CultureInfo.InvariantCulture);
-        string baseName = $"{report.Mode.ToLowerInvariant()}-{stamp}";
+        var stamp = report.StartedAtUtc.UtcDateTime.ToString("yyyyMMdd-HHmmss", System.Globalization.CultureInfo.InvariantCulture);
+        var baseName = $"{report.Mode.ToLowerInvariant()}-{stamp}";
 
-        string jsonPath = Path.Combine(reportDirectory, baseName + ".json");
-        string textPath = Path.Combine(reportDirectory, baseName + ".txt");
+        var jsonPath = Path.Combine(reportDirectory, baseName + ".json");
+        var textPath = Path.Combine(reportDirectory, baseName + ".txt");
 
         File.WriteAllText(jsonPath, JsonSerializer.Serialize(report, JsonOptions));
         File.WriteAllText(textPath, RenderText(report));
@@ -50,7 +50,7 @@ public static class ReportWriter
         {
             builder.AppendLine($"  [{(table.Pass ? "PASS" : "FAIL")}] {table.TableName}: source={table.SourceRowCount}"
                 + (table.DestinationRowCount.HasValue ? $", destination={table.DestinationRowCount}" : string.Empty));
-            foreach (string note in table.Notes)
+            foreach (var note in table.Notes)
             {
                 builder.AppendLine($"      - {note}");
             }
@@ -60,7 +60,7 @@ public static class ReportWriter
         {
             builder.AppendLine();
             builder.AppendLine("Run-level findings:");
-            foreach (string finding in report.Findings)
+            foreach (var finding in report.Findings)
             {
                 builder.AppendLine($"  - {finding}");
             }

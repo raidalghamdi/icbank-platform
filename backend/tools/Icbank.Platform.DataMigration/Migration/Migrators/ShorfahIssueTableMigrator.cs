@@ -33,7 +33,7 @@ public sealed class ShorfahIssueTableMigrator : ITableMigrator
         var result = new TableMigrationResult { SourceTableName = SourceTableName };
         DateTimeOffset startedAt = context.DateTimeProvider.UtcNow;
         DateTime migrationRunTimestamp = context.DateTimeProvider.UtcNow.UtcDateTime;
-        int backfillCount = 0;
+        var backfillCount = 0;
 
         await using AppDbContext destination = context.CreateDestinationContext();
 
@@ -42,7 +42,7 @@ public sealed class ShorfahIssueTableMigrator : ITableMigrator
             result.RowsRead++;
             MappedShorfahIssue mapped = ShorfahIssueTransformer.Transform(row, migrationRunTimestamp);
 
-            int? existingId = await context.IdMap.TryGetDestinationIdAsync(SourceTableName, mapped.SourceId, cancellationToken);
+            var existingId = await context.IdMap.TryGetDestinationIdAsync(SourceTableName, mapped.SourceId, cancellationToken);
             if (existingId.HasValue)
             {
                 result.RowsSkippedAlreadyMigrated++;
@@ -58,7 +58,7 @@ public sealed class ShorfahIssueTableMigrator : ITableMigrator
                 continue;
             }
 
-            int? createdByUserId = mapped.CreatedBySourceId.HasValue
+            var createdByUserId = mapped.CreatedBySourceId.HasValue
                 ? await context.IdMap.TryGetDestinationIdAsync("users", mapped.CreatedBySourceId.Value, cancellationToken)
                 : null;
 
