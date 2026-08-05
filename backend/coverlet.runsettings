@@ -10,9 +10,15 @@
                two cross cutting response contract defects lived in the Api layer, went
                unmeasured, and were caught only by a live boot test) under their own,
                separately measured, honest floor in backend-ci.yml; see that file for
-               the exact number and why it is set where it is. Migrations remain excluded
-               everywhere: they are EF Core generated code, not hand written logic. -->
-          <Include>[Icbank.Platform.Application]*,[Icbank.Platform.Domain]*,[Icbank.Platform.Api]*,[Icbank.Platform.Infrastructure]*</Include>
+               the exact number and why it is set where it is. Icbank.Platform.DataMigration
+               is ALSO instrumented (widened again after the tool's Include filter absence let
+               the International Days migrators sit fully unregistered: compiled, tested in
+               isolation, silently never run, with zero coverage signal to catch it; this is
+               the highest risk code in the repository, since a silent failure here is
+               irrecoverable production data loss, not a broken page) under its own honest
+               floor in backend-ci.yml. Migrations remain excluded everywhere: they are EF Core
+               generated code, not hand written logic. -->
+          <Include>[Icbank.Platform.Application]*,[Icbank.Platform.Domain]*,[Icbank.Platform.Api]*,[Icbank.Platform.Infrastructure]*,[Icbank.Platform.DataMigration]*</Include>
           <Exclude>[*.Tests]*,[*]*.Migrations.*</Exclude>
           <ExcludeByAttribute>Obsolete,GeneratedCodeAttribute,CompilerGeneratedAttribute,ExcludeFromCodeCoverageAttribute</ExcludeByAttribute>
           <SkipAutoProps>true</SkipAutoProps>
