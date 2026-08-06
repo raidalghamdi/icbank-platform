@@ -334,6 +334,40 @@ public sealed class AdminController : ControllerBase
     }
 
     /// <summary>
+    /// Exports the activity/audit log as a UTF-8-with-BOM CSV, streamed directly to the response
+    /// body (task requirement: never buffer the whole log in memory). Ports the old Node
+    /// <c>GET /admin/activity/export</c> (<c>admin.ts:637</c>) that was missed during the port —
+    /// the frontend's export button called this path and got a 404 until now. Same authorization
+    /// policy as <see cref="ListActivityAsync"/> (the JSON list sibling) since this is the same
+    /// data, just a different rendering — and exporting the full log is itself security-relevant,
+    /// so the handler writes a dedicated audit-log entry on every successful export.
+    /// </summary>
+    /// <param name="userId">Optional filter to a single acting user.</param>
+    /// <param name="action">Optional filter to an exact action name.</param>
+    /// <param name="dateFrom">Optional inclusive lower bound (UTC).</param>
+    /// <param name="dateTo">Optional inclusive upper bound (UTC).</param>
+    /// <param name="cancellationToken">A token used to observe cancellation requests.</param>
+    /// <returns>200 with a streamed <c>text/csv</c> body, capped at <see cref="ExportActivityLogQueryHandler.MaxRows"/> rows.</returns>
+    [HttpGet("activity/export")]
+    [Authorize(Policy = "admin_panel:view")]
+    public async Task<IActionResult> ExportActivityAsync(
+        [FromQuery] int? userId,
+        [FromQuery] string? action,
+        [FromQuery] DateTime? dateFrom,
+        [FromQuery] DateTime? dateTo,
+        CancellationToken cancellationToken)
+    {
+        (var actorUserId, var _) = ReadActor();
+        var query = new ExportActivityLogQuery(actorUserId, userId, action, dateFrom, dateTo);
+        Result<ActivityLogExportDto> result = await _sender.Send(query, cancellationToken);
+
+        Response.ContentType = "text/csv; charset=utf-8";
+        Response.Headers.ContentDisposition = "attachment; filename=\"activity-log.csv\"";
+        await ActivityLogCsvWriter.WriteAsync(result.Value!.Rows, Response.Body, cancellationToken);
+        return new EmptyResult();
+    }
+
+    /// <summary>
     /// Reads system settings (password policy, session duration, Azure AD config). Secret keys
     /// are always masked in the response — this port has no unmasked read path at all.
     /// </summary>

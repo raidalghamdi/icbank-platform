@@ -56,6 +56,11 @@ public static class DependencyInjection
             .Bind(configuration.GetSection(JwtOptions.SectionName))
             .Validate(options => !string.IsNullOrWhiteSpace(options.SigningKey), "Jwt:SigningKey must be configured.")
             .ValidateOnStart();
+
+        services.AddOptions<DownloadTokenOptions>()
+            .Bind(configuration.GetSection(DownloadTokenOptions.SectionName))
+            .Validate(options => !string.IsNullOrWhiteSpace(options.SigningKey), "DownloadTokens:SigningKey must be configured.")
+            .ValidateOnStart();
     }
 
     /// <summary>Registers the current-user/request-context ports and the core identity/auth singletons/scoped services (R-BE-004: composition root only).</summary>
@@ -71,6 +76,7 @@ public static class DependencyInjection
         services.AddSingleton<IPasswordHasher, PasswordHasher>();
         services.AddSingleton<ITokenService, JwtTokenService>();
         services.AddScoped<IRefreshTokenService, RefreshTokenService>();
+        services.AddScoped<IDownloadTokenService, DownloadTokenService>();
         services.AddScoped<IPermissionResolver, PermissionResolver>();
         services.AddScoped<IAuditLogService, AuditLogService>();
         services.AddScoped<Icbank.Platform.Application.Common.Interfaces.IAsyncQueryExecutor, Persistence.EfAsyncQueryExecutor>();

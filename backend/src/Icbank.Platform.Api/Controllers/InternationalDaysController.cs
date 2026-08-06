@@ -1,9 +1,11 @@
 using Asp.Versioning;
 using Icbank.Platform.Api.Auth;
+using Icbank.Platform.Application.Common.Interfaces;
 using Icbank.Platform.Application.Common.Models;
 using Icbank.Platform.Application.InternationalDays;
 using Icbank.Platform.Application.InternationalDays.Commands;
 using Icbank.Platform.Application.InternationalDays.Queries;
+using Icbank.Platform.Domain.Identity;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -24,13 +26,21 @@ namespace Icbank.Platform.Api.Controllers;
 [Route("api/v{version:apiVersion}/intl-days")]
 public sealed class InternationalDaysController : ControllerBase
 {
+    // Why: mirrors DownloadTokenOptions' own default -- see the identical constant/comment on
+    // ShorfahIssuesController for why this stays a local literal rather than an injected options
+    // read (R-BE-002: Api may not reach into Infrastructure's option types directly).
+    private const int DownloadTokenLifetimeSeconds = 120;
+
     private readonly ISender _sender;
+    private readonly IDownloadTokenService _downloadTokenService;
 
     /// <summary>Initializes a new instance of the <see cref="InternationalDaysController"/> class.</summary>
     /// <param name="sender">The MediatR sender used to dispatch international-days commands/queries.</param>
-    public InternationalDaysController(ISender sender)
+    /// <param name="downloadTokenService">The GAP 2 single-use download-token port.</param>
+    public InternationalDaysController(ISender sender, IDownloadTokenService downloadTokenService)
     {
         _sender = sender;
+        _downloadTokenService = downloadTokenService;
     }
 
     /// <summary>Runs (or serves from cache) an AI research search for a day name.</summary>
@@ -129,5 +139,50 @@ public sealed class InternationalDaysController : ControllerBase
         var bytes = System.Text.Encoding.UTF8.GetBytes(result.Value!.Html);
         var fileName = Uri.EscapeDataString(result.Value.FileNameWithoutExtension) + ".doc";
         return File(bytes, "application/vnd.ms-word; charset=utf-8", fileName);
+    }
+
+    /// <summary>
+    /// Mints a short-lived, single-use download token for this day's export (GAP 2 --
+    /// FRONTEND-WIRING-NOTES.md §4: <c>idExport()</c> uses <c>window.open(...)</c>, a plain
+    /// browser navigation that cannot carry a bearer header). Behind the same policy as the export
+    /// endpoint itself, and independently re-checks the day still exists before minting.
+    /// </summary>
+    /// <param name="dayId">The day the token is scoped to.</param>
+    /// <param name="cancellationToken">A token used to observe cancellation requests.</param>
+    /// <returns>200 OK with <c>{token, expiresInSeconds}</c>, or 404.</returns>
+    [HttpPost("export/{dayId:int}/download-token")]
+    [Authorize(Policy = "international_days:view")]
+    public async Task<ActionResult> IssueExportDownloadTokenAsync(int dayId, CancellationToken cancellationToken)
+    {
+        var actorUserId = CurrentUserId.TryRead(User) ?? throw new InvalidOperationException("Authenticated request missing subject claim.");
+        Result<string> result = await _sender.Send(new IssueInternationalDayDownloadTokenCommand(actorUserId, dayId), cancellationToken);
+        return result.IsSuccess
+            ? Ok(new { token = result.Value, expiresInSeconds = DownloadTokenLifetimeSeconds })
+            : NotFound(new { error = result.Error });
+    }
+
+    /// <summary>
+    /// Exports a day, reachable by a plain browser navigation via a single-use token instead of a
+    /// bearer header (GAP 2). <c>[AllowAnonymous]</c> is safe here for the same reason it is safe
+    /// on <c>ShorfahIssuesController</c>'s <c>via-token</c> routes: the token must exist, be
+    /// unexpired, be unused, and be scoped to this exact <paramref name="dayId"/>, checked before
+    /// any content is served, and a day that no longer exists still 404s exactly like the bearer
+    /// path (<see cref="ExportAsync"/>) would.
+    /// </summary>
+    /// <param name="dayId">The day id to export.</param>
+    /// <param name="token">The single-use download token minted by <see cref="IssueExportDownloadTokenAsync"/>.</param>
+    /// <param name="cancellationToken">A token used to observe cancellation requests.</param>
+    /// <returns>The exported document, or 401/404.</returns>
+    [HttpGet("export/{dayId:int}/via-token")]
+    [AllowAnonymous]
+    public async Task<IActionResult> ExportByTokenAsync(int dayId, [FromQuery] string? token, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrEmpty(token) ||
+            !await _downloadTokenService.RedeemAsync(token, DownloadResourceType.InternationalDayExport, dayId, cancellationToken))
+        {
+            return Unauthorized(new { error = "رابط التنزيل غير صالح أو منتهي الصلاحية" });
+        }
+
+        return await ExportAsync(dayId, cancellationToken);
     }
 }

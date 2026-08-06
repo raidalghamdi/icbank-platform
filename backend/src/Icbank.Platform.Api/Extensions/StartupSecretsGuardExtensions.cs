@@ -20,6 +20,7 @@ public static class StartupSecretsGuardExtensions
         "ConnectionStrings:Default",
         "Jwt:SigningKey",
         "Cron:ApiKey",
+        "DownloadTokens:SigningKey",
     };
 
     /// <summary>
