@@ -2760,6 +2760,26 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
           <span class="ico"><svg><use href="#i-home"/></svg></span>
           <span>الرئيسية</span>
         </a>
+        <!-- Nav restore: قسم التقارير التنفيذية كان بلا أي مدخل تنقّل -->
+        <a class="nav-item" data-page="reports" onclick="showSection('reports')">
+          <span class="ico"><svg><use href="#i-trending-up"/></svg></span>
+          <span>الأداء التنفيذي للمشاريع</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- ═ الفعاليات والمناسبات ═ -->
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">الفعاليات والمناسبات</div>
+      <div class="sidebar-nav">
+        <a class="nav-item" data-page="intldays" onclick="showSection('intldays')">
+          <span class="ico"><svg><use href="#i-calendar"/></svg></span>
+          <span>الأيام العالمية</span>
+        </a>
+        <a class="nav-item" data-page="aiyear" onclick="showSection('aiyear')">
+          <span class="ico"><svg><use href="#i-brain"/></svg></span>
+          <span>عام الذكاء الاصطناعي 2026</span>
+        </a>
       </div>
     </div>
 
@@ -2799,6 +2819,10 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
           <span>الرصد الإعلامي</span>
           <span class="nav-item-count" id="mm-nav-count">—</span>
         </a>
+        <a class="nav-item" data-page="news" onclick="showSection('news')">
+          <span class="ico"><svg><use href="#i-globe"/></svg></span>
+          <span>أخبار هيئات المنافسة</span>
+        </a>
       </div>
     </div>
 
@@ -2819,8 +2843,20 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
           <span class="ico"><svg><use href="#i-bot"/></svg></span>
           <span>المساعد الذكي</span>
         </a>
-        <!-- Review Round 5: حذف مكتبة الأوامر — دمجت في المساعد الذكي -->
-        <!-- مكتبة الأماكن والتصميم السريع بالأيقونات: لم تعد إدخالات مستقلة (منقولة داخل الأقسام المرتبطة) -->
+        <!-- Nav restore: إعادة إدخالات التنقّل للأقسام التي بقيت موجودة في الواجهة.
+             مداخلها القديمة داخل الصفحات محفوظة كما هي ولم تُحذف. -->
+        <a class="nav-item" data-page="icon_event_studio" onclick="showSection('icon_event_studio')">
+          <span class="ico"><svg><use href="#i-star"/></svg></span>
+          <span>التصميم السريع بالأيقونات</span>
+        </a>
+        <a class="nav-item" data-page="prompts_lib" onclick="showSection('prompts_lib')">
+          <span class="ico"><svg><use href="#i-bulb"/></svg></span>
+          <span>مكتبة الأوامر</span>
+        </a>
+        <a class="nav-item" data-page="places" onclick="showSection('places')">
+          <span class="ico"><svg><use href="#i-bookmark"/></svg></span>
+          <span>مكتبة الأماكن المقترحة</span>
+        </a>
       </div>
     </div>
 
@@ -5397,6 +5433,16 @@ function authStartIdleWatcher(minutes) {
 // Each rendered page maps to its own API page slug; home is always accessible.
 var PAGE_PERM_MAP = {
   'reports':        'dashboard',
+  // The sidebar visibility loop below gates purely on permissions[permKey],
+  // while authCanView() also honours role-based exceptions. Any page missing
+  // from this map therefore vanished from the sidebar for every non-super-admin
+  // even when authCanView() allowed it. These entries keep both paths in
+  // agreement by mapping each rendered page onto a slug the API really issues.
+  'designs':        'design_studio',
+  'icon_event_studio': 'design_studio',
+  'gac_library':    'design_studio',
+  'prompts_lib':    'smart_assistant',
+  'places':         'weekend',
   'initiatives':    'initiatives',
   'news':           'world_news',
   'weekend':        'weekend',
@@ -7043,9 +7089,11 @@ window.adminSaveSettings = function() {
 // ════════════════════════════════════════
 // NAVIGATION
 // ════════════════════════════════════════
+// Breadcrumb labels. Every rendered page-section must appear here, otherwise the
+// breadcrumb falls back to the raw English section key (e.g. "places").
 const PAGE_LABELS = {
-  reports:'الأداء التنفيذي', home:'الرئيسية',
-  initiatives:'المبادرات', news:'الأخبار العالمية', weekend:'نهاية الأسبوع',
+  reports:'الأداء التنفيذي للمشاريع', home:'الرئيسية',
+  news:'أخبار هيئات المنافسة', weekend:'نهاية الأسبوع',
   weekstart:'بداية الأسبوع', intldays:'الأيام العالمية',
   aiyear:'عام الذكاء الاصطناعي 2026',
   smart_assistant:'المساعد الذكي', settings:'الإعدادات',
@@ -7055,15 +7103,12 @@ const PAGE_LABELS = {
   shorfah:'شُرفة — مجلة شهرية',
   media_monitoring:'الرصد الإعلامي',
   prompts_lib:'مكتبة الأوامر',
-  internal_requests:'الطلبات الداخلية',
-  external_requests:'الطلبات الخارجية',
-  internal_campaigns:'الحملات الداخلية',
-  change_campaigns:'حملات التغيير',
-  external_campaigns:'الحملات الخارجية',
-  social_platforms:'إدارة منصات التواصل',
-  press_releases:'البيانات الصحفية',
-  media_coverage:'التغطيات الإعلامية',
-  performance_reports:'تقارير الأداء',
+  places:'مكتبة الأماكن المقترحة',
+  icon_event_studio:'التصميم السريع بالأيقونات',
+  // Labels for internal_requests, external_requests, internal_campaigns,
+  // change_campaigns, external_campaigns, social_platforms, press_releases,
+  // media_coverage, performance_reports and initiatives were removed: those
+  // page-sections no longer exist in this file, so the entries were unreachable.
 };
 
 // Nav history stack for back button (Review Round 4)
