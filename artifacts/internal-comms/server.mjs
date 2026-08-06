@@ -251,7 +251,9 @@ const server = http.createServer(async (req, res) => {
   const isPublicPath =
     urlPath === '/login' ||
     urlPath === '/login.html' ||
-    urlPath === '/wk2-data';
+    urlPath === '/wk2-data' ||
+    urlPath === '/runtime-config.js' ||
+    urlPath === '/public/favicon.svg';
 
   // Server-side auth gate — redirect to /login only when the browser has no
   // session indicator at all.  Two JS-accessible cookies signal presence:
@@ -305,12 +307,53 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  const requestedPath = decodeURIComponent(urlPath);
+  const staticFilePath = path.resolve(__dirname, `.${requestedPath}`);
+  const relativePath = path.relative(__dirname, staticFilePath);
+  const isInsideStaticRoot = relativePath && !relativePath.startsWith('..') && !path.isAbsolute(relativePath);
+
+  if (isInsideStaticRoot) {
+    fs.stat(staticFilePath, (statError, stats) => {
+      if (statError || !stats.isFile()) {
+        serveApplicationShell();
+        return;
+      }
+
+      const extension = path.extname(staticFilePath).toLowerCase();
+      const contentTypes = {
+        '.css': 'text/css; charset=utf-8',
+        '.js': 'application/javascript; charset=utf-8',
+        '.jpg': 'image/jpeg',
+        '.jpeg': 'image/jpeg',
+        '.png': 'image/png',
+        '.svg': 'image/svg+xml',
+        '.ttf': 'font/ttf',
+        '.woff': 'font/woff',
+        '.woff2': 'font/woff2',
+      };
+
+      fs.readFile(staticFilePath, (readError, data) => {
+        if (readError) { res.writeHead(500); res.end('Error loading static asset'); return; }
+        res.writeHead(200, {
+          'Content-Type': contentTypes[extension] || 'application/octet-stream',
+          'Cache-Control': 'no-cache',
+        });
+        res.end(data);
+      });
+    });
+    return;
+  }
+
+  serveApplicationShell();
+
   // Static HTML — auth guard runs client-side via /api/auth/me
-  fs.readFile(HTML_FILE, (err, data) => {
-    if (err) { res.writeHead(500); res.end('Error loading page'); return; }
-    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache' });
-    res.end(data);
-  });
+  function serveApplicationShell() {
+    fs.readFile(HTML_FILE, (err, data) => {
+      if (err) { res.writeHead(500); res.end('Error loading page'); return; }
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache' });
+      res.end(data);
+    });
+  }
 });
 
 server.listen(PORT, '0.0.0.0', () => {
