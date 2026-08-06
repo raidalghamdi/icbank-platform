@@ -10,13 +10,24 @@ available to the author.** On 2026-08-06 a real dev environment was provisioned 
 `uaenorth`/`westeurope` (subscription `f1422c2e-a1f8-4794-bfa4-d1c9c16e9287`) using the ARM REST
 API directly (no `az` CLI was available in that environment, so the exact `az` commands below
 were not run verbatim, but the equivalent ARM template/parameter payloads were, and every Bicep
-module deployed successfully). That run found and fixed two real bugs (see the `DOTNETCORE|8.0`
-correction below and the Communication Services note in Step 5) and surfaced one still-open,
-unresolved gap: **the app currently crash-loops at every startup** because the manual SQL step in
-Step 4 below had never actually been carried out, and the app seeds roles into the database
-*eagerly at startup*, not lazily — so skipping Step 4 is not a "the app will just have missing
-data" failure, it is a "the app will never start" failure. Full details, including every
-assertion of the smoke test and its result, are recorded in
+module deployed successfully). That first run found and fixed three real bugs (see the
+`DOTNETCORE|8.0` correction below and the Communication Services / Serilog notes in Step 5) but
+left the app crash-looping at every startup, because the manual SQL step in Step 4 below had never
+actually been carried out (that sandbox had no Azure credential capable of a `database.windows.net`
+data-plane call, which Step 4 as originally written requires), and the app seeds roles into the
+database *eagerly at startup*, not lazily — so skipping Step 4 is not a "the app will just have
+missing data" failure, it is a "the app will never start" failure.
+
+**A second session later the same day took a different path around the exact same blocker for the
+dev environment specifically: SQL authentication instead of Entra-ID-only.** It disabled
+`azureADOnlyAuthentication` on the SQL server, set a SQL admin password, pointed the App Service's
+connection string at SQL auth instead of `Authentication=Active Directory Managed Identity`, then
+successfully ran `dotnet ef database update` against the real database (the schema exists now) and
+restarted the app. **The dev app is now live and passed all 17 of the deployed-mode smoke test's
+assertions.** This is a **dev-only** deviation from this runbook's Entra-ID-only design — see the
+corrected [Step 4](#step-4--the-manual-sql-step-bicep-cannot-do) below for exactly what changed and
+why, and the important caveat about Bicep drift it creates. Full details of both sessions,
+including every assertion of the smoke test and its result, are recorded in
 `spec/DEV-DEPLOYMENT-NOTES.md`. The remaining unverified items are listed in
 [`Unverified without a live subscription`](#unverified-without-a-live-subscription) below —
 read it before you start.
@@ -235,7 +246,35 @@ az deployment group show \
 ## Step 4 — the manual SQL step Bicep cannot do
 
 **Confirmed mandatory and load-bearing by the 2026-08-06 dev deployment — do not skip this
-step, even for a quick throwaway environment.** Skipping it does not degrade gracefully: this
+step for staging/prod, or for any dev environment that keeps the default Entra-ID-only design.**
+
+> **Dev-only deviation actually used on 2026-08-06 (second session):** the sandbox running that
+> session had an ARM (`management.azure.com`) credential but, like the first session, no
+> `database.windows.net`-scoped Entra ID credential of any kind — so the T-SQL statement below
+> could still not be executed. Rather than leave the app crash-looping a second time, that session
+> took the alternative the original task explicitly allowed for dev: it (1) checked
+> `azureADOnlyAuthentications/Default` on `icbank-dev-sql` via ARM and found it `true`, (2) set it
+> to `false` via `PUT .../azureADOnlyAuthentications/Default`, (3) set a freshly generated SQL
+> admin password via `PATCH .../servers/icbank-dev-sql` (note: the admin **login** itself could not
+> be renamed this way — Azure SQL's `administratorLogin` is immutable after server creation; the
+> pre-existing Bicep-generated login `CloudSA85825d34` was reused), and (4) pointed
+> `ConnectionStrings__Default` at that SQL login instead of
+> `Authentication=Active Directory Managed Identity`. `dotnet ef database update` then succeeded
+> immediately with a plain SQL-auth connection string — no Entra token needed at all — and the app
+> booted cleanly. **This is a deliberate, dev-only compromise, not a correction to this runbook's
+> design for staging/prod.** It also means the live `icbank-dev-sql` server has **drifted** from
+> `infra/modules/sql.bicep`, which still declares `azureADOnlyAuthentication: true` — anyone
+> re-running the Bicep deployment against the dev resource group without accounting for this will
+> silently revert dev to Entra-ID-only and reintroduce the original crash-loop. See
+> `spec/DEV-DEPLOYMENT-NOTES.md` (session 2) for the full detail, including the EF migration result
+> (succeeded, `icbank-dev-db` now has a full schema) and the 17/17 smoke test pass.
+>
+> The steps below remain the correct, permanent design for any environment that keeps
+> Entra-ID-only auth (staging, prod, and dev if it is ever brought back in line) — they were not
+> exercised successfully end-to-end in either 2026-08-06 session, because no session had a
+> `database.windows.net` credential to run them with.
+
+Skipping it does not degrade gracefully: this
 codebase's `Program.cs` calls its database seeder (roles, initial super-admin) synchronously
 during host startup, before the app binds to a port. If the managed identity has no SQL login,
 that seed query throws `Microsoft.Data.SqlClient.SqlException: Login failed` (Error 18456), the
@@ -467,8 +506,13 @@ first deployment:
   Default`** connection string keywords, used respectively by the deployed App Service
   (`app-service.bicep`) and the CD pipeline's migration step (`backend-deploy.yml`), are
   documented `Microsoft.Data.SqlClient` features (the project's EF Core SQL Server provider pulls
-  in a version that supports them) but have not been exercised against a real Azure SQL server
-  from either context.
+  in a version that supports them) but **still have not been exercised against a real Azure SQL
+  server from either context, as of either 2026-08-06 session** — both lacked any
+  `database.windows.net`-scoped Entra credential to test them with. What **has** now been verified
+  end-to-end against real Azure SQL (second 2026-08-06 session) is plain SQL authentication (a
+  `User ID=...;Password=...` connection string) from both `dotnet ef database update` and the
+  running App Service, as a dev-only substitute — see the note in Step 4 above. This is a
+  different code path from the Entra-ID ones above, not a verification of them.
 - **Whether the CD pipeline's federated identity, once granted SQL admin/db_ddladmin per Step
   2/4, can actually run `dotnet ef database update` successfully** end to end — this depends on
   Entra ID token acquisition working correctly for a service principal (not a user), which some
@@ -500,7 +544,12 @@ first deployment:
   section 10 ("no credentials in the logs") is explicitly skipped when `SMOKE_BASE_URL` is set,
   because the script has no access to the deployed instance's own application logs (those live in
   Azure Monitor/App Insights). Anyone relying on "20/20" as the expected passing count in deployed
-  mode should expect 17/17 instead.
+  mode should expect 17/17 instead. **Update:** the second 2026-08-06 session ran this exact
+  script against the live `icbank-dev-api` deployment (with the dev-only SQL-auth substitution
+  from Step 4 above) and **all 17 assertions passed** — this confirms the script, the deployed
+  mode's HTTP-level checks, and the app's real runtime behavior all agree, at least for the SQL-auth
+  dev configuration. See `spec/DEV-DEPLOYMENT-NOTES.md` (session 2) for the full per-assertion
+  breakdown.
 - **Cost estimates** are deliberately not included anywhere in this runbook or
   `spec/AZURE-NOTES.md` — SKU pricing varies by region/time and quoting a number without being
   able to verify it against the Azure Pricing Calculator for the exact `uaenorth` SKUs chosen
