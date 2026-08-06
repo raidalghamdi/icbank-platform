@@ -130,10 +130,27 @@ public sealed class SnakeCaseEnumParserTests
         SnakeCaseEnumParser.ToPascalCase("content-creation").Should().Be("ContentCreation");
     }
 
+    [Theory]
+    [InlineData("regulation", GacNewsCategory.Regulation)]
+    [InlineData("decision", GacNewsCategory.Decision)]
+    [InlineData("announcement", GacNewsCategory.Announcement)]
+    [InlineData("news", GacNewsCategory.News)]
+    [InlineData("statistics", GacNewsCategory.Statistics)]
+    [InlineData("press_release", GacNewsCategory.PressRelease)]
+    [InlineData("event", GacNewsCategory.Event)]
+    [InlineData("careers", GacNewsCategory.Careers)]
+    [InlineData("digital", GacNewsCategory.Digital)]
+    public void Parse_EveryObservedGacNewsCategorySourceValue_ParsesToExpectedMember(
+        string source,
+        GacNewsCategory expected)
+    {
+        SnakeCaseEnumParser.Parse<GacNewsCategory>(source).Should().Be(expected);
+    }
+
     [Fact]
     public void TryParse_UnsupportedGacNewsCategory_ReturnsFalseForCountedMigrationRejection()
     {
-        var parsed = SnakeCaseEnumParser.TryParse("announcement", out GacNewsCategory category);
+        var parsed = SnakeCaseEnumParser.TryParse("unsupported_category", out GacNewsCategory category);
 
         parsed.Should().BeFalse();
         category.Should().Be(default);
