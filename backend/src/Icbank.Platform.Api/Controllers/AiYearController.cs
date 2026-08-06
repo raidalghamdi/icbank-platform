@@ -70,31 +70,34 @@ public sealed class AiYearController : ControllerBase
     /// <summary>Creates an activation with optional media and metrics.</summary>
     /// <param name="request">The new activation's fields.</param>
     /// <param name="cancellationToken">A token used to observe cancellation requests.</param>
-    /// <returns>201 Created with the new activation.</returns>
+    /// <returns>200 OK with the legacy browser's create envelope and the new activation.</returns>
     [HttpPost("activations")]
     [Authorize(Policy = "ai_year:create")]
-    public async Task<ActionResult<AiYearActivationDto>> CreateActivationAsync(
+    public async Task<ActionResult> CreateActivationAsync(
         [FromBody] CreateAiYearActivationRequest request, CancellationToken cancellationToken)
     {
         var actorUserId = CurrentUserId.TryRead(User) ?? throw new InvalidOperationException("Authenticated request missing subject claim.");
+        CreateAiYearActivationInput activation = request.Activation;
         var command = new CreateAiYearActivationCommand(
             actorUserId,
-            request.Title,
-            request.Month,
-            request.Year,
-            request.ActivationDate,
-            request.Type,
-            request.Channels,
-            request.Description,
-            request.Tags,
-            request.Status,
-            request.Reach,
-            request.Engagement,
-            request.Notes,
+            activation.Title,
+            activation.Month,
+            activation.Year,
+            activation.ActivationDate,
+            activation.Type,
+            activation.Channels,
+            activation.Description,
+            activation.Tags,
+            activation.Status,
+            activation.Reach,
+            activation.Engagement,
+            activation.Notes,
             request.Media,
             request.Metrics);
         Result<AiYearActivationDto> result = await _sender.Send(command, cancellationToken);
-        return result.IsSuccess ? StatusCode(StatusCodes.Status201Created, result.Value) : Problem(result.Error, statusCode: StatusCodes.Status400BadRequest);
+        return result.IsSuccess
+            ? Ok(new { ok = true, id = result.Value!.Id, activation = result.Value })
+            : Problem(result.Error, statusCode: StatusCodes.Status400BadRequest);
     }
 
     /// <summary>Fetches a single activation with its media.</summary>
@@ -113,31 +116,34 @@ public sealed class AiYearController : ControllerBase
     /// <param name="activationId">The activation id.</param>
     /// <param name="request">The fields to change.</param>
     /// <param name="cancellationToken">A token used to observe cancellation requests.</param>
-    /// <returns>200 OK with the updated activation, or 404 if not found.</returns>
+    /// <returns>200 OK with the legacy browser's update envelope, or 404 if not found.</returns>
     [HttpPut("activations/{activationId:int}")]
     [Authorize(Policy = "ai_year:edit")]
-    public async Task<ActionResult<AiYearActivationDto>> UpdateActivationAsync(
+    public async Task<ActionResult> UpdateActivationAsync(
         int activationId, [FromBody] UpdateAiYearActivationRequest request, CancellationToken cancellationToken)
     {
         var actorUserId = CurrentUserId.TryRead(User) ?? throw new InvalidOperationException("Authenticated request missing subject claim.");
+        UpdateAiYearActivationInput? activation = request.Activation;
         var command = new UpdateAiYearActivationCommand(
             actorUserId,
             activationId,
-            request.Title,
-            request.Month,
-            request.ActivationDate,
-            request.Type,
-            request.Description,
-            request.Tags,
-            request.Status,
-            request.Reach,
-            request.Engagement,
-            request.Notes,
-            request.Channels,
+            activation?.Title,
+            activation?.Month,
+            activation?.ActivationDate,
+            activation?.Type,
+            activation?.Description,
+            activation?.Tags,
+            activation?.Status,
+            activation?.Reach,
+            activation?.Engagement,
+            activation?.Notes,
+            activation?.Channels,
             request.Media,
             request.Metrics);
         Result<AiYearActivationDto> result = await _sender.Send(command, cancellationToken);
-        return result.IsSuccess ? Ok(result.Value) : NotFound(new { error = result.Error });
+        return result.IsSuccess
+            ? Ok(new { ok = true, activation = result.Value })
+            : NotFound(new { error = result.Error });
     }
 
     /// <summary>Deletes an activation (cascades to media/metrics/channels via real FK constraints).</summary>

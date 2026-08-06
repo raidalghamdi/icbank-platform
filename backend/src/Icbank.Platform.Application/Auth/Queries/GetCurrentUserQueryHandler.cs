@@ -35,14 +35,7 @@ public sealed class GetCurrentUserQueryHandler : IRequestHandler<GetCurrentUserQ
 
         PermissionResolution resolution = await _permissionResolver.ResolveAsync(user.Id, cancellationToken);
 
-        var dto = new AuthenticatedUserDto(
-            user.Id,
-            user.Email,
-            user.Name,
-            resolution.RoleNames,
-            resolution.IsSuperAdmin,
-            resolution.Permissions,
-            user.MustChangePassword);
+        var dto = AuthenticatedUserDto.Create(user, resolution, user.MustChangePassword);
 
         return Result<AuthenticatedUserDto>.Success(dto);
     }

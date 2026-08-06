@@ -30,14 +30,7 @@ public sealed class AuthSessionFactory
         AccessTokenResult accessToken = _tokenService.IssueAccessToken(
             user, resolution.RoleNames, resolution.Permissions, resolution.IsSuperAdmin);
 
-        var dto = new AuthenticatedUserDto(
-            user.Id,
-            user.Email,
-            user.Name,
-            resolution.RoleNames,
-            resolution.IsSuperAdmin,
-            resolution.Permissions,
-            mustChangePassword);
+        var dto = AuthenticatedUserDto.Create(user, resolution, mustChangePassword);
 
         return (accessToken, dto);
     }

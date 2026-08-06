@@ -56,13 +56,15 @@ public sealed class FinalMediaReportsController : ControllerBase
     /// <summary>Fetches a single final media report and increments its view counter. Intentionally public (Node source file header).</summary>
     /// <param name="reportId">The report id.</param>
     /// <param name="cancellationToken">A token used to observe cancellation requests.</param>
-    /// <returns>200 OK, or 404 if not found.</returns>
+    /// <returns>200 OK with the legacy browser envelope, or 404 if not found.</returns>
     [HttpGet("final-media-reports/{reportId:int}")]
     [AllowAnonymous]
-    public async Task<ActionResult<FinalMediaReportDetailDto>> GetByIdAsync(int reportId, CancellationToken cancellationToken)
+    public async Task<ActionResult> GetByIdAsync(int reportId, CancellationToken cancellationToken)
     {
         Result<FinalMediaReportDetailDto> result = await _sender.Send(new GetFinalMediaReportByIdCommand(reportId), cancellationToken);
-        return result.IsSuccess ? Ok(result.Value) : NotFound(new { error = result.Error });
+        return result.IsSuccess
+            ? Ok(new { ok = true, item = ToLegacyBrowserItem(result.Value!) })
+            : NotFound(new { error = result.Error });
     }
 
     /// <summary>Generates the canonical 8-section report draft from cached feed data. Closes SEC-02 (was unauthenticated AI-cost).</summary>
@@ -84,7 +86,7 @@ public sealed class FinalMediaReportsController : ControllerBase
 
         return result.Value!.NoSourceData is not null
             ? UnprocessableEntity(result.Value!.NoSourceData)
-            : Ok(result.Value);
+            : Ok(new { draft = result.Value.Draft, saved = (object?)null });
     }
 
     /// <summary>Manually saves and permanently locks a final report. Closes SEC-02 (Node required <c>requireAdmin</c>; this port requires the equivalent create policy).</summary>
@@ -93,13 +95,13 @@ public sealed class FinalMediaReportsController : ControllerBase
     /// <returns>201 Created with the saved report summary.</returns>
     [HttpPost("final-media-reports")]
     [Authorize(Policy = "media_monitoring:create")]
-    public async Task<ActionResult<FinalMediaReportDto>> CreateAsync([FromBody] CreateFinalMediaReportRequest request, CancellationToken cancellationToken)
+    public async Task<ActionResult> CreateAsync([FromBody] CreateFinalMediaReportRequest request, CancellationToken cancellationToken)
     {
         var actorUserId = CurrentUserId.TryRead(User) ?? throw new InvalidOperationException("Authenticated request missing subject claim.");
         var command = new CreateFinalMediaReportCommand(actorUserId, request.Title, request.ReportType, request.PeriodLabel, request.DateFrom, request.DateTo, request.Draft);
         Result<FinalMediaReportDto> result = await _sender.Send(command, cancellationToken);
         return result.IsSuccess
-            ? StatusCode(StatusCodes.Status201Created, result.Value)
+            ? StatusCode(StatusCodes.Status201Created, new { ok = true, item = result.Value })
             : Problem(result.Error, statusCode: StatusCodes.Status400BadRequest);
     }
 
@@ -127,13 +129,21 @@ public sealed class FinalMediaReportsController : ControllerBase
     /// <returns>200 OK with the send result, or 404 if not found.</returns>
     [HttpPost("final-media-reports/{reportId:int}/send-email")]
     [Authorize(Policy = "media_monitoring:view")]
-    public async Task<ActionResult<SendFinalMediaReportEmailResultDto>> SendEmailAsync(
+    public async Task<ActionResult> SendEmailAsync(
         int reportId, [FromBody] SendFinalMediaReportEmailRequest request, CancellationToken cancellationToken)
     {
         var actorUserId = CurrentUserId.TryRead(User) ?? throw new InvalidOperationException("Authenticated request missing subject claim.");
         var command = new SendFinalMediaReportEmailCommand(actorUserId, reportId, request.Recipients, request.Subject);
         Result<SendFinalMediaReportEmailResultDto> result = await _sender.Send(command, cancellationToken);
-        return result.IsSuccess ? Ok(result.Value) : NotFound(new { error = result.Error });
+        return result.IsSuccess
+            ? Ok(new
+            {
+                ok = true,
+                sent = result.Value!.Sent,
+                recipients = result.Value.Recipients,
+                note = result.Value.ProviderMessage,
+            })
+            : NotFound(new { error = result.Error });
     }
 
     /// <summary>Regenerates just a final report's executive summary without persisting it. Closes SEC-02 (was unauthenticated AI-cost endpoint).</summary>
@@ -142,11 +152,13 @@ public sealed class FinalMediaReportsController : ControllerBase
     /// <returns>200 OK with the regenerated text, or 404 if not found.</returns>
     [HttpPost("final-media-reports/{reportId:int}/exec-summary")]
     [Authorize(Policy = "media_monitoring:edit")]
-    public async Task<ActionResult<RegenerateExecutiveSummaryResultDto>> RegenerateExecutiveSummaryAsync(int reportId, CancellationToken cancellationToken)
+    public async Task<ActionResult> RegenerateExecutiveSummaryAsync(int reportId, CancellationToken cancellationToken)
     {
         var actorUserId = CurrentUserId.TryRead(User) ?? throw new InvalidOperationException("Authenticated request missing subject claim.");
         Result<RegenerateExecutiveSummaryResultDto> result = await _sender.Send(new RegenerateExecutiveSummaryCommand(actorUserId, reportId), cancellationToken);
-        return result.IsSuccess ? Ok(result.Value) : NotFound(new { error = result.Error });
+        return result.IsSuccess
+            ? Ok(new { ok = true, summary = result.Value!.Summary, reportNumber = result.Value.ReportNumber })
+            : NotFound(new { error = result.Error });
     }
 
     /// <summary>Searches the final-report archive in full or AI Q&amp;A mode. Closes SEC-02 (was unauthenticated AI-cost endpoint).</summary>
@@ -155,13 +167,15 @@ public sealed class FinalMediaReportsController : ControllerBase
     /// <returns>200 OK with the matched reports (full mode) or AI answer (info mode).</returns>
     [HttpPost("final-media-reports/search")]
     [Authorize(Policy = "media_monitoring:view")]
-    public async Task<ActionResult<SearchFinalMediaReportsResultDto>> SearchAsync(
+    public async Task<ActionResult> SearchAsync(
         [FromBody] SearchFinalMediaReportsRequest request, CancellationToken cancellationToken)
     {
         var actorUserId = CurrentUserId.TryRead(User) ?? throw new InvalidOperationException("Authenticated request missing subject claim.");
         var command = new SearchFinalMediaReportsCommand(actorUserId, request.Mode, request.Query, request.Limit);
         Result<SearchFinalMediaReportsResultDto> result = await _sender.Send(command, cancellationToken);
-        return result.IsSuccess ? Ok(result.Value) : Problem(result.Error, statusCode: StatusCodes.Status400BadRequest);
+        return result.IsSuccess
+            ? Ok(new { ok = true, mode = result.Value!.Mode, reports = result.Value.Reports, answer = result.Value.Answer })
+            : Problem(result.Error, statusCode: StatusCodes.Status400BadRequest);
     }
 
     /// <summary>Logs a wizard-answer audit trail entry. Closes SEC-02 (was an unauthenticated write to an audit table).</summary>
@@ -184,11 +198,19 @@ public sealed class FinalMediaReportsController : ControllerBase
     /// <returns>201 Created with the seed counts.</returns>
     [HttpPost("final-media-reports/seed-demo")]
     [Authorize(Policy = "media_monitoring:create")]
-    public async Task<ActionResult<SeedDemoNewsResultDto>> SeedDemoNewsAsync(CancellationToken cancellationToken)
+    public async Task<ActionResult> SeedDemoNewsAsync(CancellationToken cancellationToken)
     {
         var actorUserId = CurrentUserId.TryRead(User) ?? throw new InvalidOperationException("Authenticated request missing subject claim.");
         Result<SeedDemoNewsResultDto> result = await _sender.Send(new SeedDemoNewsCommand(actorUserId), cancellationToken);
-        return StatusCode(StatusCodes.Status201Created, result.Value);
+        return StatusCode(
+            StatusCodes.Status201Created,
+            new
+            {
+                ok = true,
+                message = result.Value!.Message,
+                seededNews = result.Value.SeededNews,
+                seededPosts = result.Value.SeededPosts,
+            });
     }
 
     /// <summary>
@@ -217,4 +239,33 @@ public sealed class FinalMediaReportsController : ControllerBase
     [AllowAnonymous]
     public ActionResult RejectDelete(int reportId) =>
         StatusCode(StatusCodes.Status403Forbidden, new { ok = false, error = "التقارير النهائية محفوظة بشكل دائم — لا يمكن حذفها." });
+
+    private static object ToLegacyBrowserItem(FinalMediaReportDetailDto detail) =>
+        new
+        {
+            detail.Summary.Id,
+            detail.Summary.ReportNumber,
+            detail.Summary.Title,
+            detail.Summary.ReportType,
+            detail.Summary.PeriodLabel,
+            detail.Summary.DateFrom,
+            detail.Summary.DateTo,
+            detail.Summary.ExecutiveSummary,
+            detail.Summary.Kpis,
+            detail.Summary.Status,
+            detail.Summary.ViewCount,
+            detail.Summary.ContentSha256,
+            detail.Summary.CreatedAt,
+            detail.TopNews,
+            detail.Timeline,
+            detail.DigitalPresence,
+            detail.EditorialTone,
+            detail.DeepAnalysis,
+            detail.RegionalComparison,
+            detail.Recommendations,
+            detail.Alerts,
+            detail.QuotesAppendix,
+            detail.Methodology,
+            detail.Sources,
+        };
 }
