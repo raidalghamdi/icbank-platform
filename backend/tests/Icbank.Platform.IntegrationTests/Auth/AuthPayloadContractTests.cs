@@ -92,6 +92,59 @@ public sealed class AuthPayloadContractTests : IDisposable
         frontendPageSlugs.Should().BeSubsetOf(PageSlugs.All);
     }
 
+    [Fact]
+    public void FrontendPermissionMap_MapsWeekStartToItsOwnSeededPageSlug()
+    {
+        var frontend = File.ReadAllText(FindFrontendArtifactPath());
+
+        Regex.IsMatch(
+            frontend,
+            @"'weekstart'\s*:\s*'weekstart'",
+            RegexOptions.CultureInvariant).Should().BeTrue("week-start and weekend are distinct API page slugs");
+    }
+
+    [Fact]
+    public void FrontendArchive_InvalidAnnualDatesRemainVisibleInNeedsAttentionState()
+    {
+        var frontend = File.ReadAllText(FindFrontendArtifactPath());
+
+        frontend.Should().Contain("id-archive-grid-attention");
+        frontend.Should().Contain("needsAttention.push");
+        frontend.Should().Contain("_needsAttention");
+        frontend.Should().NotContain("if (!d.annualDate) { past.push(d); return; }");
+    }
+
+    [Fact]
+    public void FrontendAdminRolesAndArabicNumbersFollowApiAndLocaleContracts()
+    {
+        var frontend = File.ReadAllText(FindFrontendArtifactPath());
+
+        frontend.Should().Contain("function admRoleLabel(user)");
+        frontend.Should().Contain("Array.isArray(user.roleNames)");
+        frontend.Should().Contain("formatArabicDayCount(30)");
+        frontend.Should().Contain("<h1 class=\"page-title\">إدارة المستخدمين والصلاحيات</h1>");
+        frontend.Should().NotContain("<h1 class=\"page-title\">لوحة التحكم</h1>");
+        frontend.Should().Contain("href=\"/public/favicon.svg\"");
+        frontend.Should().NotContain("platform.twitter.com/widgets.js", "an external timeline must not make dashboard load depend on Twitter's rate limits");
+        frontend.Should().NotContain("twitter-timeline");
+        Regex.IsMatch(frontend, "[٠-٩]", RegexOptions.CultureInvariant).Should().BeFalse("production UI numbers use the established Latin-digit formatter convention");
+    }
+
+    [Fact]
+    public void FrontendPackage_ContainsOnlyTheStaticSiteThatServerMjsServes()
+    {
+        var frontendPath = FindFrontendArtifactPath();
+        var frontendDirectory = Path.GetDirectoryName(frontendPath)!;
+        var package = File.ReadAllText(Path.Combine(frontendDirectory, "package.json"));
+
+        File.Exists(Path.Combine(frontendDirectory, "server.mjs")).Should().BeTrue();
+        Directory.Exists(Path.Combine(frontendDirectory, "src")).Should().BeFalse();
+        File.Exists(Path.Combine(frontendDirectory, "vite.config.ts")).Should().BeFalse();
+        File.Exists(Path.Combine(frontendDirectory, "tsconfig.json")).Should().BeFalse();
+        package.Should().NotContain("\"react\"");
+        package.Should().NotContain("\"vite\"");
+    }
+
     private static void AssertLegacyUserPayload(JsonElement payload)
     {
         payload.GetProperty("role").ValueKind.Should().Be(JsonValueKind.String);

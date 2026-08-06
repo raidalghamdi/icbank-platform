@@ -9,6 +9,7 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>منصة التواصل المؤسسي</title>
+<link rel="icon" type="image/svg+xml" href="/public/favicon.svg">
 <script src="/runtime-config.js"></script>
 <link rel="preload" as="font" type="font/ttf" href="/fonts/cairo/Cairo-Variable.ttf" crossorigin>
 <link rel="preload" as="font" type="font/woff2" href="/fonts/plex/IBMPlexSans-Regular.woff2" crossorigin>
@@ -89,6 +90,21 @@
   transition: opacity 0.2s;
 }
 #auth-loading-overlay.hidden { opacity: 0; pointer-events: none; }
+#password-change-overlay {
+  position:fixed; inset:0; z-index:10002; display:none; align-items:center; justify-content:center;
+  padding:20px; background:rgba(12,17,29,.62); backdrop-filter:blur(3px);
+}
+#password-change-overlay.visible { display:flex; }
+.password-change-card {
+  width:min(100%,460px); padding:28px; border-radius:var(--radius-lg); background:var(--surface);
+  box-shadow:0 20px 56px rgba(12,17,29,.26); font-family:var(--sans);
+}
+.password-change-card h1 { margin:0 0 8px; color:var(--text); font-size:22px; }
+.password-change-card p { margin:0 0 20px; color:var(--text-3); font-size:13px; line-height:1.8; }
+.password-change-card label { display:block; margin:12px 0 6px; color:var(--text-2); font-size:12px; font-weight:700; }
+.password-change-card input { width:100%; min-height:42px; padding:10px 12px; border:1px solid var(--border-strong); border-radius:var(--radius-sm); font:inherit; direction:ltr; }
+.password-change-card .password-change-error { min-height:20px; margin-top:10px; color:var(--danger); font-size:12px; }
+.password-change-card button { width:100%; margin-top:8px; }
 .auth-spinner {
   width: 36px; height: 36px;
   border: 3px solid var(--primary-100);
@@ -2705,6 +2721,21 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
   <div style="font-size:13px;color:var(--text-3);font-family:var(--sans);">جارٍ التحقق من الجلسة...</div>
 </div>
 
+<div id="password-change-overlay" role="dialog" aria-modal="true" aria-labelledby="password-change-title">
+  <form class="password-change-card" onsubmit="authSubmitPasswordChange(event)">
+    <h1 id="password-change-title">تغيير كلمة المرور مطلوب</h1>
+    <p>استخدمت حسابك كلمة مرور مؤقتة. غيّرها الآن قبل الوصول إلى بيانات المنصة.</p>
+    <label for="password-change-current">كلمة المرور الحالية</label>
+    <input id="password-change-current" type="password" autocomplete="current-password" required>
+    <label for="password-change-new">كلمة المرور الجديدة</label>
+    <input id="password-change-new" type="password" autocomplete="new-password" minlength="8" required>
+    <label for="password-change-confirm">تأكيد كلمة المرور الجديدة</label>
+    <input id="password-change-confirm" type="password" autocomplete="new-password" minlength="8" required>
+    <div id="password-change-error" class="password-change-error" role="alert"></div>
+    <button id="password-change-submit" class="btn btn-primary" type="submit">حفظ كلمة المرور والمتابعة</button>
+  </form>
+</div>
+
 <div class="mob-overlay" id="mob-overlay" onclick="closeMobileSidebar()"></div>
 
 <div class="app">
@@ -2986,11 +3017,11 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
       </div>
     </div>
 
-    <!-- ── GAC Social Feed (تغريدات + لينكدإن) ── -->
+    <!-- ── GAC Social Feed (إكس + لينكدإن) ── -->
     <div class="dash-section">
       <div class="dash-section-head">
         <h2 class="dash-section-title">📱 تحديثات الهيئة على منصات التواصل</h2>
-        <span style="color:#6b7280;font-size:13px;">تحديث تلقائي من الحسابات الرسمية</span>
+        <span style="color:#6b7280;font-size:13px;">متابعة من الحسابات الرسمية</span>
       </div>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;">
         <!-- X / Twitter card -->
@@ -3005,13 +3036,12 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
             </div>
             <a href="https://twitter.com/SaudiGAC" target="_blank" rel="noopener" class="btn btn-secondary" style="font-size:13px;padding:6px 14px;">متابعة</a>
           </div>
-          <div style="height:480px;overflow:auto;border:1px solid #e5e7eb;border-radius:10px;">
-            <a class="twitter-timeline"
-               data-height="480"
-               data-theme="light"
-               data-chrome="noheader nofooter noborders transparent"
-               data-lang="ar"
-               href="https://twitter.com/SaudiGAC?ref_src=twsrc%5Etfw">تغريدات SaudiGAC</a>
+          <!-- Why: Twitter's public timeline endpoint returned 429 on an ordinary dashboard
+               load. Do not make an unaffiliated third-party rate limit a dashboard dependency;
+               the user can still open the official account explicitly. -->
+          <div style="min-height:160px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;color:#6b7280;padding:20px;">
+            <p style="margin:0;font-size:13px;">تابع آخر تحديثات الهيئة من الحساب الرسمي على <bdi dir="ltr">X</bdi>.</p>
+            <a href="https://twitter.com/SaudiGAC" target="_blank" rel="noopener" class="btn btn-secondary" style="font-size:13px;padding:6px 14px;">فتح الحساب الرسمي</a>
           </div>
         </div>
         <!-- LinkedIn card -->
@@ -3358,7 +3388,7 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
 
               <button class="btn btn-primary ws-gen-btn" id="ws-generate-btn" onclick="wsGenerate()">
                 <span>⚡</span>
-                <span id="ws-gen-label">توليد المحتوى من ٣ نماذج</span>
+                <span id="ws-gen-label">توليد المحتوى من 3 نماذج</span>
               </button>
             </div>
           </div>
@@ -3577,6 +3607,16 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
         <div class="ws-empty-state">—</div>
       </div>
 
+      <!-- Needs attention -->
+      <div class="id-archive-subhead" style="display:flex;align-items:center;gap:8px;margin:24px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border)">
+        <span style="font-weight:700;color:var(--warning);font-size:14px">⚠️ تحتاج إلى مراجعة</span>
+        <span class="badge" id="id-archive-attention-badge" style="font-size:11px;background:var(--warning-bg);color:var(--warning)">0</span>
+        <span style="color:var(--text-4);font-size:11px;margin-right:auto">سجلات ينقصها التاريخ السنوي أو تحتاج إلى تصحيحه</span>
+      </div>
+      <div id="id-archive-grid-attention" class="id-archive-grid">
+        <div class="ws-empty-state">—</div>
+      </div>
+
       <!-- Past -->
       <div class="id-archive-subhead" style="display:flex;align-items:center;gap:8px;margin:24px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border)">
         <span style="font-weight:700;color:var(--text);font-size:14px">📆 الأيام السابقة</span>
@@ -3602,7 +3642,7 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
 
     <div class="page-head">
       <div>
-        <h1 class="page-title">عام الذكاء الاصطناعي ٢٠٢٦</h1>
+        <h1 class="page-title">عام الذكاء الاصطناعي 2026</h1>
         <p class="page-sub">معرض توثيق كامل لتفعيلات وأنشطة الإدارة خلال عام الذكاء الاصطناعي — صور، إحصائيات، ورسوم بيانية</p>
       </div>
       <div class="page-actions">
@@ -4130,7 +4170,7 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
   <div class="page-section" id="section-admin_panel">
     <div class="page-head">
       <div>
-        <h1 class="page-title">لوحة التحكم</h1>
+        <h1 class="page-title">إدارة المستخدمين والصلاحيات</h1>
         <p class="page-sub">إدارة المستخدمين والأدوار والصلاحيات ومتابعة النشاطات.</p>
       </div>
     </div>
@@ -4599,10 +4639,10 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
           </div>
           <!-- Layer legend -->
           <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;font-size:11px;color:var(--text-3);">
-            <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;background:#808080;display:inline-block;"></span> طبقة ١: الخلفية</span>
-            <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;background:#1a3a6b;display:inline-block;opacity:.9;"></span> طبقة ٢: بانل النص</span>
-            <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;background:linear-gradient(135deg,#fff 50%,transparent 50%);border:1px solid #ccc;display:inline-block;"></span> طبقة ٣: النصوص</span>
-            <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border:2px dashed #aaa;display:inline-block;"></span> طبقة ٤: الشعارات</span>
+            <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;background:#808080;display:inline-block;"></span> طبقة 1: الخلفية</span>
+            <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;background:#1a3a6b;display:inline-block;opacity:.9;"></span> طبقة 2: بانل النص</span>
+            <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;background:linear-gradient(135deg,#fff 50%,transparent 50%);border:1px solid #ccc;display:inline-block;"></span> طبقة 3: النصوص</span>
+            <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border:2px dashed #aaa;display:inline-block;"></span> طبقة 4: الشعارات</span>
           </div>
         </div>
       </div>
@@ -4689,10 +4729,10 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
                 placeholder="صِف الخلفية المطلوبة… مثلاً: مبنى حكومي أنيق في ضوء الفجر"></textarea>
               <button id="des-ed-bg-btn" class="btn btn-primary" style="width:100%;margin-top:6px;font-size:13px;"
                 onclick="DES.edGenerateBg()">
-                <span id="des-ed-bg-btn-label">⬡ توليد ٤ خلفيات</span>
+                <span id="des-ed-bg-btn-label">⬡ توليد 4 خلفيات</span>
               </button>
               <div id="des-ed-bg-spinner" class="des-bg-spinner" style="display:none;">
-                جاري التوليد… قد يستغرق ٢٠–٤٠ ثانية
+                جاري التوليد… قد يستغرق 20–40 ثانية
               </div>
               <div id="des-ed-bg-results" class="des-bg-results-grid" style="display:none;"></div>
             </div>
@@ -4718,7 +4758,7 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
               <span id="des-ed-zoom-pct" class="des-ed-zoom-pct">—</span>
               <button class="des-ed-zoom-btn" onclick="DES.edZoom('+')" title="تكبير">+</button>
               <span style="width:1px;height:18px;background:var(--border);margin:0 4px;display:inline-block;"></span>
-              <button class="des-ed-zoom-btn des-ed-zoom-btn--preview" onclick="DES.edFullPreview()" title="معاينة التصميم بحجم ١٠٠٪">⛶ معاينة ١٠٠٪</button>
+              <button class="des-ed-zoom-btn des-ed-zoom-btn--preview" onclick="DES.edFullPreview()" title="معاينة التصميم بحجم 100٪">⛶ معاينة 100٪</button>
               <button id="des-ed-dl-btn" class="des-ed-zoom-btn des-ed-zoom-btn--dl" onclick="DES.edDownload()" title="تحميل التصميم PNG">⬇ تحميل</button>
             </div>
             <div id="des-ed-canvas-outer" class="des-canvas-outer">
@@ -5331,6 +5371,7 @@ function storageUrl(path) {
 // ════════════════════════════════════════
 
 var AUTH_USER = null;
+var AUTH_SESSION_READY = false;
 var AUTH_IDLE_TIMER = null;
 var AUTH_IDLE_MINUTES = 30;
 
@@ -5353,13 +5394,13 @@ function authStartIdleWatcher(minutes) {
 // Page slug ↔ RBAC permission key mapping
 // Only the 8 spec-defined pages are permission-gated.
 // 'home' is always accessible (no RBAC restriction).
-// 'weekstart' maps to 'weekend' (same RBAC page per spec).
+// Each rendered page maps to its own API page slug; home is always accessible.
 var PAGE_PERM_MAP = {
   'reports':        'dashboard',
   'initiatives':    'initiatives',
   'news':           'world_news',
   'weekend':        'weekend',
-  'weekstart':      'weekend',
+  'weekstart':      'weekstart',
   'intldays':       'international_days',
   'aiyear':         'ai_year',
   'smart_assistant':'smart_assistant',
@@ -5372,6 +5413,10 @@ var ROLE_LABELS = {
   'editor':      'محرر',
   'viewer':      'مشاهد',
   'guest':       'ضيف',
+  'system_admin': 'مدير النظام',
+  'approved_manager': 'مدير معتمد',
+  'team_member': 'عضو الفريق',
+  'requester': 'طالب خدمة',
 };
 
 function authGetToken() {
@@ -5510,6 +5555,56 @@ async function authRefresh() {
   }
 }
 
+function authShowPasswordChange() {
+  var loading = document.getElementById('auth-loading-overlay');
+  if (loading) loading.classList.add('hidden');
+  var overlay = document.getElementById('password-change-overlay');
+  if (overlay) {
+    overlay.classList.add('visible');
+    var current = document.getElementById('password-change-current');
+    if (current) current.focus();
+  }
+}
+
+window.authSubmitPasswordChange = async function(event) {
+  event.preventDefault();
+  var current = (document.getElementById('password-change-current') || {}).value || '';
+  var next = (document.getElementById('password-change-new') || {}).value || '';
+  var confirmNext = (document.getElementById('password-change-confirm') || {}).value || '';
+  var error = document.getElementById('password-change-error');
+  var submit = document.getElementById('password-change-submit');
+  if (error) error.textContent = '';
+  if (next.length < 8) {
+    if (error) error.textContent = 'يجب أن تتكون كلمة المرور الجديدة من 8 أحرف على الأقل.';
+    return;
+  }
+  if (next !== confirmNext) {
+    if (error) error.textContent = 'تأكيد كلمة المرور الجديدة غير مطابق.';
+    return;
+  }
+
+  if (submit) { submit.disabled = true; submit.textContent = 'جارٍ الحفظ...'; }
+  try {
+    var response = await apiFetch(apiUrl('/auth/change-password'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ currentPassword: current, newPassword: next })
+    });
+    if (!response.ok) throw await apiError(response);
+    // A pre-change token intentionally remains restricted. Refresh now to receive a token whose
+    // immutable must_change_password claim is false, then reload before any application data loads.
+    var refreshed = await authRefresh();
+    if (!refreshed || !refreshed.user || refreshed.user.mustChangePassword) {
+      throw new Error('تعذّر تحديث الجلسة بعد تغيير كلمة المرور.');
+    }
+    window.location.replace('/');
+  } catch (err) {
+    if (error) error.textContent = friendlyError(err, 'تعذّر تغيير كلمة المرور. تحقق من كلمة المرور الحالية وحاول مجدداً.');
+  } finally {
+    if (submit) { submit.disabled = false; submit.textContent = 'حفظ كلمة المرور والمتابعة'; }
+  }
+};
+
 async function authCheckSession() {
   var token = authGetToken();
   if (!token) {
@@ -5540,12 +5635,19 @@ async function authCheckSession() {
     authClear(); window.location.href = '/login'; return;
   }
 
+  AUTH_SESSION_READY = true;
+  if (AUTH_USER && AUTH_USER.mustChangePassword) {
+    authShowPasswordChange();
+    return false;
+  }
+
   authUpdateUI();
   var overlay = document.getElementById('auth-loading-overlay');
   if (overlay) {
     overlay.classList.add('hidden');
     setTimeout(function() { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); }, 300);
   }
+  return true;
 }
 
 function authUpdateUI() {
@@ -6246,7 +6348,7 @@ function admRenderUsers(d) {
         + '<div class="adm-user-card-email" dir="ltr">' + admEsc(u.email) + '</div>'
         + '<div class="adm-user-card-meta">'
         +   status
-        +   '<span class="adm-badge system">' + admEsc(u.roleNameAr || '—') + '</span>'
+        +   '<span class="adm-badge system">' + admEsc(admRoleLabel(u)) + '</span>'
         + '</div>'
         + '<div style="font-size:11px;color:var(--text-3)">آخر دخول: ' + admFmt(u.lastLogin) + '</div>'
         + '</div>';
@@ -6269,7 +6371,7 @@ function admRenderUsers(d) {
           + (u.title ? '<br><span style="font-size:11px;color:var(--text-3)">' + admEsc(u.title) + (u.department ? ' — ' + admEsc(u.department) : '') + '</span>' : '')
           + '</td>'
         + '<td dir="ltr" style="font-size:12px;color:var(--text-2)">' + admEsc(u.email) + '</td>'
-        + '<td>' + (u.roleNameAr ? admEsc(u.roleNameAr) : '<span style="color:var(--text-4)">—</span>') + '</td>'
+        + '<td>' + (admRoleLabel(u) !== '—' ? admEsc(admRoleLabel(u)) : '<span style="color:var(--text-4)">—</span>') + '</td>'
         + '<td>' + status + '</td>'
         + '<td style="font-size:11.5px;color:var(--text-3)">' + admFmt(u.lastLogin) + '</td>'
         + '<td><div class="adm-btn-actions">'
@@ -6298,6 +6400,18 @@ function admRenderPager(id, page, pages, fn) {
 }
 
 function admEsc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// The API supplies roleNames for multi-role users. Resolve their Arabic labels from the loaded
+// role catalogue, with the global labels as an immediate fallback while that request is in flight.
+function admRoleLabel(user) {
+  if (user && user.roleNameAr) return user.roleNameAr;
+  var names = user && Array.isArray(user.roleNames) ? user.roleNames : [];
+  var labels = names.map(function(name) {
+    var role = (ADM.roles || []).find(function(candidate) { return candidate.name === name; });
+    return (role && role.nameAr) || ROLE_LABELS[name] || name;
+  }).filter(Boolean);
+  return labels.length ? labels.join('، ') : '—';
+}
 
 window.adminShowUserModal = function(userId) {
   ADM.editingUserId = userId || null;
@@ -6594,7 +6708,7 @@ function admRenderMatrix(d) {
         + '<div class="adm-mx-acc-head" onclick="admMxAccToggle(this)">'
         +   '<div class="adm-mx-acc-head-info">'
         +     '<div class="adm-mx-acc-name">' + admEsc(u.name) + '</div>'
-        +     '<div class="adm-mx-acc-role">' + admEsc(u.roleNameAr || '—') + '</div>'
+        +     '<div class="adm-mx-acc-role">' + admEsc(admRoleLabel(u)) + '</div>'
         +   '</div>'
         +   '<span class="adm-mx-acc-arrow">▼</span>'
         + '</div>'
@@ -6616,7 +6730,7 @@ function admRenderMatrix(d) {
     pages.forEach(function(pg) { h += '<th>' + admEsc(pg.nameAr || pg.slug) + '</th>'; });
     h += '</tr></thead><tbody>';
     users.forEach(function(u) {
-      h += '<tr><td class="row-head">' + admEsc(u.name) + '<br><span style="font-size:10.5px;color:var(--text-4)">' + admEsc(u.roleNameAr||'—') + '</span></td>';
+      h += '<tr><td class="row-head">' + admEsc(u.name) + '<br><span style="font-size:10.5px;color:var(--text-4)">' + admEsc(admRoleLabel(u)) + '</span></td>';
       pages.forEach(function(pg) {
         var perms = (u.permissions || {})[pg.slug] || [];
         var level = admPermLevel(perms);
@@ -6695,7 +6809,7 @@ window.adminExportMatrix = function() {
   var header = ['المستخدم','الدور'].concat(pages.map(function(p) { return p.nameAr || p.slug; }));
   var rows = [header];
   users.forEach(function(u) {
-    var row = [u.name, u.roleNameAr || '—'];
+    var row = [u.name, admRoleLabel(u)];
     pages.forEach(function(pg) {
       var perms = (u.permissions || {})[pg.slug] || [];
       var lvMap = { none:'✗', view:'✓ عرض', edit:'✏ تعديل', full:'★ كامل' };
@@ -6723,7 +6837,7 @@ function admOpenBulkApply() {
     bulkUsers.innerHTML = (ADM.matrixData.users || []).map(function(u) {
       return '<label style="display:flex;align-items:center;gap:8px;font-size:12.5px;">'
         + '<input type="checkbox" value="' + u.id + '"> '
-        + admEsc(u.name) + ' <span style="color:var(--text-4);font-size:11px;">(' + admEsc(u.roleNameAr||'—') + ')</span></label>';
+        + admEsc(u.name) + ' <span style="color:var(--text-4);font-size:11px;">(' + admEsc(admRoleLabel(u)) + ')</span></label>';
     }).join('');
   }
   document.getElementById('adm-bulk-modal').classList.add('open');
@@ -6933,7 +7047,7 @@ const PAGE_LABELS = {
   reports:'الأداء التنفيذي', home:'الرئيسية',
   initiatives:'المبادرات', news:'الأخبار العالمية', weekend:'نهاية الأسبوع',
   weekstart:'بداية الأسبوع', intldays:'الأيام العالمية',
-  aiyear:'عام الذكاء الاصطناعي ٢٠٢٦',
+  aiyear:'عام الذكاء الاصطناعي 2026',
   smart_assistant:'المساعد الذكي', settings:'الإعدادات',
   admin_panel:'لوحة التحكم',
   designs:'إنشاء التصاميم',
@@ -7468,7 +7582,7 @@ function dashRenderIntlDays(days) {
   var el = document.getElementById('dash-intl-days');
   if (!el) return;
   if (!days.length) {
-    el.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-4);font-size:13px">لا توجد أيام عالمية خلال ٣٠ يوماً القادمة</div>';
+    el.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-4);font-size:13px">لا توجد أيام عالمية خلال ' + formatArabicDayCount(30) + ' القادمة</div>';
     return;
   }
   el.innerHTML = days.map(function(d) {
@@ -7556,7 +7670,8 @@ function dashCopyAISummary() {
 // INIT
 // ════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', async () => {
-  await authCheckSession();
+  var authenticated = await authCheckSession();
+  if (!authenticated) return;
   homeDashboardInit();
   initWeekend();
   fetchNews();
@@ -8796,7 +8911,7 @@ async function wsGenerate() {
     });
   } finally {
     if (genBtn) genBtn.disabled = false;
-    if (genLabel) genLabel.textContent = 'توليد المحتوى من ٣ نماذج';
+    if (genLabel) genLabel.textContent = 'توليد المحتوى من 3 نماذج';
   }
 }
 
@@ -9438,10 +9553,13 @@ function idRenderArchiveCard(day) {
   var daysUntilBadge = (typeof day._daysUntil === 'number' && day._daysUntil >= 0)
     ? '<span class="id-arc-tag" style="background:#dcfce7;color:#166534">' + (day._daysUntil === 0 ? 'اليوم' : 'بعد ' + formatArabicDayCount(day._daysUntil)) + '</span>'
     : '';
+  var attentionBadge = day._needsAttention
+    ? '<span class="id-arc-tag" style="background:var(--warning-bg);color:var(--warning)">تاريخ سنوي يحتاج إلى مراجعة</span>'
+    : '';
   return '<div class="id-archive-card" onclick="idOpenDay(' + day.id + ')">' +
     '<div class="id-archive-card-name">' + esc(day.dayNameAr) + '</div>' +
     (day.dayNameEn ? '<div class="id-archive-card-en">' + esc(day.dayNameEn) + '</div>' : '') +
-    '<div class="id-archive-card-meta">' + daysUntilBadge + cat + date + '</div>' +
+    '<div class="id-archive-card-meta">' + daysUntilBadge + attentionBadge + cat + date + '</div>' +
     '<div class="id-archive-card-footer">' +
       '<span>⚡ ' + actCount + ' تفعيل · ' + updated + '</span>' +
       (authCanPerm('intldays', 'delete') ? '<button class="id-archive-card-del" onclick="event.stopPropagation();idDeleteDay(' + day.id + ')" title="حذف">✕</button>' : '') +
@@ -9451,36 +9569,65 @@ function idRenderArchiveCard(day) {
 
 function idRenderArchiveGrid(days) {
   var upcomingEl = document.getElementById('id-archive-grid-upcoming');
-  var pastEl     = document.getElementById('id-archive-grid-past');
-  var upBadge    = document.getElementById('id-archive-upcoming-badge');
-  var pastBadge  = document.getElementById('id-archive-past-badge');
-  if (!upcomingEl || !pastEl) return;
+  var attentionEl = document.getElementById('id-archive-grid-attention');
+  var pastEl = document.getElementById('id-archive-grid-past');
+  var upBadge = document.getElementById('id-archive-upcoming-badge');
+  var attentionBadge = document.getElementById('id-archive-attention-badge');
+  var pastBadge = document.getElementById('id-archive-past-badge');
+  if (!upcomingEl || !attentionEl || !pastEl) return;
 
   if (!days || !days.length) {
     var emptyHtml = '<div class="ws-empty-state">لا يوجد أيام محفوظة تطابق البحث.</div>';
     upcomingEl.innerHTML = emptyHtml;
+    attentionEl.innerHTML = '';
     pastEl.innerHTML = '';
     if (upBadge) upBadge.textContent = '0';
+    if (attentionBadge) attentionBadge.textContent = '0';
     if (pastBadge) pastBadge.textContent = '0';
     return;
   }
 
-  // Compute daysUntil per day from annualDate (MM-DD), splitting upcoming vs past
+  // A missing or malformed annualDate is a data-quality problem, not evidence that an event is
+  // in the past. Keep it visible in its own bucket so an editor can correct the source record.
   var now = new Date();
   var todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   var currentYear = now.getFullYear();
   var upcoming = [];
+  var needsAttention = [];
   var past = [];
 
   days.forEach(function(d) {
-    if (!d.annualDate) { past.push(d); return; }
-    var parts = String(d.annualDate).split('-');
-    if (parts.length < 2) { past.push(d); return; }
-    var mm = parseInt(parts[0], 10);
-    var dd = parseInt(parts[1], 10);
-    if (!mm || !dd) { past.push(d); return; }
+    var annualDate = String(d.annualDate || '');
+    var match = /^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.exec(annualDate);
+    if (!match) {
+      needsAttention.push(Object.assign({}, d, { _needsAttention: true }));
+      return;
+    }
+    var mm = parseInt(match[1], 10);
+    var dd = parseInt(match[2], 10);
+    // Validate against a leap year so 02-29 is recognised as a valid annual date even when
+    // the current year is not a leap year.
+    var validationDate = new Date(2024, mm - 1, dd);
+    if (validationDate.getMonth() !== mm - 1 || validationDate.getDate() !== dd) {
+      needsAttention.push(Object.assign({}, d, { _needsAttention: true }));
+      return;
+    }
     var thisYearDate = new Date(currentYear, mm - 1, dd);
     thisYearDate.setHours(0, 0, 0, 0);
+    if (thisYearDate.getMonth() !== mm - 1 || thisYearDate.getDate() !== dd) {
+      // A valid leap-day record has no occurrence this year; show the next occurrence instead
+      // of mislabelling the record as malformed or silently filing it under past days.
+      var nextOccurrenceYear = currentYear + 1;
+      while (true) {
+        thisYearDate = new Date(nextOccurrenceYear, mm - 1, dd);
+        thisYearDate.setHours(0, 0, 0, 0);
+        if (thisYearDate.getMonth() === mm - 1 && thisYearDate.getDate() === dd) break;
+        nextOccurrenceYear++;
+      }
+      var leapDaysUntil = Math.round((thisYearDate.getTime() - todayStart.getTime()) / 86400000);
+      upcoming.push(Object.assign({}, d, { _daysUntil: leapDaysUntil, _occurDate: thisYearDate }));
+      return;
+    }
     if (thisYearDate >= todayStart) {
       var daysUntil = Math.round((thisYearDate.getTime() - todayStart.getTime()) / 86400000);
       upcoming.push(Object.assign({}, d, { _daysUntil: daysUntil, _occurDate: thisYearDate }));
@@ -9489,15 +9636,18 @@ function idRenderArchiveGrid(days) {
     }
   });
 
-  // Sort: upcoming asc by daysUntil (nearest first), past as-is (already DESC by annualDate from API)
   upcoming.sort(function(a, b) { return a._daysUntil - b._daysUntil; });
 
   if (upBadge) upBadge.textContent = upcoming.length;
+  if (attentionBadge) attentionBadge.textContent = needsAttention.length;
   if (pastBadge) pastBadge.textContent = past.length;
 
   upcomingEl.innerHTML = upcoming.length
     ? upcoming.map(idRenderArchiveCard).join('')
     : '<div class="ws-empty-state" style="font-size:12px;padding:14px">لا توجد أيام قادمة في الأرشيف.</div>';
+  attentionEl.innerHTML = needsAttention.length
+    ? needsAttention.map(idRenderArchiveCard).join('')
+    : '<div class="ws-empty-state" style="font-size:12px;padding:14px">لا توجد سجلات تحتاج إلى مراجعة.</div>';
   pastEl.innerHTML = past.length
     ? past.map(idRenderArchiveCard).join('')
     : '<div class="ws-empty-state" style="font-size:12px;padding:14px">لا توجد أيام سابقة.</div>';
@@ -10915,14 +11065,14 @@ var DES = (function() {
       _edBgCooldownTimer = setTimeout(function() {
         clearInterval(_cooldownInterval);
         if (btnEl) btnEl.disabled = false;
-        if (btnLabel) btnLabel.textContent = '⬡ توليد ٤ خلفيات';
+        if (btnLabel) btnLabel.textContent = '⬡ توليد 4 خلفيات';
       }, 20000);
     }
     function _cancelCooldown() {
       if (_edBgCooldownTimer) { clearTimeout(_edBgCooldownTimer); _edBgCooldownTimer = null; }
       if (_cooldownInterval)  { clearInterval(_cooldownInterval);  _cooldownInterval  = null; }
       if (btnEl)    btnEl.disabled = false;
-      if (btnLabel) btnLabel.textContent = '⬡ توليد ٤ خلفيات';
+      if (btnLabel) btnLabel.textContent = '⬡ توليد 4 خلفيات';
     }
     _startCooldown();
     // ─────────────────────────────────────────────────────────────────
@@ -11562,9 +11712,6 @@ async function aiyGenerateReport() {
   <div id="des-full-preview-content" class="des-canvas"></div>
 </div>
 
-<!-- X / Twitter widgets (renders <a class="twitter-timeline"> elements on the dashboard) -->
-<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-
 <!-- ═══ QUICK ACTIONS FAB ═══ -->
 <div class="fab-wrap" id="fab-wrap">
   <div class="fab-menu">
@@ -11731,6 +11878,7 @@ function formatRelativeTime(dateStr) {
 }
 
 function startNotifPolling() {
+  if (!AUTH_SESSION_READY || (AUTH_USER && AUTH_USER.mustChangePassword)) return;
   fetchNotifications();
   if (NOTIFICATIONS_POLL_INTERVAL) clearInterval(NOTIFICATIONS_POLL_INTERVAL);
   NOTIFICATIONS_POLL_INTERVAL = setInterval(fetchNotifications, 60000); // poll every 60s
@@ -11764,7 +11912,7 @@ function toggleNotifications(e) {
   const p = document.getElementById('notif-panel');
   if (!p) return;
   p.classList.toggle('open');
-  if (p.classList.contains('open')) fetchNotifications();
+  if (p.classList.contains('open') && AUTH_SESSION_READY && !(AUTH_USER && AUTH_USER.mustChangePassword)) fetchNotifications();
 }
 async function clickNotif(id) {
   const n = NOTIFICATIONS_DATA.find(x => x.id === id);
@@ -13332,7 +13480,7 @@ window.MM = (function(){
       }).join('') + '</div>';
   }
 
-  // ─── عرض التقرير بـ ٨ أقسام ───
+  // ─── عرض التقرير بـ 8 أقسام ───
   function renderEightSections(r){
     var html = '';
     // 2. أبرز الأخبار
@@ -13974,7 +14122,8 @@ document.addEventListener('DOMContentLoaded', () => {
   updateHijriPill();
   setInterval(updateHijriPill, 60 * 60 * 1000); // refresh every hour
   renderNotifications();
-  // Start API-backed notification polling after auth is ready
+  // Wait for authCheckSession before any API-backed notification request. A mandatory password
+  // reset deliberately leaves this panel static until the browser holds an unrestricted token.
   setTimeout(startNotifPolling, 1500);
 });
 
