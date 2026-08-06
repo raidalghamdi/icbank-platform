@@ -5,6 +5,7 @@ using Icbank.Platform.Application.Common.Models;
 using Icbank.Platform.Application.Shorfah;
 using Icbank.Platform.Application.Shorfah.Commands;
 using Icbank.Platform.Application.Shorfah.Queries;
+using Icbank.Platform.Domain.Identity;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -24,16 +25,25 @@ public sealed class ShorfahIssuesController : ControllerBase
 {
     private const int DefaultPageSize = 25;
 
+    // Why: mirrors DownloadTokenOptions' own default -- surfaced to callers of the mint endpoint
+    // so the frontend can decide how quickly it must start the navigation, without this
+    // controller needing to inject IOptions<DownloadTokenOptions> from the Infrastructure layer
+    // (R-BE-002: Api may not reach into Infrastructure's option types directly).
+    private const int DownloadTokenLifetimeSeconds = 120;
+
     private readonly ISender _sender;
     private readonly IResourceAuthorizationService _resourceAuthorization;
+    private readonly IDownloadTokenService _downloadTokenService;
 
     /// <summary>Initializes a new instance of the <see cref="ShorfahIssuesController"/> class.</summary>
     /// <param name="sender">The MediatR sender used to dispatch Shorfah issue commands/queries.</param>
     /// <param name="resourceAuthorization">The SEC-16 resource-existence port.</param>
-    public ShorfahIssuesController(ISender sender, IResourceAuthorizationService resourceAuthorization)
+    /// <param name="downloadTokenService">The GAP 2 single-use download-token port.</param>
+    public ShorfahIssuesController(ISender sender, IResourceAuthorizationService resourceAuthorization, IDownloadTokenService downloadTokenService)
     {
         _sender = sender;
         _resourceAuthorization = resourceAuthorization;
+        _downloadTokenService = downloadTokenService;
     }
 
     /// <summary>Lists all issues, most recent (year/month descending) first.</summary>
@@ -345,11 +355,105 @@ public sealed class ShorfahIssuesController : ControllerBase
         return result.IsSuccess ? File(result.Value!, "application/pdf") : NotFound(new { error = result.Error });
     }
 
+    /// <summary>
+    /// Mints a short-lived, single-use download token for this issue's PDF (GAP 2 --
+    /// FRONTEND-WIRING-NOTES.md §4: a plain <c>&lt;a href&gt;</c> navigation cannot carry a bearer
+    /// header, so the frontend must first call this endpoint with its normal bearer token, then
+    /// navigate the browser to the <c>pdf/via-token</c>/<c>pdf.pdf/via-token</c> routes below with
+    /// the returned value as a query parameter). Behind the exact same policy and resource check
+    /// as the PDF endpoints themselves -- minting proves nothing beyond "this caller could read
+    /// this issue a moment ago"; the token-redemption routes re-verify independently.
+    /// </summary>
+    /// <param name="issueId">The issue the token is scoped to.</param>
+    /// <param name="cancellationToken">A token used to observe cancellation requests.</param>
+    /// <returns>200 OK with <c>{token, expiresInSeconds}</c>, or 404.</returns>
+    [HttpPost("{issueId:int}/pdf/download-token")]
+    [Authorize(Policy = "shorfah:view")]
+    public async Task<ActionResult> IssuePdfDownloadTokenAsync(int issueId, CancellationToken cancellationToken)
+    {
+        ActionResult? notFound = await EnsureIssueExistsAsync(issueId, cancellationToken);
+        if (notFound is not null)
+        {
+            return notFound;
+        }
+
+        var actorUserId = CurrentUserId.TryRead(User) ?? throw new InvalidOperationException("Authenticated request missing subject claim.");
+        Result<string> result = await _sender.Send(new IssueShorfahIssueDownloadTokenCommand(actorUserId, issueId), cancellationToken);
+        return Ok(new { token = result.Value, expiresInSeconds = DownloadTokenLifetimeSeconds });
+    }
+
+    /// <summary>
+    /// HTML preview of the issue PDF, reachable by a plain browser navigation via a single-use
+    /// token instead of a bearer header (GAP 2). <c>[AllowAnonymous]</c> is safe here specifically
+    /// because every other guarantee normally provided by <c>[Authorize]</c> plus
+    /// <see cref="EnsureIssueExistsAsync"/> is re-created explicitly inside this action: the token
+    /// must exist, be unexpired, be unused, and be scoped to this exact <paramref name="issueId"/>
+    /// (checked first, so a stolen/guessed token can never be replayed against a different issue),
+    /// and the resource-existence check still runs before any content is served.
+    /// </summary>
+    /// <param name="issueId">The issue being exported.</param>
+    /// <param name="token">The single-use download token minted by <see cref="IssuePdfDownloadTokenAsync"/>.</param>
+    /// <param name="preview">When <c>1</c> or <c>true</c>, includes every flagged section regardless of approval.</param>
+    /// <param name="cancellationToken">A token used to observe cancellation requests.</param>
+    /// <returns>The rendered HTML, or 401/404.</returns>
+    [HttpGet("{issueId:int}/pdf/via-token")]
+    [AllowAnonymous]
+    public async Task<ActionResult> GetPdfHtmlByTokenAsync(int issueId, [FromQuery] string? token, [FromQuery] string? preview, CancellationToken cancellationToken)
+    {
+        ActionResult? unauthorizedOrNotFound = await RedeemPdfTokenAsync(issueId, token, cancellationToken);
+        if (unauthorizedOrNotFound is not null)
+        {
+            return unauthorizedOrNotFound;
+        }
+
+        Result<string> result = await _sender.Send(new GetShorfahIssuePdfHtmlQuery(issueId, IsPreview(preview)), cancellationToken);
+        return result.IsSuccess ? Content(result.Value!, "text/html") : NotFound(new { error = result.Error });
+    }
+
+    /// <summary>Binary PDF download of the issue, reachable by a plain browser navigation via a single-use token instead of a bearer header (GAP 2). See <see cref="GetPdfHtmlByTokenAsync"/> for the security reasoning.</summary>
+    /// <param name="issueId">The issue being exported.</param>
+    /// <param name="token">The single-use download token minted by <see cref="IssuePdfDownloadTokenAsync"/>.</param>
+    /// <param name="preview">When <c>1</c> or <c>true</c>, includes every flagged section regardless of approval.</param>
+    /// <param name="cancellationToken">A token used to observe cancellation requests.</param>
+    /// <returns>The rendered document bytes, or 401/404.</returns>
+    [HttpGet("{issueId:int}/pdf.pdf/via-token")]
+    [AllowAnonymous]
+    public async Task<ActionResult> GetPdfBinaryByTokenAsync(int issueId, [FromQuery] string? token, [FromQuery] string? preview, CancellationToken cancellationToken)
+    {
+        ActionResult? unauthorizedOrNotFound = await RedeemPdfTokenAsync(issueId, token, cancellationToken);
+        if (unauthorizedOrNotFound is not null)
+        {
+            return unauthorizedOrNotFound;
+        }
+
+        Result<byte[]> result = await _sender.Send(new GetShorfahIssuePdfBinaryQuery(issueId, IsPreview(preview)), cancellationToken);
+        return result.IsSuccess ? File(result.Value!, "application/pdf") : NotFound(new { error = result.Error });
+    }
+
     private static bool IsPreview(string? preview) => preview is "1" or "true";
 
     private async Task<ActionResult?> EnsureIssueExistsAsync(int issueId, CancellationToken cancellationToken)
     {
         ResourceAuthorizationResult authorization = await _resourceAuthorization.AuthorizeShorfahIssueResourceAsync(issueId, cancellationToken);
         return authorization.IsAuthorized ? null : NotFound(new { error = "العدد غير موجود" });
+    }
+
+    /// <summary>
+    /// Shared token-redemption guard for the two <c>via-token</c> PDF routes: rejects a
+    /// missing/wrong/expired/already-used token with 401 before ever touching resource
+    /// authorization, then re-runs the exact same <see cref="EnsureIssueExistsAsync"/> resource
+    /// check the bearer-only routes use -- a valid token for issue A can never be used to prove
+    /// anything about issue B, and a valid token for an issue that has since been deleted still
+    /// 404s exactly like the bearer path would.
+    /// </summary>
+    private async Task<ActionResult?> RedeemPdfTokenAsync(int issueId, string? token, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrEmpty(token) ||
+            !await _downloadTokenService.RedeemAsync(token, DownloadResourceType.ShorfahIssuePdf, issueId, cancellationToken))
+        {
+            return Unauthorized(new { error = "رابط التنزيل غير صالح أو منتهي الصلاحية" });
+        }
+
+        return await EnsureIssueExistsAsync(issueId, cancellationToken);
     }
 }
