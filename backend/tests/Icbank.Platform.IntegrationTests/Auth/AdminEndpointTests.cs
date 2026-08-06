@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text;
 using FluentAssertions;
 using Icbank.Platform.Domain.Identity;
 using Icbank.Platform.Infrastructure.Persistence;
@@ -359,6 +360,60 @@ public sealed class AdminEndpointTests : IDisposable
         HttpResponseMessage response = await client.GetAsync(new Uri("/api/v1/admin/activity", UriKind.Relative));
 
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task ExportActivity_NoToken_ReturnsUnauthorized()
+    {
+        using HttpClient client = _factory.CreateClient();
+
+        HttpResponseMessage response = await client.GetAsync(new Uri("/api/v1/admin/activity/export", UriKind.Relative));
+
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task ExportActivity_ViewerToken_ReturnsForbidden()
+    {
+        (HttpClient client, _) = await ArrangeAuthenticatedClientAsync(useAdmin: false, useViewer: true);
+
+        HttpResponseMessage response = await client.GetAsync(new Uri("/api/v1/admin/activity/export", UriKind.Relative));
+
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task ExportActivity_AsAdmin_ReturnsCsvWithUtf8BomAndWritesAuditLogEntry()
+    {
+        (HttpClient client, AuthTestDataBuilder.SeededUsers seeded) = await ArrangeAuthenticatedClientAsync(useAdmin: true);
+
+        HttpResponseMessage response = await client.GetAsync(new Uri("/api/v1/admin/activity/export", UriKind.Relative));
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        response.Content.Headers.ContentType?.MediaType.Should().Be("text/csv");
+        response.Content.Headers.ContentDisposition?.FileName.Should().Be("\"activity-log.csv\"");
+
+        var bytes = await response.Content.ReadAsByteArrayAsync();
+        bytes.Take(3).Should().BeEquivalentTo(new byte[] { 0xEF, 0xBB, 0xBF }, options => options.WithStrictOrdering());
+
+        var text = Encoding.UTF8.GetString(bytes.Skip(3).ToArray());
+        text.Should().Contain("\"#\",\"المستخدم\",\"البريد\",\"العملية\",\"النوع\",\"المعرف\",\"IP\",\"التاريخ\"");
+
+        using AppDbContext assertionDbContext = CreateDbContext();
+        List<AuditLogEntry> entries = await assertionDbContext.AuditLogEntries.Where(e => e.Action == "activity_log.export").ToListAsync();
+        entries.Should().ContainSingle();
+        entries[0].ActorUserId.Should().Be(seeded.Admin.Id);
+    }
+
+    [Fact]
+    public async Task ExportActivity_DateFromAfterDateTo_ReturnsBadRequest()
+    {
+        (HttpClient client, _) = await ArrangeAuthenticatedClientAsync(useAdmin: true);
+
+        HttpResponseMessage response = await client.GetAsync(new Uri(
+            "/api/v1/admin/activity/export?dateFrom=2026-02-01&dateTo=2026-01-01", UriKind.Relative));
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
     [Fact]
