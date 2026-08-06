@@ -46,16 +46,31 @@ public sealed class InternationalDaysController : ControllerBase
     /// <summary>Runs (or serves from cache) an AI research search for a day name.</summary>
     /// <param name="request">The search request.</param>
     /// <param name="cancellationToken">A token used to observe cancellation requests.</param>
-    /// <returns>200 OK with the search result, or 429/400 on rate-limit/validation failure.</returns>
+    /// <returns>
+    /// A <c>text/event-stream</c> response with the browser's historical <c>result</c> event,
+    /// or 429/400 on rate-limit/validation failure. Both fresh and cached results use the same
+    /// stream so the frontend's existing SSE path can render them without reshaping data.
+    /// </returns>
     [HttpPost("search")]
     [Authorize(Policy = "international_days:view")]
-    public async Task<ActionResult<SearchInternationalDayResultDto>> SearchAsync(
+    public async Task<IActionResult> SearchAsync(
         [FromBody] SearchInternationalDayRequest request, CancellationToken cancellationToken)
     {
         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
         var command = new SearchInternationalDayCommand(request.Query, request.Category, request.ForceRefresh, ipAddress);
         Result<SearchInternationalDayResultDto> result = await _sender.Send(command, cancellationToken);
-        return result.IsSuccess ? Ok(result.Value) : Problem(result.Error, statusCode: StatusCodes.Status429TooManyRequests);
+        if (!result.IsSuccess)
+        {
+            return Problem(result.Error, statusCode: StatusCodes.Status429TooManyRequests);
+        }
+
+        Response.ContentType = "text/event-stream";
+        Response.Headers.CacheControl = "no-cache";
+        Response.Headers["X-Accel-Buffering"] = "no";
+        await Response.WriteAsync("event: result\n", cancellationToken);
+        await Response.WriteAsync($"data: {System.Text.Json.JsonSerializer.Serialize(result.Value)}\n\n", cancellationToken);
+        await Response.Body.FlushAsync(cancellationToken);
+        return new EmptyResult();
     }
 
     /// <summary>Persists a search result across the day, theme, activations, design samples, and sources.</summary>

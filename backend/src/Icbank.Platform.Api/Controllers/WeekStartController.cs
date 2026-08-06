@@ -83,15 +83,46 @@ public sealed class WeekStartController : ControllerBase
     /// <summary>Generates week-start message drafts (one per model).</summary>
     /// <param name="request">The topic/occasion/audience/tone/length parameters.</param>
     /// <param name="cancellationToken">A token used to observe cancellation requests.</param>
-    /// <returns>200 OK with the generated outputs, or 400 on validation failure.</returns>
+    /// <returns>
+    /// A <c>text/event-stream</c> response compatible with the legacy browser, or 400 on
+    /// validation failure. The application generator returns complete model outputs, so each
+    /// completed value is emitted as one chunk while preserving the browser's SSE contract.
+    /// </returns>
     [HttpPost("generate")]
     [Authorize(Policy = "weekstart:create")]
-    public async Task<ActionResult<IReadOnlyList<GeneratedOutputDto>>> GenerateAsync([FromBody] GenerateWeekStartMessagesRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> GenerateAsync([FromBody] GenerateWeekStartMessagesRequest request, CancellationToken cancellationToken)
     {
         var actorUserId = CurrentUserId.TryRead(User) ?? throw new InvalidOperationException("Authenticated request missing subject claim.");
         var command = new GenerateWeekStartMessagesCommand(actorUserId, request.Topic, request.Occasion, request.Audience, request.Tone, request.Length);
         Result<IReadOnlyList<GeneratedOutputDto>> result = await _sender.Send(command, cancellationToken);
-        return result.IsSuccess ? Ok(result.Value) : Problem(result.Error, statusCode: StatusCodes.Status400BadRequest);
+        if (!result.IsSuccess)
+        {
+            return Problem(result.Error, statusCode: StatusCodes.Status400BadRequest);
+        }
+
+        IReadOnlyList<GeneratedOutputDto> outputs = result.Value!;
+        Response.ContentType = "text/event-stream";
+        Response.Headers.CacheControl = "no-cache";
+        Response.Headers["X-Accel-Buffering"] = "no";
+
+        var outputIds = outputs.ToDictionary(output => output.ModelName, output => output.Id, StringComparer.Ordinal);
+        await WriteServerSentEventAsync(new { type = "start", models = outputs.Select(output => output.ModelName), outputIds }, cancellationToken);
+        foreach (GeneratedOutputDto output in outputs)
+        {
+            await WriteServerSentEventAsync(new { model = output.ModelName, chunk = output.OutputText }, cancellationToken);
+            await WriteServerSentEventAsync(
+                new
+                {
+                    model = output.ModelName,
+                    done = true,
+                    wordCount = CountWords(output.OutputText),
+                    outputId = output.Id,
+                },
+                cancellationToken);
+        }
+
+        await WriteServerSentEventAsync(new { allDone = true }, cancellationToken);
+        return new EmptyResult();
     }
 
     /// <summary>Marks a generated output as selected and archives it.</summary>
@@ -131,5 +162,14 @@ public sealed class WeekStartController : ControllerBase
         var pagedQuery = new PagedQuery { Page = page == 0 ? 1 : page, PageSize = pageSize == 0 ? DefaultPageSize : pageSize };
         Result<PagedResult<GeneratedOutputDto>> result = await _sender.Send(new ListGeneratedOutputsQuery(pagedQuery), cancellationToken);
         return Ok(result.Value);
+    }
+
+    private static int CountWords(string text) =>
+        text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries).Length;
+
+    private async Task WriteServerSentEventAsync<T>(T payload, CancellationToken cancellationToken)
+    {
+        await Response.WriteAsync($"data: {System.Text.Json.JsonSerializer.Serialize(payload)}\n\n", cancellationToken);
+        await Response.Body.FlushAsync(cancellationToken);
     }
 }

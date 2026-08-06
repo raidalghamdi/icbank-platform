@@ -179,8 +179,16 @@ public sealed class CoreEndpointWorkflowTests : IDisposable
 
     private static async Task<int> ReadFirstGeneratedOutputIdAsync(HttpResponseMessage response)
     {
-        var document = System.Text.Json.JsonDocument.Parse(await response.Content.ReadAsStringAsync());
-        return document.RootElement[0].GetProperty("id").GetInt32();
+        response.Content.Headers.ContentType?.MediaType.Should().Be("text/event-stream");
+        var payload = await response.Content.ReadAsStringAsync();
+        var startEvent = payload
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries)
+            .FirstOrDefault(line => line.StartsWith("data: ", StringComparison.Ordinal)
+                && line.Contains("\"type\":\"start\"", StringComparison.Ordinal));
+        startEvent.Should().NotBeNull("the browser's Week Start client receives output ids in the SSE start event");
+
+        using var document = System.Text.Json.JsonDocument.Parse(startEvent!["data: ".Length..]);
+        return document.RootElement.GetProperty("outputIds").EnumerateObject().First().Value.GetInt32();
     }
 
     private static async Task<int> ReadFirstArchiveEntryIdAsync(HttpResponseMessage response)

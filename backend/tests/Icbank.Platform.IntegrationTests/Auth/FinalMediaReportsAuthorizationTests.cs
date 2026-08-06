@@ -175,7 +175,8 @@ public sealed class FinalMediaReportsAuthorizationTests : IDisposable
 
         response.StatusCode.Should().Be(HttpStatusCode.Created);
         SeedDemoResponsePayload? payload = await response.Content.ReadFromJsonAsync<SeedDemoResponsePayload>();
-        payload!.SeededNews.Should().Be(6);
+        payload!.Ok.Should().BeTrue("the legacy browser gates its retry flow on the explicit ok flag");
+        payload.SeededNews.Should().Be(6);
         payload.SeededPosts.Should().Be(6);
     }
 
@@ -244,5 +245,5 @@ public sealed class FinalMediaReportsAuthorizationTests : IDisposable
 
     private sealed record LoginResponsePayload(string AccessToken);
 
-    private sealed record SeedDemoResponsePayload(string Message, int SeededNews, int SeededPosts);
+    private sealed record SeedDemoResponsePayload(bool Ok, string Message, int SeededNews, int SeededPosts);
 }
