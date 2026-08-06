@@ -2837,7 +2837,7 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
       <span class="ico" style="transform:scaleX(-1);"><svg><use href="#i-chevron-left"/></svg></span>
     </button>
     <nav class="breadcrumb">
-      <span class="en">Workspace</span>
+      <span>مساحة العمل</span>
       <span class="breadcrumb-sep ico" style="width:14px;height:14px;"><svg><use href="#i-chevron-left"/></svg></span>
       <span class="breadcrumb-current" id="bc-current">الرئيسية</span>
     </nav>
@@ -3549,7 +3549,7 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
       <div class="id-inline-archive-header">
         <div style="display:flex;align-items:center;gap:10px">
           <span class="id-inline-archive-title">📚 الأيام المحفوظة</span>
-          <span class="badge b-blue" id="id-archive-count-badge">0 يوم</span>
+          <span class="badge b-blue" id="id-archive-count-badge">لا توجد أيام</span>
         </div>
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
           <input id="id-archive-search-inp" class="id-archive-search-inp"
@@ -5099,7 +5099,7 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
             <label style="font-size:12px;font-weight:600;color:var(--text-2);display:block;margin-bottom:4px;">نوع التقرير</label>
             <select id="mm-gen-type" class="adm-input" style="width:100%;" onchange="MM.onTypeChange()">
               <option value="weekly" selected>أسبوعي (آخر 7 أيام)</option>
-              <option value="monthly">شهري (آخر 30 يوم)</option>
+              <option value="monthly">شهري (آخر 30 يوماً)</option>
               <option value="custom">فترة مخصصة</option>
             </select>
           </div>
@@ -5967,6 +5967,24 @@ const STATIC_DATA = {
 };
 
 // ════════════════════════════════════════
+// Arabic day-count grammar: singular (1), dual (2), plural (3–10),
+// accusative singular (11+), with exact hundreds/thousands kept singular.
+function formatArabicDayCount(value, unitOnly) {
+  var count = Math.abs(Number(value));
+  if (!Number.isFinite(count)) return '';
+  count = Math.floor(count);
+  if (count === 0) return 'لا توجد أيام';
+
+  var unit;
+  if (count === 1) unit = 'يوم';
+  else if (count === 2) unit = 'يومان';
+  else if (count >= 3 && count <= 10) unit = 'أيام';
+  else if (count % 100 === 0) unit = 'يوم';
+  else unit = 'يوماً';
+
+  return unitOnly ? unit : count + ' ' + unit;
+}
+
 // ADMIN PANEL
 // ════════════════════════════════════════
 (function() {
@@ -6013,13 +6031,13 @@ function admJson(path, method, body) {
 function admFmt(dt) {
   if (!dt) return '—';
   var d = new Date(dt);
-  return d.toLocaleDateString('ar-SA', { year:'numeric', month:'short', day:'numeric' })
-    + ' ' + d.toLocaleTimeString('ar-SA', { hour:'2-digit', minute:'2-digit' });
+  return d.toLocaleDateString('ar-SA-u-ca-gregory-nu-latn', { year:'numeric', month:'short', day:'numeric' })
+    + ' ' + d.toLocaleTimeString('ar-SA-u-ca-gregory-nu-latn', { hour:'2-digit', minute:'2-digit' });
 }
 
 function admFmtDay(dt) {
   if (!dt) return '—';
-  return new Date(dt).toLocaleDateString('ar-SA', { year:'numeric', month:'long', day:'numeric' });
+  return new Date(dt).toLocaleDateString('ar-SA-u-ca-gregory-nu-latn', { year:'numeric', month:'long', day:'numeric' });
 }
 
 var SENSITIVE_ACTIONS = ['user_deleted','role_deleted','settings_updated','password_reset','user_suspended'];
@@ -7135,9 +7153,9 @@ function dashSetGreeting() {
   var dayEl = document.getElementById('dash-day-name');
   if (dayEl) {
     try {
-      dayEl.textContent = new Intl.DateTimeFormat('ar-SA-u-ca-gregory', { weekday:'long' }).format(new Date());
+      dayEl.textContent = new Intl.DateTimeFormat('ar-SA-u-ca-gregory-nu-latn', { weekday:'long' }).format(new Date());
     } catch(e) {
-      dayEl.textContent = new Date().toLocaleDateString('ar', { weekday:'long' });
+      dayEl.textContent = new Date().toLocaleDateString('ar-SA-u-ca-gregory-nu-latn', { weekday:'long' });
     }
   }
   // Gregorian date — date only (no weekday, weekday shown separately)
@@ -7148,7 +7166,7 @@ function dashSetGreeting() {
       var greg = new Intl.DateTimeFormat('ar-SA-u-ca-gregory-nu-latn', { year:'numeric', month:'long', day:'numeric' }).format(now);
       gregEl.textContent = greg;
     } catch(e) {
-      gregEl.textContent = now.toLocaleDateString('ar', { year:'numeric', month:'long', day:'numeric' });
+      gregEl.textContent = now.toLocaleDateString('ar-SA-u-ca-gregory-nu-latn', { year:'numeric', month:'long', day:'numeric' });
     }
   }
   // Hijri date via Intl
@@ -7292,9 +7310,9 @@ function dashLoadUpcomingEvents() {
     el.innerHTML = events.slice(0, 6).map(function(ev) {
       var dateStr;
       try {
-        dateStr = new Date(ev.date).toLocaleDateString('ar-SA-u-nu-latn', { day:'numeric', month:'long', year:'numeric' });
+        dateStr = new Date(ev.date).toLocaleDateString('ar-SA-u-ca-gregory-nu-latn', { day:'numeric', month:'long', year:'numeric' });
       } catch(_) { dateStr = ev.date; }
-      var daysLabel = ev.daysUntil === 0 ? 'اليوم' : (ev.daysUntil === 1 ? 'غداً' : 'بعد ' + ev.daysUntil + ' يوم');
+      var daysLabel = ev.daysUntil === 0 ? 'اليوم' : (ev.daysUntil === 1 ? 'غداً' : 'بعد ' + formatArabicDayCount(ev.daysUntil));
       return '<div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px;border-inline-start:4px solid '+ev.color+';">'+
         '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px;">'+
         '<span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:14px;background:'+ev.color+'15;color:'+ev.color+';">'+ev.badge+'</span>'+
@@ -7435,8 +7453,8 @@ function dashRenderIntlDays(days) {
     return;
   }
   el.innerHTML = days.map(function(d) {
-    var dateStr = new Date(d.date).toLocaleDateString('ar-SA-u-nu-latn', { month:'long', day:'numeric' });
-    var badge = d.daysUntil === 0 ? 'اليوم' : 'بعد ' + d.daysUntil + ' يوم';
+    var dateStr = new Date(d.date).toLocaleDateString('ar-SA-u-ca-gregory-nu-latn', { month:'long', day:'numeric' });
+    var badge = d.daysUntil === 0 ? 'اليوم' : 'بعد ' + formatArabicDayCount(d.daysUntil);
     return '<div class="dash-intl-item" onclick="showSection(\'intldays\')">' +
       '<div class="dash-intl-badge">' + escHtml(badge) + '</div>' +
       '<div style="flex:1;min-width:0">' +
@@ -7458,7 +7476,7 @@ function dashRenderRecentActivations(acts) {
   }
   el.innerHTML = acts.map(function(a) {
     var icon = AIY_TYPE_ICONS[a.type] || '⚡';
-    var dateStr = a.activationDate || (a.createdAt ? new Date(a.createdAt).toLocaleDateString('ar-SA-u-nu-latn', { month:'short', day:'numeric' }) : '');
+    var dateStr = a.activationDate || (a.createdAt ? new Date(a.createdAt).toLocaleDateString('ar-SA-u-ca-gregory-nu-latn', { month:'short', day:'numeric' }) : '');
     var statusCls = a.status === 'published' ? 'b-green' : 'b-gray';
     var statusTxt = a.status === 'published' ? 'منشور' : a.status || '';
     return '<div class="dash-act-item" onclick="showSection(\'aiyear\')">' +
@@ -7497,7 +7515,7 @@ async function dashGenerateAISummary() {
     if (footer) {
       footer.style.display = '';
       var gt = document.getElementById('dash-ai-gentime');
-      if (gt) gt.textContent = new Date(data.generatedAt || Date.now()).toLocaleString('ar-SA-u-nu-latn');
+      if (gt) gt.textContent = new Date(data.generatedAt || Date.now()).toLocaleString('ar-SA-u-ca-gregory-nu-latn');
     }
     if (copyBtn) copyBtn.style.display = '';
   } catch(err) {
@@ -7546,7 +7564,7 @@ async function loadGacSocialFeed() {
       return;
     }
     host.innerHTML = items.map(function(p) {
-      var when = p.postedAt ? new Date(p.postedAt).toLocaleDateString('ar-SA', { year:'numeric', month:'short', day:'numeric' }) : '';
+      var when = p.postedAt ? new Date(p.postedAt).toLocaleDateString('ar-SA-u-ca-gregory-nu-latn', { year:'numeric', month:'short', day:'numeric' }) : '';
       var body = (p.contentAr || p.contentEn || '').slice(0, 280);
       return (
         '<div style="padding:14px;border-bottom:1px solid #f3f4f6;">' +
@@ -7628,7 +7646,7 @@ function renderHeroArticle(article) {
     btnEl.style.opacity = '';
   }
   if (linkEl) {
-    const dateStr = new Date(article.publishedAt).toLocaleDateString('ar-SA-u-nu-latn', {day:'numeric', month:'long'});
+    const dateStr = new Date(article.publishedAt).toLocaleDateString('ar-SA-u-ca-gregory-nu-latn', {day:'numeric', month:'long'});
     linkEl.innerHTML = `📅 ${dateStr}` + (translateBtn ? '&nbsp;&nbsp;' + translateBtn : '');
   }
 }
@@ -7868,9 +7886,9 @@ function getWeekendDates() {
   const thu = new Date(now); thu.setDate(now.getDate() + daysToThursday);
   const fri = new Date(thu); fri.setDate(thu.getDate() + 1);
   const sat = new Date(thu); sat.setDate(thu.getDate() + 2);
-  const fmt = d => d.toLocaleDateString('ar-SA-u-nu-latn', { weekday:'long', day:'numeric', month:'long' });
+  const fmt = d => d.toLocaleDateString('ar-SA-u-ca-gregory-nu-latn', { weekday:'long', day:'numeric', month:'long' });
   return { thu, fri, sat, thuStr:fmt(thu), friStr:fmt(fri), satStr:fmt(sat),
-    label:`${thu.getDate()}–${sat.getDate()} ${sat.toLocaleDateString('ar-SA-u-nu-latn',{month:'long',year:'numeric'})}` };
+    label:`${thu.getDate()}–${sat.getDate()} ${sat.toLocaleDateString('ar-SA-u-ca-gregory-nu-latn',{month:'long',year:'numeric'})}` };
 }
 
 function generateSection(secKey) {
@@ -8136,7 +8154,7 @@ function wk2AdminRenderList() {
     if (d.status !== 'published') {
       actions.push('<button class="btn btn-ghost" onclick="wk2AdminDelete(' + d.id + ')" style="font-size:12px;padding:6px 14px;color:#DC2626">🗑️</button>');
     }
-    var createdAt = d.createdAt ? new Date(d.createdAt).toLocaleString('ar-SA') : '';
+    var createdAt = d.createdAt ? new Date(d.createdAt).toLocaleString('ar-SA-u-ca-gregory-nu-latn') : '';
     var summary = (c.summary || '').slice(0, 200);
     return '<div class="card" style="padding:14px;margin-bottom:10px;border-right:4px solid ' + meta.color + '">' +
       '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:10px">' +
@@ -8260,7 +8278,7 @@ function timeAgo(dateStr) {
   if (!dateStr) return '';
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff/60000), hrs = Math.floor(mins/60), days = Math.floor(hrs/24);
-  if (days > 0) return `منذ ${days} ${days===1?'يوم':'أيام'}`;
+  if (days > 0) return `منذ ${formatArabicDayCount(days)}`;
   if (hrs  > 0) return `منذ ${hrs} ${hrs===1?'ساعة':'ساعات'}`;
   return `منذ ${mins} دقيقة`;
 }
@@ -8322,7 +8340,7 @@ async function loadDailyReport() {
     if (content) content.innerHTML = renderReportHTML(d);
     if (record.reportDate && dateText) {
       const dt = new Date(record.reportDate + 'T12:00:00');
-      dateText.textContent = dt.toLocaleDateString('ar-SA-u-nu-latn', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+      dateText.textContent = dt.toLocaleDateString('ar-SA-u-ca-gregory-nu-latn', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
     }
     if (datePill) datePill.style.display = 'flex';
     if (loading) loading.style.display = 'none';
@@ -8410,11 +8428,11 @@ function renderReportHTML(d) {
   if (kWin.total !== undefined || d.windowDays) {
     const wd = d.windowDays || kWin.window_days || 30;
     const cards = [
-      { label:`مشاريع خلال ${wd} يوماً`, val:kWin.total??'—', cls:'kpi-primary' },
+      { label:`مشاريع خلال ${formatArabicDayCount(wd)}`, val:kWin.total??'—', cls:'kpi-primary' },
       { label:'منجزة في النافذة',         val:kWin.done??'—',  cls:'kpi-green' },
       { label:'متأخرة في النافذة',        val:kWin.overdue??'—', cls:(kWin.overdue??0)>0?'kpi-red':'' },
     ].map(c=>`<div class="rpt-kpi-card ${c.cls}"><div class="rpt-kpi-val">${esc(c.val)}</div><div class="rpt-kpi-label">${c.label}</div></div>`).join('');
-    html += sec(`نافذة الـ ${wd} يوماً القادمة`, '', `<div class="rpt-kpi-grid" style="grid-template-columns:repeat(3,1fr)">${cards}</div>`);
+    html += sec(`نافذة الـ ${formatArabicDayCount(wd)} القادمة`, '', `<div class="rpt-kpi-grid" style="grid-template-columns:repeat(3,1fr)">${cards}</div>`);
   }
 
   if (d.overdueProjects?.length) {
@@ -8435,7 +8453,7 @@ function renderReportHTML(d) {
       <td style="text-align:center">${esc(p.team_size??'—')}</td>
       <td class="td-date">${esc(p.due_date||p.dueDate||'—')}</td>
     </tr>`).join('');
-    html += sec(`المشاريع المستحقة في النافذة القادمة · ${d.windowDays||30} يوماً`, `${d.dueSoon.length} مشروع`,
+    html += sec(`المشاريع المستحقة في النافذة القادمة · ${formatArabicDayCount(d.windowDays||30)}`, `${d.dueSoon.length} مشروع`,
       `<table class="rpt-table"><thead><tr><th>المشروع</th><th>الفئة</th><th>عدد الأعضاء</th><th>تاريخ الاستحقاق</th></tr></thead><tbody>${rows}</tbody></table>`);
   }
 
@@ -8494,7 +8512,7 @@ function wsRenderArchive(entries) {
     var badgeClass = isApproved ? 'ws-arc-badge-approved' : 'ws-arc-badge-file';
     var badgeText = isApproved ? '✓ معتمد' : '📁 ملف';
     var source = e.sourceFile || '';
-    var date = new Date(e.createdAt).toLocaleDateString('ar-SA', { year:'numeric', month:'short', day:'numeric' });
+    var date = new Date(e.createdAt).toLocaleDateString('ar-SA-u-ca-gregory-nu-latn', { year:'numeric', month:'short', day:'numeric' });
     var preview = (e.preview || '').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     return '<div class="ws-archive-card">' +
       '<div class="ws-archive-card-top">' +
@@ -9379,7 +9397,7 @@ async function idLoadArchive() {
     var data = await res.json();
     idArchiveData = data.items || [];
     var badge = document.getElementById('id-archive-count-badge');
-    if (badge) badge.textContent = idArchiveData.length + ' يوم';
+    if (badge) badge.textContent = formatArabicDayCount(idArchiveData.length);
     idRenderArchiveGrid(idArchiveData);
   } catch(err) { /* silent */ }
 }
@@ -9392,9 +9410,9 @@ function idRenderArchiveCard(day) {
   var cat = day.category ? '<span class="id-arc-tag">' + esc(day.category) + '</span>' : '';
   var date = day.annualDate ? '<span class="id-arc-date">📅 ' + esc(day.annualDate) + '</span>' : '';
   var actCount = day.activation_count || 0;
-  var updated = day.updatedAt ? new Date(day.updatedAt).toLocaleDateString('ar-SA', { year:'numeric', month:'short', day:'numeric' }) : '';
+  var updated = day.updatedAt ? new Date(day.updatedAt).toLocaleDateString('ar-SA-u-ca-gregory-nu-latn', { year:'numeric', month:'short', day:'numeric' }) : '';
   var daysUntilBadge = (typeof day._daysUntil === 'number')
-    ? '<span class="id-arc-tag" style="background:#dcfce7;color:#166534">' + (day._daysUntil === 0 ? 'اليوم' : 'بعد ' + day._daysUntil + ' يوم') + '</span>'
+    ? '<span class="id-arc-tag" style="background:#dcfce7;color:#166534">' + (day._daysUntil === 0 ? 'اليوم' : 'بعد ' + formatArabicDayCount(day._daysUntil)) + '</span>'
     : '';
   return '<div class="id-archive-card" onclick="idOpenDay(' + day.id + ')">' +
     '<div class="id-archive-card-name">' + esc(day.dayNameAr) + '</div>' +
@@ -9584,7 +9602,7 @@ async function aiyLoadStats() {
     set('aiy-stat-channels', d.totalChannels ?? '—');
     if (d.lastUpdated) {
       var dt = new Date(d.lastUpdated);
-      set('aiy-stat-updated', dt.toLocaleDateString('ar-SA', { month:'short', day:'numeric' }));
+      set('aiy-stat-updated', dt.toLocaleDateString('ar-SA-u-ca-gregory-nu-latn', { month:'short', day:'numeric' }));
     }
     if (aiyChartsLoaded) aiyDrawCharts(d);
     else { aiy_pendingStats = d; }
@@ -9769,8 +9787,8 @@ function aiyOpenLB(id) {
     aiyLBField('النوع', a.type) +
     ((a.channels || []).length ? aiyLBField('القنوات', (a.channels || []).join(' · ')) : '') +
     aiyLBField('الحالة', a.status || 'منشور') +
-    (a.reach != null ? aiyLBField('الوصول', a.reach.toLocaleString()) : '') +
-    (a.engagement != null ? aiyLBField('التفاعل', a.engagement.toLocaleString()) : '') +
+    (a.reach != null ? aiyLBField('الوصول', a.reach.toLocaleString('ar-SA-u-nu-latn')) : '') +
+    (a.engagement != null ? aiyLBField('التفاعل', a.engagement.toLocaleString('ar-SA-u-nu-latn')) : '') +
     ((a.tags || []).length ? aiyLBField('الوسوم', a.tags.join(' · ')) : '') +
     (a.notes ? aiyLBField('ملاحظات', a.notes) : '');
 
@@ -9783,8 +9801,8 @@ function aiyOpenLB(id) {
   // KPIs
   var kpisEl = document.getElementById('aiy-lb-kpis');
   kpisEl.innerHTML = '';
-  if (a.reach != null) kpisEl.innerHTML += aiyLBKpi(a.reach.toLocaleString(), 'الوصول');
-  if (a.engagement != null) kpisEl.innerHTML += aiyLBKpi(a.engagement.toLocaleString(), 'التفاعل');
+  if (a.reach != null) kpisEl.innerHTML += aiyLBKpi(a.reach.toLocaleString('ar-SA-u-nu-latn'), 'الوصول');
+  if (a.engagement != null) kpisEl.innerHTML += aiyLBKpi(a.engagement.toLocaleString('ar-SA-u-nu-latn'), 'التفاعل');
   if (a.metrics && a.metrics.length) {
     a.metrics.forEach(function(m) { kpisEl.innerHTML += aiyLBKpi(m.metricValue || '—', m.metricKey); });
   }
@@ -11345,7 +11363,7 @@ var GACLIB = (function() {
     try {
       var d = new Date(iso);
       if (isNaN(d.getTime())) return iso;
-      return d.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long' });
+      return d.toLocaleDateString('ar-SA-u-ca-gregory-nu-latn', { year: 'numeric', month: 'long' });
     } catch(_) { return iso; }
   }
 
@@ -11544,10 +11562,10 @@ async function aiyGenerateReport() {
 function updateHijriPill() {
   const now = new Date();
   try {
-    const hijri = new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura', {
+    const hijri = new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura-nu-latn', {
       day: 'numeric', month: 'long', year: 'numeric'
     }).format(now);
-    const greg = now.toLocaleDateString('ar-SA-u-nu-latn', {
+    const greg = now.toLocaleDateString('ar-SA-u-ca-gregory-nu-latn', {
       weekday: 'short', day: 'numeric', month: 'short', year: 'numeric'
     });
     const hEl = document.getElementById('hijri-h');
@@ -11685,7 +11703,7 @@ function formatRelativeTime(dateStr) {
   if (diff < 60) return 'الآن';
   if (diff < 3600) return 'منذ ' + Math.round(diff / 60) + ' دقيقة';
   if (diff < 86400) return 'منذ ' + Math.round(diff / 3600) + ' ساعة';
-  return 'منذ ' + Math.round(diff / 86400) + ' يوم';
+  return 'منذ ' + formatArabicDayCount(Math.round(diff / 86400));
 }
 
 function startNotifPolling() {
@@ -11922,7 +11940,7 @@ async function shorfahLoadIssues() {
        // Task 2: Three distinct state badges
       var badge;
       if (iss.status === 'published') {
-        var pubDate = iss.publishedAt ? new Date(iss.publishedAt).toLocaleDateString('ar-SA') : '';
+        var pubDate = iss.publishedAt ? new Date(iss.publishedAt).toLocaleDateString('ar-SA-u-ca-gregory-nu-latn') : '';
         badge = '<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;background:#dcfce7;color:#15803d;font-weight:800;font-size:11px;">✓ منشور رسمياً' + (pubDate ? ' · ' + pubDate : '') + '</span>';
       } else if (iss.status === 'in_review') {
         badge = '<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;background:#fef3c7;color:#92400e;font-weight:800;font-size:11px;">⏳ تحت المراجعة النهائية</span>';
@@ -12148,7 +12166,7 @@ function shorfahRenderBoard() {
         (s.descriptionAr ? '<div style="font-size:12px;color:var(--text-3);margin-bottom:8px;">'+s.descriptionAr+'</div>' : '')+
         // SLA badge (read-only) — media count removed (Phase 7: images are export-only)
         '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">'+
-          '<span style="font-size:11px;padding:3px 10px;border-radius:10px;background:#fef3c7;color:#92400e;font-weight:700;" title="أيام SLA تُدار مركزيًا من إدارة شُرفة">⏱ SLA: ' + (s.slaDays || 7) + ' يوم</span>'+
+          '<span style="font-size:11px;padding:3px 10px;border-radius:10px;background:#fef3c7;color:#92400e;font-weight:700;" title="أيام SLA تُدار مركزيًا من إدارة شُرفة">⏱ SLA: ' + formatArabicDayCount(s.slaDays || 7) + '</span>'+
         '</div>'+
         '<div style="font-size:13px;color:var(--text-2);line-height:1.7;padding:10px;background:#f9fafb;border-radius:8px;border-right:3px solid '+meta.color+';">'+contentPreview+'</div>'+
         '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px;">'+
@@ -12602,14 +12620,14 @@ async function shorfahAdminRenderSla() {
         '<div style="font-weight:800;color:#0e3b4a;margin-bottom:8px;">'+label+'</div>' +
         '<div style="display:flex;align-items:center;gap:8px;">' +
           '<label style="font-size:13px;color:var(--text-2);">أيام SLA:</label>' +
-          '<input type="number" value="'+days+'" min="1" max="60" style="width:80px;padding:6px;border:1px solid #d1d5db;border-radius:6px;text-align:center;" id="sla-tpl-'+type+'"/>' +
-          '<span style="font-size:13px;color:var(--text-3);">يوم</span>' +
+          '<input type="number" value="'+days+'" min="1" max="60" style="width:80px;padding:6px;border:1px solid #d1d5db;border-radius:6px;text-align:center;" id="sla-tpl-'+type+'" oninput="this.nextElementSibling.textContent=formatArabicDayCount(this.value, true)"/>' +
+          '<span style="font-size:13px;color:var(--text-3);">'+formatArabicDayCount(days, true)+'</span>' +
         '</div>' +
       '</div>';
     }
     return '<tr style="border-bottom:1px solid #e5e7eb;">' +
       '<td style="padding:12px;font-weight:700;color:#0e3b4a;">'+label+'</td>' +
-      '<td style="padding:12px;text-align:center;"><input type="number" value="'+days+'" min="1" max="60" style="width:90px;padding:6px;border:1px solid #d1d5db;border-radius:6px;text-align:center;" id="sla-tpl-'+type+'"/> <span style="font-size:13px;color:var(--text-3);">يوم</span></td>' +
+      '<td style="padding:12px;text-align:center;"><input type="number" value="'+days+'" min="1" max="60" style="width:90px;padding:6px;border:1px solid #d1d5db;border-radius:6px;text-align:center;" id="sla-tpl-'+type+'" oninput="this.nextElementSibling.textContent=formatArabicDayCount(this.value, true)"/> <span style="font-size:13px;color:var(--text-3);">'+formatArabicDayCount(days, true)+'</span></td>' +
     '</tr>';
   }).join('');
   var note = '<div style="background:#cce4e6;border-right:4px solid #1a6e7a;padding:12px 14px;border-radius:8px;margin-bottom:16px;color:#0e3b4a;font-size:13px;line-height:1.7;">' +
@@ -12788,9 +12806,9 @@ function shorfahAdminRenderStatus() {
       var deadline = s.slaDeadline ? new Date(s.slaDeadline) : null;
       var daysLeft = deadline ? Math.ceil((deadline.getTime() - now.getTime()) / 86400000) : null;
       var lastReminder = reminders.filter(function(r) { return r.sectionId === s.id; })[0];
-      var lastReminderStr = lastReminder ? new Date(lastReminder.sentAt).toLocaleDateString('ar-SA') : '—';
+      var lastReminderStr = lastReminder ? new Date(lastReminder.sentAt).toLocaleDateString('ar-SA-u-ca-gregory-nu-latn') : '—';
       var status = SHORFAH_STATUS_LABELS[s.workflowStatus] || SHORFAH_STATUS_LABELS.pending_contribution;
-      var daysText = daysLeft === null ? '—' : (daysLeft >= 0 ? daysLeft + ' يوم' : Math.abs(daysLeft) + ' يوم (متأخر)');
+      var daysText = daysLeft === null ? '—' : (daysLeft >= 0 ? formatArabicDayCount(daysLeft) : formatArabicDayCount(Math.abs(daysLeft)) + ' (متأخر)');
       var daysColor = daysLeft === null ? '#9ca3af' : (daysLeft < 0 ? '#b91c1c' : daysLeft < 3 ? '#a16207' : '#15803d');
       return '<div style="border:1px solid #e5e7eb;border-radius:10px;padding:12px;background:#fff;">' +
         '<div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px;gap:8px;">' +
@@ -12798,7 +12816,7 @@ function shorfahAdminRenderStatus() {
           '<span style="padding:3px 8px;border-radius:12px;background:'+status.bg+';color:'+status.color+';font-weight:700;font-size:11px;white-space:nowrap;">'+status.ar+'</span>' +
         '</div>' +
         '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;color:var(--text-2);margin-bottom:10px;">' +
-          '<div><strong style="color:var(--text-3);font-weight:600;">الموعد:</strong> '+(deadline ? deadline.toLocaleDateString('ar-SA') : '—')+'</div>' +
+          '<div><strong style="color:var(--text-3);font-weight:600;">الموعد:</strong> '+(deadline ? deadline.toLocaleDateString('ar-SA-u-ca-gregory-nu-latn') : '—')+'</div>' +
           '<div><strong style="color:var(--text-3);font-weight:600;">متبقي:</strong> <span style="color:'+daysColor+';font-weight:700;">'+daysText+'</span></div>' +
           '<div style="grid-column:1 / -1;"><strong style="color:var(--text-3);font-weight:600;">المساهمون:</strong> '+(sectionAssignments.length ? sectionAssignments.map(function(a) { return displayUser(a.userId); }).join(', ') : '—')+'</div>' +
           '<div style="grid-column:1 / -1;"><strong style="color:var(--text-3);font-weight:600;">آخر تذكير:</strong> '+lastReminderStr+'</div>' +
@@ -12828,14 +12846,14 @@ function shorfahAdminRenderStatus() {
       var deadline = s.slaDeadline ? new Date(s.slaDeadline) : null;
       var daysLeft = deadline ? Math.ceil((deadline.getTime() - now.getTime()) / 86400000) : null;
       var lastReminder = reminders.filter(function(r) { return r.sectionId === s.id; })[0];
-      var lastReminderStr = lastReminder ? new Date(lastReminder.sentAt).toLocaleDateString('ar-SA') : '—';
+      var lastReminderStr = lastReminder ? new Date(lastReminder.sentAt).toLocaleDateString('ar-SA-u-ca-gregory-nu-latn') : '—';
       var status = SHORFAH_STATUS_LABELS[s.workflowStatus] || SHORFAH_STATUS_LABELS.pending_contribution;
-      var daysText = daysLeft === null ? '—' : (daysLeft >= 0 ? daysLeft + ' يوم' : Math.abs(daysLeft) + ' يوم (متأخر)');
+      var daysText = daysLeft === null ? '—' : (daysLeft >= 0 ? formatArabicDayCount(daysLeft) : formatArabicDayCount(Math.abs(daysLeft)) + ' (متأخر)');
       var daysColor = daysLeft === null ? '#9ca3af' : (daysLeft < 0 ? '#b91c1c' : daysLeft < 3 ? '#a16207' : '#15803d');
       return '<tr style="border-bottom:1px solid #e5e7eb;">' +
         '<td style="padding:10px;font-weight:700;">'+s.titleAr+'</td>' +
         '<td style="padding:10px;text-align:center;">'+(sectionAssignments.length ? sectionAssignments.map(function(a) { return displayUser(a.userId); }).join(', ') : '—')+'</td>' +
-        '<td style="padding:10px;text-align:center;">'+(deadline ? deadline.toLocaleDateString('ar-SA') : '—')+'</td>' +
+        '<td style="padding:10px;text-align:center;">'+(deadline ? deadline.toLocaleDateString('ar-SA-u-ca-gregory-nu-latn') : '—')+'</td>' +
         '<td style="padding:10px;text-align:center;"><span style="padding:2px 8px;border-radius:12px;background:'+status.bg+';color:'+status.color+';font-weight:700;font-size:11px;">'+status.ar+'</span></td>' +
         '<td style="padding:10px;text-align:center;color:'+daysColor+';font-weight:700;">'+daysText+'</td>' +
         '<td style="padding:10px;text-align:center;">'+lastReminderStr+'</td>' +
@@ -12881,7 +12899,7 @@ function shorfahAdminRenderReminders() {
     '</tr></thead>' +
     '<tbody>' + reminders.map(function(r) {
       return '<tr style="border-bottom:1px solid #e5e7eb;">' +
-        '<td style="padding:10px;">' + new Date(r.sentAt).toLocaleString('ar-SA') + '</td>' +
+        '<td style="padding:10px;">' + new Date(r.sentAt).toLocaleString('ar-SA-u-ca-gregory-nu-latn') + '</td>' +
         '<td style="padding:10px;text-align:center;">#'+r.recipientUserId+'</td>' +
         '<td style="padding:10px;text-align:center;">'+(r.channel === 'email' ? 'بريد إلكتروني' : r.channel === 'in_app' ? 'داخل التطبيق' : 'كلاهما')+'</td>' +
         '<td style="padding:10px;text-align:center;">'+(r.reminderType === 'initial' ? 'ابتدائي' : r.reminderType === 'overdue' ? 'متأخر' : r.reminderType === 'pre_due' ? 'قبل الموعد' : r.reminderType)+'</td>' +
@@ -13014,7 +13032,7 @@ window.MM = (function(){
         '<label style="font-size:13px;font-weight:700;">نوع التقرير</label>'+
         '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">'+
           wizCard('weekly','أسبوعي','آخر 7 أيام','reportType')+
-          wizCard('monthly','شهري','آخر 30 يوم','reportType')+
+          wizCard('monthly','شهري','آخر 30 يوماً','reportType')+
           wizCard('custom','مخصص','تحدد التواريخ','reportType')+
         '</div>'+
         '<div id="mm-wiz-custom-dates" style="display:'+(state.wizAnswers.reportType==='custom'?'grid':'none')+';grid-template-columns:1fr 1fr;gap:10px;margin-top:8px;">'+
@@ -13269,7 +13287,7 @@ window.MM = (function(){
     listEl.style.display = 'block';
     listEl.innerHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;">' +
       state.reports.map(function(r){
-        var date = r.createdAt ? new Date(r.createdAt).toLocaleDateString('ar-SA-u-nu-latn') : '';
+        var date = r.createdAt ? new Date(r.createdAt).toLocaleDateString('ar-SA-u-ca-gregory-nu-latn') : '';
         var sum = r.executiveSummary || '';
         var kpis = r.kpis || {};
         var posts = kpis.totalPosts || kpis.posts_published || 0;
@@ -13451,7 +13469,7 @@ window.MM = (function(){
       if (!r) throw new Error('لم يتم العثور على بيانات التقرير');
       state.current = r;
       var titleEl = document.getElementById('mm-view-title'); if (titleEl) titleEl.textContent = r.title || 'تقرير رصد إعلامي';
-      var date = r.createdAt ? new Date(r.createdAt).toLocaleString('ar-SA-u-nu-latn') : '';
+      var date = r.createdAt ? new Date(r.createdAt).toLocaleString('ar-SA-u-ca-gregory-nu-latn') : '';
       var hashShort = r.contentSha256 ? r.contentSha256.slice(0,12) : '';
       var metaEl = document.getElementById('mm-view-meta');
       if (metaEl){
