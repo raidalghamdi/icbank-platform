@@ -43,11 +43,12 @@ read it before you start.
 7. [Step 5 — populate Key Vault secrets](#step-5--populate-key-vault-secrets)
 8. [Step 6 — GitHub repository configuration](#step-6--github-repository-configuration)
 9. [Step 7 — first CD pipeline run](#step-7--first-cd-pipeline-run)
-10. [Region fallback](#region-fallback)
-11. [Letting the CD pipeline reach SQL](#letting-the-cd-pipeline-reach-sql)
-12. [Secret rotation](#secret-rotation)
-13. [Rollback](#rollback)
-14. [Unverified without a live subscription](#unverified-without-a-live-subscription)
+10. [Step 8 — deploying the frontend](#step-8--deploying-the-frontend)
+11. [Region fallback](#region-fallback)
+12. [Letting the CD pipeline reach SQL](#letting-the-cd-pipeline-reach-sql)
+13. [Secret rotation](#secret-rotation)
+14. [Rollback](#rollback)
+15. [Unverified without a live subscription](#unverified-without-a-live-subscription)
 
 ---
 
@@ -382,6 +383,7 @@ environment-specific):
 | `SQL_SERVER_NAME` | e.g. `icbank-dev-sql` | `sqlServerName` output from Step 3 |
 | `SQL_SERVER_FQDN` | e.g. `icbank-dev-sql.database.windows.net` | `sqlServerFqdn` output from Step 3 |
 | `SQL_DATABASE_NAME` | e.g. `icbank-dev-db` | `sqlDatabaseName` output from Step 3 |
+| `FRONTEND_APP_SERVICE_NAME` | e.g. `icbank-dev-frontend` | The App Service hosting the internal-comms UI. Only read by `frontend-deploy.yml`; leave unset if you do not deploy the frontend from CI |
 
 None of the above are secrets in the sense of granting standing access by themselves — resource
 names and FQDNs are not credentials — but they're still environment-specific configuration, so
@@ -400,6 +402,45 @@ first time — this pipeline has not been run against a live tenant by the autho
 (see [Unverified without a live subscription](#unverified-without-a-live-subscription)).
 
 If everything passes, the app is live at `https://<APP_SERVICE_NAME>.azurewebsites.net`.
+
+## Step 8 — deploying the frontend
+
+The internal-comms UI (`artifacts/internal-comms/`) deploys separately from the API, via
+**Actions → Frontend CD → Run workflow**. It reuses the same OIDC federation and the same
+`AZURE_CLIENT_ID` / `AZURE_TENANT_ID` / `AZURE_SUBSCRIPTION_ID` secrets as Backend CD, so the
+only extra configuration it needs is the `FRONTEND_APP_SERVICE_NAME` variable above. No
+publish profile is involved — a publish profile is a long-lived credential with deploy rights
+that would sit in GitHub settings indefinitely, whereas the OIDC token is minted per run and
+expires with it.
+
+What the workflow does, and why each step is there:
+
+1. **Syntax-checks `server.mjs` and every inline `<script>` block** in `index.html` and
+   `login.html`. The site is static HTML with no build step, so nothing else would catch a
+   syntax error — and a broken inline script still returns HTTP 200, so a status-code smoke
+   test would call it a success while users saw a blank page.
+2. **Pins the startup command** to `node server.mjs`. App Service's Node autodetect runs
+   `npm start`, which this `package.json` does not define; without the pin the container
+   serves the directory statically and every deep link 404s instead of falling through to the
+   application shell.
+3. **`az webapp deploy`** the zipped directory.
+4. **Compares the live bytes to the committed files.** `server.mjs` streams both HTML files
+   verbatim (`res.end(data)`, no templating), so the sha256 of the served body must equal the
+   sha256 of the file in git. This is the only check that distinguishes a landed deploy from a
+   stale container still serving the previous build. `/` sits behind a server-side session
+   gate that only tests for the *presence* of a cookie, so the job sends
+   `Cookie: has_session=1` — a dummy value, never a real credential in a CI log.
+5. **Asserts the release invariants**: six `data-group-key` nav groups, the
+   `icbank.nav.groups.v1` persistence key, the `1023.98px` drawer breakpoint, the `tbl-cards`
+   responsive-table class, and the *absence* of `right: -300px` on the drawer. That last one
+   is a regression guard: parking the off-canvas sidebar at a negative offset enlarges the
+   document's scrollable area, which makes mobile Chrome widen the layout viewport (375 → 385)
+   and shifts every `position: fixed` overlay off-centre.
+
+Like Backend CD, this is `workflow_dispatch` only and has not been run against a live tenant
+(see [Unverified without a live subscription](#unverified-without-a-live-subscription)). Once
+you have watched it succeed against dev, adding a `push` trigger filtered to
+`artifacts/internal-comms/**` is a one-line change.
 
 ## Region fallback
 
