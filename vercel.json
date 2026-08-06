@@ -1,0 +1,27 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "version": 2,
+  "buildCommand": "echo 'Static site — no build needed'",
+  "installCommand": "echo 'No install needed — serverless function uses native fetch only'",
+  "outputDirectory": ".",
+  "framework": null,
+  "rewrites": [
+    { "source": "/login", "destination": "/login.html" },
+    { "source": "/api/(.*)", "destination": "https://workspaceapi-server-production-9087.up.railway.app/api/$1" },
+    { "source": "/((?!api/|login|login.html|static/|public/|shorfah/|imgtest.html|favicon.ico).*)", "destination": "/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" }
+      ]
+    },
+    {
+      "source": "/(index.html|login.html)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache" }
+      ]
+    }
+  ]
+}
