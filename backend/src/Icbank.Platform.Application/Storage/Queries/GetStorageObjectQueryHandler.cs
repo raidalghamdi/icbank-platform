@@ -7,9 +7,11 @@ namespace Icbank.Platform.Application.Storage.Queries;
 /// <summary>Handles <see cref="GetStorageObjectQuery"/>.</summary>
 public sealed class GetStorageObjectQueryHandler : IRequestHandler<GetStorageObjectQuery, Result<StoredObject>>
 {
-    // Why: BUSINESS-RULES.md §12.1 — narrower than the full write-path taxonomy, matching the
-    // Node ALLOWED_PREFIXES allowlist verbatim (ai-year/2026/, designs/, gac/, shorfah/).
-    private static readonly string[] AllowedPrefixes = { "ai-year/2026/", "designs/", "gac/", "shorfah/" };
+    // Why: weekend-place images are uploaded under "weekend/" and the shipped frontend reads
+    // them through this authenticated proxy. Keeping the prefix in the hardened validator makes
+    // those images reachable without reintroducing the Node app's public-bucket assumption
+    // (BUSINESS-RULES.md §12.1, AMBIGUOUS-BR-10).
+    private static readonly string[] AllowedPrefixes = { "ai-year/2026/", "designs/", "gac/", "shorfah/", "weekend/" };
 
     private readonly ISafeStoragePathValidator _pathValidator;
     private readonly IObjectStorageReader _storageReader;
