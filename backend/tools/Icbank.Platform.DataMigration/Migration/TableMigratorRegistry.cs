@@ -95,11 +95,11 @@ public static class TableMigratorRegistry
         new GeneratedDesignTableMigrator(),
 
         // Media-monitoring domain -- MediaReport and PromptFramework both optionally FK to
-        // Users only. ReportsQaQuery optionally FKs to Users and to final_media_reports; the
-        // latter has no migrator yet (see spec/DATA-MIGRATION-NOTES.md), so every migrated
-        // ReportsQaQuery row's FinalReportId will resolve to null until that gap is closed.
+        // Users only. FinalMediaReport must precede ReportsQaQuery so the latter can preserve
+        // its optional final_report_id through the id-mapping store.
         new MediaReportTableMigrator(),
         new PromptFrameworkTableMigrator(),
+        new FinalMediaReportTableMigrator(),
         new ReportsQaQueryTableMigrator(),
 
         // Daily Reports domain -- daily_reports has no FKs to any other table, so it is

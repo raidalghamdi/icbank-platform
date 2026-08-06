@@ -7,14 +7,6 @@ using Microsoft.EntityFrameworkCore;
 namespace Icbank.Platform.DataMigration.Migration.Migrators;
 
 /// <summary>Migrates <c>reports_qa_queries</c> → <see cref="ReportsQaQuery"/>.</summary>
-/// <remarks>
-/// <c>final_report_id</c> is looked up through the id-mapping store for <c>final_media_reports</c>,
-/// but <c>FinalMediaReportTableMigrator</c> does not exist yet (see
-/// spec/DATA-MIGRATION-NOTES.md -- <c>final_media_reports</c> is explicitly listed as NOT
-/// covered). Every row's <c>final_report_id</c> will therefore resolve to <see langword="null"/>
-/// until that migrator is written and run first; this is not a bug in this migrator, it is a
-/// direct, documented consequence of the still-open gap.
-/// </remarks>
 public sealed class ReportsQaQueryTableMigrator : ITableMigrator
 {
     /// <inheritdoc />

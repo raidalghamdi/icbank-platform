@@ -49,7 +49,11 @@ public sealed class NpgsqlDataSource : IPostgresDataSource, IAsyncDisposable
     {
         await using NpgsqlConnection connection = await OpenReadOnlyConnectionAsync(cancellationToken);
         await using NpgsqlCommand command = connection.CreateCommand();
-        command.CommandText = $"SELECT * FROM {QuoteIdentifier(tableName)} ORDER BY id ASC";
+
+        // Most source tables use an integer id, but shorfah_section_sla_defaults has the
+        // natural text key section_type. Ordering by the first source column keeps every table
+        // deterministic without incorrectly assuming an id column exists.
+        command.CommandText = $"SELECT * FROM {QuoteIdentifier(tableName)} ORDER BY 1 ASC";
         await using NpgsqlDataReader reader = await command.ExecuteReaderAsync(cancellationToken);
 
         while (await reader.ReadAsync(cancellationToken))

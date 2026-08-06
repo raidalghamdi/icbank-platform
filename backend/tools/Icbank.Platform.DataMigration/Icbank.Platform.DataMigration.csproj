@@ -4,7 +4,8 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>Icbank.Platform.DataMigration</RootNamespace>
     <AssemblyName>Icbank.Platform.DataMigration</AssemblyName>
-    <InvariantGlobalization>true</InvariantGlobalization>
+    <!-- Arabic source content requires ICU-backed culture-aware comparison, casing and collation. -->
+    <InvariantGlobalization>false</InvariantGlobalization>
     <UserSecretsId>icbank-platform-data-migration</UserSecretsId>
   </PropertyGroup>
 

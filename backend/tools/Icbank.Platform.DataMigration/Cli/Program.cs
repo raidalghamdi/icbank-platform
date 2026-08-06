@@ -1,3 +1,4 @@
+using System.Globalization;
 using Icbank.Platform.Application.Common.Interfaces;
 using Icbank.Platform.DataMigration.Cli;
 using Icbank.Platform.DataMigration.Configuration;
@@ -41,8 +42,11 @@ if (args.Length != 1 || !Enum.TryParse<MigrationMode>(args[0], ignoreCase: true,
 Directory.CreateDirectory(options.ReportDirectory);
 
 Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console()
-    .WriteTo.File(Path.Combine(options.ReportDirectory, "migration-.log"), rollingInterval: RollingInterval.Day)
+    .WriteTo.Console(formatProvider: CultureInfo.InvariantCulture)
+    .WriteTo.File(
+        Path.Combine(options.ReportDirectory, "migration-.log"),
+        rollingInterval: RollingInterval.Day,
+        formatProvider: CultureInfo.InvariantCulture)
     .Enrich.FromLogContext()
     .CreateLogger();
 

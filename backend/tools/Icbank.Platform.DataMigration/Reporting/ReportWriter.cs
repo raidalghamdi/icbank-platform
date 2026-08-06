@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 using System.Text.Json;
 
@@ -39,20 +40,29 @@ public static class ReportWriter
     public static string RenderText(MigrationReport report)
     {
         var builder = new StringBuilder();
-        builder.AppendLine($"Data migration report — mode: {report.Mode}");
-        builder.AppendLine($"Started (UTC):  {report.StartedAtUtc:O}");
-        builder.AppendLine($"Finished (UTC): {report.FinishedAtUtc:O}");
-        builder.AppendLine($"Duration:       {report.FinishedAtUtc - report.StartedAtUtc}");
-        builder.AppendLine($"Overall result: {(report.OverallPass ? "PASS" : "FAIL")}");
+        builder.AppendLine(CultureInfo.InvariantCulture, $"Data migration report — mode: {report.Mode}");
+        builder.AppendLine(CultureInfo.InvariantCulture, $"Started (UTC):  {report.StartedAtUtc:O}");
+        builder.AppendLine(CultureInfo.InvariantCulture, $"Finished (UTC): {report.FinishedAtUtc:O}");
+        builder.AppendLine(CultureInfo.InvariantCulture, $"Duration:       {report.FinishedAtUtc - report.StartedAtUtc}");
+        builder.AppendLine(CultureInfo.InvariantCulture, $"Overall result: {(report.OverallPass ? "PASS" : "FAIL")}");
         builder.AppendLine();
         builder.AppendLine("Per-table results:");
         foreach (TableReportEntry table in report.Tables)
         {
-            builder.AppendLine($"  [{(table.Pass ? "PASS" : "FAIL")}] {table.TableName}: source={table.SourceRowCount}"
-                + (table.DestinationRowCount.HasValue ? $", destination={table.DestinationRowCount}" : string.Empty));
+            var destinationCount = table.DestinationRowCount.HasValue
+                ? string.Format(CultureInfo.InvariantCulture, ", destination={0}", table.DestinationRowCount)
+                : string.Empty;
+            var summary = string.Format(
+                CultureInfo.InvariantCulture,
+                "  [{0}] {1}: source={2}{3}",
+                table.Pass ? "PASS" : "FAIL",
+                table.TableName,
+                table.SourceRowCount,
+                destinationCount);
+            builder.AppendLine(summary);
             foreach (var note in table.Notes)
             {
-                builder.AppendLine($"      - {note}");
+                builder.AppendLine(CultureInfo.InvariantCulture, $"      - {note}");
             }
         }
 
@@ -62,7 +72,7 @@ public static class ReportWriter
             builder.AppendLine("Run-level findings:");
             foreach (var finding in report.Findings)
             {
-                builder.AppendLine($"  - {finding}");
+                builder.AppendLine(CultureInfo.InvariantCulture, $"  - {finding}");
             }
         }
 
