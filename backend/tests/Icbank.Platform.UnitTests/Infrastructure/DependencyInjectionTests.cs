@@ -1,14 +1,24 @@
 using Azure.Communication.Email;
 using Azure.Storage.Blobs;
 using FluentAssertions;
+using Icbank.Platform.Application.Dashboard;
+using Icbank.Platform.Application.Designs.Composer;
+using Icbank.Platform.Application.Designs.IconEvent;
+using Icbank.Platform.Application.InternationalDays;
 using Icbank.Platform.Application.MediaMonitoring;
 using Icbank.Platform.Application.Shorfah;
 using Icbank.Platform.Application.Storage;
+using Icbank.Platform.Application.Weekend;
 using Icbank.Platform.Infrastructure;
+using Icbank.Platform.Infrastructure.Dashboard;
+using Icbank.Platform.Infrastructure.Designs;
+using Icbank.Platform.Infrastructure.Gemini;
+using Icbank.Platform.Infrastructure.InternationalDays;
 using Icbank.Platform.Infrastructure.MediaMonitoring;
 using Icbank.Platform.Infrastructure.Notifications;
 using Icbank.Platform.Infrastructure.Shorfah;
 using Icbank.Platform.Infrastructure.Storage;
+using Icbank.Platform.Infrastructure.Weekend;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -130,6 +140,58 @@ public sealed class DependencyInjectionTests
 
         act.Should().Throw<InvalidOperationException>()
             .WithMessage("*Notifications:AzureCommunicationServices:Endpoint*");
+    }
+
+    [Fact]
+    public void AddInfrastructure_GeminiApiKeyUnset_ResolvesTemplateImplementationsForAllTwelvePorts()
+    {
+        using ServiceProvider provider = BuildProvider(new Dictionary<string, string?>());
+
+        provider.GetRequiredService<IExecutiveSummaryGenerator>().Should().BeOfType<TemplateExecutiveSummaryGenerator>();
+        provider.GetRequiredService<IWeekendContentGenerator>().Should().BeOfType<TemplateWeekendContentGenerator>();
+        provider.GetRequiredService<IWeekStartMessageGenerator>().Should().BeOfType<TemplateWeekStartMessageGenerator>();
+        provider.GetRequiredService<IInternationalDaySearchProvider>().Should().BeOfType<TemplateInternationalDaySearchProvider>();
+        provider.GetRequiredService<IMediaReportNarrativeGenerator>().Should().BeOfType<TemplateMediaReportNarrativeGenerator>();
+        provider.GetRequiredService<IPromptExecutionEngine>().Should().BeOfType<TemplatePromptExecutionEngine>();
+        provider.GetRequiredService<IFinalReportSectionGenerator>().Should().BeOfType<TemplateFinalReportSectionGenerator>();
+        provider.GetRequiredService<IExecutiveSummaryRegenerator>().Should().BeOfType<TemplateExecutiveSummaryRegenerator>();
+        provider.GetRequiredService<IReportArchiveQaEngine>().Should().BeOfType<TemplateReportArchiveQaEngine>();
+        provider.GetRequiredService<IShorfahSectionContentGenerator>().Should().BeOfType<TemplateShorfahSectionContentGenerator>();
+        provider.GetRequiredService<IIconEventDesignExtractor>().Should().BeOfType<TemplateIconEventDesignExtractor>();
+        provider.GetRequiredService<IBackgroundImageGenerator>().Should().BeOfType<TemplateBackgroundImageGenerator>();
+
+        // Why: this port is HTML-to-PNG rasterization, not an AI call -- it must stay
+        // Template-backed regardless of whether a Gemini key is configured.
+        provider.GetRequiredService<IIconEventImageRenderer>().Should().BeOfType<TemplateIconEventImageRenderer>();
+    }
+
+    [Theory]
+    [InlineData("GEMINI_API_KEY")]
+    [InlineData("GOOGLE_AI_API_KEY")]
+    [InlineData("AI_INTEGRATIONS_GEMINI_API_KEY")]
+    public void AddInfrastructure_GeminiApiKeyConfigured_ResolvesGeminiImplementationsForTwelvePorts(string keyName)
+    {
+        using ServiceProvider provider = BuildProvider(new Dictionary<string, string?>
+        {
+            [keyName] = "test-key-value",
+        });
+
+        provider.GetRequiredService<IExecutiveSummaryGenerator>().Should().BeOfType<GeminiExecutiveSummaryGenerator>();
+        provider.GetRequiredService<IWeekendContentGenerator>().Should().BeOfType<GeminiWeekendContentGenerator>();
+        provider.GetRequiredService<IWeekStartMessageGenerator>().Should().BeOfType<GeminiWeekStartMessageGenerator>();
+        provider.GetRequiredService<IInternationalDaySearchProvider>().Should().BeOfType<GeminiInternationalDaySearchProvider>();
+        provider.GetRequiredService<IMediaReportNarrativeGenerator>().Should().BeOfType<GeminiMediaReportNarrativeGenerator>();
+        provider.GetRequiredService<IPromptExecutionEngine>().Should().BeOfType<GeminiPromptExecutionEngine>();
+        provider.GetRequiredService<IFinalReportSectionGenerator>().Should().BeOfType<GeminiFinalReportSectionGenerator>();
+        provider.GetRequiredService<IExecutiveSummaryRegenerator>().Should().BeOfType<GeminiExecutiveSummaryRegenerator>();
+        provider.GetRequiredService<IReportArchiveQaEngine>().Should().BeOfType<GeminiReportArchiveQaEngine>();
+        provider.GetRequiredService<IShorfahSectionContentGenerator>().Should().BeOfType<GeminiShorfahSectionContentGenerator>();
+        provider.GetRequiredService<IIconEventDesignExtractor>().Should().BeOfType<GeminiIconEventDesignExtractor>();
+        provider.GetRequiredService<IBackgroundImageGenerator>().Should().BeOfType<GeminiBackgroundImageGenerator>();
+
+        // Why: even with a key configured, this port stays Template-backed -- it was never an AI call.
+        provider.GetRequiredService<IIconEventImageRenderer>().Should().BeOfType<TemplateIconEventImageRenderer>();
+        provider.GetRequiredService<IGeminiClient>().Should().BeOfType<GeminiClient>();
     }
 
     private static IConfiguration BuildConfiguration(IReadOnlyDictionary<string, string?> overrides)
