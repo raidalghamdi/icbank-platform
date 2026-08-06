@@ -33,7 +33,7 @@ public sealed class HttpGeminiTransportTests
               ]
             }
             """;
-        var transport = BuildTransport(body);
+        HttpGeminiTransport transport = BuildTransport(body);
 
         GeminiGenerationResult result = await transport.GenerateContentAsync(ApiKey, PlainRequest, CancellationToken.None);
 
@@ -46,7 +46,7 @@ public sealed class HttpGeminiTransportTests
     [Fact]
     public async Task GenerateContentAsync_RealGroundedShape_ExtractsWebSearchQueries()
     {
-        var transport = BuildTransport(GroundedResponseBody());
+        HttpGeminiTransport transport = BuildTransport(GroundedResponseBody());
 
         GeminiGenerationResult result = await transport.GenerateContentAsync(ApiKey, PlainRequest, CancellationToken.None);
 
@@ -56,7 +56,7 @@ public sealed class HttpGeminiTransportTests
     [Fact]
     public async Task GenerateContentAsync_RealGroundedShape_BuildsCitationsFromGroundingChunksAndSupports_NotUrlCitationAnnotations()
     {
-        var transport = BuildTransport(GroundedResponseBody());
+        HttpGeminiTransport transport = BuildTransport(GroundedResponseBody());
 
         GeminiGenerationResult result = await transport.GenerateContentAsync(ApiKey, PlainRequest, CancellationToken.None);
 
@@ -80,7 +80,7 @@ public sealed class HttpGeminiTransportTests
         // vertexaisearch.cloud.google.com redirect. The bare publisher domain is only ever
         // available via web.title. Both must be persisted downstream since the redirect's
         // lifetime relative to this platform's 7-day cache is unverified (see GEMINI-ADAPTER-NOTES.md).
-        var transport = BuildTransport(GroundedResponseBody());
+        HttpGeminiTransport transport = BuildTransport(GroundedResponseBody());
 
         GeminiGenerationResult result = await transport.GenerateContentAsync(ApiKey, PlainRequest, CancellationToken.None);
 
@@ -91,7 +91,7 @@ public sealed class HttpGeminiTransportTests
     [Fact]
     public async Task GenerateContentAsync_RealGroundedShape_ExtractsSearchEntryPointRenderedContentVerbatim()
     {
-        var transport = BuildTransport(GroundedResponseBody());
+        HttpGeminiTransport transport = BuildTransport(GroundedResponseBody());
 
         GeminiGenerationResult result = await transport.GenerateContentAsync(ApiKey, PlainRequest, CancellationToken.None);
 
@@ -117,7 +117,7 @@ public sealed class HttpGeminiTransportTests
               ]
             }
             """;
-        var transport = BuildTransport(body);
+        HttpGeminiTransport transport = BuildTransport(body);
 
         GeminiGenerationResult result = await transport.GenerateContentAsync(ApiKey, PlainRequest, CancellationToken.None);
 
@@ -141,7 +141,7 @@ public sealed class HttpGeminiTransportTests
               ]
             }
             """;
-        var transport = BuildTransport(body);
+        HttpGeminiTransport transport = BuildTransport(body);
 
         GeminiGenerationResult result = await transport.GenerateContentAsync(ApiKey, PlainRequest, CancellationToken.None);
 
@@ -153,8 +153,8 @@ public sealed class HttpGeminiTransportTests
     public async Task GenerateContentAsync_SendsGoogleSearchTool_WhenRequested()
     {
         var handler = new StubHttpMessageHandler(SimpleTextBody("ok"));
-        var transport = BuildTransport(handler);
-        var groundedRequest = PlainRequest with { UseGoogleSearchTool = true };
+        HttpGeminiTransport transport = BuildTransport(handler);
+        GeminiGenerationRequest groundedRequest = PlainRequest with { UseGoogleSearchTool = true };
 
         await transport.GenerateContentAsync(ApiKey, groundedRequest, CancellationToken.None);
 
@@ -165,7 +165,7 @@ public sealed class HttpGeminiTransportTests
     public async Task GenerateContentAsync_SendsApiKeyHeader_NeverInBody()
     {
         var handler = new StubHttpMessageHandler(SimpleTextBody("ok"));
-        var transport = BuildTransport(handler);
+        HttpGeminiTransport transport = BuildTransport(handler);
 
         await transport.GenerateContentAsync("secret-key-value", PlainRequest, CancellationToken.None);
 
@@ -177,7 +177,7 @@ public sealed class HttpGeminiTransportTests
     public async Task GenerateContentAsync_NonSuccessStatusCode_ThrowsWithBodyAndStatusInMessage()
     {
         var handler = new StubHttpMessageHandler("{\"error\":{\"message\":\"The model is overloaded\"}}", System.Net.HttpStatusCode.ServiceUnavailable);
-        var transport = BuildTransport(handler);
+        HttpGeminiTransport transport = BuildTransport(handler);
 
         Func<Task> act = async () => await transport.GenerateContentAsync(ApiKey, PlainRequest, CancellationToken.None);
 

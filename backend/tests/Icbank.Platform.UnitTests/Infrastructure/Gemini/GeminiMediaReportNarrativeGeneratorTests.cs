@@ -111,7 +111,7 @@ public sealed class GeminiMediaReportNarrativeGeneratorTests
             .GenerateTextAsync(Arg.Any<string>(), Arg.Is<GeminiCallOptions>(o => o.MaxOutputTokens == 50), Arg.Any<CancellationToken>())
             .Returns(GeminiTestResults.Text("إيجابي عام"));
 
-        var result = await _sut.GenerateAsync("manager", Feed, CancellationToken.None);
+        Platform.Application.MediaMonitoring.MediaReportNarrative result = await _sut.GenerateAsync("manager", Feed, CancellationToken.None);
 
         result.ContentMd.Should().Be("## نص التقرير الكامل");
         result.ExecutiveSummary.Should().Be("ملخص تنفيذي موجز.");

@@ -42,7 +42,7 @@ public sealed class GeminiWeekStartMessageGeneratorTests
             .GenerateTextAsync(Arg.Any<string>(), Arg.Any<GeminiCallOptions>(), Arg.Any<CancellationToken>())
             .Returns(GeminiTestResults.Text("نص الرسالة"));
 
-        var outputs = await _sut.GenerateAsync(BuildRequest(), CancellationToken.None);
+        IReadOnlyList<WeekStartModelOutput> outputs = await _sut.GenerateAsync(BuildRequest(), CancellationToken.None);
 
         outputs.Should().HaveCount(3);
         outputs.Select(o => o.ModelName).Should().ContainInOrder("claude", "openai", "gemini");

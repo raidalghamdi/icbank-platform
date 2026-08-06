@@ -88,7 +88,7 @@ public sealed class HttpGeminiTransport : IGeminiTransport
         JsonNode? root = JsonNode.Parse(body) ?? throw new JsonException("Gemini response body was not valid JSON.");
         JsonNode? firstCandidate = root["candidates"]?.AsArray().FirstOrDefault();
         var text = ExtractText(firstCandidate);
-        var inlineImages = ExtractInlineImages(firstCandidate);
+        IReadOnlyList<GeminiInlineImage> inlineImages = ExtractInlineImages(firstCandidate);
         (IReadOnlyList<string> queries, IReadOnlyList<GeminiCitation> citations, var searchEntryPointHtml) = ExtractGrounding(firstCandidate);
         return new GeminiGenerationResult(text, modelUsed, queries, citations, inlineImages, searchEntryPointHtml);
     }
@@ -135,7 +135,7 @@ public sealed class HttpGeminiTransport : IGeminiTransport
             return (Array.Empty<string>(), Array.Empty<GeminiCitation>(), null);
         }
 
-        var queries = metadata["webSearchQueries"]?.AsArray().Select(q => q?.GetValue<string>() ?? string.Empty).ToList()
+        List<string> queries = metadata["webSearchQueries"]?.AsArray().Select(q => q?.GetValue<string>() ?? string.Empty).ToList()
             ?? new List<string>();
 
         var citations = new List<GeminiCitation>();

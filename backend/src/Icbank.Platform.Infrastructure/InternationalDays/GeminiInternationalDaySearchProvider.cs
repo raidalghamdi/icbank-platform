@@ -49,7 +49,7 @@ public sealed class GeminiInternationalDaySearchProvider : IInternationalDaySear
         var callOptions = new GeminiCallOptions(_options.TextModel, UseGoogleSearchTool: true, RequireGrounding: true, MaxOutputTokens: 8192);
         GeminiGenerationResult result = await _client.GenerateJsonAsync(prompt, callOptions, cancellationToken).ConfigureAwait(false);
 
-        var dto = JsonSerializer.Deserialize<DaySearchResultJsonDto>(result.Text, JsonOptions)
+        DaySearchResultJsonDto dto = JsonSerializer.Deserialize<DaySearchResultJsonDto>(result.Text, JsonOptions)
             ?? throw new GeminiUnavailableException("Gemini returned an empty/null JSON payload for the international-day search.");
 
         return Map(dto, result);
