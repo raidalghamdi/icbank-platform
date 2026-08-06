@@ -5,11 +5,21 @@ nothing. It assumes the reader has an Azure subscription and access to
 [Azure Cloud Shell](https://shell.azure.com) (Bash) and nothing else prepared — no resource
 group, no app registration, no CLI configured locally.
 
-**This runbook was written and reviewed without any live Azure subscription available to the
-author.** Every command below is the correct, standard Azure CLI/`az deployment` incantation for
-what this repository's Bicep templates and GitHub Actions workflows expect, but none of it has
-been executed against a real tenant. See [`Unverified without a live subscription`](#unverified-without-a-live-subscription)
-for the explicit list of what that means in practice, and read it before you start.
+**This runbook was originally written and reviewed without any live Azure subscription
+available to the author.** On 2026-08-06 a real dev environment was provisioned in
+`uaenorth`/`westeurope` (subscription `f1422c2e-a1f8-4794-bfa4-d1c9c16e9287`) using the ARM REST
+API directly (no `az` CLI was available in that environment, so the exact `az` commands below
+were not run verbatim, but the equivalent ARM template/parameter payloads were, and every Bicep
+module deployed successfully). That run found and fixed two real bugs (see the `DOTNETCORE|8.0`
+correction below and the Communication Services note in Step 5) and surfaced one still-open,
+unresolved gap: **the app currently crash-loops at every startup** because the manual SQL step in
+Step 4 below had never actually been carried out, and the app seeds roles into the database
+*eagerly at startup*, not lazily — so skipping Step 4 is not a "the app will just have missing
+data" failure, it is a "the app will never start" failure. Full details, including every
+assertion of the smoke test and its result, are recorded in
+`spec/DEV-DEPLOYMENT-NOTES.md`. The remaining unverified items are listed in
+[`Unverified without a live subscription`](#unverified-without-a-live-subscription) below —
+read it before you start.
 
 ## Contents
 
@@ -224,6 +234,16 @@ az deployment group show \
 
 ## Step 4 — the manual SQL step Bicep cannot do
 
+**Confirmed mandatory and load-bearing by the 2026-08-06 dev deployment — do not skip this
+step, even for a quick throwaway environment.** Skipping it does not degrade gracefully: this
+codebase's `Program.cs` calls its database seeder (roles, initial super-admin) synchronously
+during host startup, before the app binds to a port. If the managed identity has no SQL login,
+that seed query throws `Microsoft.Data.SqlClient.SqlException: Login failed` (Error 18456), the
+exception is unhandled, and the whole process aborts — the app crash-loops forever and never
+serves a single HTTP request, including `/health/live`. This was reproduced end-to-end: the app
+was fully deployed and otherwise correctly configured, but never came up, purely because this
+step had not been run. See `spec/DEV-DEPLOYMENT-NOTES.md` for the full failure trace.
+
 Azure Resource Manager / Bicep has no declarative resource for `CREATE USER FROM EXTERNAL
 PROVIDER` — granting a managed identity access *inside* a specific database is a T-SQL
 operation, not an ARM operation, and must be run once per environment after the SQL server and
@@ -345,10 +365,19 @@ If everything passes, the app is live at `https://<APP_SERVICE_NAME>.azurewebsit
 ## Region fallback
 
 If a specific SKU or service is unavailable in `uaenorth` at deploy time (Azure regions vary in
-which SKUs they carry, and this can change), re-run Step 3 with `--parameters location=westeurope`.
-Every module takes `location` as a pass-through parameter, so this requires no other change.
-`westeurope` is the documented fallback because it is a mature, full-featured Azure region with
-long-standing availability of every service this stack uses.
+which SKUs they carry, and this can change), do **not** re-run the whole deployment with a single
+global `location=westeurope` override — that silently moves every resource, including the ones
+that deployed fine, out of the approved region. **Confirmed in the 2026-08-06 dev deployment:**
+`uaenorth` had a hard `SubscriptionIsOverQuotaForSku` block (0-VM quota) for the Basic (B1) Linux
+App Service Plan SKU specifically — every other module (Log Analytics, App Insights, Key Vault,
+Storage, SQL server/database) deployed to `uaenorth` without any issue. The correct fix is to
+redeploy only the failing module standalone with its own `location` parameter override (e.g.
+`infra/modules/app-service.bicep` with `--parameters location=westeurope` and the sibling
+modules' outputs passed through manually), leaving every other resource's region untouched.
+`westeurope` remains the documented fallback because it is a mature, full-featured Azure region
+with long-standing availability of every service this stack uses. If keeping the App Service in
+`uaenorth` is a hard requirement, request an Azure support quota increase for Basic/B-series
+Linux App Service Plan VMs in `uaenorth` for this subscription before deploying.
 
 ## Letting the CD pipeline reach SQL
 
@@ -444,10 +473,34 @@ first deployment:
   2/4, can actually run `dotnet ef database update` successfully** end to end — this depends on
   Entra ID token acquisition working correctly for a service principal (not a user), which some
   SQL driver versions have historically had rough edges with.
-- **`az webapp deploy --type zip`** targeting a Linux App Service running the
-  `DOTNETCORE:8.0` stack — the command and flags are correct per current `az` documentation, but
-  the resulting app startup (Key Vault references resolving, managed identity token acquisition
-  for SQL/Blob at runtime) has not been observed.
+- **`az webapp deploy --type zip`** itself was not exercised in the 2026-08-06 dev run (no `az`
+  CLI available; the equivalent Kudu zip-deploy REST endpoint was used instead and worked without
+  issue), but the resulting **app startup was observed, and failed** — see
+  `spec/DEV-DEPLOYMENT-NOTES.md` for the full sequence. One real bug in this repository's Bicep
+  was found and is now fixed: `linuxFxVersion` must use the **pipe** syntax `DOTNETCORE|8.0`, not
+  the colon syntax `DOTNETCORE:8.0` that `infra/main.bicep` and all three `.bicepparam` files
+  previously defaulted to. The colon syntax does not error anywhere in the ARM control plane —
+  `GET .../config/web` happily echoes back whatever string you sent — but the platform silently
+  falls back to its default container image (PHP 8.2-FPM was observed) instead of .NET, and the
+  app never runs at all. This has been corrected in `infra/main.bicep` and
+  `infra/parameters/{dev,staging,prod}.bicepparam`. Key Vault references and managed-identity
+  token acquisition for Blob Storage were **not** confirmed working end-to-end, because the app
+  never got that far before crashing on notification-provider configuration and then on a SQL
+  login failure for the managed identity (Step 4 had not been completed) — see
+  `spec/DEV-DEPLOYMENT-NOTES.md` for both.
+- **Leaving `Notifications:Provider=AzureCommunicationServices` (this repo's apparent default
+  expectation) without a real Communication Services endpoint configured crashes the app at
+  startup** with an unhandled `System.UriFormatException`, not a clean error — the null-check in
+  `Icbank.Platform.Infrastructure/DependencyInjection.cs`'s `AddNotificationServices` only guards
+  against a missing key, not an empty string. Until a real Communication Services resource and
+  verified domain are provisioned for an environment (see Step 5), explicitly set
+  `Notifications__Provider=Null` as an App Service app setting for that environment, or the app
+  will not start.
+- **`backend/scripts/smoke-test.sh`'s deployed mode runs 17 pass/fail assertions, not 20** —
+  section 10 ("no credentials in the logs") is explicitly skipped when `SMOKE_BASE_URL` is set,
+  because the script has no access to the deployed instance's own application logs (those live in
+  Azure Monitor/App Insights). Anyone relying on "20/20" as the expected passing count in deployed
+  mode should expect 17/17 instead.
 - **Cost estimates** are deliberately not included anywhere in this runbook or
   `spec/AZURE-NOTES.md` — SKU pricing varies by region/time and quoting a number without being
   able to verify it against the Azure Pricing Calculator for the exact `uaenorth` SKUs chosen

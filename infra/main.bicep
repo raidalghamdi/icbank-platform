@@ -69,7 +69,7 @@ param appServicePlanSku string = 'B1'
 param appServiceInstanceCount int = 1
 
 @description('.NET runtime version identifier for the Linux App Service site.')
-param dotnetVersion string = 'DOTNETCORE:8.0'
+param dotnetVersion string = 'DOTNETCORE|8.0'
 
 @description('Azure Communication Services Email endpoint (e.g. https://<acs-resource>.communication.azure.com). Not a secret. Provisioning the Communication Services resource itself is a documented manual step in docs/DEPLOYMENT.md, outside this template\'s scope -- left blank until an operator supplies it.')
 param acsEmailEndpoint string = ''

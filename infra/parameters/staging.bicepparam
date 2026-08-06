@@ -21,7 +21,7 @@ param sqlDatabaseMaxSizeGb = 32
 
 param appServicePlanSku = 'P0v3'
 param appServiceInstanceCount = 1
-param dotnetVersion = 'DOTNETCORE:8.0'
+param dotnetVersion = 'DOTNETCORE|8.0'
 
 param keyVaultSku = 'standard'
 param keyVaultSoftDeleteRetentionDays = 30
