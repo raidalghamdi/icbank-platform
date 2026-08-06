@@ -5289,6 +5289,39 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
 
 <script>
 // ════════════════════════════════════════
+// API CONFIG — single configurable base URL + version prefix
+// ════════════════════════════════════════
+// Why: the frontend used to call the old Node/Express server via bare relative paths
+// (e.g. '/api/auth/login'), which only ever worked because both apps shared an origin in
+// every environment. The new .NET API is versioned (/api/v1/...) and may live on a
+// different origin in local/dev setups. Centralizing both the base URL and the version
+// prefix here means every call site builds its URL through apiUrl(path) instead of
+// concatenating literals, so pointing this file at local/dev/production is a one-line change
+// (or a runtime override) with no other edits required. Kept dependency-free on purpose —
+// this file has no build step and must keep working as a single static HTML file.
+//
+// Resolution order: an explicit window.__API_BASE__ set before this script runs (e.g. by a
+// small per-environment <script> block injected at deploy time), else a same-origin default
+// of '' (empty string), which reproduces today's production behavior exactly — every request
+// stays relative to wherever this file is served from.
+var API_BASE = (typeof window !== 'undefined' && window.__API_BASE__) || '';
+var API_VERSION = (typeof window !== 'undefined' && window.__API_VERSION__) || 'v1';
+
+// Builds a full request URL for a versioned API path. `path` must start with '/' and must
+// NOT include '/api' or the version segment — e.g. apiUrl('/auth/login') → '/api/v1/auth/login'.
+function apiUrl(path) {
+  return API_BASE + '/api/' + API_VERSION + path;
+}
+
+// Builds a full URL for a stored-object/static-asset path served by the storage endpoint,
+// e.g. storageUrl('/objects/gac/foo.pdf') → '/api/v1/storage/objects/gac/foo.pdf'.
+// Kept separate from apiUrl() because storage paths are embedded directly into <img src>,
+// CSS url(...), and download <a href> attributes as plain strings, not fetch() calls.
+function storageUrl(path) {
+  return API_BASE + '/api/' + API_VERSION + '/storage' + path;
+}
+
+// ════════════════════════════════════════
 // AUTH GUARD
 // ════════════════════════════════════════
 
@@ -5355,6 +5388,9 @@ function authClear() {
   document.cookie = 'has_session=; path=/; SameSite=Strict; max-age=0';
 }
 
+// Why centralised here: every authenticated endpoint in the new API requires an
+// Authorization bearer header (API-SURFACE contract, Step 3) — this is the single place
+// that attaches it, so no call site has to repeat that logic or risk forgetting it.
 async function authFetchWithToken(url, opts) {
   opts = opts || {};
   opts.credentials = 'include';
@@ -5381,6 +5417,31 @@ async function apiFetch(url, opts) {
   return authFetchWithToken(url, opts);
 }
 
+// ─── Problem Details (RFC 7807) error extraction ───────────────────────────
+// Why: every error response from the new API is application/problem+json with
+// {title, detail, status, ...}, replacing the old API's ad hoc {error: "message"} shape.
+// This is the single place that understands both shapes, so call sites that already do
+// `catch(e){ alert(e.message) }` or read `err.error` keep working unchanged — the message
+// just now comes from `title`/`detail` when present. Returns an Error whose .message is a
+// human-readable (Arabic-friendly via friendlyError()) string, and which also carries
+// .title/.detail/.status for any call site that wants the raw Problem Details fields.
+async function apiError(res) {
+  var status = res.status;
+  var body = null;
+  try { body = await res.json(); } catch (e) { body = null; }
+  // New API: application/problem+json { title, detail, status, traceId, ... }
+  // Old API (still tolerated defensively): { error: "message" }
+  var title = body && (body.title || body.error);
+  var detail = body && (body.detail || body.message);
+  var raw = detail || title || ('HTTP ' + status);
+  var err = new Error(raw);
+  err.title = title || null;
+  err.detail = detail || null;
+  err.status = status;
+  err.error = raw; // backward-compat alias for call sites reading e.error
+  return err;
+}
+
 // ─── Friendly error translator ──────────────────────────────────
 // Converts raw JSON/stack errors from server into clean Arabic messages.
 // Recognises common patterns: 503 AI overload, Chromium PDF failure,
@@ -5388,7 +5449,11 @@ async function apiFetch(url, opts) {
 function friendlyError(err, fallback) {
   fallback = fallback || 'حدث خطأ غير متوقع. حاول مرة أخرى.';
   if (!err) return fallback;
-  var msg = typeof err === 'string' ? err : (err.message || err.error || err.toString());
+  // Accepts either a JS Error (possibly built by apiError() with .title/.detail/.error) or a
+  // raw parsed Problem Details body passed straight through by call sites that don't go
+  // through apiError() — detail is preferred (most specific), then title, then the old
+  // Node-era .error field, then .message, then a plain string/toString fallback.
+  var msg = typeof err === 'string' ? err : (err.detail || err.title || err.message || err.error || err.toString());
   if (!msg || typeof msg !== 'string') return fallback;
 
   // Strip JSON wrapper if message contains a nested JSON error
@@ -5427,7 +5492,7 @@ function friendlyError(err, fallback) {
 
 async function authRefresh() {
   try {
-    var resp = await fetch('/api/auth/refresh', { method: 'POST', credentials: 'include' });
+    var resp = await fetch(apiUrl('/auth/refresh'), { method: 'POST', credentials: 'include' });
     if (!resp.ok) return null;
     var data = await resp.json();
     authSetToken(data.accessToken);
@@ -5450,7 +5515,7 @@ async function authCheckSession() {
   }
 
   try {
-    var resp = await fetch('/api/auth/me', {
+    var resp = await fetch(apiUrl('/auth/me'), {
       credentials: 'include',
       headers: { 'Authorization': 'Bearer ' + token }
     });
@@ -5563,7 +5628,7 @@ function authCanView(pageName) {
 }
 
 function authLogout() {
-  authFetchWithToken('/api/auth/logout', { method: 'POST' }).finally(function() {
+  authFetchWithToken(apiUrl('/auth/logout'), { method: 'POST' }).finally(function() {
     authClear();
     window.location.href = '/login';
   });
@@ -5914,10 +5979,17 @@ var ADM = {
 };
 
 // ── helpers ────────────────────────────────────────────────────────────────────
+// Why routed through apiFetch (not authFetchWithToken directly, as before): apiFetch adds
+// the silent-refresh-and-retry-once behavior on 401 that every other authenticated area of
+// the app already gets. The admin panel previously bypassed that, so an admin whose access
+// token happened to expire mid-session while on this tab got hard-logged-out instead of
+// transparently refreshed like everywhere else. Also routed through apiUrl(path) instead of
+// a bare '/api' + path concatenation, and through apiError() so admin-panel errors read the
+// new API's Problem Details {title,detail} instead of the old {error} shape.
 function admApi(path, opts) {
   opts = opts || {};
-  return authFetchWithToken('/api' + path, opts).then(function(r) {
-    if (!r.ok) return r.json().then(function(e) { throw new Error(e.error || ('HTTP '+r.status)); });
+  return apiFetch(apiUrl(path), opts).then(function(r) {
+    if (!r.ok) return apiError(r).then(function(e) { throw e; });
     if (r.status === 204) return {};
     var ct = r.headers.get('content-type')||'';
     if (ct.includes('text/')) return r.text();
@@ -5972,7 +6044,7 @@ function admPermLabel(p) {
 // ── init ───────────────────────────────────────────────────────────────────────
 window.adminInit = function() {
   admApi('/admin/roles').then(function(d) {
-    ADM.roles = d.roles || [];
+    ADM.roles = d.items || [];
     admPopulateRoleFilters();
   });
   adminSwitchTab(ADM.tab || 'users', true);
@@ -6097,12 +6169,18 @@ document.addEventListener('click', window.admCloseDropdowns);
   });
 })();
 
+// Why: /admin/users now returns the standard {items,page,pageSize,total} envelope
+// instead of the old {users,page,pages}. There is no server-computed page count anymore
+// (only a total item count), so the page count shown in the pager is derived here via
+// Math.ceil(total/pageSize) — the one bit of pagination math that moved client-side.
 function admRenderUsers(d) {
   var wrap = document.getElementById('adm-users-table-wrap');
   if (!wrap) return;
-  if (!d.users || !d.users.length) {
+  var users = d.items || [];
+  var pageCount = d.pageSize ? Math.ceil((d.total || 0) / d.pageSize) : 0;
+  if (!users.length) {
     wrap.innerHTML = '<p style="color:var(--text-3);font-size:12.5px;padding:16px 0;">لا يوجد مستخدمون.</p>';
-    admRenderPager('adm-users-pager', d.page, d.pages, 'adminLoadUsers');
+    admRenderPager('adm-users-pager', d.page, pageCount, 'adminLoadUsers');
     return;
   }
 
@@ -6111,7 +6189,7 @@ function admRenderUsers(d) {
 
   if (mobile) {
     h = '<div class="adm-user-cards">';
-    d.users.forEach(function(u) {
+    users.forEach(function(u) {
       var status = u.isLocked
         ? '<span class="adm-badge locked">مقفل</span>'
         : (u.isActive ? '<span class="adm-badge active">نشط</span>' : '<span class="adm-badge inactive">معلق</span>');
@@ -6136,7 +6214,7 @@ function admRenderUsers(d) {
     h = '<table class="adm-table"><thead><tr>'
       + '<th>الاسم</th><th>البريد</th><th>الدور</th><th>الحالة</th><th>آخر دخول</th><th>إجراءات</th>'
       + '</tr></thead><tbody>';
-    d.users.forEach(function(u) {
+    users.forEach(function(u) {
       var status = u.isLocked
         ? '<span class="adm-badge locked">مقفل</span>'
         : (u.isActive ? '<span class="adm-badge active">نشط</span>' : '<span class="adm-badge inactive">معلق</span>');
@@ -6164,7 +6242,7 @@ function admRenderUsers(d) {
   }
 
   wrap.innerHTML = h;
-  admRenderPager('adm-users-pager', d.page, d.pages, 'adminLoadUsers');
+  admRenderPager('adm-users-pager', d.page, pageCount, 'adminLoadUsers');
 }
 
 function admRenderPager(id, page, pages, fn) {
@@ -6237,7 +6315,7 @@ window.adminSaveUser = function() {
     }
     adminCloseUserModal();
     adminLoadUsers();
-    admApi('/admin/roles').then(function(r) { ADM.roles = r.roles || []; admPopulateRoleFilters(); });
+    admApi('/admin/roles').then(function(r) { ADM.roles = r.items || []; admPopulateRoleFilters(); });
   }).catch(function(e) { alert(friendlyError(e, 'حدث خطأ غير متوقع')); });
 };
 
@@ -6269,9 +6347,9 @@ window.adminLoadRoles = function() {
   var grid = document.getElementById('adm-roles-grid');
   if (grid) grid.innerHTML = '<p style="color:var(--text-3);font-size:12.5px;">جارٍ التحميل…</p>';
   admApi('/admin/roles').then(function(d) {
-    ADM.roles = d.roles || [];
+    ADM.roles = d.items || [];
     admPopulateRoleFilters();
-    admRenderRoles(d.roles || []);
+    admRenderRoles(d.items || []);
   });
 };
 
@@ -6590,7 +6668,7 @@ window.adminExportMatrix = function() {
 window.adminShowBulkApply = function() {
   if (!ADM.roles.length) {
     admApi('/admin/roles').then(function(d) {
-      ADM.roles = d.roles || [];
+      ADM.roles = d.items || [];
       admPopulateRoleFilters();
       admOpenBulkApply();
     });
@@ -6656,7 +6734,7 @@ window.adminLoadLogs = function(page) {
     + (to ? '&dateTo=' + to : '');
   admApi('/admin/activity' + qs).then(function(d) {
     admRenderLogs(d);
-    admPopulateLogUsers(d.logs || []);
+    admPopulateLogUsers(d.items || []);
   }).catch(function(e) {
     if (list) list.innerHTML = '<p style="color:var(--danger);font-size:12.5px;">' + e.message + '</p>';
   });
@@ -6678,11 +6756,14 @@ function admPopulateLogUsers(logs) {
   if (cur) sel.value = cur;
 }
 
+// Why: /admin/activity now returns {items,page,pageSize,total} instead of {logs,page,pages}.
+// Page count is derived client-side from total/pageSize, same as admRenderUsers above.
 function admRenderLogs(d) {
   var list = document.getElementById('adm-logs-list');
   if (!list) return;
-  var logs = d.logs || [];
-  if (!logs.length) { list.innerHTML = '<p style="color:var(--text-3);font-size:12.5px;padding:16px 0;">لا يوجد سجلات.</p>'; admRenderPager('adm-logs-pager', d.page, d.pages, 'adminLoadLogs'); return; }
+  var logs = d.items || [];
+  var pageCount = d.pageSize ? Math.ceil((d.total || 0) / d.pageSize) : 0;
+  if (!logs.length) { list.innerHTML = '<p style="color:var(--text-3);font-size:12.5px;padding:16px 0;">لا يوجد سجلات.</p>'; admRenderPager('adm-logs-pager', d.page, pageCount, 'adminLoadLogs'); return; }
   var h = '';
   var lastDay = '';
   logs.forEach(function(l) {
@@ -6711,7 +6792,7 @@ function admRenderLogs(d) {
       + '</div>';
   });
   list.innerHTML = h;
-  admRenderPager('adm-logs-pager', d.page, d.pages, 'adminLoadLogs');
+  admRenderPager('adm-logs-pager', d.page, pageCount, 'adminLoadLogs');
 }
 
 window.adminExportLogs = function() {
@@ -6724,7 +6805,7 @@ window.adminExportLogs = function() {
     + (action ? '&action=' + encodeURIComponent(action) : '')
     + (from ? '&dateFrom=' + from : '')
     + (to ? '&dateTo=' + to : '');
-  authFetchWithToken('/api/admin/activity/export' + qs).then(function(r) {
+  authFetchWithToken(apiUrl('/admin/activity/export') + qs).then(function(r) {
     if (!r.ok) throw new Error('HTTP ' + r.status);
     return r.text();
   }).then(function(csv) {
@@ -7144,7 +7225,7 @@ async function homeDashboardInit() {
   dashSetGreeting();
   dashApplyRoleFilters();
   try {
-    var res = await apiFetch('/api/dashboard/summary');
+    var res = await apiFetch(apiUrl('/dashboard/summary'));
     if (!res.ok) return;
     var data = await res.json();
     dashSummaryData = data;
@@ -7227,10 +7308,10 @@ async function dashLoadShorfahPreview() {
   var el = document.getElementById('home-shorfah-preview');
   if (!el) return;
   try {
-    var res = await apiFetch('/api/shorfah/issues');
+    var res = await apiFetch(apiUrl('/shorfah/issues'));
     if (!res.ok) throw new Error('load-fail');
     var data = await res.json();
-    var issues = data.issues || [];
+    var issues = data.items || [];
     if (!issues.length) {
       el.innerHTML = '<div style="grid-column:1/-1;background:#fff;border:1px solid var(--border);border-radius:12px;padding:32px;text-align:center;color:var(--text-3);">لا توجد أعداد بعد</div>';
       var pctEl0 = document.getElementById('dash-kpi-shorfah-pct');
@@ -7242,7 +7323,7 @@ async function dashLoadShorfahPreview() {
     // Try to fetch sections for completion %
     var pct = null;
     try {
-      var det = await apiFetch('/api/shorfah/issues/' + latest.id);
+      var det = await apiFetch(apiUrl('/shorfah/issues/') + latest.id);
       if (det.ok) {
         var detData = await det.json();
         var secs = (detData.issue && detData.issue.sections) || detData.sections || [];
@@ -7279,10 +7360,10 @@ async function dashLoadShorfahPreview() {
 
 async function dashLoadMediaMonitoring() {
   try {
-    var res = await apiFetch('/api/media-reports?limit=50');
+    var res = await apiFetch(apiUrl('/media-reports?limit=50'));
     if (!res.ok) return;
     var data = await res.json();
-    var count = data.count || (data.items ? data.items.length : 0);
+    var count = data.total || (data.items ? data.items.length : 0);
     var items = data.items || [];
     var kpiEl = document.getElementById('dash-kpi-mm');
     if (kpiEl) kpiEl.textContent = count;
@@ -7395,9 +7476,9 @@ async function dashGenerateAISummary() {
   if (btn) { btn.disabled = true; btn.textContent = '⏳ جارٍ التوليد...'; }
   if (body) body.innerHTML = '<div class="loading-wrap" style="padding:20px 0"><div class="spinner"></div><div class="loading-text">يحلّل الذكاء الاصطناعي بياناتك...</div></div>';
   try {
-    var res = await apiFetch('/api/dashboard/ai-summary', { method:'POST' });
+    var res = await apiFetch(apiUrl('/dashboard/ai-summary'), { method:'POST' });
     var data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'فشل التوليد');
+    if (!res.ok) throw new Error((data.detail || data.title || data.error) || 'فشل التوليد');
     dashAISummaryText = data.summary || '';
     // Render summary points
     var points = dashAISummaryText.split('\n').filter(function(l) { return l.trim(); });
@@ -7446,7 +7527,7 @@ async function loadGacSocialFeed() {
   var host = document.getElementById('gac-linkedin-feed');
   if (!host) return;
   try {
-    var res = await apiFetch('/api/gac/social-feed?platform=linkedin&limit=10');
+    var res = await apiFetch(apiUrl('/gac/social-feed?platform=linkedin&limit=10'));
     if (!res.ok) throw new Error('HTTP ' + res.status);
     var data = await res.json();
     var items = (data && data.items) || [];
@@ -7679,9 +7760,8 @@ async function sendWeekendReport() {
   for (const c of channels) { if (!c.to || !c.to.trim()) { status.innerHTML = '<span style="color:var(--danger)">⚠️ يجب تعبئة بيانات المستلم للقنوات المحددة</span>'; return; } }
   status.innerHTML = '⏳ جارٍ الإرسال عبر ' + channels.length + ' قناة...';
   try {
-    const API_BASE = (window.API_BASE || '');
-    const res = await fetch(API_BASE + '/api/weekend/send', {
-      method:'POST', headers:{'Content-Type':'application/json', 'Authorization': 'Bearer ' + (window.AUTH_TOKEN||'')},
+    const res = await apiFetch(apiUrl('/weekend/send'), {
+      method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ channels, provider, period: 'weekend' })
     });
     if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -7763,7 +7843,7 @@ function showSectionLoading(secKey) {
 
 async function loadAllWeekendSections() {
   try {
-    const res = await apiFetch('/api/wk2-data');
+    const res = await apiFetch(apiUrl('/wk2-data'));
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     if (data.places?.length) { const s=[...data.places].sort(()=>Math.random()-0.5).slice(0,6); renderOptions('place',s); } else generateSection('place');
@@ -7808,7 +7888,7 @@ function renderOptionCard(secKey, opt, i) {
     const mapsUrl = `https://www.google.com/maps/search/${encodeURIComponent(opt.maps_query||opt.title)}`;
     const hasImg = opt.imageUrl || opt.image_url;
     const imgHtml = hasImg
-      ? `<div class="wk2-place-img"><img src="/api/storage${hasImg}" alt="${opt.title}" loading="lazy" onerror="this.parentElement.remove()"></div>`
+      ? `<div class="wk2-place-img"><img src="${storageUrl(hasImg)}" alt="${opt.title}" loading="lazy" onerror="this.parentElement.remove()"></div>`
       : '';
     return `<div class="wk2-option-card wk2-place-card" id="opt-${secKey}-${i}">
       ${imgHtml}
@@ -8003,10 +8083,10 @@ async function wk2AdminLoadDrafts() {
   if (!listEl) return;
   listEl.innerHTML = '<div class="loading-wrap"><div class="spinner"></div><div class="loading-text">جارٍ التحميل...</div></div>';
   try {
-    var res = await apiFetch('/api/weekend/drafts');
+    var res = await apiFetch(apiUrl('/weekend/drafts'));
     if (!res.ok) throw new Error('HTTP ' + res.status);
     var data = await res.json();
-    wk2AdminDrafts = data.drafts || [];
+    wk2AdminDrafts = data.items || [];
     wk2AdminRenderList();
   } catch (e) {
     listEl.innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">تعذر تحميل المسودات</div><div class="empty-sub">' + escHtml(String(e.message||e)) + '</div></div>';
@@ -8090,14 +8170,14 @@ async function wk2AdminGenerate() {
   }
   if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner" style="width:14px;height:14px"></span> جارٍ التوليد بـ Gemini...'; }
   try {
-    var res = await apiFetch('/api/weekend/generate', {
+    var res = await apiFetch(apiUrl('/weekend/generate'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ weekend_date: weekend_date }),
     });
     if (!res.ok) {
       var err = await res.json().catch(function(){ return {}; });
-      throw new Error(err.error || err.detail || ('HTTP ' + res.status));
+      throw new Error(err.detail || err.title || err.error || ('HTTP ' + res.status));
     }
     var data = await res.json();
     alert('تم توليد المسودة بنجاح. الآن يمكنك مراجعتها واعتمادها.');
@@ -8115,8 +8195,8 @@ async function wk2AdminGenerate() {
 async function wk2AdminApprove(id) {
   if (!confirm('اعتماد هذه المسودة؟')) return;
   try {
-    var res = await apiFetch('/api/weekend/drafts/' + id + '/approve', { method:'POST' });
-    if (!res.ok) { var e = await res.json(); throw new Error(e.error || res.status); }
+    var res = await apiFetch(apiUrl('/weekend/drafts/') + id + '/approve', { method:'POST' });
+    if (!res.ok) { var e = await res.json(); throw new Error(e.detail || e.title || e.error || res.status); }
     await wk2AdminLoadDrafts();
   } catch (e) { alert('فشل الاعتماد: ' + friendlyError(e)); }
 }
@@ -8124,8 +8204,8 @@ async function wk2AdminApprove(id) {
 async function wk2AdminPublish(id) {
   if (!confirm('نشر هذه المسودة على صفحة نهاية الأسبوع؟ سيستبدل المحتوى الحالي.')) return;
   try {
-    var res = await apiFetch('/api/weekend/drafts/' + id + '/publish', { method:'POST' });
-    if (!res.ok) { var e = await res.json(); throw new Error(e.error || res.status); }
+    var res = await apiFetch(apiUrl('/weekend/drafts/') + id + '/publish', { method:'POST' });
+    if (!res.ok) { var e = await res.json(); throw new Error(e.detail || e.title || e.error || res.status); }
     alert('تم النشر. حدّث الصفحة لعرض المحتوى الجديد للموظفين.');
     await wk2AdminLoadDrafts();
   } catch (e) { alert('فشل النشر: ' + friendlyError(e)); }
@@ -8134,11 +8214,11 @@ async function wk2AdminPublish(id) {
 async function wk2AdminReject(id) {
   var reason = prompt('سبب الرفض (اختياري):', '') || '';
   try {
-    var res = await apiFetch('/api/weekend/drafts/' + id + '/reject', {
+    var res = await apiFetch(apiUrl('/weekend/drafts/') + id + '/reject', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ reason: reason }),
     });
-    if (!res.ok) { var e = await res.json(); throw new Error(e.error || res.status); }
+    if (!res.ok) { var e = await res.json(); throw new Error(e.detail || e.title || e.error || res.status); }
     await wk2AdminLoadDrafts();
   } catch (e) { alert('فشل الرفض: ' + friendlyError(e)); }
 }
@@ -8146,8 +8226,8 @@ async function wk2AdminReject(id) {
 async function wk2AdminDelete(id) {
   if (!confirm('حذف هذه المسودة نهائياً؟')) return;
   try {
-    var res = await apiFetch('/api/weekend/drafts/' + id, { method:'DELETE' });
-    if (!res.ok) { var e = await res.json(); throw new Error(e.error || res.status); }
+    var res = await apiFetch(apiUrl('/weekend/drafts/') + id, { method:'DELETE' });
+    if (!res.ok) { var e = await res.json(); throw new Error(e.detail || e.title || e.error || res.status); }
     await wk2AdminLoadDrafts();
   } catch (e) { alert('فشل الحذف: ' + friendlyError(e)); }
 }
@@ -8225,7 +8305,7 @@ async function loadDailyReport() {
   if (content) { content.style.display = 'none'; content.innerHTML = ''; }
 
   try {
-    const res = await apiFetch('/api/daily-report/latest');
+    const res = await apiFetch(apiUrl('/daily-report/latest'));
     if (res.status === 404) {
       if (loading) loading.style.display = 'none';
       if (empty)   empty.style.display   = 'block';
@@ -8438,16 +8518,16 @@ function wsFilterArchive(type, el) {
 async function wsDeleteArchive(id) {
   if (!confirm('هل تريد حذف هذا العنصر من الأرشيف؟')) return;
   try {
-    await apiFetch('/api/week-start/archive/' + id, { method: 'DELETE' });
+    await apiFetch(apiUrl('/week-start/archive/') + id, { method: 'DELETE' });
     await wsLoadArchive();
   } catch(e) { /* silent */ }
 }
 
 async function wsLoadArchive() {
   try {
-    const res = await apiFetch('/api/week-start/archive');
+    const res = await apiFetch(apiUrl('/week-start/archive'));
     const data = await res.json();
-    wsArchiveEntries = data.entries || [];
+    wsArchiveEntries = data.items || [];
     var total = wsArchiveEntries.length;
     var approved = wsArchiveEntries.filter(function(e){ return e.sourceFile && e.sourceFile.startsWith('معتمد'); }).length;
     var files = total - approved;
@@ -8475,7 +8555,7 @@ async function wsLoadArchive() {
     let profile = null;
     try { profile = JSON.parse(localStorage.getItem('gac_weekstart_style_guide') || 'null'); } catch(_) {}
     if (!profile) {
-      const res = await apiFetch('/api/week-start/style-profile');
+      const res = await apiFetch(apiUrl('/week-start/style-profile'));
       profile = await res.json();
     }
     if (profile) {
@@ -8577,7 +8657,7 @@ async function wsUploadFiles() {
   wsFiles.forEach(function(f) { formData.append('files', f); });
 
   try {
-    const res = await apiFetch('/api/week-start/upload', { method: 'POST', body: formData });
+    const res = await apiFetch(apiUrl('/week-start/upload'), { method: 'POST', body: formData });
     const data = await res.json();
     const ok = (data.results || []).filter(function(r) { return r.id; }).length;
     const errors = (data.results || []).filter(function(r) { return r.error; }).length;
@@ -8646,7 +8726,7 @@ async function wsGenerate() {
   if (outSection) outSection.scrollIntoView({ behavior:'smooth', block:'start' });
 
   try {
-    var response = await apiFetch('/api/week-start/generate', {
+    var response = await apiFetch(apiUrl('/week-start/generate'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ topic: topic, tone: tone, length: length, occasion: occasion, audience: audience })
@@ -8714,7 +8794,7 @@ async function wsApprove(model) {
   var id = wsOutputIds[model];
   if (!id) return;
   try {
-    await apiFetch('/api/week-start/approve', {
+    await apiFetch(apiUrl('/week-start/approve'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id: id })
@@ -8829,7 +8909,7 @@ async function idDeepSearch(forceRefresh) {
 
   try {
     var body = JSON.stringify({ query: query, category: idCurrentCategory, force_refresh: !!forceRefresh });
-    var res = await apiFetch('/api/intl-days/search', {
+    var res = await apiFetch(apiUrl('/intl-days/search'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: body
@@ -8837,7 +8917,7 @@ async function idDeepSearch(forceRefresh) {
 
     if (!res.ok) {
       var errData = await res.json().catch(function() { return {}; });
-      throw new Error(errData.error || 'خطأ في البحث: ' + res.status);
+      throw new Error((errData.detail || errData.title || errData.error) || 'خطأ في البحث: ' + res.status);
     }
 
     var contentType = res.headers.get('content-type') || '';
@@ -9218,7 +9298,7 @@ async function idSave() {
   if (btn) { btn.disabled = true; btn.textContent = 'جاري الحفظ…'; }
   try {
     var currentYear = new Date().getFullYear();
-    var res = await apiFetch('/api/intl-days/save', {
+    var res = await apiFetch(apiUrl('/intl-days/save'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ data: Object.assign({ current_year: currentYear }, idCurrentData), category: idCurrentCategory })
@@ -9240,7 +9320,12 @@ async function idSave() {
 // ── Export Word ──────────────────────────────────────────────────
 function idExport() {
   if (!idCurrentDayId) { alert('احفظ في الأرشيف أولاً للتمكن من التصدير.'); return; }
-  window.open('/api/intl-days/export/' + idCurrentDayId, '_blank');
+  // KNOWN GAP (see FRONTEND-WIRING-NOTES.md): this is a plain browser navigation, so it
+  // cannot attach the required Authorization bearer header under the new JWT-bearer-only
+  // API (no cookie fallback is configured server-side). Path corrected for versioning, but
+  // this will 401 until either the backend adds a short-lived signed-URL variant or this is
+  // rewritten as an apiFetch()+blob download like the icon-event render flow above.
+  window.open(apiUrl('/intl-days/export/' + idCurrentDayId), '_blank');
 }
 
 // ── Refresh (force re-search) ────────────────────────────────────
@@ -9277,9 +9362,9 @@ async function idLoadArchive() {
   if (q) params.set('q', q);
   if (cat) params.set('category', cat);
   try {
-    var res = await apiFetch('/api/intl-days/archive?' + params.toString());
+    var res = await apiFetch(apiUrl('/intl-days/archive?') + params.toString());
     var data = await res.json();
-    idArchiveData = data.days || [];
+    idArchiveData = data.items || [];
     var badge = document.getElementById('id-archive-count-badge');
     if (badge) badge.textContent = idArchiveData.length + ' يوم';
     idRenderArchiveGrid(idArchiveData);
@@ -9365,7 +9450,7 @@ function idRenderArchiveGrid(days) {
 
 async function idOpenDay(id) {
   try {
-    var res = await apiFetch('/api/intl-days/' + id);
+    var res = await apiFetch(apiUrl('/intl-days/') + id);
     var data = await res.json();
     var day = data.day || {};
     var theme = (data.themes || [])[0] || {};
@@ -9398,7 +9483,7 @@ async function idOpenDay(id) {
 async function idDeleteDay(id) {
   if (!confirm('هل تريد حذف هذا اليوم من الأرشيف؟')) return;
   try {
-    await apiFetch('/api/intl-days/' + id, { method: 'DELETE' });
+    await apiFetch(apiUrl('/intl-days/') + id, { method: 'DELETE' });
     await idLoadArchive();
   } catch(err) { /* silent */ }
 }
@@ -9463,9 +9548,9 @@ async function aiyLoadActivations() {
   if (chan)  params.set('channel', chan);
   if (q)     params.set('q', q);
   try {
-    var res = await apiFetch('/api/ai-year/activations?' + params.toString());
+    var res = await apiFetch(apiUrl('/ai-year/activations?') + params.toString());
     var data = await res.json();
-    aiyActivations = data.activations || [];
+    aiyActivations = data.items || [];
     aiyFilteredActivations = aiyActivations;
     aiyRenderGallery();
     var navCount = document.getElementById('aiy-nav-count');
@@ -9478,7 +9563,7 @@ async function aiyLoadActivations() {
 
 async function aiyLoadStats() {
   try {
-    var res = await apiFetch('/api/ai-year/stats');
+    var res = await apiFetch(apiUrl('/ai-year/stats'));
     var d = await res.json();
     var set = function(id, val) { var el = document.getElementById(id); if (el) el.textContent = val; };
     set('aiy-stat-total', d.totalActivations ?? '—');
@@ -9612,7 +9697,7 @@ function aiyRenderGallery() {
 var AIY_SAFE_PATH = /^\/objects\/ai-year\/2026\/(1[0-2]|[1-9])\/\d+\/[\w.\-]+$/;
 function aiyStorageSrc(objectPath) {
   if (!objectPath || !AIY_SAFE_PATH.test(objectPath)) return '';
-  return '/api/storage/objects' + objectPath.replace('/objects', '');
+  return storageUrl('/objects' + objectPath.replace('/objects', ''));
 }
 
 function aiyRenderCard(a) {
@@ -9707,10 +9792,10 @@ async function aiyLBDownloadZip() {
   var btn = document.getElementById('aiy-lb-zip-btn');
   if (btn) { btn.disabled = true; btn.textContent = '⏳ جارٍ التحضير…'; }
   try {
-    var res = await apiFetch('/api/ai-year/activations/' + aiyCurrentId + '/zip');
+    var res = await apiFetch(apiUrl('/ai-year/activations/') + aiyCurrentId + '/zip');
     if (!res.ok) {
       var err = await res.json().catch(function() { return {}; });
-      alert(err.error || 'فشل التنزيل');
+      alert(err.detail || err.title || err.error || 'فشل التنزيل');
       return;
     }
     var blob = await res.blob();
@@ -9827,7 +9912,7 @@ async function aiyLBDelete() {
   if (!aiyCurrentId) return;
   if (!confirm('هل تريد حذف هذا التفعيل نهائياً؟')) return;
   try {
-    var res = await authFetchWithToken('/api/ai-year/activations/' + aiyCurrentId, {
+    var res = await authFetchWithToken(apiUrl('/ai-year/activations/' + aiyCurrentId), {
       method: 'DELETE'
     });
     var body = await res.json();
@@ -9952,13 +10037,13 @@ async function aiySaveActivation() {
     // then upload files using activationId in the structured storage path.
     if (!activationId) {
       if (lbl) lbl.textContent = 'جارٍ إنشاء التفعيل…';
-      var createRes = await apiFetch('/api/ai-year/activations', {
+      var createRes = await apiFetch(apiUrl('/ai-year/activations'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ activation: activationPayload, media: [] })
       });
       var createData = await createRes.json();
-      if (!createData.ok) throw new Error(createData.error || JSON.stringify(createData));
+      if (!createData.ok) throw new Error((createData.detail || createData.title || createData.error) || JSON.stringify(createData));
       activationId = createData.id;
     }
 
@@ -9971,13 +10056,13 @@ async function aiySaveActivation() {
         pf.status = 'uploading';
         aiyRenderFileList();
         try {
-          var urlRes = await apiFetch('/api/ai-year/upload-url', {
+          var urlRes = await apiFetch(apiUrl('/ai-year/upload-url'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name: pf.name, contentType: pf.type, activationId: activationId, month: month })
           });
           var urlData = await urlRes.json();
-          if (urlData.error) throw new Error(urlData.error);
+          if (!urlRes.ok || urlData.error) throw new Error(urlData.detail || urlData.title || urlData.error);
           // Upload directly to GCS via presigned PUT URL
           var putRes = await fetch(urlData.uploadURL, {
             method: 'PUT',
@@ -9998,7 +10083,7 @@ async function aiySaveActivation() {
 
     // Update activation with media (and any field changes if editing)
     if (lbl) lbl.textContent = 'جارٍ حفظ التفاصيل…';
-    var updateRes = await apiFetch('/api/ai-year/activations/' + activationId, {
+    var updateRes = await apiFetch(apiUrl('/ai-year/activations/') + activationId, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ activation: activationPayload, media: aiyUploadedMedia })
@@ -10055,13 +10140,14 @@ var DES = (function() {
     var loading = document.getElementById('des-logos-loading');
     if (!grid) return;
     loading.style.display = ''; grid.style.display = 'none'; loading.textContent = 'جاري التحميل…';
-    apiFetch('/api/designs/logos').then(function(r) { return r.json(); }).then(function(logos) {
+    apiFetch(apiUrl('/designs/logos')).then(function(r) { return r.json(); }).then(function(d) {
+      var logos = d.items || [];
       loading.style.display = 'none'; grid.style.display = '';
       if (!logos.length) {
         grid.innerHTML = '<div class="des-loading">لا توجد شعارات مرفوعة بعد.</div>'; return;
       }
       grid.innerHTML = logos.map(function(logo) {
-        var src = '/api/storage' + logo.fileUrl;
+        var src = storageUrl(logo.fileUrl);
         var checker = logo.transparent
           ? 'background:repeating-conic-gradient(#ccc 0% 25%,#fff 0% 50%) 0 0/14px 14px'
           : 'background:var(--surface-2)';
@@ -10087,18 +10173,18 @@ var DES = (function() {
     var width = parseInt(document.getElementById('des-logo-width').value) || null;
     var transparent = document.getElementById('des-logo-transparent').checked;
     showOverlay('جاري رفع الشعار…');
-    apiFetch('/api/designs/logos/upload-url', {
+    apiFetch(apiUrl('/designs/logos/upload-url'), {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ fileName: file.name, contentType: file.type })
     }).then(function(r) { return r.json(); }).then(function(data) {
       return fetch(data.uploadURL, { method: 'PUT', headers: { 'Content-Type': file.type }, body: file })
         .then(function(r) { if (!r.ok) throw new Error('فشل رفع الملف إلى التخزين'); return data.objectPath; });
     }).then(function(objectPath) {
-      return apiFetch('/api/designs/logos', {
+      return apiFetch(apiUrl('/designs/logos'), {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ logoName: name, fileUrl: objectPath, transparent: transparent, defaultWidth: width })
       });
-    }).then(function(r) { if (!r.ok) return r.json().then(function(e) { throw new Error(e.error||'خطأ'); }); })
+    }).then(function(r) { if (!r.ok) return r.json().then(function(e) { throw new Error(e.detail || e.title || e.error || 'خطأ'); }); })
     .then(function() {
       input.value = '';
       document.getElementById('des-logo-name').value = '';
@@ -10111,7 +10197,7 @@ var DES = (function() {
 
   function deleteLogo(id) {
     if (!confirm('هل تريد حذف هذا الشعار؟')) return;
-    apiFetch('/api/designs/logos/' + id, { method: 'DELETE' })
+    apiFetch(apiUrl('/designs/logos/') + id, { method: 'DELETE' })
       .then(function() { loadLogos(); }).catch(function(e) { alert(friendlyError(e, 'حدث خطأ غير متوقع')); });
   }
 
@@ -10121,7 +10207,8 @@ var DES = (function() {
     var loading = document.getElementById('des-fonts-loading');
     if (!list) return;
     loading.style.display = ''; list.style.display = 'none'; loading.textContent = 'جاري التحميل…';
-    apiFetch('/api/designs/fonts').then(function(r) { return r.json(); }).then(function(fonts) {
+    apiFetch(apiUrl('/designs/fonts')).then(function(r) { return r.json(); }).then(function(d) {
+      var fonts = d.items || [];
       loading.style.display = 'none'; list.style.display = '';
       if (!fonts.length) {
         list.innerHTML = '<div class="des-loading">لا توجد خطوط مرفوعة بعد.</div>'; return;
@@ -10148,18 +10235,18 @@ var DES = (function() {
     var name = (document.getElementById('des-font-name').value || '').trim() || file.name.replace(/\.[^.]+$/, '');
     var ct = ext === 'woff2' ? 'font/woff2' : 'font/ttf';
     showOverlay('جاري رفع الخط…');
-    apiFetch('/api/designs/fonts/upload-url', {
+    apiFetch(apiUrl('/designs/fonts/upload-url'), {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ fileName: file.name, contentType: ct })
     }).then(function(r) { return r.json(); }).then(function(data) {
       return fetch(data.uploadURL, { method: 'PUT', headers: { 'Content-Type': ct }, body: file })
         .then(function(r) { if (!r.ok) throw new Error('فشل رفع الملف إلى التخزين'); return data.objectPath; });
     }).then(function(objectPath) {
-      return apiFetch('/api/designs/fonts', {
+      return apiFetch(apiUrl('/designs/fonts'), {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ fontName: name, fontFileUrl: objectPath, isDefault: false })
       });
-    }).then(function(r) { if (!r.ok) return r.json().then(function(e) { throw new Error(e.error||'خطأ'); }); })
+    }).then(function(r) { if (!r.ok) return r.json().then(function(e) { throw new Error(e.detail || e.title || e.error || 'خطأ'); }); })
     .then(function() {
       input.value = ''; document.getElementById('des-font-name').value = '';
       loadFonts();
@@ -10168,13 +10255,13 @@ var DES = (function() {
   }
 
   function setDefaultFont(id) {
-    apiFetch('/api/designs/fonts/' + id + '/default', { method: 'PATCH' })
+    apiFetch(apiUrl('/designs/fonts/') + id + '/default', { method: 'PATCH' })
       .then(function() { loadFonts(); }).catch(function(e) { alert(friendlyError(e, 'حدث خطأ غير متوقع')); });
   }
 
   function deleteFont(id) {
     if (!confirm('هل تريد حذف هذا الخط؟')) return;
-    apiFetch('/api/designs/fonts/' + id, { method: 'DELETE' })
+    apiFetch(apiUrl('/designs/fonts/') + id, { method: 'DELETE' })
       .then(function() { loadFonts(); }).catch(function(e) { alert(friendlyError(e, 'حدث خطأ غير متوقع')); });
   }
 
@@ -10188,7 +10275,8 @@ var DES = (function() {
     var empty   = document.getElementById('des-tpl-empty');
     if (!loading) return;
     loading.style.display = ''; wrap.style.display = 'none'; empty.style.display = 'none';
-    apiFetch('/api/designs/templates').then(function(r) { return r.json(); }).then(function(list) {
+    apiFetch(apiUrl('/designs/templates')).then(function(r) { return r.json(); }).then(function(d) {
+      var list = d.items || [];
       _templates = list;
       loading.style.display = 'none';
       if (!list.length) { empty.style.display = ''; return; }
@@ -10327,7 +10415,7 @@ var DES = (function() {
   }
 
   function seedTestTemplate() {
-    apiFetch('/api/designs/templates/seed-test', { method: 'POST' })
+    apiFetch(apiUrl('/designs/templates/seed-test'), { method: 'POST' })
       .then(function(r) { return r.json(); })
       .then(function(d) {
         if (d.skipped) alert('قالب موجود مسبقاً — تم تحديث العرض.');
@@ -10339,7 +10427,7 @@ var DES = (function() {
   async function seedPresentationTemplates() {
     if (!confirm('سيتم إضافة أو تحديث قوالب العرض التقديمي (فقرات + أيقونات 2×2). متابعة؟')) return;
     try {
-      var r = await apiFetch('/api/designs/templates/reseed-presentation', {
+      var r = await apiFetch(apiUrl('/designs/templates/reseed-presentation'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: '{}'
@@ -10362,7 +10450,7 @@ var DES = (function() {
   async function seedTemplatesV2() {
     if (!confirm('سيتم إضافة أو تحديث قوالب V2 (مربع ×3 + غلاف فيسبوك + غلاف تويتر + صورة تويتر). متابعة؟')) return;
     try {
-      var r = await apiFetch('/api/designs/templates/reseed-v2', {
+      var r = await apiFetch(apiUrl('/designs/templates/reseed-v2'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: '{}'
@@ -10385,7 +10473,7 @@ var DES = (function() {
   async function seedTemplates2026() {
     if (!confirm('سيتم إضافة أو تحديث 3 قوالب 2026 (إعلان مؤسسي + ورشة + سوشيال حديث). متابعة؟')) return;
     try {
-      var r = await apiFetch('/api/designs/templates/reseed-2026', {
+      var r = await apiFetch(apiUrl('/designs/templates/reseed-2026'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: '{}'
@@ -10408,7 +10496,7 @@ var DES = (function() {
   async function seedGacLogos() {
     if (!confirm('سيتم رفع شعاري GAC (أفقي + عمودي) إلى التخزين. متابعة؟')) return;
     try {
-      var r = await apiFetch('/api/designs/logos/seed-gac', {
+      var r = await apiFetch(apiUrl('/designs/logos/seed-gac'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: '{}'
@@ -10441,7 +10529,7 @@ var DES = (function() {
     var tpl = _templates.find(function(t) { return t.id === tplId; });
     if (!tpl) {
       // templates not loaded yet — fetch individually
-      apiFetch('/api/designs/templates/' + tplId).then(function(r) { return r.json(); }).then(function(t) {
+      apiFetch(apiUrl('/designs/templates/') + tplId).then(function(r) { return r.json(); }).then(function(t) {
         _edTpl = t;
         _edBootstrap();
       });
@@ -10462,11 +10550,11 @@ var DES = (function() {
     if (wrap) wrap.style.display = 'none';
     if (noTpl) noTpl.style.display = '';
     Promise.all([
-      apiFetch('/api/designs/fonts').then(function(r) { return r.json(); }),
-      apiFetch('/api/designs/logos').then(function(r) { return r.json(); }),
+      apiFetch(apiUrl('/designs/fonts')).then(function(r) { return r.json(); }),
+      apiFetch(apiUrl('/designs/logos')).then(function(r) { return r.json(); }),
     ]).then(function(results) {
-      _edFonts = results[0];
-      _edLogos = results[1];
+      _edFonts = results[0].items || [];
+      _edLogos = results[1].items || [];
       _edBuildUI();
       if (noTpl) noTpl.style.display = 'none';
       if (wrap)  wrap.style.display  = '';
@@ -10508,7 +10596,7 @@ var DES = (function() {
         }).join('');
     }
     _edFonts.forEach(function(font) {
-      var src = "url('/api/storage" + font.fontFileUrl + "')";
+      var src = "url('" + storageUrl(font.fontFileUrl) + "')";
       // Inject @font-face for CSS fallback
       var styleId = 'face-' + font.id;
       if (!document.getElementById(styleId)) {
@@ -10542,7 +10630,7 @@ var DES = (function() {
             : 'var(--surface-2)';
           return '<div class="des-ed-logo-thumb" id="des-ed-logo-' + logo.id + '" data-id="' + logo.id + '"' +
             ' onclick="DES.edToggleLogo(' + logo.id + ')" style="background:' + checker + ';">' +
-            '<img src="/api/storage' + logo.fileUrl + '" alt="' + logo.logoName + '">' +
+            '<img src="' + storageUrl(logo.fileUrl) + '" alt="' + logo.logoName + '">' +
             '<div class="des-ed-logo-name">' + logo.logoName + '</div>' +
             '</div>';
         }).join('');
@@ -10660,7 +10748,7 @@ var DES = (function() {
     // ── Layer 1: Background ──────────────────────────────────────
     if (_edBgUrl) {
       html += '<div class="des-layer-bg">' +
-        '<img src="/api/storage' + _edBgUrl + '" style="width:100%;height:100%;object-fit:cover;display:block;" alt="خلفية">' +
+        '<img src="' + storageUrl(_edBgUrl) + '" style="width:100%;height:100%;object-fit:cover;display:block;" alt="خلفية">' +
         '</div>';
     } else {
       html += '<div class="des-layer-bg" style="background:#6e7e8e;">' +
@@ -10705,7 +10793,7 @@ var DES = (function() {
       var assignedId = _edSelectedLogoIds[idx] || null;
       var logo = assignedId ? _edLogos.find(function(l) { return l.id === assignedId; }) : null;
       var inner = logo
-        ? '<img src="/api/storage' + logo.fileUrl + '" style="max-width:100%;max-height:100%;object-fit:contain;" alt="' + logo.logoName + '">'
+        ? '<img src="' + storageUrl(logo.fileUrl) + '" style="max-width:100%;max-height:100%;object-fit:contain;" alt="' + logo.logoName + '">'
         : '<div class="des-logo-placeholder">' + (slot.key || 'شعار') + '</div>';
       html += '<div class="des-layer-logo" style="' +
         'left:' + _s(slot.x,scale) + 'px;top:' + _s(slot.y,scale) + 'px;' +
@@ -10784,13 +10872,13 @@ var DES = (function() {
     _startCooldown();
     // ─────────────────────────────────────────────────────────────────
 
-    apiFetch('/api/designs/generate-backgrounds', {
+    apiFetch(apiUrl('/designs/generate-backgrounds'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ prompt: prompt, templateId: _edTpl.id }),
     })
     .then(function(r) {
-      if (!r.ok) return r.json().then(function(e) { throw new Error(e.error || r.status); });
+      if (!r.ok) return r.json().then(function(e) { throw new Error(e.detail || e.title || e.error || r.status); });
       return r.json();
     })
     .then(function(data) {
@@ -10801,7 +10889,7 @@ var DES = (function() {
       if (resultsEl) {
         resultsEl.innerHTML = _edBgResults.map(function(img, i) {
           return '<div class="des-bg-thumb" id="des-bg-thumb-' + i + '" onclick="DES.edSelectBg(' + i + ')">' +
-            '<img src="/api/storage' + img.url + '" loading="lazy" alt="خلفية ' + (i+1) + '">' +
+            '<img src="' + storageUrl(img.url) + '" loading="lazy" alt="خلفية ' + (i+1) + '">' +
             '<div class="des-bg-num">' + (i+1) + '</div>' +
             '</div>';
         }).join('');
@@ -10882,15 +10970,15 @@ var DES = (function() {
       fontFamily: fnt && fnt.value ? fnt.value : undefined,
       department: null,
     };
-    apiFetch('/api/designs/render', {
+    apiFetch(apiUrl('/designs/render'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     }).then(function(r) { return r.json(); }).then(function(d) {
-      if (!d || !d.url) throw new Error(d && d.error ? d.error : 'فشل التركيب');
+      if (!d || !d.url) throw new Error(d && (d.detail || d.title || d.error) ? (d.detail || d.title || d.error) : 'فشل التركيب');
       // d.url is an objectPath like /objects/designs/renders/<uuid>.png
       // Fetch via storage endpoint which streams the PNG bytes.
-      var fetchUrl = '/api/storage' + d.url;
+      var fetchUrl = storageUrl(d.url);
       return apiFetch(fetchUrl).then(function(r) { return r.blob(); }).then(function(blob) {
         var url = URL.createObjectURL(blob);
         var a = document.createElement('a');
@@ -11026,7 +11114,8 @@ var PLCS = (function() {
     grid.style.display = 'none';
     if (empty) empty.style.display = 'none';
 
-    apiFetch('/api/weekend-places').then(function(r) { return r.json(); }).then(function(list) {
+    apiFetch(apiUrl('/weekend-places')).then(function(r) { return r.json(); }).then(function(d) {
+      var list = d.items || [];
       _places = list;
       if (loading) loading.style.display = 'none';
       if (!list.length) {
@@ -11036,7 +11125,7 @@ var PLCS = (function() {
       grid.style.display = '';
       grid.innerHTML = list.map(function(p) {
         var thumb = p.imageUrl
-          ? '<img src="/api/storage' + p.imageUrl + '" alt="' + p.name + '" onerror="this.parentElement.innerHTML=\'📍\'">'
+          ? '<img src="' + storageUrl(p.imageUrl) + '" alt="' + p.name + '" onerror="this.parentElement.innerHTML=\'📍\'">'
           : '📍';
         var badge = p.isActive
           ? '<span class="plcs-badge-active">مفعّل</span>'
@@ -11093,7 +11182,7 @@ var PLCS = (function() {
       if (p.imageUrl) {
         _pendingImageUrl = p.imageUrl;
         document.getElementById('plcs-f-img-url').value = p.imageUrl;
-        document.getElementById('plcs-f-img-preview').src = '/api/storage' + p.imageUrl;
+        document.getElementById('plcs-f-img-preview').src = storageUrl(p.imageUrl);
         document.getElementById('plcs-f-img-preview-wrap').style.display = '';
         document.getElementById('plcs-f-img-status').textContent = 'الصورة الحالية';
       }
@@ -11146,7 +11235,7 @@ var PLCS = (function() {
 
     var imgUploadPromise = Promise.resolve(_pendingImageUrl);
     if (imgFile) {
-      imgUploadPromise = apiFetch('/api/weekend-places/upload-url', {
+      imgUploadPromise = apiFetch(apiUrl('/weekend-places/upload-url'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ fileName: imgFile.name, contentType: imgFile.type })
@@ -11175,14 +11264,14 @@ var PLCS = (function() {
       };
 
       var method = editId ? 'PATCH' : 'POST';
-      var url    = editId ? '/api/weekend-places/' + editId : '/api/weekend-places';
+      var url    = editId ? apiUrl('/weekend-places/' + editId) : apiUrl('/weekend-places');
 
       return apiFetch(url, {
         method: method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       }).then(function(r) {
-        if (!r.ok) return r.json().then(function(e) { throw new Error(e.error || 'خطأ'); });
+        if (!r.ok) return r.json().then(function(e) { throw new Error(e.detail || e.title || e.error || 'خطأ'); });
       });
     }).then(function() {
       closeForm();
@@ -11198,7 +11287,7 @@ var PLCS = (function() {
   function deletePlace(id) {
     var p = _places.find(function(x) { return x.id === id; });
     if (!confirm('هل تريد حذف "' + (p ? p.name : id) + '"؟ لا يمكن التراجع.')) return;
-    apiFetch('/api/weekend-places/' + id, { method: 'DELETE' })
+    apiFetch(apiUrl('/weekend-places/') + id, { method: 'DELETE' })
       .then(function() { loadPlaces(); })
       .catch(function(e) { alert(friendlyError(e, 'حدث خطأ غير متوقع')); });
   }
@@ -11284,7 +11373,7 @@ var GACLIB = (function() {
     grid.innerHTML = state.items.map(function(item) {
       var cat = catMeta(item.category);
       var langBadge = item.language === 'en' ? 'EN' : (item.language === 'bilingual' ? 'AR/EN' : 'AR');
-      var dlHref = '/api/storage' + item.fileUrl;
+      var dlHref = storageUrl(item.fileUrl);
       var tags = (item.tags || []).slice(0, 3).map(function(t) {
         return '<span style="background:#f3f4f6;color:#374151;padding:3px 10px;border-radius:6px;font-size:12px;">' + t + '</span>';
       }).join('');
@@ -11320,7 +11409,7 @@ var GACLIB = (function() {
     if (state.q) params.set('q', state.q);
     if (state.category) params.set('category', state.category);
     try {
-      var res = await apiFetch('/api/gac/publications' + (params.toString() ? '?' + params.toString() : ''));
+      var res = await apiFetch(apiUrl('/gac/publications') + (params.toString() ? '?' + params.toString() : ''));
       if (!res.ok) throw new Error('HTTP ' + res.status);
       var data = await res.json();
       state.items = data.items || [];
@@ -11344,7 +11433,7 @@ var GACLIB = (function() {
     var btn = document.getElementById('gac-lib-reseed-btn');
     if (btn) { btn.disabled = true; btn.textContent = 'جارٍ التحميل...'; }
     try {
-      var res = await apiFetch('/api/gac/publications/reseed', { method: 'POST' });
+      var res = await apiFetch(apiUrl('/gac/publications/reseed'), { method: 'POST' });
       var data = await res.json();
       if (!res.ok || !data.ok) {
         alert('تعذّرت إعادة التغذية:\n' + (data.errors || []).join('\n') || res.status);
@@ -11394,7 +11483,7 @@ var GACLIB = (function() {
 // ── Report ───────────────────────────────────────────────────────
 async function aiyGenerateReport() {
   try {
-    var res = await apiFetch('/api/ai-year/report', { method: 'POST' });
+    var res = await apiFetch(apiUrl('/ai-year/report'), { method: 'POST' });
     if (!res.ok) throw new Error('Server error ' + res.status);
     var blob = await res.blob();
     var a = document.createElement('a');
@@ -11556,10 +11645,10 @@ var NOTIFICATIONS_POLL_INTERVAL = null;
 async function fetchNotifications() {
   if (!window.AUTH_USER) return;
   try {
-    var res = await apiFetch('/api/notifications');
+    var res = await apiFetch(apiUrl('/notifications'));
     if (!res.ok) return;
     var data = await res.json();
-    NOTIFICATIONS_DATA = (data.notifications || []).map(function(n) {
+    NOTIFICATIONS_DATA = (data.items || []).map(function(n) {
       return {
         id: n.id,
         icon: n.type === 'published' ? 'i-globe' : n.type === 'reminder_overdue' ? 'i-alert-triangle' : 'i-trending-up',
@@ -11629,7 +11718,7 @@ async function clickNotif(id) {
   renderNotifications();
   document.getElementById('notif-panel').classList.remove('open');
   // Mark as read in API
-  try { await apiFetch('/api/notifications/' + id + '/read', { method: 'POST' }); } catch(e) {}
+  try { await apiFetch(apiUrl('/notifications/') + id + '/read', { method: 'POST' }); } catch(e) {}
   // Navigate to URL if present
   if (n.url && typeof showSection === 'function') {
     var url = n.url;
@@ -11647,7 +11736,7 @@ async function clickNotif(id) {
 async function markAllNotifRead() {
   NOTIFICATIONS_DATA.forEach(n => n.unread = false);
   renderNotifications();
-  try { await apiFetch('/api/notifications/read-all', { method: 'POST' }); } catch(e) {}
+  try { await apiFetch(apiUrl('/notifications/read-all'), { method: 'POST' }); } catch(e) {}
 }
 document.addEventListener('click', (e) => {
   const w = document.querySelector('.notif-wrap');
@@ -11808,10 +11897,10 @@ async function shorfahLoadIssues() {
   if (adminDash) adminDash.style.display = shorfahIsAdmin() ? '' : 'none';
   grid.innerHTML = '<div style="color:#666;padding:24px;text-align:center;grid-column:1/-1;">جاري التحميل...</div>';
   try {
-    var res = await apiFetch('/api/shorfah/issues');
+    var res = await apiFetch(apiUrl('/shorfah/issues'));
     if (!res.ok) { grid.innerHTML = '<div style="color:#b91c1c;padding:24px;text-align:center;grid-column:1/-1;">تعذر تحميل الأعداد ('+res.status+')</div>'; return; }
     var data = await res.json();
-    var issues = data.issues || [];
+    var issues = data.items || [];
     var countEl = document.getElementById('shorfah-nav-count');
     if (countEl) countEl.textContent = issues.length;
     if (!issues.length) { grid.innerHTML = '<div style="color:#666;padding:24px;text-align:center;grid-column:1/-1;">لا توجد أعداد بعد</div>'; return; }
@@ -11849,7 +11938,7 @@ async function shorfahOpenIssue(id) {
   var board = document.getElementById('shorfah-sections-board');
   board.innerHTML = '<div style="color:#666;padding:24px;text-align:center;">جاري التحميل...</div>';
   try {
-    var res = await apiFetch('/api/shorfah/issues/'+id);
+    var res = await apiFetch(apiUrl('/shorfah/issues/')+id);
     if (!res.ok) { board.innerHTML = '<div style="color:#b91c1c;padding:24px;">تعذر تحميل العدد ('+res.status+')</div>'; return; }
     var data = await res.json();
     SHORFAH_STATE.issue = data.issue;
@@ -11870,12 +11959,17 @@ async function shorfahOpenIssue(id) {
     var isPublished = data.issue.status === 'published';
     var previewBtn = document.getElementById('shorfah-pdf-preview-btn');
     var downloadBtn = document.getElementById('shorfah-pdf-download-btn');
+    // KNOWN GAP (see FRONTEND-WIRING-NOTES.md): both of these are plain <a href> navigations,
+    // so neither can attach the required Authorization bearer header under the new
+    // JWT-bearer-only API (no cookie fallback is configured server-side). Paths corrected for
+    // versioning, but both will 401 until either the backend adds a short-lived signed-URL
+    // variant or these are rewritten as apiFetch()+blob download.
     if (previewBtn) {
-      previewBtn.href = '/api/shorfah/issues/'+id+'/pdf' + (isPublished ? '' : '?preview=1');
+      previewBtn.href = apiUrl('/shorfah/issues/'+id+'/pdf') + (isPublished ? '' : '?preview=1');
     }
     if (downloadBtn) {
       // Real .pdf binary route (Puppeteer). For non-published issues, allow preview-mode download.
-      downloadBtn.href = '/api/shorfah/issues/'+id+'/pdf.pdf' + (isPublished ? '' : '?preview=1');
+      downloadBtn.href = apiUrl('/shorfah/issues/'+id+'/pdf.pdf') + (isPublished ? '' : '?preview=1');
       downloadBtn.setAttribute('download', 'shorfah-issue-'+(data.issue.issueNo||data.issue.issue_no||id)+'.pdf');
     }
     // Review Round 5: Word btn is now a real fetch with auth token
@@ -11916,7 +12010,7 @@ async function shorfahDownloadDocx() {
   btn.innerHTML = '<span style="display:inline-flex;align-items:center;gap:8px;">⏳ جاري إنشاء ملف Word…</span>';
   btn.disabled = true;
   try {
-    var res = await apiFetch('/api/shorfah/issues/'+id+'/docx' + preview);
+    var res = await apiFetch(apiUrl('/shorfah/issues/')+id+'/docx' + preview);
     if (!res.ok) throw new Error('HTTP '+res.status);
     var blob = await res.blob();
     var url = URL.createObjectURL(blob);
@@ -12047,13 +12141,13 @@ async function shorfahNewIssue() {
   var year = parseInt(yearInput, 10);
   if (isNaN(year)) { alert('سنة غير صحيحة'); return; }
   try {
-    var res = await apiFetch('/api/shorfah/issues', {
+    var res = await apiFetch(apiUrl('/shorfah/issues'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ titleAr: 'شُرفة', subtitleAr: 'نشرة داخلية شهرية', month: month, year: year, status: 'collecting' })
     });
     var data = await res.json();
-    if (!res.ok) { alert('خطأ: '+(data.error || res.status)); return; }
+    if (!res.ok) { alert('خطأ: '+((data.detail || data.title || data.error) || res.status)); return; }
     await shorfahLoadIssues();
   } catch(e) { alert('خطأ: '+e.message); }
 }
@@ -12082,10 +12176,10 @@ async function shorfahLoadMedia(sectionId) {
   if (!grid) return;
   grid.innerHTML = '<div style="grid-column:1/-1;font-size:12px;color:var(--text-3);text-align:center;padding:8px;">جاري التحميل...</div>';
   try {
-    var res = await apiFetch('/api/shorfah/sections/'+sectionId+'/media');
+    var res = await apiFetch(apiUrl('/shorfah/sections/')+sectionId+'/media');
     var data = await res.json();
     if (!res.ok) { grid.innerHTML = '<div style="grid-column:1/-1;font-size:12px;color:#c0392b;text-align:center;padding:8px;">خطأ في تحميل الصور</div>'; return; }
-    shorfahRenderMediaGrid(data.media || []);
+    shorfahRenderMediaGrid(data.items || []);
   } catch(e) {
     grid.innerHTML = '<div style="grid-column:1/-1;font-size:12px;color:#c0392b;text-align:center;padding:8px;">'+e.message+'</div>';
   }
@@ -12099,9 +12193,9 @@ function shorfahRenderMediaGrid(items) {
     return;
   }
   grid.innerHTML = items.map(function(m, idx) {
-    var url = m.mediaUrl.startsWith('/') ? ('/api/storage' + (m.mediaUrl.startsWith('/objects/') ? m.mediaUrl.replace('/objects/','/objects/') : m.mediaUrl)) : m.mediaUrl;
+    var url = m.mediaUrl.startsWith('/') ? (storageUrl(m.mediaUrl.startsWith('/objects/') ? m.mediaUrl.replace('/objects/','/objects/') : m.mediaUrl)) : m.mediaUrl;
     // /api/storage/objects/<rel>
-    var fullUrl = m.mediaUrl.startsWith('/objects/') ? ('/api/storage' + m.mediaUrl) : m.mediaUrl;
+    var fullUrl = m.mediaUrl.startsWith('/objects/') ? (storageUrl(m.mediaUrl)) : m.mediaUrl;
     return '<div style="position:relative;aspect-ratio:1;border-radius:6px;overflow:hidden;border:1px solid var(--border);background:#f0f0f0;">'+
       '<img src="'+fullUrl+'" alt="" style="width:100%;height:100%;object-fit:cover;display:block;">'+
       '<button onclick="shorfahDeleteMedia('+m.id+')" style="position:absolute;top:4px;left:4px;background:rgba(0,0,0,0.6);color:#fff;border:none;border-radius:4px;width:22px;height:22px;cursor:pointer;font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center;" title="حذف">×</button>'+
@@ -12133,12 +12227,12 @@ async function shorfahUploadMedia(ev) {
         r.onerror = function() { reject(new Error('فشل قراءة الملف')); };
         r.readAsDataURL(f);
       });
-      var res = await apiFetch('/api/shorfah/sections/'+sid+'/media', {
+      var res = await apiFetch(apiUrl('/shorfah/sections/')+sid+'/media', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ dataBase64: b64, contentType: f.type, displayOrder: nextOrder + i })
       });
       var data = await res.json();
-      if (!res.ok) { alert('خطأ في رفع ' + f.name + ': ' + (data.error || res.status)); }
+      if (!res.ok) { alert('خطأ في رفع ' + f.name + ': ' + ((data.detail || data.title || data.error) || res.status)); }
     } catch(e) { alert(friendlyError(e, 'حدث خطأ غير متوقع')); }
   }
   status.textContent = '';
@@ -12150,8 +12244,8 @@ async function shorfahDeleteMedia(mediaId) {
   var modal = document.getElementById('shorfah-editor-modal');
   var sid = parseInt(modal.dataset.sectionId, 10);
   try {
-    var res = await apiFetch('/api/shorfah/media/'+mediaId, { method: 'DELETE' });
-    if (!res.ok) { var d = await res.json(); alert('خطأ: ' + (d.error || res.status)); return; }
+    var res = await apiFetch(apiUrl('/shorfah/media/')+mediaId, { method: 'DELETE' });
+    if (!res.ok) { var d = await res.json(); alert('خطأ: ' + (d.detail || d.title || d.error || res.status)); return; }
     await shorfahLoadMedia(sid);
   } catch(e) { alert(friendlyError(e, 'حدث خطأ غير متوقع')); }
 }
@@ -12163,12 +12257,12 @@ async function shorfahSaveDraft() {
   var contentMd = document.getElementById('shorfah-editor-content').value;
   var includeInPdf = document.getElementById('shorfah-editor-include').checked;
   try {
-    var res = await apiFetch('/api/shorfah/sections/'+sid, {
+    var res = await apiFetch(apiUrl('/shorfah/sections/')+sid, {
       method: 'PATCH', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ contentMd: contentMd, includeInPdf: includeInPdf })
     });
     var data = await res.json();
-    if (!res.ok) { alert('خطأ في الحفظ: '+(data.error || res.status)); return false; }
+    if (!res.ok) { alert('خطأ في الحفظ: '+((data.detail || data.title || data.error) || res.status)); return false; }
     shorfahCloseEditor();
     await shorfahOpenIssue(SHORFAH_STATE.currentIssueId);
     return true;
@@ -12181,14 +12275,14 @@ async function shorfahSubmitContent() {
   var contentMd = document.getElementById('shorfah-editor-content').value;
   var includeInPdf = document.getElementById('shorfah-editor-include').checked;
   try {
-    var saveRes = await apiFetch('/api/shorfah/sections/'+sid, {
+    var saveRes = await apiFetch(apiUrl('/shorfah/sections/')+sid, {
       method: 'PATCH', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ contentMd: contentMd, includeInPdf: includeInPdf })
     });
-    if (!saveRes.ok) { var sd = await saveRes.json(); alert('خطأ في الحفظ: '+(sd.error || saveRes.status)); return; }
-    var subRes = await apiFetch('/api/shorfah/sections/'+sid+'/submit', { method: 'POST' });
+    if (!saveRes.ok) { var sd = await saveRes.json(); alert('خطأ في الحفظ: '+((sd.detail || sd.title || sd.error) || saveRes.status)); return; }
+    var subRes = await apiFetch(apiUrl('/shorfah/sections/')+sid+'/submit', { method: 'POST' });
     var sub = await subRes.json();
-    if (!subRes.ok) { alert('خطأ في التسليم: '+(sub.error || subRes.status)); return; }
+    if (!subRes.ok) { alert('خطأ في التسليم: '+((sub.detail || sub.title || sub.error) || subRes.status)); return; }
     shorfahCloseEditor();
     await shorfahOpenIssue(SHORFAH_STATE.currentIssueId);
   } catch(e) { alert('خطأ: '+e.message); }
@@ -12200,9 +12294,9 @@ async function shorfahGenerateAI() {
   var orig = btn.innerHTML;
   btn.innerHTML = 'جاري التوليد...'; btn.disabled = true;
   try {
-    var res = await apiFetch('/api/shorfah/sections/'+sid+'/generate', { method: 'POST' });
+    var res = await apiFetch(apiUrl('/shorfah/sections/')+sid+'/generate', { method: 'POST' });
     var data = await res.json();
-    if (!res.ok) { alert('خطأ في التوليد: '+(data.error || res.status)); return; }
+    if (!res.ok) { alert('خطأ في التوليد: '+((data.detail || data.title || data.error) || res.status)); return; }
     if (data.section && data.section.contentMd) {
       document.getElementById('shorfah-editor-content').value = data.section.contentMd;
       alert('تم توليد المحتوى وحفظه كمسودة مسلَّمة.');
@@ -12215,33 +12309,33 @@ async function shorfahGenerateAI() {
 async function shorfahReviewSection(sectionId, decision) {
   var notes = decision === 'reject' ? (prompt('سبب الرفض/الإعادة (اختياري):') || '') : '';
   try {
-    var res = await apiFetch('/api/shorfah/sections/'+sectionId+'/review', {
+    var res = await apiFetch(apiUrl('/shorfah/sections/')+sectionId+'/review', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ decision: decision, notes: notes })
     });
     var data = await res.json();
-    if (!res.ok) { alert('خطأ: '+(data.error || res.status)); return; }
+    if (!res.ok) { alert('خطأ: '+((data.detail || data.title || data.error) || res.status)); return; }
     await shorfahOpenIssue(SHORFAH_STATE.currentIssueId);
   } catch(e) { alert('خطأ: '+e.message); }
 }
 async function shorfahApproveSection(sectionId) {
   if (!confirm('اعتماد هذا القسم؟ سيظهر في الـ PDF النهائي.')) return;
   try {
-    var res = await apiFetch('/api/shorfah/sections/'+sectionId+'/approve', { method: 'POST' });
+    var res = await apiFetch(apiUrl('/shorfah/sections/')+sectionId+'/approve', { method: 'POST' });
     var data = await res.json();
-    if (!res.ok) { alert('خطأ: '+(data.error || res.status)); return; }
+    if (!res.ok) { alert('خطأ: '+((data.detail || data.title || data.error) || res.status)); return; }
     await shorfahOpenIssue(SHORFAH_STATE.currentIssueId);
   } catch(e) { alert('خطأ: '+e.message); }
 }
 async function shorfahToggleInclude(sectionId, checked) {
   try {
-    var res = await apiFetch('/api/shorfah/sections/'+sectionId, {
+    var res = await apiFetch(apiUrl('/shorfah/sections/')+sectionId, {
       method: 'PATCH', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ includeInPdf: checked })
     });
     var data = await res.json();
     if (!res.ok) {
-      alert('خطأ في التحديث: '+(data.error || res.status));
+      alert('خطأ في التحديث: '+((data.detail || data.title || data.error) || res.status));
       await shorfahOpenIssue(SHORFAH_STATE.currentIssueId); // refresh
     } else {
       // Update local cache silently
@@ -12258,7 +12352,7 @@ async function shorfahStartDataCollection() {
   var btn = document.getElementById('shorfah-start-collect-btn');
   if (btn) { btn.disabled = true; btn.style.opacity = '0.7'; btn.innerHTML = '<span style="display:inline-flex;align-items:center;gap:6px;">جارٍ تجميع البيانات…</span>'; }
   try {
-    var res = await apiFetch('/api/shorfah/issues/'+SHORFAH_STATE.currentIssueId+'/collect', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({}) });
+    var res = await apiFetch(apiUrl('/shorfah/issues/')+SHORFAH_STATE.currentIssueId+'/collect', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({}) });
     var ok = res.ok;
     var data = {};
     try { data = await res.json(); } catch(e){}
@@ -12269,7 +12363,7 @@ async function shorfahStartDataCollection() {
       // Endpoint not deployed yet — show friendly hand-off
       alert('تم تسجيل طلب بدء تجميع البيانات. سيتولى مسؤولو الأقسام إدخال المحتوى من تبويب تحديث الحالة.');
     } else {
-      alert('تعذر بدء تجميع البيانات: '+(data.error || res.status));
+      alert('تعذر بدء تجميع البيانات: '+((data.detail || data.title || data.error) || res.status));
     }
   } catch(e) {
     alert('خطأ في الاتصال: '+e.message);
@@ -12282,9 +12376,9 @@ async function shorfahPublishIssue() {
   if (!shorfahIsAdmin()) { alert('عذراً، تحتاج صلاحيات مسؤول للنشر'); return; }
   if (!confirm('نشر هذا العدد؟ سيصبح متاحاً للجميع كنسخة نهائية.')) return;
   try {
-    var res = await apiFetch('/api/shorfah/issues/'+SHORFAH_STATE.currentIssueId+'/publish', { method: 'POST' });
+    var res = await apiFetch(apiUrl('/shorfah/issues/')+SHORFAH_STATE.currentIssueId+'/publish', { method: 'POST' });
     var data = await res.json();
-    if (!res.ok) { alert('خطأ في النشر: '+(data.error || res.status)); return; }
+    if (!res.ok) { alert('خطأ في النشر: '+((data.detail || data.title || data.error) || res.status)); return; }
     alert('تم نشر العدد بنجاح.');
     await shorfahOpenIssue(SHORFAH_STATE.currentIssueId);
   } catch(e) { alert('خطأ: '+e.message); }
@@ -12297,9 +12391,9 @@ async function shorfahStartReview() {
   if (!confirm('نقل العدد لمرحلة المراجعة النهائية؟')) return;
   var id = SHORFAH_STATE.currentIssueId;
   try {
-    var res = await apiFetch('/api/shorfah/issues/'+id+'/start-review', { method: 'POST' });
+    var res = await apiFetch(apiUrl('/shorfah/issues/')+id+'/start-review', { method: 'POST' });
     var data = await res.json();
-    if (!res.ok) { alert('خطأ: '+(data.error || res.status)); return; }
+    if (!res.ok) { alert('خطأ: '+((data.detail || data.title || data.error) || res.status)); return; }
     alert('تم نقل العدد لمرحلة المراجعة النهائية.');
     await shorfahOpenIssue(id);
   } catch(e) { alert('خطأ: '+e.message); }
@@ -12314,16 +12408,16 @@ async function shorfahShowAdminPanel() {
   // If no issue is currently open, pick the most recent non-published issue (or the latest of any kind)
   if (!issueId) {
     try {
-      var res = await apiFetch('/api/shorfah/issues');
+      var res = await apiFetch(apiUrl('/shorfah/issues'));
       if (res.ok) {
         var data = await res.json();
-        var issues = data.issues || [];
+        var issues = data.items || [];
         // Prefer non-published (active workflow), fallback to most recent overall
         var active = issues.find(function(i){ return i.status !== 'published'; });
         var pick = active || issues[0];
         if (pick) {
           // Hydrate SHORFAH_STATE so the admin panel has the issue context
-          var detailRes = await apiFetch('/api/shorfah/issues/'+pick.id);
+          var detailRes = await apiFetch(apiUrl('/shorfah/issues/')+pick.id);
           if (detailRes.ok) {
             var detailData = await detailRes.json();
             SHORFAH_STATE.currentIssueId = pick.id;
@@ -12359,7 +12453,7 @@ function shorfahHideAdminPanel() {
 async function shorfahAdminLoadData() {
   var issueId = SHORFAH_ADMIN_STATE.issueId;
   try {
-    var res = await apiFetch('/api/shorfah/issues/'+issueId+'/admin');
+    var res = await apiFetch(apiUrl('/shorfah/issues/')+issueId+'/admin');
     if (!res.ok) return;
     var data = await res.json();
     SHORFAH_ADMIN_STATE.sections = data.sections || [];
@@ -12368,7 +12462,7 @@ async function shorfahAdminLoadData() {
     // Load users list for contributor picker (cached after first fetch)
     if (!SHORFAH_ADMIN_STATE.users || !SHORFAH_ADMIN_STATE.users.length) {
       try {
-        var uRes = await apiFetch('/api/admin/users?limit=200');
+        var uRes = await apiFetch(apiUrl('/admin/users?limit=200'));
         if (uRes.ok) {
           var uData = await uRes.json();
           SHORFAH_ADMIN_STATE.users = uData.users || [];
@@ -12448,7 +12542,7 @@ async function shorfahAdminRenderSla() {
   el.innerHTML = '<div style="padding:16px;color:#666;">جارٍ تحميل قوالب SLA…</div>';
   var defaults = [];
   try {
-    var res = await apiFetch('/api/shorfah/sla-defaults');
+    var res = await apiFetch(apiUrl('/shorfah/sla-defaults'));
     if (res.ok) { var data = await res.json(); defaults = data.defaults || []; }
   } catch(e) { console.warn('SLA defaults load fallback:', e); }
   var byType = {};
@@ -12493,13 +12587,13 @@ async function shorfahSaveSlaDefaults() {
     return { sectionType: type, slaDays: days };
   });
   try {
-    var res = await apiFetch('/api/shorfah/sla-defaults', {
+    var res = await apiFetch(apiUrl('/shorfah/sla-defaults'), {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ defaults: defaults })
     });
     var data = await res.json();
-    if (!res.ok) { alert('خطأ: '+(data.error || res.status)); return; }
+    if (!res.ok) { alert('خطأ: '+((data.detail || data.title || data.error) || res.status)); return; }
     var pn = data.propagatedSections || 0;
     alert('تم حفظ قوالب SLA.\n• تُطبَّق تلقائيًا على كل الأعداد الجديدة.\n• تم تحديث ' + pn + ' قسمًا في الأعداد الحالية (الأقسام التي لم تبدأ بعد).');
     shorfahAdminRenderSla();
@@ -12596,13 +12690,13 @@ async function shorfahAddAssignment(sectionId) {
   if (isNaN(userId)) { alert('أدخل معرف المستخدم'); return; }
   var role = roleEl ? roleEl.value : 'contributor';
   try {
-    var res = await apiFetch('/api/shorfah/sections/'+sectionId+'/assign', {
+    var res = await apiFetch(apiUrl('/shorfah/sections/')+sectionId+'/assign', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userId: userId, role: role })
     });
     var data = await res.json();
-    if (!res.ok) { alert('خطأ: '+(data.error || res.status)); return; }
+    if (!res.ok) { alert('خطأ: '+((data.detail || data.title || data.error) || res.status)); return; }
     await shorfahAdminLoadData();
     shorfahAdminRenderAssign();
   } catch(e) { alert('خطأ: '+e.message); }
@@ -12611,7 +12705,7 @@ async function shorfahAddAssignment(sectionId) {
 async function shorfahDeleteAssignment(assignmentId) {
   if (!confirm('حذف هذا التعيين؟')) return;
   try {
-    var res = await apiFetch('/api/shorfah/assignments/'+assignmentId, { method: 'DELETE' });
+    var res = await apiFetch(apiUrl('/shorfah/assignments/')+assignmentId, { method: 'DELETE' });
     if (!res.ok) { alert('خطأ في الحذف'); return; }
     await shorfahAdminLoadData();
     shorfahAdminRenderAssign();
@@ -12712,13 +12806,13 @@ function shorfahAdminRenderStatus() {
 async function shorfahSendReminder(sectionId, userId) {
   if (!confirm('إرسال تذكير للمستخدم #'+userId+'؟')) return;
   try {
-    var res = await apiFetch('/api/shorfah/sections/'+sectionId+'/remind', {
+    var res = await apiFetch(apiUrl('/shorfah/sections/')+sectionId+'/remind', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userId: userId })
     });
     var data = await res.json();
-    if (!res.ok) { alert('خطأ: '+(data.error || res.status)); return; }
+    if (!res.ok) { alert('خطأ: '+((data.detail || data.title || data.error) || res.status)); return; }
     alert('تم إرسال التذكير');
     await shorfahAdminLoadData();
     shorfahAdminRenderStatus();
@@ -12758,9 +12852,9 @@ async function shorfahSendInitialMessages() {
   if (!issueId) return;
   if (!confirm('إرسال رسائل البدء لجميع المساهمين؟ سيتم ضبط تاريخ البدء الآن.')) return;
   try {
-    var res = await apiFetch('/api/shorfah/issues/'+issueId+'/send-initial', { method: 'POST' });
+    var res = await apiFetch(apiUrl('/shorfah/issues/')+issueId+'/send-initial', { method: 'POST' });
     var data = await res.json();
-    if (!res.ok) { alert('خطأ: '+(data.error || res.status)); return; }
+    if (!res.ok) { alert('خطأ: '+((data.detail || data.title || data.error) || res.status)); return; }
     alert('تم إرسال '+data.sent+' إشعار للمساهمين');
     await shorfahAdminLoadData();
     shorfahAdminRenderStatus();
@@ -12822,7 +12916,7 @@ window.MM = (function(){
     if (emptyEl) emptyEl.style.display = 'none';
     if (listEl) listEl.style.display = 'none';
     try {
-      var res = await apiFetch('/api/final-media-reports');
+      var res = await apiFetch(apiUrl('/final-media-reports'));
       var data = await res.json();
       state.reports = data.items || [];
       if (!Array.isArray(state.reports)) state.reports = [];
@@ -12992,7 +13086,7 @@ window.MM = (function(){
     nextBtn.disabled = true; nextBtn.textContent = 'جارٍ التوليد…';
     try {
       // Log wizard answers
-      apiFetch('/api/qa-queries', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ queryType:'wizard', wizardAnswers: state.wizAnswers }) }).catch(function(){});
+      apiFetch(apiUrl('/qa-queries'), { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ queryType:'wizard', wizardAnswers: state.wizAnswers }) }).catch(function(){});
       var payload = {
         reportType: state.wizAnswers.reportType,
         audience: state.wizAnswers.audience,
@@ -13003,55 +13097,40 @@ window.MM = (function(){
       };
       if (state.wizAnswers.dateFrom) payload.dateFrom = state.wizAnswers.dateFrom;
       if (state.wizAnswers.dateTo) payload.dateTo = state.wizAnswers.dateTo;
-      var res = await apiFetch('/api/final-media-reports/generate', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+      var res = await apiFetch(apiUrl('/final-media-reports/generate'), { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
       if (!res.ok) {
         var errTxt = await res.text();
-        // Parse nested AI provider errors gracefully
-        var friendly = errTxt;
-        var errCode = null;
         var ejFull = {};
-        try {
-          var ej = JSON.parse(errTxt);
-          ejFull = ej || {};
-          errCode = ej && ej.code;
-          if (ej && ej.error) {
-            var inner = ej.error;
-            if (typeof inner === 'string') { try { inner = JSON.parse(inner); } catch(_){} }
-            var msg = (inner && inner.error && inner.error.message) || (inner && inner.message) || ej.error;
-            var code = (inner && inner.error && inner.error.code) || (inner && inner.code);
-            if (ej.code === 'NO_SOURCE_DATA') {
-              friendly = String(ej.error || '').slice(0,500);
-            } else if (code === 429 || /prepayment|quota|depleted|exceeded/i.test(String(msg))) {
-              friendly = '⚠️ نفد رصيد الذكاء الاصطناعي (Gemini API).\n\nيجب على المسؤول تجديد رصيد المفتاح من https://ai.studio/projects ثم المحاولة لاحقاً.';
-            } else if (code === 503 || /unavailable|high demand|overloaded|temporary/i.test(String(msg))) {
-              friendly = '⏱️ خدمة الذكاء الاصطناعي تعاني من ضغط مؤقت الآن.\n\nالرجاء إعادة المحاولة خلال 30 ثانية.';
-            } else if (/valid JSON|no JSON/i.test(String(msg))) {
-              friendly = '⚠️ الذكاء الاصطناعي لم يرجع إجابة صحيحة. أعاد النظام المحاولة 3 مرات.\n\nالرجاء المحاولة مرة أخرى.';
-            } else {
-              friendly = String(msg).slice(0,300);
-            }
-          }
-        } catch(_){}
-        // If NO_SOURCE_DATA, show custom modal with action buttons (matches runGenerate flow)
-        if (errCode === 'NO_SOURCE_DATA') {
-          var hint = (ejFull && ejFull.hint) || {};
-          var avail = hint.dataAvailable || {};
-          var hasExisting = avail.postsTotal > 0 || avail.newsTotal > 0;
-          var oldest = avail.oldestDate ? avail.oldestDate.slice(0, 10) : null;
-          var newest = avail.newestDate ? avail.newestDate.slice(0, 10) : null;
+        try { ejFull = JSON.parse(errTxt) || {}; } catch(_){}
+        // Why this block changed: the old Node API returned NO_SOURCE_DATA as a nested
+        // {code,error,hint:{dataAvailable:{postsTotal,newsTotal,oldestDate,newestDate}}}
+        // envelope wrapping a raw AI-provider error for every other failure. The new .NET
+        // API returns NO_SOURCE_DATA as its own flat 422 body
+        // {code,totalPostsAvailable,totalNewsAvailable,earliestAvailableDate,latestAvailableDate}
+        // (see NoSourceDataDto.cs), and every other failure as flat Problem Details
+        // {title,detail} via application/problem+json — there is no more nested
+        // AI-provider passthrough shape to unwrap, so the old quota/503/invalid-JSON
+        // string-sniffing on a nested inner.error.message no longer has anything to match
+        // against. friendlyError() (shared helper) already covers the generic
+        // network/5xx/validation Arabic translations, so it is reused here instead of
+        // duplicating that logic.
+        if (res.status === 422 && ejFull.code === 'NO_SOURCE_DATA') {
+          var hasExisting = (ejFull.totalPostsAvailable || 0) > 0 || (ejFull.totalNewsAvailable || 0) > 0;
+          var oldest = ejFull.earliestAvailableDate ? String(ejFull.earliestAvailableDate).slice(0, 10) : null;
+          var newest = ejFull.latestAvailableDate ? String(ejFull.latestAvailableDate).slice(0, 10) : null;
           nextBtn.disabled = false; nextBtn.textContent = orig;
           showNoDataModal({
-            message: ejFull.error || friendly,
+            message: 'لا توجد بيانات مصدرية (منشورات أو أخبار) للفترة المحددة.',
             hasExisting: hasExisting,
             oldest: oldest,
             newest: newest,
-            postsTotal: avail.postsTotal || 0,
-            newsTotal: avail.newsTotal || 0,
+            postsTotal: ejFull.totalPostsAvailable || 0,
+            newsTotal: ejFull.totalNewsAvailable || 0,
             fromWizard: true,
           });
           return;
         }
-        throw new Error(friendly);
+        throw new Error(friendlyError(ejFull.detail || ejFull.title || ejFull, 'فشل التوليد'));
       }
       var data = await res.json();
       state.draft = data.draft;
@@ -13064,7 +13143,7 @@ window.MM = (function(){
         if (state.wizAnswers.recipients) {
           var emails = state.wizAnswers.recipients.split(/[,،\s]+/).map(function(e){return e.trim();}).filter(function(e){return e && e.indexOf('@')>0;});
           if (emails.length > 0) {
-            apiFetch('/api/final-media-reports/'+data.saved.id+'/send-email', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ recipients: emails }) }).catch(function(){});
+            apiFetch(apiUrl('/final-media-reports/')+data.saved.id+'/send-email', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ recipients: emails }) }).catch(function(){});
           }
         }
       } else {
@@ -13097,9 +13176,9 @@ window.MM = (function(){
     resEl.style.display = 'block';
     resEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-3);">🔍 جارٍ البحث…</div>';
     try {
-      var res = await apiFetch('/api/final-media-reports/search', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ mode: mode, query: q }) });
+      var res = await apiFetch(apiUrl('/final-media-reports/search'), { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ mode: mode, query: q }) });
       var data = await res.json();
-      if (!data.ok) throw new Error(data.error || 'فشل البحث');
+      if (!data.ok) throw new Error((data.detail || data.title || data.error) || 'فشل البحث');
       if (mode === 'full') {
         if (!data.reports || data.reports.length === 0) {
           resEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-3);">لا توجد تقارير مطابقة.</div>';
@@ -13319,9 +13398,9 @@ window.MM = (function(){
 
   async function viewReport(id) {
     try {
-      var res = await apiFetch('/api/final-media-reports/' + id);
+      var res = await apiFetch(apiUrl('/final-media-reports/') + id);
       var data = await res.json();
-      if (!data.ok) throw new Error(data.error||'فشل التحميل');
+      if (!data.ok) throw new Error((data.detail || data.title || data.error)||'فشل التحميل');
       var r = data.item || data.report;
       if (!r) throw new Error('لم يتم العثور على بيانات التقرير');
       state.current = r;
@@ -13357,7 +13436,7 @@ window.MM = (function(){
     var btn = event && event.target; var orig = btn ? btn.textContent : '';
     if (btn) { btn.disabled = true; btn.textContent = 'جارٍ إنشاء PDF…'; }
     try {
-      var res = await apiFetch('/api/final-media-reports/'+state.current.id+'/export-pdf', { method:'POST' });
+      var res = await apiFetch(apiUrl('/final-media-reports/')+state.current.id+'/export-pdf', { method:'POST' });
       if (!res.ok){ var t = await res.text(); throw new Error(t||'فشل التصدير'); }
       var blob = await res.blob();
       var url = URL.createObjectURL(blob);
@@ -13377,10 +13456,10 @@ window.MM = (function(){
     var emails = to.split(/[,،\s]+/).map(function(e){return e.trim();}).filter(function(e){return e && e.indexOf('@')>0;});
     if (!emails.length) { alert('لا توجد بريد إلكتروني صحيح.'); return; }
     try {
-      var res = await apiFetch('/api/final-media-reports/'+state.current.id+'/send-email', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ recipients: emails }) });
+      var res = await apiFetch(apiUrl('/final-media-reports/')+state.current.id+'/send-email', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ recipients: emails }) });
       var data = await res.json();
       if (data.ok) alert('تم الإرسال بنجاح إلى '+emails.length+' مستلم.');
-      else alert('تعذّر الإرسال: ' + (data.error||''));
+      else alert('تعذّر الإرسال: ' + ((data.detail || data.title || data.error)||''));
     } catch(e){ alert('تعذّر الإرسال: ' + (e.message||'')); }
   }
 
@@ -13388,9 +13467,9 @@ window.MM = (function(){
     if (!state.current) return;
     if (!confirm('إعادة توليد ملخص تنفيذي مختصر من نفس التقرير؟ (لن يُعدّل التقرير الأصلي — يُعرض ملخص جديد)')) return;
     try {
-      var res = await apiFetch('/api/final-media-reports/'+state.current.id+'/exec-summary', { method:'POST' });
+      var res = await apiFetch(apiUrl('/final-media-reports/')+state.current.id+'/exec-summary', { method:'POST' });
       var data = await res.json();
-      if (!data.ok) throw new Error(data.error||'فشل');
+      if (!data.ok) throw new Error((data.detail || data.title || data.error)||'فشل');
       var w = window.open('', '_blank');
       if (w){
         w.document.write('<html dir="rtl" lang="ar"><head><meta charset="utf-8"><title>ملخص تنفيذي — '+escHtml(state.current.reportNumber||'')+'</title><style>body{font-family:"Segoe UI",Tahoma,sans-serif;max-width:780px;margin:30px auto;padding:24px;background:#f9fafb;color:#0e3b4a;line-height:1.8;}h1{color:#1a6e7a;border-bottom:3px solid #b8924a;padding-bottom:8px;}.box{background:white;padding:20px;border-radius:10px;border-right:4px solid #1a6e7a;}</style></head><body><h1>ملخص تنفيذي</h1><div style="font-size:12px;color:#6b7280;margin-bottom:14px;">'+escHtml(state.current.reportNumber||'')+' · '+escHtml(state.current.title||'')+'</div><div class="box">'+mmRenderMarkdown(data.summary||'').replace(/\n/g,'<br>')+'</div></body></html>');
@@ -13447,53 +13526,35 @@ window.MM = (function(){
           return;
         }
       }
-      var res = await apiFetch('/api/final-media-reports/generate', {
+      var res = await apiFetch(apiUrl('/final-media-reports/generate'), {
         method:'POST',
         headers:{'Content-Type':'application/json'},
         body: JSON.stringify(payload)
       });
       if (!res.ok) {
         var errTxt = await res.text();
-        var friendly = errTxt;
-        var errCode = null;
-        try {
-          var ej = JSON.parse(errTxt);
-          errCode = ej && ej.code;
-          if (ej && ej.error) {
-            var inner = ej.error;
-            if (typeof inner === 'string') { try { inner = JSON.parse(inner); } catch(_){} }
-            var msg = (inner && inner.error && inner.error.message) || (inner && inner.message) || ej.error;
-            var code = (inner && inner.error && inner.error.code) || (inner && inner.code) || ej.code;
-            if (ej.code === 'NO_SOURCE_DATA' || /لا توجد أخبار/.test(String(ej.error))) {
-              friendly = '📭 لا توجد بيانات إعلامية مرصودة في الفترة المختارة.\n\nحلول مقترحة:\n• استخدم زر «استيراد بيانات تجريبية» لاختبار الميزة\n• أو وسّع الفترة إلى «مخصص» واختر فترة أوسع';
-            } else if (code === 429 || /prepayment|quota|depleted|exceeded/i.test(String(msg))) {
-              friendly = '⚠️ نفد رصيد الذكاء الاصطناعي. يجب على مدير النظام تجديد الرصيد.';
-            } else if (code === 503 || /unavailable|high demand|overloaded|temporary/i.test(String(msg))) {
-              friendly = '⏱️ خدمة الذكاء الاصطناعي مشغولة حالياً. أعد المحاولة خلال 30 ثانية.';
-            } else {
-              friendly = String(msg).slice(0,300);
-            }
-          }
-        } catch(_){}
-        // If NO_SOURCE_DATA, show a custom modal with proper action buttons (not confirm/alert)
-        if (errCode === 'NO_SOURCE_DATA') {
-          try { var ejFull = JSON.parse(errTxt); } catch(_) { ejFull = {}; }
-          var hint = (ejFull && ejFull.hint) || {};
-          var avail = hint.dataAvailable || {};
-          var hasExisting = avail.postsTotal > 0 || avail.newsTotal > 0;
-          var oldest = avail.oldestDate ? avail.oldestDate.slice(0, 10) : null;
-          var newest = avail.newestDate ? avail.newestDate.slice(0, 10) : null;
+        var ejFull = {};
+        try { ejFull = JSON.parse(errTxt) || {}; } catch(_){}
+        // Why this block changed: same contract shift as the wizard's generate call above
+        // (see its comment) — NO_SOURCE_DATA is now a flat 422 body
+        // {code,totalPostsAvailable,totalNewsAvailable,earliestAvailableDate,latestAvailableDate},
+        // not a nested {hint:{dataAvailable:{...}}} envelope, and other failures are flat
+        // Problem Details {title,detail}, not a nested AI-provider passthrough.
+        if (res.status === 422 && ejFull.code === 'NO_SOURCE_DATA') {
+          var hasExisting = (ejFull.totalPostsAvailable || 0) > 0 || (ejFull.totalNewsAvailable || 0) > 0;
+          var oldest = ejFull.earliestAvailableDate ? String(ejFull.earliestAvailableDate).slice(0, 10) : null;
+          var newest = ejFull.latestAvailableDate ? String(ejFull.latestAvailableDate).slice(0, 10) : null;
           showNoDataModal({
-            message: ejFull.error || friendly,
+            message: '📭 لا توجد بيانات إعلامية مرصودة في الفترة المختارة.\n\nحلول مقترحة:\n• استخدم زر «استيراد بيانات تجريبية» لاختبار الميزة\n• أو وسّع الفترة إلى «مخصص» واختر فترة أوسع',
             hasExisting: hasExisting,
             oldest: oldest,
             newest: newest,
-            postsTotal: avail.postsTotal || 0,
-            newsTotal: avail.newsTotal || 0,
+            postsTotal: ejFull.totalPostsAvailable || 0,
+            newsTotal: ejFull.totalNewsAvailable || 0,
           });
           return;
         }
-        throw new Error(friendly);
+        throw new Error(friendlyError(ejFull.detail || ejFull.title || ejFull, 'فشل التوليد'));
       }
       var data = await res.json();
       closeGenerateModal();
@@ -13578,7 +13639,7 @@ window.MM = (function(){
       btn.disabled = true;
       btn.textContent = '⏳ جاري الاستيراد...';
       try {
-        var seedRes = await apiFetch('/api/final-media-reports/seed-demo', { method: 'POST' });
+        var seedRes = await apiFetch(apiUrl('/final-media-reports/seed-demo'), { method: 'POST' });
         var seedData = await seedRes.json();
         if (seedData.ok) {
           closeModal();
@@ -13587,7 +13648,7 @@ window.MM = (function(){
             else runGenerate();
           }, 300);
         } else {
-          alert('❌ ' + (seedData.error || 'تعذر الاستيراد'));
+          alert('❌ ' + ((seedData.detail || seedData.title || seedData.error) || 'تعذر الاستيراد'));
           btn.disabled = false;
           btn.textContent = '➕ استيراد 12 عنصر تجريبي';
         }
@@ -13623,7 +13684,7 @@ window.PL = (function(){
     loadingEl.style.display = 'block';
     grid.style.display = 'none';
     try {
-      var res = await apiFetch('/api/prompts');
+      var res = await apiFetch(apiUrl('/prompts'));
       var data = await res.json();
       state.all = data.prompts || data.items || data || [];
       if (!Array.isArray(state.all)) state.all = [];
@@ -13713,7 +13774,7 @@ window.PL = (function(){
     var orig = lbl.textContent;
     btn.disabled = true; lbl.textContent = 'جارٍ التشغيل…';
     try {
-      var res = await apiFetch('/api/prompts/' + state.current.id + '/run', {
+      var res = await apiFetch(apiUrl('/prompts/') + state.current.id + '/run', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ variables: vars })
@@ -13789,7 +13850,7 @@ window.PL = (function(){
     };
     if (!nameVal || !promptVal) { alert('الاسم ونص الأمر مطلوبان'); return; }
     try {
-      var res = await apiFetch('/api/prompts' + (id ? '/'+id : ''), {
+      var res = await apiFetch(apiUrl('/prompts') + (id ? '/'+id : ''), {
         method: id ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -13803,7 +13864,7 @@ window.PL = (function(){
   async function deletePrompt(id) {
     if (!confirm('حذف الأمر نهائياً؟')) return;
     try {
-      var res = await apiFetch('/api/prompts/' + id, { method: 'DELETE' });
+      var res = await apiFetch(apiUrl('/prompts/') + id, { method: 'DELETE' });
       if (!res.ok) throw new Error('فشل الحذف');
       await load();
     } catch(e) { alert(e.message || 'خطأ'); }
@@ -13913,7 +13974,6 @@ async function iesGenerate() {
   if (prevExtracted) prevExtracted.style.display = 'none';
 
   try {
-    var _API_BASE = (window.API_BASE || '');
     var body = { size: size, department: department, hashtag: hashtag, date: date, time: time, location: location };
     if (iesCurrentMode === 'raw') {
       body.raw_data = rawData;
@@ -13922,13 +13982,13 @@ async function iesGenerate() {
       body.subtitle = subtitle;
       body.event_type = eventType;
     }
-    var res = await fetch(_API_BASE + '/api/designs/icon-event/generate', {
+    var res = await apiFetch(apiUrl('/designs/icon-event/generate'), {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authGetToken() },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
     });
     var data = await res.json();
-    if (!res.ok || !data.variants) throw new Error(data.error || 'فشل التوليد');
+    if (!res.ok || !data.variants) throw new Error((data.detail || data.title || data.error) || 'فشل التوليد');
     iesVariants = data.variants;
     iesRenderVariants(size, data.warning, data.extracted);
   } catch (err) {
@@ -14023,19 +14083,17 @@ async function iesDownloadPNG(idx, size) {
   btn.disabled = true;
   btn.textContent = '... جارٍ التصدير';
   try {
-    const _API_BASE = (window.API_BASE || '');
-
     // وضع التنزيل المباشر: الخادم يرجع PNG في الاستجابة مع Content-Disposition
     // بدل حفظه في object storage ثم تنزيله في خطوة ثانية (يتجنب مشاكل iOS Safari)
-    const res = await fetch(_API_BASE + '/api/designs/icon-event/render?download=1', {
+    const res = await apiFetch(apiUrl('/designs/icon-event/render?download=1'), {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authGetToken() },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ html: v.html, size: size, quality: 'hd' })
     });
 
     if (!res.ok) {
       let msg = 'فشل التصدير (' + res.status + ')';
-      try { const j = await res.json(); if (j && j.error) msg = j.error; } catch(_) {}
+      try { const j = await res.json(); if (j) msg = j.detail || j.title || j.error || msg; } catch(_) {}
       throw new Error(msg);
     }
 
@@ -14138,9 +14196,9 @@ async function saRun() {
     var body = { tool: SA_TOOL, input: input };
     if (tone) body.tone = tone;
     if (count) body.count = count;
-    var res = await apiFetch('/api/ai/quick', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+    var res = await apiFetch(apiUrl('/ai/quick'), { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
     var data = await res.json();
-    if (!res.ok) throw new Error(data.error || 'فشل التشغيل');
+    if (!res.ok) throw new Error((data.detail || data.title || data.error) || 'فشل التشغيل');
     var textOut = data.output || '';
     out.innerHTML = '<div style="background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:16px;white-space:pre-wrap;font-size:14px;line-height:1.7;color:var(--text);">'+textOut.replace(/</g,'&lt;')+'</div><div style="margin-top:10px;"><button class="btn btn-ghost btn-sm" onclick="navigator.clipboard.writeText('+JSON.stringify(textOut)+')">📋 نسخ</button></div>';
   } catch (e) {
