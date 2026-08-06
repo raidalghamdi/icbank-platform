@@ -11,8 +11,8 @@ namespace Icbank.Platform.Api.Extensions;
 /// </summary>
 public static class RateLimitingExtensions
 {
-    private const int AuthPermitLimit = 5; // Login/registration: at most 5 requests per minute.
-    private const int ApiPermitLimit = 100; // General API: at most 100 requests per minute per caller.
+    private const int AuthPermitLimit = 20;
+    private const int ApiPermitLimit = 300;
     private const int ApiWindowSegments = 4;
     private static readonly TimeSpan OneMinuteWindow = TimeSpan.FromMinutes(1);
 

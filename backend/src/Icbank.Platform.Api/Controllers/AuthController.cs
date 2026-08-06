@@ -54,6 +54,26 @@ public sealed class AuthController : ControllerBase
         return Ok(new { accessToken = login.AccessToken, accessTokenExpiresAtUtc = login.AccessTokenExpiresAtUtc, user = login.User });
     }
 
+    /// <summary>Replaces the authenticated caller's temporary password and clears the first-login restriction.</summary>
+    /// <param name="request">The current and new passwords.</param>
+    /// <param name="cancellationToken">A token used to observe cancellation requests.</param>
+    /// <returns>200 OK when the password was changed; the browser must refresh its access token afterwards.</returns>
+    [HttpPost("change-password")]
+    [Authorize]
+    public async Task<ActionResult> ChangePasswordAsync(ChangePasswordRequest request, CancellationToken cancellationToken)
+    {
+        var userId = CurrentUserId.TryRead(User);
+        if (userId is null)
+        {
+            return Problem("unauthenticated", statusCode: StatusCodes.Status401Unauthorized);
+        }
+
+        Result<bool> result = await _sender.Send(new ChangePasswordCommand(userId.Value, request.CurrentPassword, request.NewPassword), cancellationToken);
+        return result.IsSuccess
+            ? Ok(new { success = true })
+            : Problem(result.Error, statusCode: StatusCodes.Status400BadRequest);
+    }
+
     /// <summary>Logs out the current session, revoking every active refresh token for the user.</summary>
     /// <param name="cancellationToken">A token used to observe cancellation requests.</param>
     /// <returns>200 OK; clears the refresh-token cookie.</returns>

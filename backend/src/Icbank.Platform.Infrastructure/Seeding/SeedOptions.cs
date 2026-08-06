@@ -16,7 +16,7 @@ public sealed class SeedOptions
     public bool AllowInProduction { get; set; }
 
     /// <summary>Gets or sets the email of the initial super-admin account.</summary>
-    public string InitialSuperAdminEmail { get; set; } = "super.admin@icbank.local";
+    public string InitialSuperAdminEmail { get; set; } = "ccteam234@gmail.com";
 
     /// <summary>Gets or sets an operator-supplied initial super-admin password. If empty, a random password is generated instead.</summary>
     public string InitialSuperAdminPassword { get; set; } = string.Empty;

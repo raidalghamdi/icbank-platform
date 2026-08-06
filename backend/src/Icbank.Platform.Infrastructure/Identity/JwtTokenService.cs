@@ -19,6 +19,7 @@ public sealed class JwtTokenService : ITokenService
 {
     private const string PermissionClaimType = "permission";
     private const string SuperAdminClaimType = "is_super_admin";
+    private const string MustChangePasswordClaimType = "must_change_password";
     private readonly JwtOptions _options;
 
     /// <summary>Initializes a new instance of the <see cref="JwtTokenService"/> class.</summary>
@@ -40,6 +41,7 @@ public sealed class JwtTokenService : ITokenService
             new Claim(ClaimTypes.Email, user.Email),
             new Claim(ClaimTypes.Name, user.Name),
             new Claim(SuperAdminClaimType, isSuperAdmin ? bool.TrueString : bool.FalseString),
+            new Claim(MustChangePasswordClaimType, user.MustChangePassword ? bool.TrueString : bool.FalseString),
         };
 
         claims.AddRange(roleNames.Select(roleName => new Claim(ClaimTypes.Role, roleName)));

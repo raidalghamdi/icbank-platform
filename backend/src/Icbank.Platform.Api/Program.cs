@@ -138,6 +138,7 @@ app.UseCors(Icbank.Platform.Api.Extensions.CorsExtensions.FrontendPolicyName);
 app.UseRateLimiter();
 
 app.UseAuthentication();
+app.UseMiddleware<Icbank.Platform.Api.Middleware.MustChangePasswordMiddleware>();
 app.UseAuthorization();
 
 app.MapControllers();

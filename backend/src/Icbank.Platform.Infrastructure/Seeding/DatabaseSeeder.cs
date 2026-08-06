@@ -153,40 +153,66 @@ public sealed partial class DatabaseSeeder
 
     private async Task<string?> SeedInitialSuperAdminAsync(CancellationToken cancellationToken)
     {
-        var alreadyExists = await _dbContext.Users.AnyAsync(u => u.Email == _options.InitialSuperAdminEmail, cancellationToken);
-        if (alreadyExists)
+        var email = _options.InitialSuperAdminEmail.Trim().ToLowerInvariant();
+        if (string.IsNullOrWhiteSpace(email))
         {
             return null;
+        }
+
+        Role? superAdminRole = await _dbContext.Roles.SingleOrDefaultAsync(r => r.Name == RoleMachineName(RoleName.SuperAdmin), cancellationToken);
+        (User user, var password, var created) = await GetOrCreateInitialSuperAdminAsync(email, cancellationToken);
+
+        // Reconcile a migrated administrator as well as a newly created account. Returning early
+        // for an existing email left ccteam234@gmail.com as a plain admin after cutover.
+        await EnsureRoleAssignedAsync(user, superAdminRole, cancellationToken);
+
+        if (!created)
+        {
+            return null;
+        }
+
+        // Why: R-BE-054 — the password is never logged. It is only returned once, in memory, to
+        // Program.cs, which is responsible for console-only output on a newly created account.
+        LogSuperAdminSeeded(_logger, email);
+        return string.IsNullOrWhiteSpace(_options.InitialSuperAdminPassword) ? password : null;
+    }
+
+    private async Task<(User User, string Password, bool Created)> GetOrCreateInitialSuperAdminAsync(string email, CancellationToken cancellationToken)
+    {
+        User? existing = await _dbContext.Users.SingleOrDefaultAsync(user => user.Email == email, cancellationToken);
+        if (existing is not null)
+        {
+            return (existing, string.Empty, false);
         }
 
         var password = string.IsNullOrWhiteSpace(_options.InitialSuperAdminPassword)
             ? GenerateRandomPassword()
             : _options.InitialSuperAdminPassword;
-
-        var user = new User
+        var created = new User
         {
-            Email = _options.InitialSuperAdminEmail,
+            Email = email,
             Name = "Initial Super Admin",
             PasswordHash = _passwordHasher.HashPassword(new Identity.PasswordHasherSubject(), password),
             IsActive = true,
             MustChangePassword = true,
             CreatedBy = "seeder",
         };
-        _dbContext.Users.Add(user);
+        _dbContext.Users.Add(created);
         await _dbContext.SaveChangesAsync(cancellationToken);
+        return (created, password, true);
+    }
 
-        Role? superAdminRole = await _dbContext.Roles.SingleOrDefaultAsync(r => r.Name == RoleMachineName(RoleName.SuperAdmin), cancellationToken);
-        if (superAdminRole is not null)
+    private async Task EnsureRoleAssignedAsync(User user, Role? role, CancellationToken cancellationToken)
+    {
+        if (role is null || await _dbContext.UserRoles.AnyAsync(
+                assignment => assignment.UserId == user.Id && assignment.RoleId == role.Id,
+                cancellationToken))
         {
-            _dbContext.UserRoles.Add(new UserRole { UserId = user.Id, RoleId = superAdminRole.Id, AssignedAt = DateTime.UtcNow, CreatedBy = "seeder" });
-            await _dbContext.SaveChangesAsync(cancellationToken);
+            return;
         }
 
-        // Why: R-BE-054 — the password is never logged. It is only ever returned once, in
-        // memory, to Program.cs, which is responsible for surfacing it via console output (not a
-        // log sink) on first run.
-        LogSuperAdminSeeded(_logger, _options.InitialSuperAdminEmail);
-        return string.IsNullOrWhiteSpace(_options.InitialSuperAdminPassword) ? password : null;
+        _dbContext.UserRoles.Add(new UserRole { UserId = user.Id, RoleId = role.Id, AssignedAt = DateTime.UtcNow, CreatedBy = "seeder" });
+        await _dbContext.SaveChangesAsync(cancellationToken);
     }
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Seeding skipped: Production environment without Seed:AllowInProduction=true.")]
