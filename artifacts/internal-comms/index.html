@@ -5967,18 +5967,37 @@ const STATIC_DATA = {
 };
 
 // ════════════════════════════════════════
-// Arabic day-count grammar: singular (1), dual (2), plural (3–10),
-// accusative singular (11+), with exact hundreds/thousands kept singular.
-function formatArabicDayCount(value, unitOnly) {
+// Arabic day-count formatting.
+//
+// Number agreement: 1 -> يوم · 2 -> dual · 3-10 -> أيام · 11+ -> يوماً · exact 100s -> يوم
+//
+// The dual is special in two ways that a naive `count + ' ' + unit` gets wrong:
+//   1. The dual form ALREADY encodes "two", so the numeral must be omitted.
+//      "2 يومان" is redundant — the correct rendering is simply "يومان".
+//   2. Its ending is case-sensitive. Standing alone (a count badge) it is
+//      nominative "يومان"; governed by a preposition such as بعد / منذ / خلال
+//      it takes the genitive "يومين". Nearly every call site here sits after
+//      such a preposition, so the genitive is the default and callers that
+//      render a bare count opt into the nominative.
+//
+// `unitOnly` returns just the unit word, for UI where the number lives in a
+// separate numeric input.
+function formatArabicDayCount(value, unitOnly, nominative) {
   var count = Math.abs(Number(value));
   if (!Number.isFinite(count)) return '';
   count = Math.floor(count);
-  if (count === 0) return 'لا توجد أيام';
+  // Zero reads differently standing alone versus after a preposition:
+  // a badge says "لا توجد أيام", but "منذ لا توجد أيام" is nonsense.
+  if (count === 0) return unitOnly ? 'يوم' : (nominative ? 'لا توجد أيام' : 'أقل من يوم');
+
+  // 1 and 2 both omit the numeral: Arabic marks them on the noun itself, so
+  // "بعد يوم" and "بعد يومين" are correct where "بعد 1 يوم" and
+  // "بعد 2 يومان" are not.
+  if (count === 1) return 'يوم';
+  if (count === 2) return nominative ? 'يومان' : 'يومين';
 
   var unit;
-  if (count === 1) unit = 'يوم';
-  else if (count === 2) unit = 'يومان';
-  else if (count >= 3 && count <= 10) unit = 'أيام';
+  if (count >= 3 && count <= 10) unit = 'أيام';
   else if (count % 100 === 0) unit = 'يوم';
   else unit = 'يوماً';
 
@@ -9397,7 +9416,7 @@ async function idLoadArchive() {
     var data = await res.json();
     idArchiveData = data.items || [];
     var badge = document.getElementById('id-archive-count-badge');
-    if (badge) badge.textContent = formatArabicDayCount(idArchiveData.length);
+    if (badge) badge.textContent = formatArabicDayCount(idArchiveData.length, false, true);
     idRenderArchiveGrid(idArchiveData);
   } catch(err) { /* silent */ }
 }
@@ -12808,7 +12827,7 @@ function shorfahAdminRenderStatus() {
       var lastReminder = reminders.filter(function(r) { return r.sectionId === s.id; })[0];
       var lastReminderStr = lastReminder ? new Date(lastReminder.sentAt).toLocaleDateString('ar-SA-u-ca-gregory-nu-latn') : '—';
       var status = SHORFAH_STATUS_LABELS[s.workflowStatus] || SHORFAH_STATUS_LABELS.pending_contribution;
-      var daysText = daysLeft === null ? '—' : (daysLeft >= 0 ? formatArabicDayCount(daysLeft) : formatArabicDayCount(Math.abs(daysLeft)) + ' (متأخر)');
+      var daysText = daysLeft === null ? '—' : (daysLeft >= 0 ? formatArabicDayCount(daysLeft, false, true) : formatArabicDayCount(Math.abs(daysLeft), false, true) + ' (متأخر)');
       var daysColor = daysLeft === null ? '#9ca3af' : (daysLeft < 0 ? '#b91c1c' : daysLeft < 3 ? '#a16207' : '#15803d');
       return '<div style="border:1px solid #e5e7eb;border-radius:10px;padding:12px;background:#fff;">' +
         '<div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px;gap:8px;">' +
@@ -12848,7 +12867,7 @@ function shorfahAdminRenderStatus() {
       var lastReminder = reminders.filter(function(r) { return r.sectionId === s.id; })[0];
       var lastReminderStr = lastReminder ? new Date(lastReminder.sentAt).toLocaleDateString('ar-SA-u-ca-gregory-nu-latn') : '—';
       var status = SHORFAH_STATUS_LABELS[s.workflowStatus] || SHORFAH_STATUS_LABELS.pending_contribution;
-      var daysText = daysLeft === null ? '—' : (daysLeft >= 0 ? formatArabicDayCount(daysLeft) : formatArabicDayCount(Math.abs(daysLeft)) + ' (متأخر)');
+      var daysText = daysLeft === null ? '—' : (daysLeft >= 0 ? formatArabicDayCount(daysLeft, false, true) : formatArabicDayCount(Math.abs(daysLeft), false, true) + ' (متأخر)');
       var daysColor = daysLeft === null ? '#9ca3af' : (daysLeft < 0 ? '#b91c1c' : daysLeft < 3 ? '#a16207' : '#15803d');
       return '<tr style="border-bottom:1px solid #e5e7eb;">' +
         '<td style="padding:10px;font-weight:700;">'+s.titleAr+'</td>' +
