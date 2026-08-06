@@ -62,7 +62,7 @@ public sealed class GeminiClient : IGeminiClient
     /// <inheritdoc />
     public async Task<GeminiGenerationResult> GenerateJsonAsync(string prompt, GeminiCallOptions options, CancellationToken cancellationToken)
     {
-        var jsonOptions = options with { SystemInstruction = JsonOnlySystemPrefix + (options.SystemInstruction ?? string.Empty) };
+        GeminiCallOptions jsonOptions = options with { SystemInstruction = JsonOnlySystemPrefix + (options.SystemInstruction ?? string.Empty) };
         var requireGrounding = options.UseGoogleSearchTool && options.RequireGrounding;
 
         Exception? lastParseFailure = null;
@@ -119,7 +119,7 @@ public sealed class GeminiClient : IGeminiClient
     {
         try
         {
-            using JsonDocument parsed = JsonDocument.Parse(text);
+            using var parsed = JsonDocument.Parse(text);
             failure = null;
             return true;
         }

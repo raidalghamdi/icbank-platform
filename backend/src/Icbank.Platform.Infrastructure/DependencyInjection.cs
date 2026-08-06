@@ -157,7 +157,7 @@ public static partial class DependencyInjection
     /// </summary>
     private static void LogMissingGeminiKeyWarning()
     {
-        using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+        using ILoggerFactory loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
         ILogger logger = loggerFactory.CreateLogger(typeof(DependencyInjection).FullName ?? nameof(DependencyInjection));
         LogGeminiKeyMissing(logger);
     }

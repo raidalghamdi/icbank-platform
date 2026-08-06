@@ -70,22 +70,7 @@ public static class GeminiJsonExtractor
     {
         if (inString)
         {
-            if (escaped)
-            {
-                return (depth, true, false, false);
-            }
-
-            if (c == '\\')
-            {
-                return (depth, true, true, false);
-            }
-
-            if (c == '"')
-            {
-                return (depth, false, false, false);
-            }
-
-            return (depth, true, false, false);
+            return AdvanceStringState(c, depth, escaped);
         }
 
         if (c == '"')
@@ -109,6 +94,26 @@ public static class GeminiJsonExtractor
         }
 
         return (depth, false, false, false);
+    }
+
+    private static (int Depth, bool InString, bool Escaped, bool IsSafeBoundary) AdvanceStringState(char c, int depth, bool escaped)
+    {
+        if (escaped)
+        {
+            return (depth, true, false, false);
+        }
+
+        if (c == '\\')
+        {
+            return (depth, true, true, false);
+        }
+
+        if (c == '"')
+        {
+            return (depth, false, false, false);
+        }
+
+        return (depth, true, false, false);
     }
 
     private static string StripFence(string text, string fenceMarker)

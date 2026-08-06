@@ -115,16 +115,32 @@ public sealed class HttpGeminiTransport : IGeminiTransport
         var images = new List<GeminiInlineImage>();
         foreach (JsonNode? part in parts)
         {
-            JsonNode? inlineData = part?["inlineData"] ?? part?["inline_data"];
-            var data = inlineData?["data"]?.GetValue<string>();
-            var mimeType = inlineData?["mimeType"]?.GetValue<string>() ?? inlineData?["mime_type"]?.GetValue<string>();
-            if (!string.IsNullOrEmpty(data))
+            GeminiInlineImage? image = TryExtractInlineImage(part);
+            if (image is not null)
             {
-                images.Add(new GeminiInlineImage(data, mimeType ?? "image/png"));
+                images.Add(image);
             }
         }
 
         return images;
+    }
+
+    private static GeminiInlineImage? TryExtractInlineImage(JsonNode? part)
+    {
+        JsonNode? inlineData = part?["inlineData"] ?? part?["inline_data"];
+        var data = inlineData?["data"]?.GetValue<string>();
+        if (string.IsNullOrEmpty(data))
+        {
+            return null;
+        }
+
+        var mimeType = ReadMimeType(inlineData);
+        return new GeminiInlineImage(data, mimeType ?? "image/png");
+    }
+
+    private static string? ReadMimeType(JsonNode? inlineData)
+    {
+        return inlineData?["mimeType"]?.GetValue<string>() ?? inlineData?["mime_type"]?.GetValue<string>();
     }
 
     private static (IReadOnlyList<string> Queries, IReadOnlyList<GeminiCitation> Citations, string? SearchEntryPointHtml) ExtractGrounding(JsonNode? candidate)
@@ -138,7 +154,7 @@ public sealed class HttpGeminiTransport : IGeminiTransport
         List<string> queries = metadata["webSearchQueries"]?.AsArray().Select(q => q?.GetValue<string>() ?? string.Empty).ToList()
             ?? new List<string>();
         IReadOnlyList<GeminiCitation> citations = ExtractCitations(metadata);
-        string? searchEntryPointHtml = ExtractSearchEntryPointHtml(metadata);
+        var searchEntryPointHtml = ExtractSearchEntryPointHtml(metadata);
 
         return (queries, citations, searchEntryPointHtml);
     }
@@ -172,9 +188,7 @@ public sealed class HttpGeminiTransport : IGeminiTransport
 
     private static IEnumerable<GeminiCitation> BuildCitationsForSupport(JsonNode? support, JsonArray chunks)
     {
-        JsonNode? segment = support?["segment"];
-        var startIndex = segment?["startIndex"]?.GetValue<int>() ?? 0;
-        var endIndex = segment?["endIndex"]?.GetValue<int>() ?? 0;
+        (var startIndex, var endIndex) = ReadSegmentBounds(support?["segment"]);
         JsonArray? chunkIndices = support?["groundingChunkIndices"]?.AsArray();
         if (chunkIndices is null)
         {
@@ -183,20 +197,41 @@ public sealed class HttpGeminiTransport : IGeminiTransport
 
         foreach (JsonNode? indexNode in chunkIndices)
         {
-            var index = indexNode?.GetValue<int>() ?? -1;
-            if (index < 0 || index >= chunks.Count)
+            GeminiCitation? citation = TryBuildCitation(indexNode, chunks, startIndex, endIndex);
+            if (citation is not null)
             {
-                continue;
+                yield return citation;
             }
-
-            JsonNode? web = chunks[index]?["web"];
-            var uri = web?["uri"]?.GetValue<string>();
-            if (string.IsNullOrEmpty(uri))
-            {
-                continue;
-            }
-
-            yield return new GeminiCitation(uri, web?["title"]?.GetValue<string>(), startIndex, endIndex);
         }
+    }
+
+    private static (int StartIndex, int EndIndex) ReadSegmentBounds(JsonNode? segment)
+    {
+        var startIndex = segment?["startIndex"]?.GetValue<int>() ?? 0;
+        var endIndex = segment?["endIndex"]?.GetValue<int>() ?? 0;
+        return (startIndex, endIndex);
+    }
+
+    private static GeminiCitation? TryBuildCitation(JsonNode? indexNode, JsonArray chunks, int startIndex, int endIndex)
+    {
+        var index = indexNode?.GetValue<int>() ?? -1;
+        if (index < 0 || index >= chunks.Count)
+        {
+            return null;
+        }
+
+        JsonNode? web = chunks[index]?["web"];
+        return TryBuildCitationFromWeb(web, startIndex, endIndex);
+    }
+
+    private static GeminiCitation? TryBuildCitationFromWeb(JsonNode? web, int startIndex, int endIndex)
+    {
+        var uri = web?["uri"]?.GetValue<string>();
+        if (string.IsNullOrEmpty(uri))
+        {
+            return null;
+        }
+
+        return new GeminiCitation(uri, web?["title"]?.GetValue<string>(), startIndex, endIndex);
     }
 }

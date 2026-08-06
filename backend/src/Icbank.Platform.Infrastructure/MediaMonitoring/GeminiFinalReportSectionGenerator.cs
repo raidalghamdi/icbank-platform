@@ -37,7 +37,7 @@ public sealed class GeminiFinalReportSectionGenerator : IFinalReportSectionGener
         var callOptions = new GeminiCallOptions(_options.ProModel, MaxOutputTokens: 8192);
         GeminiGenerationResult result = await _client.GenerateJsonAsync(prompt, callOptions, cancellationToken).ConfigureAwait(false);
 
-        var dto = JsonSerializer.Deserialize<FinalReportSectionsJsonDto>(result.Text, JsonOptions)
+        FinalReportSectionsJsonDto dto = JsonSerializer.Deserialize<FinalReportSectionsJsonDto>(result.Text, JsonOptions)
             ?? throw new GeminiUnavailableException("Gemini returned an empty/null JSON payload for the final report sections.");
 
         return FinalReportSectionsMapper.Map(dto);

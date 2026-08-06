@@ -33,7 +33,7 @@ public sealed class GeminiShorfahSectionContentGenerator : IShorfahSectionConten
         GeminiGenerationResult result = await _client.GenerateJsonAsync(prompt, callOptions, cancellationToken).ConfigureAwait(false);
 
         using var parsed = System.Text.Json.JsonDocument.Parse(result.Text);
-        var contentMd = parsed.RootElement.TryGetProperty("content_md", out var contentProp) ? contentProp.GetString() ?? string.Empty : result.Text;
+        var contentMd = parsed.RootElement.TryGetProperty("content_md", out System.Text.Json.JsonElement contentProp) ? contentProp.GetString() ?? string.Empty : result.Text;
         return new ShorfahGeneratedSectionContent(contentMd);
     }
 }

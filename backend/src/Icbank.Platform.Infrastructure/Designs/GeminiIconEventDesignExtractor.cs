@@ -34,25 +34,34 @@ public sealed class GeminiIconEventDesignExtractor : IIconEventDesignExtractor
         var callOptions = new GeminiCallOptions(_options.TextModel);
         GeminiGenerationResult result = await _client.GenerateJsonAsync(prompt, callOptions, cancellationToken).ConfigureAwait(false);
 
-        var wire = JsonSerializer.Deserialize<IconEventWireDto>(result.Text, JsonOptions)
+        IconEventWireDto wire = JsonSerializer.Deserialize<IconEventWireDto>(result.Text, JsonOptions)
             ?? throw new GeminiUnavailableException("Gemini returned an empty/null JSON payload for icon-event extraction.");
 
-        var extracted = wire.Extracted is null
-            ? new IconEventExtractedDataDto(string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, [])
-            : new IconEventExtractedDataDto(
-                wire.Extracted.Headline ?? string.Empty,
-                wire.Extracted.Subtitle ?? string.Empty,
-                wire.Extracted.Department ?? string.Empty,
-                wire.Extracted.Hashtag ?? string.Empty,
-                wire.Extracted.ContactEmail ?? string.Empty,
-                wire.Extracted.ContactPhone ?? string.Empty,
-                (wire.Extracted.Stats ?? []).Select(s => new IconEventStatDto(s.Icon ?? string.Empty, s.Value ?? string.Empty, s.Label ?? string.Empty)).ToList());
+        return new IconEventExtractionResultDto(MapExtracted(wire.Extracted), MapVariants(wire.Variants));
+    }
 
-        var variants = (wire.Variants ?? [])
+    private static IconEventExtractedDataDto MapExtracted(IconEventExtractedWireDto? extracted)
+    {
+        if (extracted is null)
+        {
+            return new IconEventExtractedDataDto(string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, []);
+        }
+
+        return new IconEventExtractedDataDto(
+            extracted.Headline ?? string.Empty,
+            extracted.Subtitle ?? string.Empty,
+            extracted.Department ?? string.Empty,
+            extracted.Hashtag ?? string.Empty,
+            extracted.ContactEmail ?? string.Empty,
+            extracted.ContactPhone ?? string.Empty,
+            (extracted.Stats ?? []).Select(s => new IconEventStatDto(s.Icon ?? string.Empty, s.Value ?? string.Empty, s.Label ?? string.Empty)).ToList());
+    }
+
+    private static List<IconEventVariantProposalDto> MapVariants(List<IconEventVariantWireDto>? variants)
+    {
+        return (variants ?? [])
             .Select(v => new IconEventVariantProposalDto(v.Layout ?? string.Empty, v.MainIcon ?? string.Empty, v.SupportingIcons ?? [], v.Rationale ?? string.Empty))
             .ToList();
-
-        return new IconEventExtractionResultDto(extracted, variants);
     }
 
     private sealed class IconEventWireDto
