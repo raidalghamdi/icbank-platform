@@ -102,9 +102,24 @@
 .password-change-card h1 { margin:0 0 8px; color:var(--text); font-size:22px; }
 .password-change-card p { margin:0 0 20px; color:var(--text-3); font-size:13px; line-height:1.8; }
 .password-change-card label { display:block; margin:12px 0 6px; color:var(--text-2); font-size:12px; font-weight:700; }
-.password-change-card input { width:100%; min-height:42px; padding:10px 12px; border:1px solid var(--border-strong); border-radius:var(--radius-sm); font:inherit; direction:ltr; }
+.password-change-card input { width:100%; min-height:44px; padding:11px 12px; border:1px solid var(--border-strong); border-radius:var(--radius-sm); font:inherit; direction:ltr; font-size:16px; }
 .password-change-card .password-change-error { min-height:20px; margin-top:10px; color:var(--danger); font-size:12px; }
-.password-change-card button { width:100%; margin-top:8px; }
+.password-change-card button { width:100%; min-height:44px; margin-top:8px; justify-content:center; }
+/* Small-screen spacing for the forced password-change screen — the card must never
+   sit flush against the viewport edge, and on short phones it has to be scrollable. */
+@media (max-width: 600px) {
+  /* overflow-x:hidden matters — setting only overflow-y makes the other axis
+     scrollable too, which let the card drift off its gutter on narrow phones. */
+  #password-change-overlay { padding:16px 14px; align-items:flex-start; overflow-y:auto; overflow-x:hidden; }
+  .password-change-card { padding:22px 18px; margin:16px auto; border-radius:var(--radius-md); }
+  .password-change-card h1 { font-size:19px; line-height:1.4; }
+  .password-change-card p { font-size:12.5px; margin-bottom:16px; }
+}
+@media (max-width: 380px) {
+  #password-change-overlay { padding:12px 10px; }
+  .password-change-card { padding:18px 14px; }
+  .password-change-card h1 { font-size:17.5px; }
+}
 .auth-spinner {
   width: 36px; height: 36px;
   border: 3px solid var(--primary-100);
@@ -246,17 +261,53 @@ body {
 }
 .brand-info { line-height: 1.3; min-width: 0; }
 .brand-title { font-size: 13.5px; font-weight: 700; color: var(--text); }
-.brand-sub { font-size: 10.5px; color: var(--text-4); font-weight: 500; letter-spacing: 0.2px; margin-top: 3px; }
+.brand-sub {
+  font-size: 9.5px; color: var(--text-4); font-weight: 500; letter-spacing: 0; margin-top: 3px;
+  /* Sized to fit the narrow docked sidebar on one line: wrapping pushed "2026"
+     onto its own row, and an ellipsis would clip the start of this LTR wordmark
+     inside the RTL column. */
+  white-space: nowrap;
+}
 
 .sidebar-section { padding: 6px 12px 0; }
+/* Collapsible group heading — a real button so it is keyboard + screen-reader operable */
 .sidebar-section-title {
-  padding: 0 8px 3px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 5px 8px 4px;
+  margin: 0;
+  background: transparent;
+  border: none;
+  font-family: inherit;
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 1px;
   text-transform: uppercase;
   color: var(--text-4);
+  text-align: start;
+  cursor: pointer;
+  border-radius: var(--radius-sm, 4px);
+  transition: background 0.12s, color 0.12s;
 }
+.sidebar-section-title:hover { background: var(--surface-2); color: var(--text-3); }
+.sidebar-section-title:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+}
+.sidebar-section-label { flex: 1 1 auto; min-width: 0; }
+.sidebar-section-chevron {
+  width: 13px; height: 13px;
+  flex-shrink: 0;
+  color: var(--text-5, var(--text-4));
+  transition: transform 0.18s cubic-bezier(.4,0,.2,1);
+}
+/* Collapsed state: chevron points along the reading direction, list is hidden */
+.sidebar-section.is-collapsed .sidebar-section-chevron { transform: rotate(90deg); }
+.sidebar-section.is-collapsed > .sidebar-nav { display: none; }
+/* A collapsed group that contains the active page keeps a hint that something is inside */
+.sidebar-section.is-collapsed.has-active > .sidebar-section-title { color: var(--primary); }
 
 .sidebar-nav { display: flex; flex-direction: column; gap: 1px; }
 .nav-item {
@@ -412,8 +463,8 @@ body {
 .hijri-pill .ico { width: 13px; height: 13px; color: var(--primary); }
 .hijri-pill .hijri-greg-sep { color: var(--text-5); margin: 0 3px; }
 .hijri-pill .hijri-greg { color: var(--text-4); font-size: 10.5px; }
-@media (max-width: 1024px) { .hijri-pill .hijri-greg, .hijri-pill .hijri-greg-sep { display: none; } }
-@media (max-width: 768px)  { .hijri-pill { display: none; } }
+@media (max-width: 1023.98px) { .hijri-pill .hijri-greg, .hijri-pill .hijri-greg-sep { display: none; } }
+@media (max-width: 767.98px)  { .hijri-pill { display: none; } }
 
 /* ═══ GLOBAL SEARCH DROPDOWN ═══ */
 .search-wrap { position: relative; }
@@ -1772,29 +1823,61 @@ button.home-row:hover { border-color:var(--primary-100); background:var(--primar
   #opts-place, #opts-movies, #opts-matches, #opts-deals, #opts-podcast, #opts-ai { grid-template-columns: repeat(2,1fr); }
 }
 
-@media (max-width: 800px) {
+/* ═══ TABLE OVERFLOW SHELL ═══
+   Every table is wrapped at runtime (enhanceResponsiveTables) so a wide table
+   scrolls inside its own box instead of stretching the whole page. */
+.tbl-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+}
+.tbl-scroll > table { min-width: 100%; }
+
+/* ══════════════════════════════════════════════════════════════════
+   OFF-CANVAS SIDEBAR — below 1024px the grid collapses to one column
+   and the sidebar becomes a drawer over the content.
+   ══════════════════════════════════════════════════════════════════ */
+@media (max-width: 1023.98px) {
   /* Layout */
-  .app { grid-template-columns: 1fr; }
-  .topbar { padding: 0 14px; grid-column: 1; gap: 10px; }
-  .main  { padding: 16px 14px 50px; grid-column: 1; }
+  /* minmax(0,1fr) not 1fr: a plain 1fr is floored at the content's min-content
+     width, so one wide child would stretch the whole shell past the viewport. */
+  .app { grid-template-columns: minmax(0, 1fr); }
+  .topbar, .main { min-width: 0; }
+  .topbar { padding: 0 16px; grid-column: 1; gap: 12px; }
+  .main  { padding: 18px 16px 56px; grid-column: 1; }
 
   /* Hamburger visible */
   .hamburger { display: flex; }
 
-  /* Sidebar becomes slide-in drawer */
+  /* Sidebar becomes an off-canvas drawer (RTL: slides in from the right) */
   .sidebar {
     position: fixed;
-    top: 0; right: -270px;
-    width: 260px; height: 100%;
+    top: 0;
+    right: 0;
+    width: min(86vw, 288px);
+    height: 100%;
+    max-height: 100dvh;
     z-index: 200;
-    box-shadow: -4px 0 24px rgba(0,0,0,0.15);
-    transition: right 0.25s cubic-bezier(.4,0,.2,1);
-    overflow-y: auto;
+    box-shadow: -4px 0 24px rgba(0,0,0,0.18);
+    /* Translated out rather than offset out: a transform keeps the drawer from
+       contributing to layout/scroll width, and animates on the compositor. */
+    transform: translateX(100%);
+    transition: transform 0.25s cubic-bezier(.4,0,.2,1);
+    overflow: hidden;
+    border-left: none;
+    visibility: hidden;
   }
-  .sidebar.mob-open { right: 0; }
+  .sidebar.mob-open { transform: translateX(0); visibility: visible; }
+  /* Keep the drawer keyboard-reachable only while it is open */
+  .sidebar:focus-within { visibility: visible; }
+  @media (prefers-reduced-motion: reduce) {
+    .sidebar { transition: none; }
+  }
+  .sidebar-scroll { -webkit-overflow-scrolling: touch; }
 
   /* Grids */
-  .kpi-grid, .targets-grid, .rpt-kpi-grid { grid-template-columns: 1fr 1fr; }
+  .kpi-grid, .targets-grid, .rpt-kpi-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
   .rpt-init-grid { grid-template-columns: 1fr; }
   .news-list { grid-template-columns: 1fr; }
   .wk2-options-grid, #opts-place, #opts-movies, #opts-matches, #opts-deals, #opts-podcast, #opts-ai { grid-template-columns: 1fr !important; }
@@ -1806,30 +1889,151 @@ button.home-row:hover { border-color:var(--primary-100); background:var(--primar
   .page-head { flex-direction: column; align-items: flex-start; gap: 10px; }
   .page-head-actions { flex-wrap: wrap; }
   .wk2-hero { flex-direction: column; padding: 20px 16px; }
-  .search-bar { width: 170px; }
+  .search-bar { width: 100%; max-width: 220px; }
+  .topbar-right { gap: 8px; }
+}
 
-  /* Tables: horizontal scroll */
-  .rpt-table, .table {
-    display: block;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    white-space: nowrap;
-  }
-  .rpt-table td, .rpt-table th { white-space: nowrap; }
-
-  /* Report bars */
+@media (max-width: 767.98px) {
+  .main { padding: 16px 14px 52px; }
+  .kpi-grid, .targets-grid, .rpt-kpi-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
   .rpt-bar-label { width: 110px; font-size: 11px; }
+
+  /* ═══ TABLES → CARDS ═══
+     Each row becomes a card; each cell is labelled with the header text that
+     enhanceResponsiveTables() copied into data-label. */
+  table.tbl-cards { display: block; width: 100%; border-collapse: separate; border-spacing: 0; }
+  table.tbl-cards > thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
+  table.tbl-cards > tbody { display: block; }
+  table.tbl-cards > tbody > tr {
+    display: block;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    box-shadow: 0 1px 2px rgba(15,23,42,0.04);
+  }
+  table.tbl-cards > tbody > tr:last-child { margin-bottom: 0; }
+  table.tbl-cards > tbody > tr:hover > td { background: transparent; }
+  table.tbl-cards > tbody > tr > td {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    width: auto;
+    padding: 6px 0;
+    border: none;
+    border-bottom: 1px dashed var(--border-subtle);
+    white-space: normal;
+    text-align: start;
+    font-size: 12.5px;
+    /* Flex items default to min-content width, so a nowrap value could push the
+       card wider than the screen. Let both label and value shrink and wrap. */
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  table.tbl-cards > tbody > tr > td:last-child { border-bottom: none; padding-bottom: 0; }
+  table.tbl-cards > tbody > tr > td:first-child { padding-top: 0; }
+  /* The label, drawn from the column header */
+  table.tbl-cards > tbody > tr > td[data-label]::before {
+    content: attr(data-label);
+    flex: 0 1 40%;
+    max-width: 45%;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-4);
+    text-transform: none;
+    letter-spacing: 0;
+    line-height: 1.5;
+  }
+  /* Full-width cells (empty-state / colspan rows) stay plain */
+  table.tbl-cards > tbody > tr > td[colspan]:not([colspan="1"]) { display: block; }
+  table.tbl-cards > tbody > tr > td[colspan]:not([colspan="1"])::before { content: none; }
+  /* Date cells are direction:ltr so their digits read correctly. In card mode the
+     td is a flex row, so that ltr would also drag the ::before label to the left,
+     out of line with every other row. row-reverse puts the label back on the RTL
+     start edge while the date text itself stays ltr. */
+  table.tbl-cards > tbody > tr > td.td-date {
+    flex-direction: row-reverse;
+    text-align: left;
+    /* .rpt-table .td-date sets nowrap for the tabular view; in card mode that
+       would make the row unshrinkable. */
+    white-space: normal;
+  }
+
+  /* Anything not converted to cards still scrolls rather than overflowing */
+  .rpt-table:not(.tbl-cards), .adm-table:not(.tbl-cards), .adm-mx-table { white-space: nowrap; }
 }
 
 @media (max-width: 480px) {
-  .topbar { gap: 8px; }
-  .search-bar { width: 130px; }
+  .topbar { gap: 8px; padding: 0 12px; }
+  .search-bar { max-width: 150px; }
   .breadcrumb .en { display: none; }
   .breadcrumb-sep { display: none; }
-  .kpi-grid { grid-template-columns: 1fr 1fr; }
-  .rpt-kpi-grid { grid-template-columns: 1fr 1fr; }
+  /* Long section names must ellipsise instead of wrapping the topbar to 3 lines */
+  .breadcrumb { min-width: 0; flex: 1 1 auto; gap: 6px; }
+  .breadcrumb > :not(.breadcrumb-current) { display: none; }
+  .breadcrumb-current {
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .kpi-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .rpt-kpi-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
   .rpt-bar-label { width: 85px; font-size: 10.5px; }
-  .main { padding: 14px 12px 50px; }
+  .main { padding: 14px 12px 52px; }
+  .page-head-actions { width: 100%; }
+  .page-head-actions .btn { flex: 1 1 auto; justify-content: center; }
+  table.tbl-cards > tbody > tr > td[data-label]::before { flex-basis: 38%; }
+}
+
+@media (max-width: 380px) {
+  .brand-sub { display: none; }
+  .search-bar { max-width: 120px; }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   TOUCH TARGETS — 44x44 minimum on touch-primary devices (WCAG 2.5.5)
+   Scoped to coarse pointers so the dense desktop UI is left intact.
+   ══════════════════════════════════════════════════════════════════ */
+@media (hover: none) and (pointer: coarse) {
+  .hamburger,
+  .icon-btn,
+  #btn-logout {
+    min-width: 44px;
+    min-height: 44px;
+    width: auto;
+    height: auto;
+  }
+  .btn {
+    min-height: 44px;
+    padding: 11px 16px;
+  }
+  .nav-item {
+    min-height: 44px;
+    padding: 10px 12px;
+    font-size: 13.5px;
+  }
+  .sidebar-section-title { min-height: 44px; padding: 10px 8px; }
+  .user-card { min-height: 44px; }
+  .chip { min-height: 40px; padding: 9px 14px; }
+  /* Form controls: 16px font also stops iOS Safari zooming on focus */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  select,
+  textarea {
+    min-height: 44px;
+    font-size: 16px;
+  }
+  textarea { min-height: 88px; }
+  input[type="checkbox"], input[type="radio"] { min-width: 22px; min-height: 22px; }
+  /* Tab strips and any small link-ish control */
+  .adm-tab, .ws-archive-tab, .tab { min-height: 44px; }
+  /* Card-mode table action cells get comfortable hit areas */
+  table.tbl-cards > tbody > tr > td > button,
+  table.tbl-cards > tbody > tr > td > a { min-height: 44px; display: inline-flex; align-items: center; }
 }
 
 /* ═══ WEEK START — بداية الأسبوع ═══ */
@@ -2795,51 +2999,69 @@ button.home-row:hover { border-color:var(--primary-100); background:var(--primar
     <!-- Scrollable navigation region -->
     <div class="sidebar-scroll" aria-label="التنقل الرئيسي">
 
-    <div class="sidebar-section" data-nav-group>
-      <div class="sidebar-section-title">نظرة عامة</div>
-      <div class="sidebar-nav">
+    <div class="sidebar-section" data-nav-group data-group-key="overview" data-group-default="open">
+      <button type="button" class="sidebar-section-title" aria-expanded="true" aria-controls="navgrp-overview" onclick="navToggleGroup(this)">
+        <span class="sidebar-section-label">نظرة عامة</span>
+        <span class="sidebar-section-chevron ico" aria-hidden="true"><svg><use href="#i-chevron-down"/></svg></span>
+      </button>
+      <div class="sidebar-nav" id="navgrp-overview" role="group" aria-label="نظرة عامة">
         <a class="nav-item active" data-page="home" onclick="showSection('home')"><span class="ico"><svg><use href="#i-home"/></svg></span><span>الرئيسية</span></a>
         <a class="nav-item" data-page="reports" onclick="showSection('reports')"><span class="ico"><svg><use href="#i-trending-up"/></svg></span><span>الأداء التنفيذي للمشاريع</span></a>
       </div>
     </div>
 
-    <div class="sidebar-section" data-nav-group>
-      <div class="sidebar-section-title">الرصد والمعلومات</div>
-      <div class="sidebar-nav">
+    <div class="sidebar-section is-collapsed" data-nav-group data-group-key="monitoring">
+      <button type="button" class="sidebar-section-title" aria-expanded="false" aria-controls="navgrp-monitoring" onclick="navToggleGroup(this)">
+        <span class="sidebar-section-label">الرصد والمعلومات</span>
+        <span class="sidebar-section-chevron ico" aria-hidden="true"><svg><use href="#i-chevron-down"/></svg></span>
+      </button>
+      <div class="sidebar-nav" id="navgrp-monitoring" role="group" aria-label="الرصد والمعلومات">
         <a class="nav-item" data-page="media_monitoring" onclick="showSection('media_monitoring')"><span class="ico"><svg><use href="#i-news"/></svg></span><span>الرصد الإعلامي</span><span class="nav-item-count" id="mm-nav-count">—</span></a>
         <a class="nav-item" data-page="news" onclick="showSection('news')"><span class="ico"><svg><use href="#i-globe"/></svg></span><span>أخبار هيئات المنافسة</span></a>
       </div>
     </div>
 
-    <div class="sidebar-section" data-nav-group>
-      <div class="sidebar-section-title">التخطيط والمناسبات</div>
-      <div class="sidebar-nav">
+    <div class="sidebar-section is-collapsed" data-nav-group data-group-key="planning">
+      <button type="button" class="sidebar-section-title" aria-expanded="false" aria-controls="navgrp-planning" onclick="navToggleGroup(this)">
+        <span class="sidebar-section-label">التخطيط والمناسبات</span>
+        <span class="sidebar-section-chevron ico" aria-hidden="true"><svg><use href="#i-chevron-down"/></svg></span>
+      </button>
+      <div class="sidebar-nav" id="navgrp-planning" role="group" aria-label="التخطيط والمناسبات">
         <a class="nav-item" data-page="intldays" onclick="showSection('intldays')"><span class="ico"><svg><use href="#i-calendar"/></svg></span><span>الأيام العالمية</span></a>
         <a class="nav-item" data-page="aiyear" onclick="showSection('aiyear')"><span class="ico"><svg><use href="#i-brain"/></svg></span><span>عام الذكاء الاصطناعي 2026</span></a>
       </div>
     </div>
 
-    <div class="sidebar-section" data-nav-group>
-      <div class="sidebar-section-title">الإنتاج والنشر</div>
-      <div class="sidebar-nav">
+    <div class="sidebar-section" data-nav-group data-group-key="production" data-group-default="open">
+      <button type="button" class="sidebar-section-title" aria-expanded="true" aria-controls="navgrp-production" onclick="navToggleGroup(this)">
+        <span class="sidebar-section-label">الإنتاج والنشر</span>
+        <span class="sidebar-section-chevron ico" aria-hidden="true"><svg><use href="#i-chevron-down"/></svg></span>
+      </button>
+      <div class="sidebar-nav" id="navgrp-production" role="group" aria-label="الإنتاج والنشر">
         <a class="nav-item" data-page="shorfah" onclick="showSection('shorfah')"><span class="ico"><svg><use href="#i-book"/></svg></span><span>نشرة شُرفة</span><span class="nav-item-count" id="shorfah-nav-count">—</span></a>
         <a class="nav-item" data-page="weekstart" onclick="showSection('weekstart')"><span class="ico"><svg><use href="#i-star"/></svg></span><span>بداية الأسبوع</span></a>
         <a class="nav-item" data-page="weekend" onclick="showSection('weekend')"><span class="ico"><svg><use href="#i-calendar"/></svg></span><span>نهاية الأسبوع</span></a>
       </div>
     </div>
 
-    <div class="sidebar-section" data-nav-group>
-      <div class="sidebar-section-title">الإنشاء والأدوات</div>
-      <div class="sidebar-nav">
+    <div class="sidebar-section is-collapsed" data-nav-group data-group-key="creation">
+      <button type="button" class="sidebar-section-title" aria-expanded="false" aria-controls="navgrp-creation" onclick="navToggleGroup(this)">
+        <span class="sidebar-section-label">الإنشاء والأدوات</span>
+        <span class="sidebar-section-chevron ico" aria-hidden="true"><svg><use href="#i-chevron-down"/></svg></span>
+      </button>
+      <div class="sidebar-nav" id="navgrp-creation" role="group" aria-label="الإنشاء والأدوات">
         <a class="nav-item" data-page="designs" onclick="showSection('designs')"><span class="ico"><svg><use href="#i-image"/></svg></span><span>إنشاء التصاميم</span></a>
         <a class="nav-item" data-page="smart_assistant" onclick="showSection('smart_assistant')"><span class="ico"><svg><use href="#i-bot"/></svg></span><span>المساعد الذكي</span></a>
         <a class="nav-item" data-page="libraries" onclick="showSection('libraries')"><span class="ico"><svg><use href="#i-book"/></svg></span><span>المكتبات</span></a>
       </div>
     </div>
 
-    <div class="sidebar-section" data-nav-group>
-      <div class="sidebar-section-title">الإدارة</div>
-      <div class="sidebar-nav">
+    <div class="sidebar-section is-collapsed" data-nav-group data-group-key="admin">
+      <button type="button" class="sidebar-section-title" aria-expanded="false" aria-controls="navgrp-admin" onclick="navToggleGroup(this)">
+        <span class="sidebar-section-label">الإدارة</span>
+        <span class="sidebar-section-chevron ico" aria-hidden="true"><svg><use href="#i-chevron-down"/></svg></span>
+      </button>
+      <div class="sidebar-nav" id="navgrp-admin" role="group" aria-label="الإدارة">
         <a class="nav-item" data-page="settings" onclick="showSection('settings')"><span class="ico"><svg><use href="#i-settings"/></svg></span><span>الإعدادات</span></a>
         <a class="nav-item" id="nav-admin-panel" data-page="admin_panel" onclick="showSection('admin_panel')" style="display:none;"><span class="ico"><svg><use href="#i-shield"/></svg></span><span>لوحة التحكم</span></a>
       </div>
@@ -7105,7 +7327,85 @@ function showSection(name) {
   if (name === 'media_monitoring') MM.load();
   if (name === 'prompts_lib') PL.load();
   navUpdateBackBtn();
+  navRevealActiveGroup();
 }
+
+/* ════════════════════════════════════════
+   SIDEBAR GROUP COLLAPSE — remembered per browser
+   Defaults: نظرة عامة + الإنتاج والنشر open, the rest collapsed.
+   ════════════════════════════════════════ */
+var NAV_GROUP_STORAGE_KEY = 'icbank.nav.groups.v1';
+
+function navReadGroupState() {
+  try {
+    var raw = localStorage.getItem(NAV_GROUP_STORAGE_KEY);
+    if (!raw) return {};
+    var parsed = JSON.parse(raw);
+    return (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) ? parsed : {};
+  } catch (e) {
+    return {};
+  }
+}
+
+function navWriteGroupState(state) {
+  try {
+    localStorage.setItem(NAV_GROUP_STORAGE_KEY, JSON.stringify(state));
+  } catch (e) {
+    /* private mode / storage full — collapsing still works for this session */
+  }
+}
+
+function navSetGroupOpen(section, open, persist) {
+  if (!section) return;
+  section.classList.toggle('is-collapsed', !open);
+  var btn = section.querySelector('.sidebar-section-title');
+  if (btn) btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  if (persist) {
+    var key = section.getAttribute('data-group-key');
+    if (key) {
+      var state = navReadGroupState();
+      state[key] = !!open;
+      navWriteGroupState(state);
+    }
+  }
+}
+
+function navToggleGroup(btn) {
+  var section = btn.closest('.sidebar-section[data-nav-group]');
+  if (!section) return;
+  navSetGroupOpen(section, section.classList.contains('is-collapsed'), true);
+}
+
+/* Restore remembered state; fall back to each group's data-group-default. */
+function navRestoreGroupState() {
+  var state = navReadGroupState();
+  document.querySelectorAll('.sidebar-section[data-nav-group]').forEach(function (section) {
+    var key = section.getAttribute('data-group-key');
+    var remembered = (key && Object.prototype.hasOwnProperty.call(state, key)) ? state[key] : null;
+    var open = (remembered === null)
+      ? (section.getAttribute('data-group-default') === 'open')
+      : !!remembered;
+    navSetGroupOpen(section, open, false);
+  });
+  navRevealActiveGroup();
+}
+
+/* Never let the current page hide inside a collapsed group. */
+function navRevealActiveGroup() {
+  document.querySelectorAll('.sidebar-section[data-nav-group]').forEach(function (section) {
+    var hasActive = !!section.querySelector('.nav-item.active');
+    section.classList.toggle('has-active', hasActive);
+    if (hasActive && section.classList.contains('is-collapsed')) {
+      navSetGroupOpen(section, true, true);
+    }
+  });
+}
+
+document.addEventListener('DOMContentLoaded', navRestoreGroupState);
+
+/* Off-canvas drawer is active below 1024px — must match the CSS breakpoint. */
+var SIDEBAR_DRAWER_QUERY = '(max-width: 1023.98px)';
+function sidebarIsDrawer() { return window.matchMedia(SIDEBAR_DRAWER_QUERY).matches; }
 
 function toggleMobileSidebar() {
   const sidebar = document.querySelector('.sidebar');
@@ -7113,6 +7413,11 @@ function toggleMobileSidebar() {
   const isOpen = sidebar.classList.toggle('mob-open');
   overlay.classList.toggle('open', isOpen);
   document.body.style.overflow = isOpen ? 'hidden' : '';
+  sidebar.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+  if (isOpen) {
+    var first = sidebar.querySelector('.sidebar-section-title, .nav-item');
+    if (first && first.focus) first.focus({ preventScroll: true });
+  }
 }
 
 function closeMobileSidebar() {
@@ -7121,7 +7426,138 @@ function closeMobileSidebar() {
   sidebar.classList.remove('mob-open');
   overlay.classList.remove('open');
   document.body.style.overflow = '';
+  sidebar.setAttribute('aria-hidden', 'true');
 }
+
+/* Escape closes the drawer. */
+document.addEventListener('keydown', function (e) {
+  if (e.key !== 'Escape') return;
+  var sidebar = document.querySelector('.sidebar');
+  if (sidebar && sidebar.classList.contains('mob-open')) closeMobileSidebar();
+});
+
+/* Crossing back above 1024px (rotate / resize) must not leave the page locked
+   with a stale drawer + overlay. */
+(function () {
+  function syncDrawer() {
+    var sidebar = document.querySelector('.sidebar');
+    if (!sidebar) return;
+    if (!sidebarIsDrawer()) {
+      closeMobileSidebar();
+      sidebar.removeAttribute('aria-hidden');
+    } else if (!sidebar.classList.contains('mob-open')) {
+      sidebar.setAttribute('aria-hidden', 'true');
+    }
+  }
+  var mq = window.matchMedia(SIDEBAR_DRAWER_QUERY);
+  if (mq.addEventListener) mq.addEventListener('change', syncDrawer);
+  else if (mq.addListener) mq.addListener(syncDrawer);
+  window.addEventListener('orientationchange', syncDrawer);
+  document.addEventListener('DOMContentLoaded', syncDrawer);
+})();
+
+/* Tapping a nav item inside the drawer should close it. */
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('.sidebar .nav-item').forEach(function (item) {
+    item.addEventListener('click', function () {
+      if (sidebarIsDrawer()) closeMobileSidebar();
+    });
+  });
+});
+
+/* ════════════════════════════════════════
+   RESPONSIVE TABLES
+   Wraps every table so it can scroll inside its own box, and copies each
+   column header into the matching cells' data-label so the <768px card
+   layout can label them. Runs on load and on any DOM mutation inside .main,
+   which covers the API-rendered tables.
+   ════════════════════════════════════════ */
+var TBL_NO_CARDS = ['adm-mx-table']; // the permissions matrix is a real grid — keep it scrollable
+
+function tblShouldCard(table) {
+  if (table.hasAttribute('data-no-cards')) return false;
+  for (var i = 0; i < TBL_NO_CARDS.length; i++) {
+    if (table.classList.contains(TBL_NO_CARDS[i])) return false;
+  }
+  // A table needs at least one header row to produce sensible card labels.
+  return !!table.querySelector('thead th');
+}
+
+function tblEnhance(table) {
+  if (!table || table.dataset.respReady === '1') return;
+
+  // 1. Scroll shell — skip if an ancestor already scrolls horizontally.
+  var parent = table.parentElement;
+  var alreadyWrapped = parent && (
+    parent.classList.contains('tbl-scroll') ||
+    (parent.style && parent.style.overflowX === 'auto')
+  );
+  if (!alreadyWrapped) {
+    var shell = document.createElement('div');
+    shell.className = 'tbl-scroll';
+    table.parentNode.insertBefore(shell, table);
+    shell.appendChild(table);
+  } else if (parent.classList.contains('tbl-scroll') === false) {
+    parent.classList.add('tbl-scroll');
+  }
+
+  // 2. Label the cells from their column headers.
+  var headerRow = table.querySelector('thead tr');
+  if (headerRow) {
+    var labels = [];
+    Array.prototype.forEach.call(headerRow.children, function (th) {
+      var span = parseInt(th.getAttribute('colspan') || '1', 10) || 1;
+      var text = (th.textContent || '').trim();
+      for (var i = 0; i < span; i++) labels.push(text);
+    });
+    Array.prototype.forEach.call(table.querySelectorAll('tbody tr'), function (tr) {
+      var col = 0;
+      Array.prototype.forEach.call(tr.children, function (td) {
+        if (td.tagName !== 'TD') { col++; return; }
+        var span = parseInt(td.getAttribute('colspan') || '1', 10) || 1;
+        if (span === 1 && labels[col] && !td.hasAttribute('data-label')) {
+          td.setAttribute('data-label', labels[col]);
+        }
+        col += span;
+      });
+    });
+  }
+
+  // 3. Opt in to the card layout.
+  if (tblShouldCard(table)) table.classList.add('tbl-cards');
+
+  table.dataset.respReady = '1';
+}
+
+function enhanceResponsiveTables(root) {
+  var scope = root || document;
+  if (scope.querySelectorAll) {
+    Array.prototype.forEach.call(scope.querySelectorAll('table'), tblEnhance);
+  }
+  if (scope.tagName === 'TABLE') tblEnhance(scope);
+}
+
+(function () {
+  var pending = false;
+  function schedule() {
+    if (pending) return;
+    pending = true;
+    requestAnimationFrame(function () {
+      pending = false;
+      enhanceResponsiveTables(document);
+    });
+  }
+  document.addEventListener('DOMContentLoaded', function () {
+    enhanceResponsiveTables(document);
+    var target = document.querySelector('.main') || document.body;
+    if (!window.MutationObserver) return;
+    new MutationObserver(function (mutations) {
+      for (var i = 0; i < mutations.length; i++) {
+        if (mutations[i].addedNodes && mutations[i].addedNodes.length) { schedule(); return; }
+      }
+    }).observe(target, { childList: true, subtree: true });
+  });
+})();
 
 // ════════════════════════════════════════
 // DASHBOARD
