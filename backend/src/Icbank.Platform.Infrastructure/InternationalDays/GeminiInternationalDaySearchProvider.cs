@@ -15,6 +15,16 @@ namespace Icbank.Platform.Infrastructure.InternationalDays;
 /// (propagated up through <c>SearchInternationalDayCommandHandler</c>, uncaught, to
 /// <c>GlobalExceptionMiddleware</c>) whenever the response carries no search queries and no
 /// citations, treating an ungrounded answer as a failure rather than a result.
+/// <para>
+/// Deliberately NOT plumbed through this adapter: <see cref="GeminiGenerationResult.SearchEntryPointHtml"/>
+/// (Google's "Search Suggestions" HTML). <see cref="DaySearchResultDto"/> is persisted into a
+/// normalized schema (<c>InternationalDay</c>/<c>DayActivation</c>/<c>IntlDaySource</c>, no HTML
+/// column) and rebuilt from those rows on every 7-day cache hit -- threading the HTML through this
+/// DTO would make it silently vanish on the majority of requests (cache hits), which is worse than
+/// omitting it consistently. It IS captured at the <see cref="IGeminiClient"/> boundary for any
+/// caller that wants it; wiring it further into this feature's persistence/API contract is a
+/// deliberately out-of-scope product decision, not an oversight -- see GEMINI-ADAPTER-NOTES.md.
+/// </para>
 /// </summary>
 public sealed class GeminiInternationalDaySearchProvider : IInternationalDaySearchProvider
 {

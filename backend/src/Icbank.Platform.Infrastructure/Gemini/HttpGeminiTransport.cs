@@ -89,8 +89,8 @@ public sealed class HttpGeminiTransport : IGeminiTransport
         JsonNode? firstCandidate = root["candidates"]?.AsArray().FirstOrDefault();
         var text = ExtractText(firstCandidate);
         var inlineImages = ExtractInlineImages(firstCandidate);
-        (IReadOnlyList<string> queries, IReadOnlyList<GeminiCitation> citations) = ExtractGrounding(firstCandidate);
-        return new GeminiGenerationResult(text, modelUsed, queries, citations, inlineImages);
+        (IReadOnlyList<string> queries, IReadOnlyList<GeminiCitation> citations, var searchEntryPointHtml) = ExtractGrounding(firstCandidate);
+        return new GeminiGenerationResult(text, modelUsed, queries, citations, inlineImages, searchEntryPointHtml);
     }
 
     private static string ExtractText(JsonNode? candidate)
@@ -127,12 +127,12 @@ public sealed class HttpGeminiTransport : IGeminiTransport
         return images;
     }
 
-    private static (IReadOnlyList<string> Queries, IReadOnlyList<GeminiCitation> Citations) ExtractGrounding(JsonNode? candidate)
+    private static (IReadOnlyList<string> Queries, IReadOnlyList<GeminiCitation> Citations, string? SearchEntryPointHtml) ExtractGrounding(JsonNode? candidate)
     {
         JsonNode? metadata = candidate?["groundingMetadata"];
         if (metadata is null)
         {
-            return (Array.Empty<string>(), Array.Empty<GeminiCitation>());
+            return (Array.Empty<string>(), Array.Empty<GeminiCitation>(), null);
         }
 
         var queries = metadata["webSearchQueries"]?.AsArray().Select(q => q?.GetValue<string>() ?? string.Empty).ToList()
@@ -149,7 +149,13 @@ public sealed class HttpGeminiTransport : IGeminiTransport
             }
         }
 
-        return (queries, citations);
+        // Why: groundingMetadata.searchEntryPoint.renderedContent is Google's "Search Suggestions"
+        // HTML. Whether displaying it is mandatory under Google's ToS for grounded results is an
+        // open question this port cannot resolve -- it is captured verbatim and passed through so
+        // the frontend can render it if required, never discarded silently.
+        var searchEntryPointHtml = metadata["searchEntryPoint"]?["renderedContent"]?.GetValue<string>();
+
+        return (queries, citations, searchEntryPointHtml);
     }
 
     private static IEnumerable<GeminiCitation> BuildCitationsForSupport(JsonNode? support, JsonArray chunks)
