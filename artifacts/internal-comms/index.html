@@ -13,6 +13,7 @@
 <script src="/runtime-config.js"></script>
 <link rel="preload" as="font" type="font/ttf" href="/fonts/cairo/Cairo-Variable.ttf" crossorigin>
 <link rel="preload" as="font" type="font/woff2" href="/fonts/plex/IBMPlexSans-Regular.woff2" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="/fonts/markazi/MarkaziText-Variable.woff2" crossorigin>
 <link rel="stylesheet" href="/css/dga.css">
 <style>
 /* ═══ TOKENS ═══ */
@@ -78,8 +79,8 @@
 
   /* Landing-page masthead only: a muted gold that reads as an official seal against the
      brand green without competing with it for attention. */
-  --hl-gold:      #B08A3E;
-  --hl-gold-soft: #EBDCBC;
+  --hl-gold:      #B8923D;
+  --hl-gold-soft: rgba(184,146,61,.35);
 }
 
 /* ═══ AUTH LOADING OVERLAY ═══ */
@@ -1180,117 +1181,189 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
    Everything below the masthead is built from what the signed-in user can
    actually reach, so two people never see the same landing page.
    ═══════════════════════════════════════════════════════════════════════ */
-.home-landing { display:grid; gap:30px; max-width:940px; margin:0 auto; }
+/* The redesign is a printed-broadsheet metaphor: a gold seal, a double masthead rule, Markazi Text
+   for display copy and a faint dotted ground. Those tokens live here rather than in :root because
+   they dress this one route — the rest of the platform keeps its existing chrome. */
+.home-landing {
+  --hl-deep:#1E4A36;      /* masthead rule, headings, widget CTA */
+  --hl-mid:#3C7B57;       /* eyebrows and the "assigned by" line */
+  --hl-ink:#16231C;
+  --hl-ink-soft:#4B584E;
+  --hl-line:#DEE4D9;
+  --hl-paper:#F1F4EE;
+  --hl-card-shadow:0 1px 2px rgba(20,35,25,.04), 0 8px 20px -12px rgba(20,35,25,.18);
+  --hl-card-shadow-hover:0 4px 10px rgba(20,35,25,.06), 0 16px 32px -14px rgba(20,35,25,.24);
+
+  display:grid; gap:26px; max-width:920px; margin:0 auto;
+  color:var(--hl-ink);
+  /* The dotted ground is what stops a page of white cards reading as an empty admin screen. It is
+     drawn on the landing container only, so no other route inherits it. */
+  background:radial-gradient(circle at 1px 1px, rgba(30,74,54,.05) 1px, transparent 0) 0 0/16px 16px;
+}
+.home-landing h1, .home-landing h2, .home-landing h3, .hl-seal-mark {
+  /* Markazi Text is vendored in fonts/markazi and declared in css/dga.css. Cairo is the fallback
+     so headings stay on-brand rather than dropping to a system serif if the file fails. */
+  font-family:'Markazi Text', 'Cairo', serif;
+}
 
 /* ── Masthead ── */
-.hl-masthead { text-align:center; }
-.hl-seal {
-  width:92px; height:92px; margin:0 auto 14px; border-radius:50%;
-  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
-  border:1px solid var(--hl-gold);
-  /* Double ring: the white gap reads as an embossed seal without needing a second element. */
-  box-shadow:0 0 0 4px var(--surface), 0 0 0 5px var(--hl-gold-soft);
-  background:radial-gradient(circle at 50% 34%, var(--surface), var(--primary-50));
+.hl-masthead {
+  text-align:center; padding-bottom:16px; margin-bottom:0;
+  /* A double rule is the one detail that makes this read as a masthead and not a page header. */
+  border-bottom:3px double var(--hl-deep);
 }
-.hl-seal-top { font-size:8px; letter-spacing:.4px; color:var(--hl-gold); }
-.hl-seal-mark { font-family:var(--sans-en); font-size:21px; font-weight:800; line-height:1; color:var(--primary-hover); }
-.hl-seal-issue { font-family:var(--mono); font-size:8.5px; color:var(--hl-gold); }
-.hl-greeting { margin:0; font-size:12.5px; color:var(--text-3); }
-/* Date and edition label sit on the outer edges like a newspaper folio line. */
-.hl-folio { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:18px; }
-.hl-folio-date { font-family:var(--mono); font-size:11px; color:var(--text-3); }
-/* --text-3 (4.76:1) rather than --text-4 (2.4:1 on this tinted page) so 11px Arabic stays legible. */
-.hl-folio-edition { font-size:11px; color:var(--text-3); }
-.hl-name { margin:10px 0 0; font-size:31px; font-weight:800; line-height:1.25; color:var(--primary-hover); }
-.hl-affil { margin:7px 0 0; font-size:12.5px; color:var(--text-3); }
-.hl-affil-admin { color:var(--primary); font-weight:700; }
-/* Newspaper rule: one heavy line over a hairline. */
-.hl-rule { margin-top:18px; border-top:3px solid var(--primary); border-bottom:1px solid var(--primary-100); height:3px; }
+.hl-seal {
+  width:100px; height:100px; margin:0 auto 16px; border-radius:50%;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+  border:1.4px solid var(--hl-gold); background:var(--surface);
+  /* Two rings from one element: a paper-coloured gap, then a soft gold outline. */
+  box-shadow:0 0 0 5px var(--hl-paper), 0 0 0 6.4px var(--hl-gold-soft);
+  transition:transform .35s cubic-bezier(.2,.8,.2,1);
+}
+.hl-seal:hover { transform:rotate(-6deg); }
+.hl-seal-top { font-size:7.6px; letter-spacing:.3px; color:var(--hl-ink-soft); text-align:center; padding:0 10px; }
+.hl-seal-mark { font-size:23px; font-weight:700; line-height:1; color:var(--hl-deep); margin-top:2px; }
+.hl-seal-issue { font-size:9.5px; font-weight:600; letter-spacing:.3px; color:var(--hl-gold); margin-top:2px; }
+.hl-greeting { margin:0 0 6px; font-size:12.5px; color:var(--hl-ink-soft); }
+/* Folio line: date on one edge, edition label on the other. */
+.hl-folio { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; font-size:12px; }
+.hl-folio-date { color:var(--hl-ink-soft); }
+.hl-folio-edition {
+  /* The mockup sets white on this gold, which measures 2.9:1 — under AA for 11.5px text. Darkening
+     the gold to fix it turned the pill olive and cost the stamp its character, so the fill stays
+     exactly as drawn and the text goes dark instead: same colour, 5.6:1. */
+  background:var(--hl-gold); color:var(--hl-ink); padding:3px 10px; border-radius:999px;
+  font-size:11.5px; font-weight:600; letter-spacing:.2px; white-space:nowrap;
+}
+.hl-name { margin:0; font-size:clamp(28px, 5.6vw, 40px); font-weight:700; line-height:1.15; letter-spacing:.2px; color:var(--hl-deep); }
+.hl-affil { margin:5px 0 0; font-size:12.5px; color:var(--hl-ink-soft); }
+.hl-affil-admin { color:var(--hl-mid); font-weight:600; }
 
 /* ── Section scaffolding ── */
 .hl-section { min-width:0; }
-.hl-section-head { display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:12px; }
-.hl-section h2 { margin:0; font-size:17px; font-weight:800; color:var(--primary-hover); }
-.hl-section-note { color:var(--text-3); font-size:11px; }
+.hl-section-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:11px; }
+.hl-section h2 {
+  margin:0; font-size:20px; font-weight:700; color:var(--hl-deep);
+  display:flex; align-items:center; gap:8px;
+}
+/* Gold tick before each heading — the repeating mark that ties the three sections together. */
+.hl-section h2::before {
+  content:""; flex:0 0 auto; width:14px; height:3px; border-radius:2px; background:var(--hl-gold);
+}
+.hl-section-note { flex:0 1 auto; color:var(--hl-ink-soft); font-size:11.5px; text-align:left; }
 
 /* ── مهامي المسندة إليّ ── */
-.hl-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow-sm); }
-.hl-tasks { display:grid; }
-/* Hairline separators between rows, but never above the first or below the last. */
-.hl-tasks > * + * { border-top:1px solid var(--border-subtle); }
+.hl-card {
+  background:var(--surface); border:1px solid var(--hl-line); border-radius:10px;
+  box-shadow:var(--hl-card-shadow); padding:6px 5px;
+}
+.hl-tasks { display:grid; gap:2px; }
 .hl-task {
   /* min-width:0 on both the row and its text column is what lets a long Arabic section title
-     shrink and ellipsize instead of pushing the SLA badge out of the card. */
-  min-width:0; width:100%; display:flex; align-items:center; gap:12px;
-  padding:14px 16px; text-align:start; background:none; border:0; cursor:pointer;
+     shrink and wrap instead of pushing the SLA badge out of the card. */
+  min-width:0; width:100%; display:flex; align-items:flex-start; gap:9px;
+  padding:11px 12px; text-align:start; background:none; border:0; border-radius:7px; cursor:pointer;
   font-family:inherit; color:inherit; transition:background .15s ease;
 }
-.hl-task:hover { background:var(--surface-2); }
-.hl-task:focus-visible { outline:2px solid var(--primary); outline-offset:-2px; }
-.hl-task-main { min-width:0; display:grid; gap:3px; flex:1 1 auto; }
+.hl-task:hover { background:var(--hl-paper); }
+.hl-task:focus-visible { outline:2px solid var(--hl-gold); outline-offset:-2px; }
+/* Gold dot bullet, aligned to the first line of the title rather than the centre of the row. */
+.hl-task::before {
+  content:""; flex:0 0 auto; width:6px; height:6px; border-radius:50%;
+  background:var(--hl-gold); margin-top:8px;
+}
+.hl-task-main { min-width:0; display:grid; gap:2px; flex:1 1 auto; }
 .hl-task-title {
   /* Clamped to two lines rather than truncated to one. A real شُرفة section name runs long, and
      ellipsising it on the first line ate the part that says what the work actually is. */
-  font-size:15px; font-weight:600; color:var(--text); line-height:1.5;
+  font-size:14.5px; font-weight:500; color:var(--hl-ink); line-height:1.5;
   display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
   overflow:hidden; overflow-wrap:anywhere;
 }
 .hl-task-meta {
-  /* --text-3, not --text-4: this line carries who assigned the work and which issue it belongs to,
-     so it has to stay legible rather than fade to the decorative grey used for eyebrows. */
-  font-size:12.5px; color:var(--text-3);
+  /* Green rather than grey: this line names who assigned the work, which is the whole premise of
+     the section, so it should read as content and not as a caption. */
+  font-size:11px; color:var(--hl-mid);
   overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
 }
 /* The badge must never be the element that gives way under pressure. */
-.hl-task .home-sla { flex:0 0 auto; }
-.hl-tasks .home-loading, .hl-tasks .home-empty, .hl-tasks .home-error { margin:14px 16px; }
+.hl-task .home-sla { flex:0 0 auto; margin-top:1px; }
+/* The global badge is info-blue, which reads as a foreign accent against this green/gold
+   masthead. Retint the on-track state to the landing palette. Overdue stays red on purpose —
+   that one carries meaning and must not be tuned for harmony. */
+.hl-task .home-sla { background:rgba(60,123,87,.10); color:var(--hl-deep); }
+.hl-task .home-sla.overdue { background:var(--danger-bg); color:var(--danger); }
+.hl-tasks .home-loading, .hl-tasks .home-empty, .hl-tasks .home-error { margin:10px 12px; }
 /* On a phone there is not enough width for a two-line title and a deadline badge side by side, so
    the badge drops below the text instead of squeezing the title into an unreadable column. */
 @media (max-width:560px) {
-  .hl-task { flex-direction:column; align-items:flex-start; gap:8px; }
-  .hl-task-main { width:100%; }
-  .hl-task .home-sla { align-self:flex-start; }
+  .hl-task { flex-wrap:wrap; }
+  .hl-task-main { flex:1 1 100%; }
+  .hl-task .home-sla { margin-inline-start:15px; }
 }
 
 /* ── ابدأ الآن ── */
-.hl-actions { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+/* auto-fit rather than the mockup's fixed 4-up: the real page loses 264px to the sidebar, so a
+   viewport breakpoint would give four cards far less room here than it does in the standalone
+   mockup. The floor reproduces the intended rhythm — four across on a laptop, two on a phone. */
+.hl-actions { display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:10px; }
 .hl-action {
-  min-width:0; display:grid; gap:3px; padding:15px 16px; text-align:right;
-  background:var(--surface); border:1px solid var(--border); border-radius:12px;
-  box-shadow:var(--shadow-sm); font:inherit; color:var(--text); cursor:pointer;
-  transition:border-color .12s, background .12s, transform .12s;
+  min-width:0; display:grid; gap:4px; padding:15px 12px; text-align:center;
+  background:var(--surface); border:1px solid var(--hl-line); border-radius:10px;
+  box-shadow:var(--hl-card-shadow); font:inherit; color:var(--hl-ink); cursor:pointer;
+  transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
 }
-.hl-action:hover { border-color:var(--primary); background:var(--primary-50); }
-.hl-action-title { font-size:14px; font-weight:700; }
-.hl-action-group { font-size:10.5px; color:var(--text-3); }
+.hl-action:hover { transform:translateY(-2px); box-shadow:var(--hl-card-shadow-hover); }
+.hl-action:focus-visible { outline:2px solid var(--hl-gold); outline-offset:2px; }
+/* The first two actions are the ones this user reaches for most, so they carry a tinted ground. */
+.hl-action--primary { border-color:var(--hl-mid); background:linear-gradient(180deg,#F4F8F4,#EEF5EF); }
+.hl-action-title { font-size:14.5px; font-weight:600; }
+.hl-action-group { font-size:11px; color:var(--hl-ink-soft); }
 
 /* ── وحداتي اليوم ── */
-/* Three cards stacked full-width left most of a 940px column empty and pushed وحداتي اليوم far below
-   the fold. auto-fit with a 250px floor gives one column on a phone, two on a tablet and three on a
-   laptop without a single width breakpoint, and it degrades correctly when fewer than three widgets
-   are permitted — two cards share the row instead of leaving a third gap. */
-.hl-widgets { display:grid; gap:14px; grid-template-columns:repeat(auto-fit, minmax(250px, 1fr)); }
+/* Same reasoning as the action grid: auto-fit reproduces the mockup's 3-up desktop rhythm while
+   still collapsing cleanly, and it fills the row when a user is only permitted two widgets. */
+.hl-widgets { display:grid; grid-template-columns:repeat(auto-fit, minmax(230px, 1fr)); gap:13px; }
 .hl-widget {
-  /* Cards in the same row must line their CTAs up, so the lines block absorbs the slack. */
-  min-width:0; padding:17px 19px; display:flex; flex-direction:column;
+  position:relative; min-width:0; display:flex; flex-direction:column; overflow:hidden;
+  padding:18px 16px 16px; background:var(--surface);
+  border:1px solid var(--hl-line); border-radius:10px; box-shadow:var(--hl-card-shadow);
+  transition:transform .18s ease, box-shadow .18s ease;
 }
-.hl-widget-group { font-size:10.5px; font-weight:700; color:var(--primary); }
-.hl-widget-title { margin:3px 0 10px; font-size:17px; font-weight:800; color:var(--text); overflow-wrap:anywhere; }
+.hl-widget:hover { transform:translateY(-3px); box-shadow:var(--hl-card-shadow-hover); }
+/* Green-to-gold capping bar. Physical inset properties so it spans the card in either direction. */
+.hl-widget::before {
+  content:""; position:absolute; top:0; right:0; left:0; height:3px;
+  background:linear-gradient(90deg, var(--hl-mid), var(--hl-gold));
+}
+.hl-widget-group { font-size:11px; font-weight:600; color:var(--hl-mid); margin-bottom:5px; }
+.hl-widget-title { margin:0 0 9px; font-size:18.5px; font-weight:700; color:var(--hl-ink); line-height:1.3; overflow-wrap:anywhere; }
 /* flex:1 1 auto makes this block absorb the height difference between cards in a row, so the CTAs
    below sit on a common baseline instead of floating at three different heights. */
-.hl-widget-lines { display:grid; gap:5px; margin-bottom:13px; align-content:start; flex:1 1 auto; }
+.hl-widget-lines { display:grid; gap:5px; margin-bottom:12px; align-content:start; flex:1 1 auto; }
 /* A widget line can be a long day name ("اليوم العالمي للملكية الفكرية..."), so it wraps
    rather than overflowing a narrow card. */
-.hl-widget-line { font-size:12.5px; color:var(--text-2); line-height:1.6; overflow-wrap:anywhere; }
+.hl-widget-line { font-size:13.5px; color:var(--hl-ink-soft); line-height:1.55; overflow-wrap:anywhere; }
 .hl-widget-cta {
   align-self:flex-start;
-  display:inline-flex; align-items:center; gap:6px; padding:0; border:0; background:none;
-  font:inherit; font-size:12.5px; font-weight:700; color:var(--primary); cursor:pointer;
+  display:inline-flex; align-items:center; gap:4px; padding:0; border:0; background:none;
+  font:inherit; font-size:13px; font-weight:600; color:var(--hl-deep); cursor:pointer;
+  transition:gap .15s ease;
 }
-.hl-widget-cta:focus-visible { outline:2px solid var(--primary); outline-offset:3px; border-radius:3px; }
-.hl-widget-cta:hover { color:var(--primary-hover); text-decoration:underline; }
+.hl-widget:hover .hl-widget-cta { gap:7px; }
+.hl-widget-cta:focus-visible { outline:2px solid var(--hl-gold); outline-offset:3px; border-radius:3px; }
+.hl-widget-cta:hover { text-decoration:underline; }
 /* The arrow points along the reading direction, so it must flip in RTL. */
 .hl-widget-cta .hl-arrow { display:inline-block; transform:scaleX(-1); }
+
+/* Sections settle in on load. Guarded below for anyone who asks for reduced motion. */
+.hl-section, .hl-masthead { animation:hlRise .4s ease both; }
+@keyframes hlRise { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+@media (prefers-reduced-motion:reduce) {
+  .hl-section, .hl-masthead { animation:none; }
+  .hl-seal, .hl-action, .hl-widget, .hl-widget-cta { transition:none; }
+  .hl-seal:hover, .hl-action:hover, .hl-widget:hover { transform:none; }
+}
 
 .home-landing-grid { display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); gap:16px; }
 .home-block { min-width:0; background:var(--surface); border:1px solid var(--border-subtle); border-radius:12px; box-shadow:var(--shadow-sm); padding:18px; }
@@ -1321,16 +1394,17 @@ button.home-row:hover { border-color:var(--primary-100); background:var(--primar
 .sa-pane, .library-pane { display:none; }
 .sa-pane.active, .library-pane.active { display:block; }
 @media (max-width:700px) {
-  .home-landing { gap:24px; }
-  .hl-name { font-size:25px; }
-  .hl-actions { grid-template-columns:1fr; }
+  .home-landing { gap:22px; }
+  .hl-section h2 { font-size:18px; }
+  .hl-widget-title { font-size:17px; }
 }
-@media (max-width:480px) {
-  /* The folio line puts a date on one edge and a label on the other; at this width they collide,
-     so drop the decorative label rather than let the date wrap onto a second line. */
-  .hl-folio-edition { display:none; }
-  .hl-name { font-size:22px; }
-  .hl-widget-title, .hl-section h2 { font-size:15.5px; }
+@media (max-width:420px) {
+  /* The folio line puts a date on one edge and a gold pill on the other. Rather than drop the
+     pill or let the date wrap under it, the two stack and centre — the masthead is centred
+     anyway, so this reads as intended rather than as a break. */
+  .hl-folio { flex-direction:column; gap:8px; }
+  .hl-section-head { align-items:flex-start; }
+  .hl-section-note { display:none; }
 }
 
 /* ═══ LOCKED-AREA DIALOG ═══
@@ -3393,7 +3467,6 @@ button.home-row:hover { border-color:var(--primary-100); background:var(--primar
         </div>
         <h1 class="hl-name" id="hl-name"></h1>
         <p class="hl-affil" id="hl-affil" hidden></p>
-        <div class="hl-rule" role="presentation"></div>
       </header>
 
       <!-- مهامي المسندة إليّ: real شُرفة section assignments for this user, never sample data. -->
@@ -8198,8 +8271,11 @@ function homeRenderActions() {
   var available = HOME_ACTIONS.filter(function(a) { return authCanView(a.page); }).slice(0, 4);
   // An empty "ابدأ الآن" heading over nothing is worse than no heading, so hide the whole block.
   section.hidden = available.length === 0;
-  host.innerHTML = available.map(function(a) {
-    return '<button class="hl-action" onclick="homeGo(\'' + a.page + '\')">'
+  // HOME_ACTIONS is ordered by how central each action is to day-to-day work, so the first two
+  // that survive the permission filter are this user's primary pair and get the tinted ground.
+  host.innerHTML = available.map(function(a, i) {
+    return '<button class="hl-action' + (i < 2 ? ' hl-action--primary' : '') + '"'
+      + ' onclick="homeGo(\'' + a.page + '\')">'
       + '<span class="hl-action-title">' + homeEsc(a.title) + '</span>'
       + '<span class="hl-action-group">' + homeEsc(a.group) + '</span>'
       + '</button>';
@@ -8327,8 +8403,11 @@ async function homeRenderWidgets() {
   if (!section || !host) return;
   var candidates = HOME_WIDGETS.filter(function(w) { return authCanView(w.page); });
   if (!candidates.length) { section.hidden = true; return; }
-  host.innerHTML = '<div class="home-loading"></div>';
-  section.hidden = false;
+  // Deliberately no loading skeleton and no early reveal here. Whether this section has anything
+  // to show is only knowable after every widget has answered, and on an empty tenant the answer is
+  // usually "nothing". Revealing "وحداتي اليوم" over a skeleton and then removing the whole
+  // heading a second later reads as a bug and shifts everything below it. The section stays hidden
+  // until there is real content to justify it; مهامي above already shows the page is loading.
   // Fetch every candidate in parallel but keep registry order when rendering, so the cards appear
   // in a stable, meaningful sequence rather than in whatever order the network resolved.
   var results = await Promise.all(candidates.map(function(w) {
@@ -8336,6 +8415,7 @@ async function homeRenderWidgets() {
   }));
   var cards = results.filter(function(r) { return r.lines && r.lines.length; }).slice(0, HOME_WIDGET_LIMIT);
   if (!cards.length) { section.hidden = true; host.innerHTML = ''; return; }
+  section.hidden = false;
   host.innerHTML = cards.map(function(r) {
     return '<div class="hl-card hl-widget">'
       + '<div class="hl-widget-group">' + homeEsc(r.widget.group) + '</div>'
