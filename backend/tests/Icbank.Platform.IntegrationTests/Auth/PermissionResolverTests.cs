@@ -167,6 +167,80 @@ public sealed class PermissionResolverTests
 
         resolution.RoleNames.Should().Contain("guest");
         resolution.Permissions.Should().BeEmpty();
+        resolution.AccessGrantedBy.Should().BeNull("nobody has tailored this user's access individually");
+    }
+
+    [Fact]
+    public async Task ResolveAsync_OverridesFromSeveralAdmins_ReportsTheMostRecentOneAsAccessGrantedBy()
+    {
+        using AppDbContext dbContext = CreateInMemoryContext(nameof(ResolveAsync_OverridesFromSeveralAdmins_ReportsTheMostRecentOneAsAccessGrantedBy));
+        Page page = new() { Slug = "shorfah", NameAr = "shorfah", CreatedBy = "test" };
+        Permission viewPermission = new() { Name = "view", NameAr = "view", CreatedBy = "test" };
+        var user = new User { Email = "granted@example.com", Name = "Granted User", CreatedBy = "test" };
+        var firstAdmin = new User { Email = "first-admin@example.com", Name = "سارة الأحمد", CreatedBy = "test" };
+        var latestAdmin = new User { Email = "latest-admin@example.com", Name = "فهد العتيبي", CreatedBy = "test" };
+        dbContext.AddRange(page, viewPermission, user, firstAdmin, latestAdmin);
+        await dbContext.SaveChangesAsync(CancellationToken.None);
+
+        // Insert the newer row (higher id) first so the assertion cannot pass merely because the
+        // provider happened to return rows in insertion order.
+        dbContext.UserPageOverrides.Add(new UserPageOverride
+        {
+            Id = 220,
+            UserId = user.Id,
+            PageId = page.Id,
+            PermissionId = viewPermission.Id,
+            GrantType = OverrideGrantType.Allow,
+            CreatedByUserId = latestAdmin.Id,
+            CreatedBy = "test",
+        });
+        dbContext.UserPageOverrides.Add(new UserPageOverride
+        {
+            Id = 110,
+            UserId = user.Id,
+            PageId = page.Id,
+            PermissionId = viewPermission.Id,
+            GrantType = OverrideGrantType.Allow,
+            CreatedByUserId = firstAdmin.Id,
+            CreatedBy = "test",
+        });
+        await dbContext.SaveChangesAsync(CancellationToken.None);
+
+        var resolver = new PermissionResolver(dbContext);
+        PermissionResolution resolution = await resolver.ResolveAsync(user.Id, CancellationToken.None);
+
+        resolution.AccessGrantedBy.Should().Be("فهد العتيبي");
+        resolution.Permissions.Should().Contain("shorfah:view");
+    }
+
+    [Fact]
+    public async Task ResolveAsync_OverrideWithNoRecordedAuthor_LeavesAccessGrantedByNull()
+    {
+        using AppDbContext dbContext = CreateInMemoryContext(nameof(ResolveAsync_OverrideWithNoRecordedAuthor_LeavesAccessGrantedByNull));
+        Page page = new() { Slug = "shorfah", NameAr = "shorfah", CreatedBy = "test" };
+        Permission viewPermission = new() { Name = "view", NameAr = "view", CreatedBy = "test" };
+        var user = new User { Email = "legacy-override@example.com", Name = "Legacy Override", CreatedBy = "test" };
+        dbContext.AddRange(page, viewPermission, user);
+        await dbContext.SaveChangesAsync(CancellationToken.None);
+
+        // Rows migrated from the old system have no CreatedByUserId. The resolver must degrade to
+        // null rather than throwing, because the UI treats null as "we don't know who to name".
+        dbContext.UserPageOverrides.Add(new UserPageOverride
+        {
+            UserId = user.Id,
+            PageId = page.Id,
+            PermissionId = viewPermission.Id,
+            GrantType = OverrideGrantType.Allow,
+            CreatedByUserId = null,
+            CreatedBy = "test",
+        });
+        await dbContext.SaveChangesAsync(CancellationToken.None);
+
+        var resolver = new PermissionResolver(dbContext);
+        PermissionResolution resolution = await resolver.ResolveAsync(user.Id, CancellationToken.None);
+
+        resolution.AccessGrantedBy.Should().BeNull();
+        resolution.Permissions.Should().Contain("shorfah:view");
     }
 
     private static AppDbContext CreateInMemoryContext(string dbName)

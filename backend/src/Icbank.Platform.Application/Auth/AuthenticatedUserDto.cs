@@ -12,6 +12,14 @@ namespace Icbank.Platform.Application.Auth;
 /// <param name="IsSuperAdmin">Whether the user holds the distinct super-admin capability.</param>
 /// <param name="Permissions">Effective permissions grouped as <c>{ pageSlug: [verb, ...] }</c> for the legacy frontend.</param>
 /// <param name="MustChangePassword">Whether the user must change their password before continuing (forced first-login reset).</param>
+/// <param name="Title">The user's job title, or <c>null</c> if unset. Presentational only.</param>
+/// <param name="Department">The user's department, or <c>null</c> if unset. Presentational only.</param>
+/// <param name="AccessGrantedBy">
+/// The display name of the administrator who most recently tailored this user's access, or
+/// <c>null</c> when their access derives purely from their roles. Presentational only — it lets the
+/// dashboard tell a user who to ask about a locked area instead of showing a dead end. Never an
+/// input to an authorization decision.
+/// </param>
 public sealed record AuthenticatedUserDto(
     int Id,
     string Email,
@@ -20,7 +28,10 @@ public sealed record AuthenticatedUserDto(
     IReadOnlyCollection<string> RoleNames,
     bool IsSuperAdmin,
     IReadOnlyDictionary<string, IReadOnlyCollection<string>> Permissions,
-    bool MustChangePassword)
+    bool MustChangePassword,
+    string? Title = null,
+    string? Department = null,
+    string? AccessGrantedBy = null)
 {
     /// <summary>
     /// Converts the authorization resolver's internal <c>pageSlug:verb</c> set to the historical
@@ -45,7 +56,10 @@ public sealed record AuthenticatedUserDto(
             roleNames,
             resolution.IsSuperAdmin,
             GroupPermissions(resolution.Permissions),
-            mustChangePassword);
+            mustChangePassword,
+            user.Title,
+            user.Department,
+            resolution.AccessGrantedBy);
     }
 
     private static Dictionary<string, IReadOnlyCollection<string>> GroupPermissions(

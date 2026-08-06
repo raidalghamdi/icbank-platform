@@ -50,20 +50,30 @@ public sealed class PermissionResolver : IPermissionResolver
 
         var effective = new HashSet<string>(roleGrants, StringComparer.OrdinalIgnoreCase);
 
-        List<(string Key, OverrideGrantType GrantType)> overrides = await _dbContext.UserPageOverrides
+        List<(string Key, OverrideGrantType GrantType, string? CreatedByName)> overrides = await _dbContext.UserPageOverrides
             .Where(o => o.UserId == userId)
             .OrderBy(o => o.Id)
-            .Select(o => new ValueTuple<string, OverrideGrantType>(
+            .Select(o => new ValueTuple<string, OverrideGrantType, string?>(
                 o.Page.Slug + ":" + o.Permission.Name.ToLowerInvariant(),
-                o.GrantType))
+                o.GrantType,
+                o.CreatedByUser != null ? o.CreatedByUser.Name : null))
             .ToListAsync(cancellationToken);
 
-        foreach ((var key, OverrideGrantType grantType) in overrides)
+        foreach ((var key, OverrideGrantType grantType, _) in overrides)
         {
             ApplyOverride(effective, key, grantType);
         }
 
-        return new PermissionResolution(roleNames, isSuperAdmin, effective);
+        // Presentational only: the administrator behind the newest override, so the UI can name
+        // somebody to ask about access rather than showing a locked item with no recourse. Ordered
+        // by Id (not CreatedAt) to match the deterministic ordering used when applying the
+        // overrides above, and because Id is monotonic while CreatedAt can tie within a single
+        // matrix save that writes several rows in one transaction.
+        var accessGrantedBy = overrides
+            .Select(entry => entry.CreatedByName)
+            .LastOrDefault(name => !string.IsNullOrWhiteSpace(name));
+
+        return new PermissionResolution(roleNames, isSuperAdmin, effective, accessGrantedBy);
     }
 
     /// <inheritdoc />
