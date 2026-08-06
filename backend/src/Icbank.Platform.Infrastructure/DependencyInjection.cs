@@ -4,6 +4,7 @@ using Azure.Communication.Email;
 using Azure.Storage.Blobs;
 using Icbank.Platform.Application.Auth;
 using Icbank.Platform.Application.Common.Interfaces;
+using Icbank.Platform.Infrastructure.Gemini;
 using Icbank.Platform.Infrastructure.Http;
 using Icbank.Platform.Infrastructure.Identity;
 using Icbank.Platform.Infrastructure.Notifications;
@@ -12,6 +13,7 @@ using Icbank.Platform.Infrastructure.Persistence.Interceptors;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Polly;
 
@@ -21,7 +23,7 @@ namespace Icbank.Platform.Infrastructure;
 /// Composition-root extension for the Infrastructure layer (R-BE-004). Wires EF Core, the audit
 /// interceptor, the current-user port, and outbound HTTP resilience policies.
 /// </summary>
-public static class DependencyInjection
+public static partial class DependencyInjection
 {
     private const int MaxRetryAttempts = 3; // R-BE-095 — named, not a bare "3".
     private const double CircuitBreakerFailureRatio = 0.5;
@@ -107,7 +109,7 @@ public static class DependencyInjection
             .Validate(options => !string.IsNullOrWhiteSpace(options.SigningKey), "Jwt:SigningKey must be configured.")
             .ValidateOnStart();
 
-        AddTemplateGeneratorServices(services);
+        AddTemplateGeneratorServices(services, configuration);
 
         services.AddOptions<NotificationsOptions>().Bind(configuration.GetSection(NotificationsOptions.SectionName));
         services.AddOptions<AzureCommunicationServicesOptions>().Bind(configuration.GetSection(AzureCommunicationServicesOptions.SectionName));
@@ -115,27 +117,140 @@ public static class DependencyInjection
     }
 
     /// <summary>
-    /// Registers the template/content-generator and rendering ports (dashboard, weekend, AI Year,
-    /// international days, media monitoring) that <see cref="AddSecurityServices"/> used to inline
-    /// directly. Split out purely to keep both methods under the R-BE-091 40-line/method ceiling as
-    /// the registration list grows; this is DI wiring, not a meaningful behavioural seam.
+    /// Registers the AI-backed content-generation ports (dashboard, weekend, international days,
+    /// media monitoring) plus the non-AI rendering/rate-limiter ports that ride alongside them.
+    /// Twelve of these ports switch between a real <c>Gemini*</c> implementation and the existing
+    /// labelled <c>Template*</c>/<c>Encoded*</c> placeholder, selected by whether a Gemini API key
+    /// is configured -- mirroring how <see cref="AddNotificationServices"/> switches between
+    /// <c>Null*</c> and Azure-backed senders. An unconfigured environment degrades to placeholder
+    /// Arabic rather than throwing at request time. Split out purely to keep both methods under the
+    /// R-BE-091 40-line/method ceiling as the registration list grows; this is DI wiring, not a
+    /// meaningful behavioural seam.
     /// </summary>
     /// <param name="services">The DI service collection.</param>
-    private static void AddTemplateGeneratorServices(IServiceCollection services)
+    /// <param name="configuration">The application configuration, used to resolve the Gemini API key.</param>
+    private static void AddTemplateGeneratorServices(IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddScoped<Icbank.Platform.Application.Weekend.IDocumentTextExtractor, Weekend.CompositeDocumentTextExtractor>();
+        services.AddScoped<Icbank.Platform.Application.AiYear.IAiYearReportDocxRenderer, AiYear.OpenXmlAiYearReportDocxBuilder>();
+        services.AddSingleton<Icbank.Platform.Application.InternationalDays.IInternationalDaySearchRateLimiter, InternationalDays.InMemoryInternationalDaySearchRateLimiter>();
+        services.AddScoped<Icbank.Platform.Application.MediaMonitoring.IFinalReportPdfRenderer, MediaMonitoring.QuestPdfFinalReportPdfRenderer>();
+
+        var apiKey = GeminiApiKeyResolver.Resolve(configuration);
+        if (string.IsNullOrWhiteSpace(apiKey))
+        {
+            LogMissingGeminiKeyWarning();
+            AddTemplateOnlyGenerators(services);
+            return;
+        }
+
+        AddGeminiHttpInfrastructure(services, configuration, apiKey);
+        AddGeminiBackedGenerators(services);
+    }
+
+    /// <summary>
+    /// Logs one clear startup warning when no Gemini API key is configured, mirroring the Node
+    /// source's <c>console.warn</c> when <c>GEMINI_API_KEY</c>/<c>GOOGLE_AI_API_KEY</c>/
+    /// <c>AI_INTEGRATIONS_GEMINI_API_KEY</c> are all unset. Resolves a throwaway
+    /// <see cref="ILoggerFactory"/> at registration time (before the host's own logging pipeline is
+    /// necessarily built) purely to emit this one diagnostic -- no secret value is ever involved.
+    /// </summary>
+    private static void LogMissingGeminiKeyWarning()
+    {
+        using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+        ILogger logger = loggerFactory.CreateLogger(typeof(DependencyInjection).FullName ?? nameof(DependencyInjection));
+        LogGeminiKeyMissing(logger);
+    }
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Gemini API key not configured (checked GEMINI_API_KEY, GOOGLE_AI_API_KEY, AI_INTEGRATIONS_GEMINI_API_KEY). All AI-backed features will use labelled placeholder Arabic content instead of real Gemini output.")]
+    private static partial void LogGeminiKeyMissing(ILogger logger);
+
+    /// <summary>Registers the thirteen honest labelled placeholders, used when no Gemini API key is configured, so the platform degrades to labelled placeholder Arabic instead of throwing.</summary>
+    /// <param name="services">The DI service collection.</param>
+    private static void AddTemplateOnlyGenerators(IServiceCollection services)
     {
         services.AddScoped<Icbank.Platform.Application.Dashboard.IExecutiveSummaryGenerator, Dashboard.TemplateExecutiveSummaryGenerator>();
         services.AddScoped<Icbank.Platform.Application.Weekend.IWeekendContentGenerator, Weekend.TemplateWeekendContentGenerator>();
         services.AddScoped<Icbank.Platform.Application.Weekend.IWeekStartMessageGenerator, Weekend.TemplateWeekStartMessageGenerator>();
-        services.AddScoped<Icbank.Platform.Application.Weekend.IDocumentTextExtractor, Weekend.CompositeDocumentTextExtractor>();
-        services.AddScoped<Icbank.Platform.Application.AiYear.IAiYearReportDocxRenderer, AiYear.OpenXmlAiYearReportDocxBuilder>();
         services.AddScoped<Icbank.Platform.Application.InternationalDays.IInternationalDaySearchProvider, InternationalDays.TemplateInternationalDaySearchProvider>();
-        services.AddSingleton<Icbank.Platform.Application.InternationalDays.IInternationalDaySearchRateLimiter, InternationalDays.InMemoryInternationalDaySearchRateLimiter>();
         services.AddScoped<Icbank.Platform.Application.MediaMonitoring.IMediaReportNarrativeGenerator, MediaMonitoring.TemplateMediaReportNarrativeGenerator>();
         services.AddScoped<Icbank.Platform.Application.MediaMonitoring.IPromptExecutionEngine, MediaMonitoring.TemplatePromptExecutionEngine>();
         services.AddScoped<Icbank.Platform.Application.MediaMonitoring.IFinalReportSectionGenerator, MediaMonitoring.TemplateFinalReportSectionGenerator>();
-        services.AddScoped<Icbank.Platform.Application.MediaMonitoring.IFinalReportPdfRenderer, MediaMonitoring.QuestPdfFinalReportPdfRenderer>();
         services.AddScoped<Icbank.Platform.Application.MediaMonitoring.IExecutiveSummaryRegenerator, MediaMonitoring.TemplateExecutiveSummaryRegenerator>();
         services.AddScoped<Icbank.Platform.Application.MediaMonitoring.IReportArchiveQaEngine, MediaMonitoring.TemplateReportArchiveQaEngine>();
+        services.AddScoped<Icbank.Platform.Application.Shorfah.IShorfahSectionContentGenerator, Shorfah.TemplateShorfahSectionContentGenerator>();
+        services.AddScoped<Icbank.Platform.Application.Designs.IconEvent.IIconEventDesignExtractor, Designs.TemplateIconEventDesignExtractor>();
+        services.AddScoped<Icbank.Platform.Application.Designs.Composer.IBackgroundImageGenerator, Designs.TemplateBackgroundImageGenerator>();
+    }
+
+    /// <summary>
+    /// Registers the shared Gemini HTTP/resilience plumbing: the bare named <c>"gemini"</c>
+    /// <see cref="HttpClient"/> (no Polly -- <see cref="GeminiClient"/> has its own bespoke
+    /// retry/backoff/model-fallback loop per BUSINESS-RULES.md), the real-time delay seam, a
+    /// shared jitter source, and <see cref="IGeminiClient"/> itself. The resolved API key is
+    /// captured only inside this factory closure -- it is never bound onto <see cref="GeminiOptions"/>,
+    /// logged, or persisted anywhere, and this method is only reached once a non-empty key exists.
+    /// </summary>
+    /// <param name="services">The DI service collection.</param>
+    /// <param name="configuration">The application configuration, used to build <see cref="GeminiOptions"/>.</param>
+    /// <param name="apiKey">The resolved Gemini API key (never logged).</param>
+    private static void AddGeminiHttpInfrastructure(IServiceCollection services, IConfiguration configuration, string apiKey)
+    {
+        services.AddSingleton(BuildGeminiOptions(configuration));
+        services.AddHttpClient("gemini");
+        services.AddSingleton<IGeminiTransport>(sp => new HttpGeminiTransport(
+            sp.GetRequiredService<IHttpClientFactory>().CreateClient("gemini"),
+            sp.GetRequiredService<GeminiOptions>()));
+        services.AddSingleton<IGeminiDelay, TaskDelayGeminiDelay>();
+        services.AddSingleton(new Random());
+        services.AddSingleton<IGeminiClient>(sp => new GeminiClient(
+            sp.GetRequiredService<IGeminiTransport>(),
+            apiKey,
+            sp.GetRequiredService<IGeminiDelay>(),
+            sp.GetRequiredService<Random>()));
+    }
+
+    /// <summary>
+    /// Builds <see cref="GeminiOptions"/> from configuration section <c>Gemini</c> (base URL) plus
+    /// the Node source's exact three model-override environment variable names --
+    /// <c>GEMINI_TEXT_MODEL</c>, <c>GEMINI_PRO_MODEL</c>, <c>GEMINI_IMAGE_MODEL</c> -- read directly
+    /// off <see cref="IConfiguration"/> (which already surfaces environment variables) rather than
+    /// through the <c>Gemini:*</c> section, since the Node original reads bare env var names, not a
+    /// nested config path.
+    /// </summary>
+    /// <param name="configuration">The application configuration.</param>
+    /// <returns>The resolved <see cref="GeminiOptions"/>.</returns>
+    private static GeminiOptions BuildGeminiOptions(IConfiguration configuration)
+    {
+        var options = new GeminiOptions();
+        configuration.GetSection(GeminiOptions.SectionName).Bind(options);
+
+        options.TextModel = configuration["GEMINI_TEXT_MODEL"] is { Length: > 0 } textModel ? textModel : options.TextModel;
+        options.ProModel = configuration["GEMINI_PRO_MODEL"] is { Length: > 0 } proModel ? proModel : options.ProModel;
+        options.ImageModel = configuration["GEMINI_IMAGE_MODEL"] is { Length: > 0 } imageModel ? imageModel : options.ImageModel;
+        return options;
+    }
+
+    /// <summary>
+    /// Registers the twelve real Gemini-backed generators (everything except
+    /// <c>IIconEventImageRenderer</c>, which is HTML-to-PNG rasterization, not an AI call, and so
+    /// always stays <see cref="Designs.TemplateIconEventImageRenderer"/> regardless of key presence).
+    /// </summary>
+    /// <param name="services">The DI service collection.</param>
+    private static void AddGeminiBackedGenerators(IServiceCollection services)
+    {
+        services.AddScoped<Icbank.Platform.Application.Dashboard.IExecutiveSummaryGenerator, Dashboard.GeminiExecutiveSummaryGenerator>();
+        services.AddScoped<Icbank.Platform.Application.Weekend.IWeekendContentGenerator, Weekend.GeminiWeekendContentGenerator>();
+        services.AddScoped<Icbank.Platform.Application.Weekend.IWeekStartMessageGenerator, Weekend.GeminiWeekStartMessageGenerator>();
+        services.AddScoped<Icbank.Platform.Application.InternationalDays.IInternationalDaySearchProvider, InternationalDays.GeminiInternationalDaySearchProvider>();
+        services.AddScoped<Icbank.Platform.Application.MediaMonitoring.IMediaReportNarrativeGenerator, MediaMonitoring.GeminiMediaReportNarrativeGenerator>();
+        services.AddScoped<Icbank.Platform.Application.MediaMonitoring.IPromptExecutionEngine, MediaMonitoring.GeminiPromptExecutionEngine>();
+        services.AddScoped<Icbank.Platform.Application.MediaMonitoring.IFinalReportSectionGenerator, MediaMonitoring.GeminiFinalReportSectionGenerator>();
+        services.AddScoped<Icbank.Platform.Application.MediaMonitoring.IExecutiveSummaryRegenerator, MediaMonitoring.GeminiExecutiveSummaryRegenerator>();
+        services.AddScoped<Icbank.Platform.Application.MediaMonitoring.IReportArchiveQaEngine, MediaMonitoring.GeminiReportArchiveQaEngine>();
+        services.AddScoped<Icbank.Platform.Application.Shorfah.IShorfahSectionContentGenerator, Shorfah.GeminiShorfahSectionContentGenerator>();
+        services.AddScoped<Icbank.Platform.Application.Designs.IconEvent.IIconEventDesignExtractor, Designs.GeminiIconEventDesignExtractor>();
+        services.AddScoped<Icbank.Platform.Application.Designs.Composer.IBackgroundImageGenerator, Designs.GeminiBackgroundImageGenerator>();
     }
 
     /// <summary>
@@ -198,7 +313,14 @@ public static class DependencyInjection
         }
     }
 
-    /// <summary>Registers Wave 3b Designs/Composer and Icon Event Designs ports: storage writer, rate limiter, seed catalogs, and AI/rendering placeholders.</summary>
+    /// <summary>
+    /// Registers Wave 3b Designs/Composer and Icon Event Designs ports: storage writer, rate
+    /// limiter, seed catalogs, and rendering placeholders. <c>IIconEventDesignExtractor</c> and
+    /// <c>IBackgroundImageGenerator</c> are intentionally NOT registered here -- they switch between
+    /// Gemini and Template implementations in <see cref="AddTemplateGeneratorServices"/> based on
+    /// API key presence, and registering them again here would silently override that choice
+    /// (DI resolves the last registration for a given interface).
+    /// </summary>
     /// <param name="services">The DI service collection.</param>
     private static void AddDesignsServices(IServiceCollection services)
     {
@@ -206,16 +328,18 @@ public static class DependencyInjection
         // (called from AddSecurityServices) alongside the other three storage ports, so all four
         // share one Provider switch instead of being able to drift independently.
         services.AddSingleton<Icbank.Platform.Application.Designs.IDesignGenerationRateLimiter, Designs.InMemoryDesignGenerationRateLimiter>();
-        services.AddScoped<Icbank.Platform.Application.Designs.IconEvent.IIconEventDesignExtractor, Designs.TemplateIconEventDesignExtractor>();
         services.AddScoped<Icbank.Platform.Application.Designs.IconEvent.IIconEventHtmlRenderer, Designs.EncodedIconEventHtmlRenderer>();
         services.AddScoped<Icbank.Platform.Application.Designs.IconEvent.IIconEventImageRenderer, Designs.TemplateIconEventImageRenderer>();
         services.AddScoped<Icbank.Platform.Application.Designs.Composer.IDesignTemplateSeedCatalog, Designs.CuratedDesignTemplateSeedCatalog>();
         services.AddScoped<Icbank.Platform.Application.Designs.Composer.IGacLogoSeedCatalog, Designs.CuratedGacLogoSeedCatalog>();
         services.AddScoped<Icbank.Platform.Application.Designs.Composer.IDesignComposer, Designs.PlaceholderDesignComposer>();
-        services.AddScoped<Icbank.Platform.Application.Designs.Composer.IBackgroundImageGenerator, Designs.TemplateBackgroundImageGenerator>();
     }
 
-    /// <summary>Registers Wave 4a Shorfah issue-lifecycle ports: notification/URL/rate-limiter/export-rendering placeholders.</summary>
+    /// <summary>
+    /// Registers Wave 4a Shorfah issue-lifecycle ports: notification/URL/rate-limiter/export-rendering
+    /// placeholders. <c>IShorfahSectionContentGenerator</c> is intentionally NOT registered here for
+    /// the same reason as the two Designs ports above -- see <see cref="AddDesignsServices"/>.
+    /// </summary>
     /// <param name="services">The DI service collection.</param>
     private static void AddShorfahServices(IServiceCollection services)
     {
@@ -226,7 +350,6 @@ public static class DependencyInjection
         services.AddScoped<Icbank.Platform.Application.Shorfah.IShorfahDocxRenderer, Shorfah.OpenXmlShorfahDocxRenderer>();
         services.AddScoped<Icbank.Platform.Application.Shorfah.IShorfahIssuePdfRenderer, Shorfah.QuestPdfShorfahIssuePdfRenderer>();
         services.AddScoped<Icbank.Platform.Application.Shorfah.IShorfahSectionAccessService, Shorfah.ShorfahSectionAccessService>();
-        services.AddScoped<Icbank.Platform.Application.Shorfah.IShorfahSectionContentGenerator, Shorfah.TemplateShorfahSectionContentGenerator>();
         services.AddSingleton<Icbank.Platform.Application.Shorfah.IShorfahSectionGenerationRateLimiter, Shorfah.InMemoryShorfahSectionGenerationRateLimiter>();
     }
 
