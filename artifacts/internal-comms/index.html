@@ -75,6 +75,11 @@
 
   --sidebar-w: 264px;
   --topbar-h:  72px;
+
+  /* Landing-page masthead only: a muted gold that reads as an official seal against the
+     brand green without competing with it for attention. */
+  --hl-gold:      #B08A3E;
+  --hl-gold-soft: #EBDCBC;
 }
 
 /* ═══ AUTH LOADING OVERLAY ═══ */
@@ -329,6 +334,31 @@ body {
   color: var(--primary);
   border-color: var(--primary-100);
 }
+/* ── Locked navigation items ──
+   The redesign brief requires ungranted areas to stay VISIBLE but locked, rather than being
+   hidden. Hiding them made the platform look different for every person and left users unable to
+   tell whether a feature was missing or merely closed to them. Dimmed-plus-lock communicates
+   "this exists, you don't have it yet", and clicking it names the person who can grant it. */
+/* --text-3 (#64748B, ~4.8:1 on the white sidebar), not the lighter --text-4. The point of showing
+   a locked area is that the user can READ what exists but is closed to them; --text-4 sits near
+   2.3:1 and turns the label into a smudge. The row still reads as subordinate because allowed rows
+   are --text-2 (~10:1), the icon is faded, and a lock sits on the far edge. */
+.nav-item--locked { color:var(--text-3); cursor:pointer; }
+/* Hover must not imply the row will open a page. */
+.nav-item--locked:hover { background:transparent; color:var(--text-2); }
+.nav-item--locked .ico { opacity:.45; }
+.nav-item-lock {
+  /* margin-inline-start pushes the lock to the far (left, in RTL) edge without hardcoding a side. */
+  margin-inline-start:auto; display:inline-flex; align-items:center; flex:0 0 auto; color:var(--text-4);
+}
+.nav-item-lock svg { width:12px; height:12px; }
+/* A locked row can never also be the current page, so the active treatment must not apply. */
+.nav-item--locked.active { background:transparent; border-color:transparent; color:var(--text-3); }
+.sidebar-locked-note {
+  margin:0 10px 10px; padding:9px 11px; border:1px solid var(--border-subtle); border-radius:8px;
+  background:var(--surface-2); color:var(--text-3); font-size:10.5px; line-height:1.6;
+}
+
 .nav-item-count {
   margin-right: auto;
   font-size: 10.5px;
@@ -1144,18 +1174,126 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
 
 /* ═══ PAGE SECTIONS (SPA) ═══ */
 
-/* ═══ HOME LANDING: what needs me today ═══ */
-.home-landing { display:grid; gap:16px; }
-.home-landing-hero { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; padding:20px 22px; background:linear-gradient(135deg,#0e5d3a,#25935f); color:#fff; border-radius:14px; }
-.home-landing-eyebrow { font-size:12px; opacity:.82; margin-bottom:5px; }
-.home-landing-hero h1 { margin:0; font-size:26px; line-height:1.3; }
-.home-landing-hero p { margin:7px 0 0; font-size:13px; opacity:.9; }
-.home-landing-date { font-family:var(--mono); font-size:12px; white-space:nowrap; opacity:.9; }
+/* ═══════════════════════════════════════════════════════════════════════
+   LANDING PAGE — الرئيسية
+   Editorial "personal edition" masthead per the dashboard redesign brief.
+   Everything below the masthead is built from what the signed-in user can
+   actually reach, so two people never see the same landing page.
+   ═══════════════════════════════════════════════════════════════════════ */
+.home-landing { display:grid; gap:30px; max-width:940px; margin:0 auto; }
+
+/* ── Masthead ── */
+.hl-masthead { text-align:center; }
+.hl-seal {
+  width:92px; height:92px; margin:0 auto 14px; border-radius:50%;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+  border:1px solid var(--hl-gold);
+  /* Double ring: the white gap reads as an embossed seal without needing a second element. */
+  box-shadow:0 0 0 4px var(--surface), 0 0 0 5px var(--hl-gold-soft);
+  background:radial-gradient(circle at 50% 34%, var(--surface), var(--primary-50));
+}
+.hl-seal-top { font-size:8px; letter-spacing:.4px; color:var(--hl-gold); }
+.hl-seal-mark { font-family:var(--sans-en); font-size:21px; font-weight:800; line-height:1; color:var(--primary-hover); }
+.hl-seal-issue { font-family:var(--mono); font-size:8.5px; color:var(--hl-gold); }
+.hl-greeting { margin:0; font-size:12.5px; color:var(--text-3); }
+/* Date and edition label sit on the outer edges like a newspaper folio line. */
+.hl-folio { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:18px; }
+.hl-folio-date { font-family:var(--mono); font-size:11px; color:var(--text-3); }
+/* --text-3 (4.76:1) rather than --text-4 (2.4:1 on this tinted page) so 11px Arabic stays legible. */
+.hl-folio-edition { font-size:11px; color:var(--text-3); }
+.hl-name { margin:10px 0 0; font-size:31px; font-weight:800; line-height:1.25; color:var(--primary-hover); }
+.hl-affil { margin:7px 0 0; font-size:12.5px; color:var(--text-3); }
+.hl-affil-admin { color:var(--primary); font-weight:700; }
+/* Newspaper rule: one heavy line over a hairline. */
+.hl-rule { margin-top:18px; border-top:3px solid var(--primary); border-bottom:1px solid var(--primary-100); height:3px; }
+
+/* ── Section scaffolding ── */
+.hl-section { min-width:0; }
+.hl-section-head { display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:12px; }
+.hl-section h2 { margin:0; font-size:17px; font-weight:800; color:var(--primary-hover); }
+.hl-section-note { color:var(--text-3); font-size:11px; }
+
+/* ── مهامي المسندة إليّ ── */
+.hl-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow-sm); }
+.hl-tasks { display:grid; }
+/* Hairline separators between rows, but never above the first or below the last. */
+.hl-tasks > * + * { border-top:1px solid var(--border-subtle); }
+.hl-task {
+  /* min-width:0 on both the row and its text column is what lets a long Arabic section title
+     shrink and ellipsize instead of pushing the SLA badge out of the card. */
+  min-width:0; width:100%; display:flex; align-items:center; gap:12px;
+  padding:14px 16px; text-align:start; background:none; border:0; cursor:pointer;
+  font-family:inherit; color:inherit; transition:background .15s ease;
+}
+.hl-task:hover { background:var(--surface-2); }
+.hl-task:focus-visible { outline:2px solid var(--primary); outline-offset:-2px; }
+.hl-task-main { min-width:0; display:grid; gap:3px; flex:1 1 auto; }
+.hl-task-title {
+  /* Clamped to two lines rather than truncated to one. A real شُرفة section name runs long, and
+     ellipsising it on the first line ate the part that says what the work actually is. */
+  font-size:15px; font-weight:600; color:var(--text); line-height:1.5;
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
+  overflow:hidden; overflow-wrap:anywhere;
+}
+.hl-task-meta {
+  /* --text-3, not --text-4: this line carries who assigned the work and which issue it belongs to,
+     so it has to stay legible rather than fade to the decorative grey used for eyebrows. */
+  font-size:12.5px; color:var(--text-3);
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+/* The badge must never be the element that gives way under pressure. */
+.hl-task .home-sla { flex:0 0 auto; }
+.hl-tasks .home-loading, .hl-tasks .home-empty, .hl-tasks .home-error { margin:14px 16px; }
+/* On a phone there is not enough width for a two-line title and a deadline badge side by side, so
+   the badge drops below the text instead of squeezing the title into an unreadable column. */
+@media (max-width:560px) {
+  .hl-task { flex-direction:column; align-items:flex-start; gap:8px; }
+  .hl-task-main { width:100%; }
+  .hl-task .home-sla { align-self:flex-start; }
+}
+
+/* ── ابدأ الآن ── */
+.hl-actions { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.hl-action {
+  min-width:0; display:grid; gap:3px; padding:15px 16px; text-align:right;
+  background:var(--surface); border:1px solid var(--border); border-radius:12px;
+  box-shadow:var(--shadow-sm); font:inherit; color:var(--text); cursor:pointer;
+  transition:border-color .12s, background .12s, transform .12s;
+}
+.hl-action:hover { border-color:var(--primary); background:var(--primary-50); }
+.hl-action-title { font-size:14px; font-weight:700; }
+.hl-action-group { font-size:10.5px; color:var(--text-3); }
+
+/* ── وحداتي اليوم ── */
+/* Three cards stacked full-width left most of a 940px column empty and pushed وحداتي اليوم far below
+   the fold. auto-fit with a 250px floor gives one column on a phone, two on a tablet and three on a
+   laptop without a single width breakpoint, and it degrades correctly when fewer than three widgets
+   are permitted — two cards share the row instead of leaving a third gap. */
+.hl-widgets { display:grid; gap:14px; grid-template-columns:repeat(auto-fit, minmax(250px, 1fr)); }
+.hl-widget {
+  /* Cards in the same row must line their CTAs up, so the lines block absorbs the slack. */
+  min-width:0; padding:17px 19px; display:flex; flex-direction:column;
+}
+.hl-widget-group { font-size:10.5px; font-weight:700; color:var(--primary); }
+.hl-widget-title { margin:3px 0 10px; font-size:17px; font-weight:800; color:var(--text); overflow-wrap:anywhere; }
+/* flex:1 1 auto makes this block absorb the height difference between cards in a row, so the CTAs
+   below sit on a common baseline instead of floating at three different heights. */
+.hl-widget-lines { display:grid; gap:5px; margin-bottom:13px; align-content:start; flex:1 1 auto; }
+/* A widget line can be a long day name ("اليوم العالمي للملكية الفكرية..."), so it wraps
+   rather than overflowing a narrow card. */
+.hl-widget-line { font-size:12.5px; color:var(--text-2); line-height:1.6; overflow-wrap:anywhere; }
+.hl-widget-cta {
+  align-self:flex-start;
+  display:inline-flex; align-items:center; gap:6px; padding:0; border:0; background:none;
+  font:inherit; font-size:12.5px; font-weight:700; color:var(--primary); cursor:pointer;
+}
+.hl-widget-cta:focus-visible { outline:2px solid var(--primary); outline-offset:3px; border-radius:3px; }
+.hl-widget-cta:hover { color:var(--primary-hover); text-decoration:underline; }
+/* The arrow points along the reading direction, so it must flip in RTL. */
+.hl-widget-cta .hl-arrow { display:inline-block; transform:scaleX(-1); }
+
 .home-landing-grid { display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); gap:16px; }
 .home-block { min-width:0; background:var(--surface); border:1px solid var(--border-subtle); border-radius:12px; box-shadow:var(--shadow-sm); padding:18px; }
-.home-block--actions { grid-column:span 4; }
-.home-block--attention { grid-column:span 8; }
-.home-block--new, .home-block--upcoming, .home-block--recent { grid-column:span 4; }
 .home-block-head { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:13px; }
 .home-block h2 { margin:0; font-size:16px; color:var(--text); }
 .home-block-note { color:var(--text-3); font-size:11px; }
@@ -1182,8 +1320,50 @@ button.home-row:hover { border-color:var(--primary-100); background:var(--primar
 .sa-tab-nav button.active, .library-tab-nav button.active { color:var(--primary); border-bottom-color:var(--primary); }
 .sa-pane, .library-pane { display:none; }
 .sa-pane.active, .library-pane.active { display:block; }
-@media (max-width:1100px) { .home-block--attention,.home-block--actions,.home-block--new,.home-block--upcoming,.home-block--recent { grid-column:span 6; } }
-@media (max-width:700px) { .home-landing-hero { align-items:flex-start; flex-direction:column; } .home-block--attention,.home-block--actions,.home-block--new,.home-block--upcoming,.home-block--recent { grid-column:span 12; } .home-actions { grid-template-columns:1fr; } }
+@media (max-width:700px) {
+  .home-landing { gap:24px; }
+  .hl-name { font-size:25px; }
+  .hl-actions { grid-template-columns:1fr; }
+}
+@media (max-width:480px) {
+  /* The folio line puts a date on one edge and a label on the other; at this width they collide,
+     so drop the decorative label rather than let the date wrap onto a second line. */
+  .hl-folio-edition { display:none; }
+  .hl-name { font-size:22px; }
+  .hl-widget-title, .hl-section h2 { font-size:15.5px; }
+}
+
+/* ═══ LOCKED-AREA DIALOG ═══
+   Shown when someone clicks a locked navigation row. A tooltip alone tells a user they are
+   blocked but not what to do next, so this names the administrator who last set their access. */
+.lockd-overlay {
+  position:fixed; inset:0; z-index:1200; display:none;
+  align-items:center; justify-content:center; padding:20px;
+  background:rgba(12,17,29,.42);
+}
+.lockd-overlay.is-open { display:flex; }
+.lockd {
+  width:100%; max-width:380px; padding:22px; border-radius:14px;
+  background:var(--surface); box-shadow:0 20px 56px rgba(12,17,29,.26); text-align:center;
+}
+.lockd-icon {
+  width:46px; height:46px; margin:0 auto 13px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  background:var(--surface-2); color:var(--text-3);
+}
+.lockd-icon svg { width:20px; height:20px; }
+.lockd h2 { margin:0 0 7px; font-size:16px; font-weight:800; color:var(--text); }
+.lockd p { margin:0 0 5px; font-size:12.5px; line-height:1.7; color:var(--text-2); }
+.lockd-admin { color:var(--primary); font-weight:700; }
+.lockd-close {
+  /* 44px unconditionally rather than 42px bumped up inside a (pointer:coarse) query. The query is
+     not reliably reported by every mobile browser or emulator, and a 44px button costs nothing on
+     a desktop — so the touch target is correct by construction instead of by detection. */
+  margin-top:17px; width:100%; min-height:44px; border:1px solid var(--border); border-radius:8px;
+  background:var(--surface); color:var(--text-2); font:inherit; font-size:13px; font-weight:700; cursor:pointer;
+}
+.lockd-close:hover { border-color:var(--primary); color:var(--primary); background:var(--primary-50); }
+.lockd-close:focus-visible { outline:2px solid var(--primary); outline-offset:2px; }
 
 .page-section { display: none; }
 .page-section.active { display: block; animation: fadeUp 0.3s ease; }
@@ -2984,6 +3164,17 @@ button.home-row:hover { border-color:var(--primary-100); background:var(--primar
 
 <div class="mob-overlay" id="mob-overlay" onclick="closeMobileSidebar()"></div>
 
+<!-- Locked-area dialog: opened by clicking a locked sidebar row. Tells the user which area is
+     closed and, when we know it, who to ask — so a lock is a next step rather than a dead end. -->
+<div class="lockd-overlay" id="lockd-overlay" onclick="navLockedDialogBackdrop(event)">
+  <div class="lockd" role="dialog" aria-modal="true" aria-labelledby="lockd-title" aria-describedby="lockd-body">
+    <div class="lockd-icon" aria-hidden="true"><svg><use href="#i-lock"/></svg></div>
+    <h2 id="lockd-title">قسم غير متاح</h2>
+    <div id="lockd-body"></div>
+    <button type="button" class="lockd-close" id="lockd-close" onclick="navLockedDialogClose()">إغلاق</button>
+  </div>
+</div>
+
 <div class="app">
 
   <!-- ═══ SIDEBAR ═══ -->
@@ -2998,6 +3189,10 @@ button.home-row:hover { border-color:var(--primary-100); background:var(--primar
 
     <!-- Scrollable navigation region -->
     <div class="sidebar-scroll" aria-label="التنقل الرئيسي">
+
+    <!-- Explains the dimmed rows. Hidden by authUpdateUI() when nothing is locked, so users with
+         full access never see a note about a state they are not in. -->
+    <p class="sidebar-locked-note" id="sidebar-locked-note" hidden>تعرض القائمة أدناه فقط ما مُنح لك من صلاحيات وصول — العناصر المظللة لم تُسند إليك بعد.</p>
 
     <div class="sidebar-section" data-nav-group data-group-key="overview" data-group-default="open">
       <button type="button" class="sidebar-section-title" aria-expanded="true" aria-controls="navgrp-overview" onclick="navToggleGroup(this)">
@@ -3063,7 +3258,9 @@ button.home-row:hover { border-color:var(--primary-100); background:var(--primar
       </button>
       <div class="sidebar-nav" id="navgrp-admin" role="group" aria-label="الإدارة">
         <a class="nav-item" data-page="settings" onclick="showSection('settings')"><span class="ico"><svg><use href="#i-settings"/></svg></span><span>الإعدادات</span></a>
-        <a class="nav-item" id="nav-admin-panel" data-page="admin_panel" onclick="showSection('admin_panel')" style="display:none;"><span class="ico"><svg><use href="#i-shield"/></svg></span><span>لوحة التحكم</span></a>
+        <!-- No inline display:none. لوحة التحكم is now rendered locked for non-admins by the
+             single gating pass in authUpdateUI(), like every other row. -->
+        <a class="nav-item" id="nav-admin-panel" data-page="admin_panel" onclick="showSection('admin_panel')"><span class="ico"><svg><use href="#i-shield"/></svg></span><span>لوحة التحكم</span></a>
       </div>
     </div>
 
@@ -3180,17 +3377,49 @@ button.home-row:hover { border-color:var(--primary-100); background:var(--primar
   ══════════════════════════════════ -->
   <div class="page-section active" id="section-home">
     <div class="home-landing" id="home-landing">
-      <header class="home-landing-hero">
-        <div><div class="home-landing-eyebrow">مساحة العمل اليومية</div><h1>ما الذي يحتاج تدخلك اليوم؟</h1><p id="home-landing-welcome">نجمع الأولويات من المسارات المتاحة لك.</p></div>
-        <div class="home-landing-date" id="home-landing-date">—</div>
+
+      <!-- Masthead: the "personal edition" framing. Every value is filled from the signed-in user,
+           and any line we have no real data for is removed rather than shown empty. -->
+      <header class="hl-masthead">
+        <div class="hl-seal" aria-hidden="true">
+          <span class="hl-seal-top">المساحة الداخلية</span>
+          <span class="hl-seal-mark">IC</span>
+          <span class="hl-seal-issue" id="hl-seal-issue" hidden></span>
+        </div>
+        <p class="hl-greeting" id="hl-greeting"></p>
+        <div class="hl-folio">
+          <span class="hl-folio-date" id="hl-folio-date"></span>
+          <span class="hl-folio-edition">طبعتك الشخصية</span>
+        </div>
+        <h1 class="hl-name" id="hl-name"></h1>
+        <p class="hl-affil" id="hl-affil" hidden></p>
+        <div class="hl-rule" role="presentation"></div>
       </header>
-      <div class="home-landing-grid">
-        <section class="home-block home-block--attention" aria-labelledby="home-attention-title"><div class="home-block-head"><h2 id="home-attention-title">ما ينتظر إجرائي</h2><span class="home-block-note">أقسام شُرفة المسندة إليك</span></div><div id="home-attention-body" class="home-list"><div class="home-loading"></div></div></section>
-        <section class="home-block home-block--actions" aria-labelledby="home-actions-title"><div class="home-block-head"><h2 id="home-actions-title">ابدأ الآن</h2></div><div class="home-actions"><button class="home-action" onclick="homeGo('designs')">تصميم جديد</button><button class="home-action" onclick="homeGo('weekstart')">رسالة أسبوعية</button><button class="home-action" onclick="homeGo('shorfah')">قسم في شُرفة</button><button class="home-action" onclick="homeGo('smart_assistant')">اسأل المساعد</button></div></section>
-        <section class="home-block home-block--new" aria-labelledby="home-new-title"><div class="home-block-head"><h2 id="home-new-title">الجديد منذ آخر دخول</h2><span class="home-block-note" id="home-new-note">يُحفظ محلياً</span></div><div id="home-new-body" class="home-list"><div class="home-loading"></div></div></section>
-        <section class="home-block home-block--upcoming" aria-labelledby="home-upcoming-title"><div class="home-block-head"><h2 id="home-upcoming-title">القادم</h2><span class="home-block-note">30 يوماً</span></div><div id="home-upcoming-body" class="home-list"><div class="home-loading"></div></div></section>
-        <section class="home-block home-block--recent" aria-labelledby="home-recent-title"><div class="home-block-head"><h2 id="home-recent-title">أنتجته مؤخراً</h2><span class="home-block-note">مخرجات وقوالب</span></div><div id="home-recent-body" class="home-list"><div class="home-loading"></div></div></section>
-      </div>
+
+      <!-- مهامي المسندة إليّ: real شُرفة section assignments for this user, never sample data. -->
+      <section class="hl-section" aria-labelledby="hl-tasks-title">
+        <div class="hl-section-head">
+          <h2 id="hl-tasks-title">مهامي المسندة إليّ</h2>
+          <span class="hl-section-note">أقسام شُرفة المسندة إليك</span>
+        </div>
+        <div class="hl-card">
+          <div class="hl-tasks" id="home-attention-body"><div class="home-loading"></div></div>
+        </div>
+      </section>
+
+      <!-- ابدأ الآن: only the actions this user is actually permitted to perform. -->
+      <section class="hl-section" id="hl-actions-section" aria-labelledby="hl-actions-title" hidden>
+        <div class="hl-section-head"><h2 id="hl-actions-title">ابدأ الآن</h2></div>
+        <div class="hl-actions" id="hl-actions"></div>
+      </section>
+
+      <!-- وحداتي اليوم: one card per section the user can open, so the page composition itself
+           differs per person exactly as the redesign brief intends. -->
+      <section class="hl-section" id="hl-widgets-section" aria-labelledby="hl-widgets-title" hidden>
+        <div class="hl-section-head"><h2 id="hl-widgets-title">وحداتي اليوم</h2></div>
+        <div class="hl-widgets" id="hl-widgets"></div>
+      </section>
+
     </div>
   </div>
 
@@ -5820,37 +6049,60 @@ function authUpdateUI() {
   if (nameEl)   nameEl.textContent   = u.name || '';
   if (roleEl)   roleEl.textContent   = ROLE_LABELS[u.role] || u.role || '';
 
+  // لوحة التحكم used to be hidden outright and revealed only for admins. It is now handled by the
+  // shared locked/allowed pass below so non-admins see it locked, which is what the redesign brief
+  // specifies. Any inline display left by an earlier build of the page is cleared here.
   var adminNavEl = document.getElementById('nav-admin-panel');
-  if (adminNavEl && (u.role === 'super_admin' || u.role === 'admin')) {
-    adminNavEl.style.display = '';
-  }
+  if (adminNavEl) adminNavEl.style.display = '';
   // SEC/FE cleanup: removed dead getElementById('nav-places') / ('nav-designs')
   // lookups here — no element with either id exists anywhere in this file, so
   // both blocks were permanent no-ops (confirmed via repo-wide grep).
 
-  var perms = u.permissions || {};
+  // ── Sidebar access state ──
+  // Per the dashboard redesign brief, areas the user has not been granted stay VISIBLE but
+  // locked instead of disappearing. Hiding them produced a platform whose shape changed from
+  // person to person, and gave the user no way to tell an unbuilt feature from a closed one.
+  // authCanView() is the single source of truth here so the sidebar can never disagree with the
+  // guard inside showSection() — previously this loop consulted permissions[] directly while
+  // showSection() consulted authCanView(), and rows vanished for users who could in fact open them.
+  var lockedCount = 0;
   document.querySelectorAll('.nav-item[data-page]').forEach(function(el) {
     var page = el.getAttribute('data-page');
-    var permKey = PAGE_PERM_MAP[page] || page;
-    if (page === 'admin_panel') return;
-    if (u.isSuperAdmin) return;
-    if (page === 'home') return;
-    // 'libraries' is a container for three panes with three different rules (مكتبة الهيئة is
-    // open to every authenticated user, الأماكن and الشعارات are admin-only). Gating the row on a
-    // single permKey would have withdrawn مكتبة الهيئة from ordinary users, so the row follows
-    // authCanView() and the individual panes are gated by librariesApplyTabPermissions().
-    if (page === 'libraries') return;
-    var allowed = perms[permKey] && perms[permKey].includes('view');
-    if (!allowed) el.style.display = 'none';
+    var allowed = authCanView(page);
+    // These rows are <a> without href, so they are not focusable by default. Give every row an
+    // explicit tab stop and button semantics; the keydown handler activates them.
+    el.setAttribute('tabindex', '0');
+    el.setAttribute('role', 'button');
+    el.classList.toggle('nav-item--locked', !allowed);
+    if (allowed) {
+      el.removeAttribute('aria-disabled');
+      el.removeAttribute('title');
+      var existing = el.querySelector('.nav-item-lock');
+      if (existing) existing.remove();
+      return;
+    }
+    lockedCount++;
+    // aria-disabled rather than the disabled attribute: the row is still focusable and still
+    // announces itself, because a screen-reader user needs to hear that the area exists and is
+    // locked just as a sighted user sees it dimmed.
+    el.setAttribute('aria-disabled', 'true');
+    el.setAttribute('title', NAV_LOCKED_HINT);
+    if (!el.querySelector('.nav-item-lock')) {
+      var lock = document.createElement('span');
+      lock.className = 'nav-item-lock';
+      lock.setAttribute('aria-hidden', 'true');
+      lock.innerHTML = '<svg><use href="#i-lock"/></svg>';
+      el.appendChild(lock);
+    }
   });
-  // A group title without any usable destination is visual noise. Evaluate actual
-  // computed display because RBAC also changes the admin entry after initial markup.
-  document.querySelectorAll('[data-nav-group]').forEach(function(group) {
-    var hasVisibleChild = Array.prototype.some.call(group.querySelectorAll('.nav-item[data-page]'), function(item) {
-      return window.getComputedStyle(item).display !== 'none';
-    });
-    group.style.display = hasVisibleChild ? '' : 'none';
-  });
+  // Only explain the dimming when there is something dimmed to explain.
+  var lockedNote = document.getElementById('sidebar-locked-note');
+  if (lockedNote) lockedNote.hidden = lockedCount === 0;
+  // Every group now always has visible rows, so the old "hide empty groups" pass is gone. Groups
+  // are still cleared of any inline display left over from a previous session's render.
+  document.querySelectorAll('[data-nav-group]').forEach(function(group) { group.style.display = ''; });
+
+  var perms = u.permissions || {};
 
   // ── Button visibility by permission ──
   function hasP(page, perm) {
@@ -5871,6 +6123,85 @@ function authUpdateUI() {
   var idSaveBtn = document.getElementById('id-save-btn');
   if (idSaveBtn) idSaveBtn.style.display = hasP('intldays', 'create') ? '' : 'none';
 }
+
+// ═════════════════════════════════════════
+// LOCKED NAVIGATION ROWS
+// ═════════════════════════════════════════
+var NAV_LOCKED_HINT = 'لم يُمنح لك الوصول بعد';
+var NAV_LOCKED_RETURN_FOCUS = null;
+
+function navLockedDialogOpen(itemLabel) {
+  var overlay = document.getElementById('lockd-overlay');
+  var body = document.getElementById('lockd-body');
+  if (!overlay || !body) return;
+  var admin = (window.AUTH_USER || {}).accessGrantedBy;
+  var html = '<p>' + homeEsc(itemLabel ? 'لم يُمنح لك الوصول إلى «' + itemLabel + '» بعد.' : 'لم يُمنح لك الوصول إلى هذا القسم بعد.') + '</p>';
+  // Name a person only when the API actually told us who it is. Inventing "مدير النطاق" or a
+  // placeholder name would send the user to somebody who may not control their access.
+  html += admin
+    ? '<p>لطلب الوصول، تواصل مع <span class="lockd-admin">' + homeEsc(admin) + '</span> — من يدير صلاحياتك على المنصة.</p>'
+    : '<p>لطلب الوصول، تواصل مع مسؤول المنصة في إدارة التواصل المؤسسي.</p>';
+  body.innerHTML = html;
+  NAV_LOCKED_RETURN_FOCUS = document.activeElement;
+  overlay.classList.add('is-open');
+  var closeBtn = document.getElementById('lockd-close');
+  if (closeBtn) closeBtn.focus();
+}
+
+function navLockedDialogClose() {
+  var overlay = document.getElementById('lockd-overlay');
+  if (!overlay) return;
+  overlay.classList.remove('is-open');
+  // Return focus to the row that opened the dialog, so keyboard users are not dropped at the top
+  // of the document.
+  if (NAV_LOCKED_RETURN_FOCUS && typeof NAV_LOCKED_RETURN_FOCUS.focus === 'function') {
+    try { NAV_LOCKED_RETURN_FOCUS.focus(); } catch (e) {}
+  }
+  NAV_LOCKED_RETURN_FOCUS = null;
+}
+
+// Clicks on the dim backdrop dismiss; clicks inside the card must not.
+function navLockedDialogBackdrop(event) {
+  if (event && event.target && event.target.id === 'lockd-overlay') navLockedDialogClose();
+}
+
+function navLockedItemLabel(el) {
+  // The visible label is the first <span> that is neither the icon nor the count/lock badge.
+  var spans = el.querySelectorAll(':scope > span');
+  for (var i = 0; i < spans.length; i++) {
+    if (!spans[i].classList.contains('ico') && !spans[i].classList.contains('nav-item-count') && !spans[i].classList.contains('nav-item-lock')) {
+      return (spans[i].textContent || '').trim();
+    }
+  }
+  return '';
+}
+
+// Capture phase: this runs before the row's own inline onclick="showSection(...)", so stopping
+// propagation here keeps a locked row from navigating to the 403 page. Showing "ممنوع الوصول"
+// for something the user was never granted reads as an error they caused; the dialog explains it.
+document.addEventListener('click', function(event) {
+  var locked = event.target && event.target.closest && event.target.closest('.nav-item--locked');
+  if (!locked) return;
+  event.preventDefault();
+  event.stopPropagation();
+  navLockedDialogOpen(navLockedItemLabel(locked));
+}, true);
+
+// Sidebar rows are <a> elements without href, which are not keyboard-focusable on their own. The
+// gating pass gives every row tabindex="0"; this makes Enter and Space activate them, so the whole
+// sidebar (locked rows included) is reachable without a mouse.
+document.addEventListener('keydown', function(event) {
+  if (event.key === 'Escape') {
+    var overlay = document.getElementById('lockd-overlay');
+    if (overlay && overlay.classList.contains('is-open')) { navLockedDialogClose(); return; }
+  }
+  if (event.key !== 'Enter' && event.key !== ' ') return;
+  var row = event.target && event.target.closest && event.target.closest('.nav-item[data-page]');
+  if (!row) return;
+  event.preventDefault();
+  if (row.classList.contains('nav-item--locked')) { navLockedDialogOpen(navLockedItemLabel(row)); return; }
+  showSection(row.getAttribute('data-page'));
+});
 
 function authCanPerm(page, perm) {
   if (!AUTH_USER) return false;
@@ -7802,6 +8133,32 @@ function homeCountdown(deadline) {
   if (hours < 24) return { text:'متبقٍ ' + homeNumber(hours) + ' ساعة', overdue:false };
   return { text:'متبقٍ ' + homeNumber(Math.ceil(hours / 24)) + ' يوم', overdue:false };
 }
+// ─────────────────────────────────────────────────────────────────────────────
+// مهامي المسندة إليّ — real شُرفة section assignments for the signed-in user.
+// ─────────────────────────────────────────────────────────────────────────────
+function homeTaskAssigner(section) {
+  // Rendered only when the API actually names an assigner. The mockup shows a "من: …" line, but
+  // inventing one would attribute work to a person who never assigned it.
+  var name = section.assignedByName || section.assigned_by_name || section.assignedBy || section.assigned_by
+    || section.editorName || section.editor_name;
+  return (name && typeof name === 'string') ? name.trim() : '';
+}
+
+function homeTaskRow(item, defaults) {
+  var s = item.section;
+  var countdown = homeCountdown(homeSlaDeadline(s, defaults));
+  var title = s.titleAr || s.title_ar || s.title || s.sectionType || 'قسم شُرفة';
+  var issue = item.issue.titleAr || item.issue.title_ar || item.issue.issueNo || 'شُرفة';
+  var assigner = homeTaskAssigner(s);
+  return '<button class="hl-task" onclick="homeGo(\'shorfah\')">'
+    + '<span class="hl-task-main">'
+    + '<span class="hl-task-title">' + homeEsc(title) + '</span>'
+    + '<span class="hl-task-meta">' + homeEsc(assigner ? 'من: ' + assigner + ' · ' + issue : issue) + '</span>'
+    + '</span>'
+    + '<span class="home-sla' + (countdown.overdue ? ' overdue' : '') + '">' + homeEsc(countdown.text) + '</span>'
+    + '</button>';
+}
+
 async function homeLoadAttention() {
   try {
     var pair = await Promise.all([
@@ -7816,65 +8173,228 @@ async function homeLoadAttention() {
     var sections = [];
     details.forEach(function(detail, i) { homeItems(detail && (detail.sections || detail.items)).forEach(function(section) { if (homeAssigned(section)) sections.push({ section:section, issue:issues[i] }); }); });
     if (!sections.length) { homeRender('home-attention-body', homeEmpty('لا توجد أقسام شُرفة مسندة إليك اليوم.')); return; }
-    homeRender('home-attention-body', sections.slice(0, 5).map(function(item) {
-      var s = item.section, countdown = homeCountdown(homeSlaDeadline(s, defaults));
-      return '<button class="home-row" onclick="homeGo(\'shorfah\')"><span class="home-row-main"><span class="home-row-title">' + homeEsc(s.titleAr || s.title_ar || s.title || s.sectionType || 'قسم شُرفة') + '</span><span class="home-row-meta">' + homeEsc(item.issue.titleAr || item.issue.title_ar || item.issue.issueNo || 'شُرفة') + '</span></span><span class="home-sla' + (countdown.overdue ? ' overdue' : '') + '">' + homeEsc(countdown.text) + '</span></button>';
-    }).join(''));
+    homeRender('home-attention-body', sections.slice(0, 5).map(function(item) { return homeTaskRow(item, defaults); }).join(''));
   } catch (e) { homeRender('home-attention-body', homeError('تعذر تحميل الأقسام المسندة.')); }
 }
-function homeFreshCount(items, lastSeen) { return items.filter(function(item) { var d = homeDate(item.publishedAt || item.published_at || item.createdAt || item.created_at || item.date); return !lastSeen || (d && d.getTime() > lastSeen); }).length; }
-async function homeLoadNew() {
-  try {
-    var seenKey = 'icbank.home.lastSeen.v1', lastSeen = Number(localStorage.getItem(seenKey) || 0);
-    var pair = await Promise.all([
-      apiFetch(apiUrl('/final-media-reports')).then(function(r) { if (!r.ok) throw new Error('monitoring'); return r.json(); }),
-      apiFetch(apiUrl('/gac/news')).then(function(r) { if (!r.ok) throw new Error('news'); return r.json(); })
-    ]);
-    var monitoring = homeItems(pair[0]), news = homeItems(pair[1]);
-    var monitorFresh = homeFreshCount(monitoring, lastSeen), newsFresh = homeFreshCount(news, lastSeen);
-    localStorage.setItem(seenKey, String(Date.now()));
-    var note = document.getElementById('home-new-note'); if (note) note.textContent = lastSeen ? 'آخر ظهور محفوظ محلياً' : 'أول زيارة محفوظة محلياً';
-    if (!monitoring.length && !news.length) { homeRender('home-new-body', homeEmpty('لا توجد عناصر جديدة منذ آخر دخول.')); return; }
-    homeRender('home-new-body', '<button class="home-row" onclick="homeGo(\'media_monitoring\')"><span class="home-row-main"><span class="home-row-title">الرصد الإعلامي</span><span class="home-row-meta">تقارير الرصد الجديدة</span></span><span class="home-count">' + homeNumber(monitorFresh) + '</span></button><button class="home-row" onclick="homeGo(\'news\')"><span class="home-row-main"><span class="home-row-title">أخبار هيئات المنافسة</span><span class="home-row-meta">أخبار مضافة حديثاً</span></span><span class="home-count">' + homeNumber(newsFresh) + '</span></button>');
-  } catch (e) { homeRender('home-new-body', homeError('تعذر تحميل المستجدات.')); }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ابدأ الآن — quick actions, filtered to what this user may actually do.
+// ─────────────────────────────────────────────────────────────────────────────
+// Ordered by how often the communications team starts work here. The first four the user can
+// reach are shown, so an unavailable action never occupies a slot.
+var HOME_ACTIONS = [
+  { page:'shorfah',         title:'قسم في شُرفة',   group:'الإنتاج والنشر' },
+  { page:'weekstart',       title:'رسالة أسبوعية',  group:'الإنتاج والنشر' },
+  { page:'smart_assistant', title:'اسأل المساعد',   group:'الإنشاء والأدوات' },
+  { page:'designs',         title:'إنشاء التصاميم', group:'الإنشاء والأدوات' },
+  { page:'libraries',       title:'المكتبات',        group:'الإنشاء والأدوات' },
+  { page:'intldays',        title:'الأيام العالمية', group:'التخطيط والمناسبات' }
+];
+
+function homeRenderActions() {
+  var section = document.getElementById('hl-actions-section');
+  var host = document.getElementById('hl-actions');
+  if (!section || !host) return;
+  var available = HOME_ACTIONS.filter(function(a) { return authCanView(a.page); }).slice(0, 4);
+  // An empty "ابدأ الآن" heading over nothing is worse than no heading, so hide the whole block.
+  section.hidden = available.length === 0;
+  host.innerHTML = available.map(function(a) {
+    return '<button class="hl-action" onclick="homeGo(\'' + a.page + '\')">'
+      + '<span class="hl-action-title">' + homeEsc(a.title) + '</span>'
+      + '<span class="hl-action-group">' + homeEsc(a.group) + '</span>'
+      + '</button>';
+  }).join('');
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// وحداتي اليوم — one card per section the user can open.
+// ─────────────────────────────────────────────────────────────────────────────
+// Each widget declares the page it belongs to; the page is permission-checked before its loader
+// runs, so we never fetch data for an area the user cannot see. A loader returning null means
+// "no data worth showing", and the card is dropped rather than rendered empty.
+function homeApiJson(path) {
+  return apiFetch(apiUrl(path)).then(function(r) { return r.ok ? r.json() : null; }).catch(function() { return null; });
+}
+
+function homeRelativeTime(date) {
+  if (!date) return '';
+  var mins = Math.round((Date.now() - date.getTime()) / 60000);
+  if (mins < 2) return 'قبل لحظات';
+  if (mins < 60) return 'قبل ' + homeNumber(mins) + ' دقيقة';
+  var hours = Math.round(mins / 60);
+  if (hours < 24) return 'قبل ' + homeNumber(hours) + ' ساعة';
+  return 'قبل ' + homeNumber(Math.round(hours / 24)) + ' يوم';
+}
+
+// Event dates arrive under a lot of different key names across the calendar endpoints.
 function homeUpcomingDate(item) { return homeDate(item.date || item.dayDate || item.day_date || item.eventDate || item.event_date || item.activationDate || item.activation_date); }
-async function homeLoadUpcoming() {
-  try {
-    var pair = await Promise.all([
-      apiFetch(apiUrl('/intl-days/archive')).then(function(r) { if (!r.ok) throw new Error('days'); return r.json(); }),
-      apiFetch(apiUrl('/ai-year/activations')).then(function(r) { if (!r.ok) throw new Error('activations'); return r.json(); }),
-      apiFetch(apiUrl('/ai-year/stats')).then(function(r) { return r.ok ? r.json() : {}; }).catch(function() { return {}; })
-    ]);
-    var now = new Date(), until = new Date(now.getTime() + 30 * 86400000);
-    var days = homeItems(pair[0]).filter(function(item) { var d = homeUpcomingDate(item); return d && d >= new Date(now.getFullYear(), now.getMonth(), now.getDate()) && d <= until; }).sort(function(a,b) { return homeUpcomingDate(a) - homeUpcomingDate(b); });
-    var activations = homeItems(pair[1]), statuses = {};
-    activations.forEach(function(item) { var status = item.status || 'غير محدد'; statuses[status] = (statuses[status] || 0) + 1; });
-    var rows = [];
-    days.slice(0, 3).forEach(function(day) { var d = homeUpcomingDate(day); rows.push('<button class="home-row" onclick="homeGo(\'intldays\')"><span class="home-row-main"><span class="home-row-title">' + homeEsc(day.nameAr || day.name_ar || day.name || day.title || 'يوم عالمي') + '</span><span class="home-row-meta">' + homeEsc(d.toLocaleDateString('ar-SA-u-ca-gregory-nu-latn', { day:'numeric', month:'short' })) + '</span></span><span class="home-status">يوم عالمي</span></button>'); });
-    Object.keys(statuses).slice(0, 3).forEach(function(status) { rows.push('<button class="home-row" onclick="homeGo(\'aiyear\')"><span class="home-row-main"><span class="home-row-title">تفعيلات عام الذكاء الاصطناعي</span><span class="home-row-meta">' + homeEsc(status) + '</span></span><span class="home-count">' + homeNumber(statuses[status]) + '</span></button>'); });
-    if (!rows.length) { homeRender('home-upcoming-body', homeEmpty('لا توجد مناسبات أو تفعيلات قادمة خلال 30 يوماً.')); return; }
-    homeRender('home-upcoming-body', rows.join(''));
-  } catch (e) { homeRender('home-upcoming-body', homeError('تعذر تحميل العناصر القادمة.')); }
+
+function homeLatestDate(items) {
+  var latest = null;
+  items.forEach(function(item) {
+    var d = homeDate(item.updatedAt || item.updated_at || item.publishedAt || item.published_at || item.createdAt || item.created_at || item.date);
+    if (d && (!latest || d > latest)) latest = d;
+  });
+  return latest;
 }
-async function homeLoadRecent() {
-  try {
-    var pair = await Promise.all([
-      apiFetch(apiUrl('/week-start/outputs')).then(function(r) { if (!r.ok) throw new Error('outputs'); return r.json(); }),
-      apiFetch(apiUrl('/designs/templates')).then(function(r) { if (!r.ok) throw new Error('templates'); return r.json(); })
-    ]);
-    var outputs = homeItems(pair[0]).map(function(item) { return { item:item, page:'weekstart', date:homeDate(item.createdAt || item.created_at || item.updatedAt || item.updated_at), type:'رسالة أسبوعية' }; });
-    var templates = homeItems(pair[1]).map(function(item) { return { item:item, page:'designs', date:homeDate(item.createdAt || item.created_at || item.updatedAt || item.updated_at), type:'قالب تصميم' }; });
-    var all = outputs.concat(templates).sort(function(a,b) { return (b.date || 0) - (a.date || 0); });
-    if (!all.length) { homeRender('home-recent-body', homeEmpty('لا توجد مخرجات حديثة بعد.')); return; }
-    homeRender('home-recent-body', all.slice(0, 4).map(function(entry) { var x = entry.item; return '<button class="home-row" onclick="homeGo(\'' + entry.page + '\')"><span class="home-row-main"><span class="home-row-title">' + homeEsc(x.titleAr || x.title_ar || x.title || x.name || x.templateNameAr || x.template_name_ar || entry.type) + '</span><span class="home-row-meta">' + homeEsc(entry.type) + '</span></span><span class="home-status">عرض</span></button>'; }).join(''));
-  } catch (e) { homeRender('home-recent-body', homeError('تعذر تحميل المخرجات الحديثة.')); }
+
+var HOME_WIDGETS = [
+  {
+    page:'shorfah', group:'الإنتاج والنشر', title:'نشرة شُرفة', cta:'فتح النشرة',
+    load: async function() {
+      var data = await homeApiJson('/shorfah/issues');
+      var issues = homeItems(data);
+      if (!issues.length) return null;
+      var lines = [];
+      var draft = issues.filter(function(i) {
+        var s = String(i.status || i.state || '').toLowerCase();
+        return s.indexOf('draft') >= 0 || s.indexOf('review') >= 0 || s === 'مسودة' || s === 'قيد المراجعة';
+      }).length;
+      if (draft) lines.push(homeNumber(draft) + ' قيد المراجعة');
+      var next = issues.map(function(i) { return homeDate(i.publishDate || i.publish_date || i.issueDate || i.issue_date); })
+        .filter(function(d) { return d && d >= new Date(); }).sort(function(a,b) { return a - b; })[0];
+      if (next) lines.push('الإصدار القادم: ' + homeDigit(next.toLocaleDateString('ar-SA-u-ca-gregory-nu-latn', { weekday:'long' })));
+      if (!lines.length) lines.push(homeNumber(issues.length) + ' عدداً في الأرشيف');
+      return lines;
+    }
+  },
+  {
+    page:'media_monitoring', group:'الرصد والمعلومات', title:'الرصد الإعلامي', cta:'عرض الكل',
+    load: async function() {
+      var data = await homeApiJson('/final-media-reports');
+      var items = homeItems(data);
+      if (!items.length) return null;
+      var lines = [homeNumber(items.length) + ' تقريراً في الرصد'];
+      var latest = homeLatestDate(items);
+      if (latest) lines.push('آخر تحديث: ' + homeRelativeTime(latest));
+      return lines;
+    }
+  },
+  {
+    page:'intldays', group:'التخطيط والمناسبات', title:'اليوم العالمي القادم', cta:'عرض التقويم',
+    load: async function() {
+      var data = await homeApiJson('/intl-days/archive');
+      var today = new Date(); today.setHours(0,0,0,0);
+      var upcoming = homeItems(data).map(function(item) { return { item:item, date:homeUpcomingDate(item) }; })
+        .filter(function(e) { return e.date && e.date >= today; })
+        .sort(function(a,b) { return a.date - b.date; })[0];
+      if (!upcoming) return null;
+      var x = upcoming.item;
+      var days = Math.round((upcoming.date - today) / 86400000);
+      return [
+        x.nameAr || x.name_ar || x.name || x.title || 'يوم عالمي',
+        days <= 0 ? 'اليوم' : (days === 1 ? 'غداً' : 'خلال ' + homeNumber(days) + ' يوماً')
+      ];
+    }
+  },
+  {
+    page:'news', group:'الرصد والمعلومات', title:'أخبار هيئات المنافسة', cta:'عرض الأخبار',
+    load: async function() {
+      var items = homeItems(await homeApiJson('/gac/news'));
+      if (!items.length) return null;
+      var lines = [homeNumber(items.length) + ' خبراً متاحاً'];
+      var latest = homeLatestDate(items);
+      if (latest) lines.push('آخر إضافة: ' + homeRelativeTime(latest));
+      return lines;
+    }
+  },
+  {
+    page:'aiyear', group:'التخطيط والمناسبات', title:'عام الذكاء الاصطناعي 2026', cta:'عرض التفعيلات',
+    load: async function() {
+      var items = homeItems(await homeApiJson('/ai-year/activations'));
+      if (!items.length) return null;
+      return [homeNumber(items.length) + ' تفعيلاً مسجلاً'];
+    }
+  },
+  {
+    page:'weekstart', group:'الإنتاج والنشر', title:'بداية الأسبوع', cta:'عرض الأرشيف',
+    load: async function() {
+      var items = homeItems(await homeApiJson('/week-start/outputs'));
+      if (!items.length) return null;
+      var lines = [homeNumber(items.length) + ' رسالة في الأرشيف'];
+      var latest = homeLatestDate(items);
+      if (latest) lines.push('آخر رسالة: ' + homeRelativeTime(latest));
+      return lines;
+    }
+  }
+];
+
+var HOME_WIDGET_LIMIT = 3;
+
+async function homeRenderWidgets() {
+  var section = document.getElementById('hl-widgets-section');
+  var host = document.getElementById('hl-widgets');
+  if (!section || !host) return;
+  var candidates = HOME_WIDGETS.filter(function(w) { return authCanView(w.page); });
+  if (!candidates.length) { section.hidden = true; return; }
+  host.innerHTML = '<div class="home-loading"></div>';
+  section.hidden = false;
+  // Fetch every candidate in parallel but keep registry order when rendering, so the cards appear
+  // in a stable, meaningful sequence rather than in whatever order the network resolved.
+  var results = await Promise.all(candidates.map(function(w) {
+    return w.load().then(function(lines) { return { widget:w, lines:lines }; }).catch(function() { return { widget:w, lines:null }; });
+  }));
+  var cards = results.filter(function(r) { return r.lines && r.lines.length; }).slice(0, HOME_WIDGET_LIMIT);
+  if (!cards.length) { section.hidden = true; host.innerHTML = ''; return; }
+  host.innerHTML = cards.map(function(r) {
+    return '<div class="hl-card hl-widget">'
+      + '<div class="hl-widget-group">' + homeEsc(r.widget.group) + '</div>'
+      + '<div class="hl-widget-title">' + homeEsc(r.widget.title) + '</div>'
+      + '<div class="hl-widget-lines">' + r.lines.map(function(line) { return '<div class="hl-widget-line">' + homeEsc(line) + '</div>'; }).join('') + '</div>'
+      + '<button type="button" class="hl-widget-cta" onclick="homeGo(\'' + r.widget.page + '\')">'
+      + homeEsc(r.widget.cta) + '<span class="hl-arrow" aria-hidden="true">→</span></button>'
+      + '</div>';
+  }).join('');
 }
-async function homeDashboardInit() {
-  var u = window.AUTH_USER || {}, welcome = document.getElementById('home-landing-welcome'), date = document.getElementById('home-landing-date');
-  if (welcome) welcome.textContent = (u.name ? 'مرحباً ' + u.name + '، هذه أولوياتك من المسارات المتاحة.' : 'نجمع الأولويات من المسارات المتاحة لك.');
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Masthead
+// ─────────────────────────────────────────────────────────────────────────────
+function homeFillMasthead() {
+  var u = window.AUTH_USER || {};
+  var greeting = document.getElementById('hl-greeting');
+  var name = document.getElementById('hl-name');
+  var date = document.getElementById('hl-folio-date');
+  var affil = document.getElementById('hl-affil');
+  // Reuses the existing getTimeGreeting() rather than a second time-of-day ladder, so the landing
+  // page can never greet the user differently from the rest of the platform.
+  var word = getTimeGreeting();
+  if (greeting) greeting.textContent = u.name ? word + '، ' + String(u.name).split(' ')[0] : word;
+  if (name) name.textContent = u.name || '';
   if (date) date.textContent = homeDigit(new Date().toLocaleDateString('ar-SA-u-ca-gregory-nu-latn', { weekday:'long', year:'numeric', month:'long', day:'numeric' }));
-  homeLoadAttention(); homeLoadNew(); homeLoadUpcoming(); homeLoadRecent();
+  if (affil) {
+    // Two independent facts, either of which may be absent. Build only the parts we really have so
+    // the line never renders as "· " or trails a dangling separator.
+    var parts = [];
+    var dept = u.department || u.title;
+    if (dept) parts.push(homeEsc(dept));
+    if (u.accessGrantedBy) parts.push('الصلاحيات مخصصة من <span class="hl-affil-admin">' + homeEsc(u.accessGrantedBy) + '</span>');
+    affil.innerHTML = parts.join(' · ');
+    affil.hidden = parts.length === 0;
+  }
+}
+
+// The issue number is real data or nothing: it comes from the newest شُرفة issue the user can see,
+// and the seal line stays hidden when that is unavailable rather than showing a placeholder.
+async function homeFillSealIssue() {
+  var el = document.getElementById('hl-seal-issue');
+  if (!el || !authCanView('shorfah')) return;
+  try {
+    var issues = homeItems(await homeApiJson('/shorfah/issues'));
+    var numbers = issues.map(function(i) { return Number(i.issueNo || i.issue_no || i.number); })
+      .filter(function(n) { return Number.isFinite(n) && n > 0; });
+    if (!numbers.length) return;
+    el.textContent = 'العدد ' + homeNumber(Math.max.apply(null, numbers));
+    el.hidden = false;
+  } catch (e) { /* the seal simply stays without an issue line */ }
+}
+
+async function homeDashboardInit() {
+  homeFillMasthead();
+  homeRenderActions();
+  homeFillSealIssue();
+  homeLoadAttention();
+  homeRenderWidgets();
 }
 
 function dashLoadUpcomingEvents() {
