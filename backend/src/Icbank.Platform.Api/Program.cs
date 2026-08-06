@@ -86,7 +86,33 @@ if (!app.Environment.IsEnvironment("Testing"))
     using IServiceScope seedScope = app.Services.CreateScope();
     Icbank.Platform.Infrastructure.Seeding.DatabaseSeeder seeder =
         seedScope.ServiceProvider.GetRequiredService<Icbank.Platform.Infrastructure.Seeding.DatabaseSeeder>();
-    var generatedPassword = await seeder.SeedAsync(CancellationToken.None);
+
+    // Why: seeding is the first thing that touches SQL, so a cold Azure SQL database or a
+    // transient gateway blip used to abort the process (SIGABRT) before the host ever listened.
+    // App Service then gives up and stops the whole site, so a momentary hiccup turned into an
+    // outage needing manual intervention. Bounded retry with backoff rides out transient faults;
+    // a genuinely wrong credential still fails loudly after the last attempt, which is correct --
+    // booting with an unusable database would only hide the fault behind broken endpoints.
+    const int seedAttempts = 3;
+    string? generatedPassword = null;
+    for (var attempt = 1; ; attempt++)
+    {
+        try
+        {
+            generatedPassword = await seeder.SeedAsync(CancellationToken.None);
+            break;
+        }
+        catch (Exception ex) when (attempt < seedAttempts)
+        {
+            // Why: Serilog's request pipeline is not up yet, so this goes straight to stdout,
+            // which App Service captures in the container log. No secret is included.
+            Console.WriteLine(
+                $"Database seeding attempt {attempt} of {seedAttempts} failed: " +
+                $"{ex.GetType().Name}: {ex.Message}. Retrying in {attempt * 5} seconds.");
+            await Task.Delay(TimeSpan.FromSeconds(attempt * 5));
+        }
+    }
+
     if (generatedPassword is not null)
     {
         // Why: R-BE-054 — the one-time generated super-admin password must never be written to

@@ -39,6 +39,17 @@ public static class KeyVaultExtensions
             Manager = new DoubleDashKeyVaultSecretManager(),
         });
 
+        // Why: the vault provider is appended after the host's default environment-variable
+        // provider, so a stale vault copy of a secret silently shadows the value the platform is
+        // explicitly configured with -- last provider wins. On 2026-08-06 that took the dev API
+        // down: the vault still held the pre-rotation SQL password while the correct one sat in
+        // App Service configuration, so every start died with SQL error 18456 ("Login failed")
+        // during seeding, before a single request was served. Re-adding the environment-variable
+        // provider last makes explicitly-set platform configuration authoritative, while the vault
+        // still supplies every secret the platform does not set (Jwt:SigningKey, Cron:ApiKey,
+        // DownloadTokens:SigningKey). Idempotent: adding the provider twice is safe.
+        builder.Configuration.AddEnvironmentVariables();
+
         return builder;
     }
 }
