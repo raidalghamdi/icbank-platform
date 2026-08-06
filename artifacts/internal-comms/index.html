@@ -116,7 +116,7 @@
 
 /* ═══ NAZM OVERRIDES — دمج مع دغا في public/css/dga.css ═══ */
 /* إخفاء صفحات محذوفة (ملاحظة 2+3) */
-#section-reports, #section-aiyear { display: none !important; }
+/* Reports and AI Year are live navigable sections. */
 /* تطبيق لمسات Nazm على السايدبار الحالي */
 .sidebar { background:#FFFFFF !important; border-inline-end:1px solid var(--border-subtle); }
 .sidebar-section-title { color: var(--text-3); font-size:11px; letter-spacing:.06em; text-transform:uppercase; }
@@ -248,9 +248,9 @@ body {
 .brand-title { font-size: 13.5px; font-weight: 700; color: var(--text); }
 .brand-sub { font-size: 10.5px; color: var(--text-4); font-weight: 500; letter-spacing: 0.2px; margin-top: 3px; }
 
-.sidebar-section { padding: 16px 12px 8px; }
+.sidebar-section { padding: 6px 12px 0; }
 .sidebar-section-title {
-  padding: 0 8px 8px;
+  padding: 0 8px 3px;
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 1px;
@@ -263,7 +263,7 @@ body {
   display: flex;
   align-items: center;
   gap: 11px;
-  padding: 8px 10px;
+  padding: 3px 10px;
   color: var(--text-2);
   text-decoration: none;
   font-size: 13px;
@@ -1092,6 +1092,48 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
 .init-org      { font-size: 10.5px; color: var(--text-4); }
 
 /* ═══ PAGE SECTIONS (SPA) ═══ */
+
+/* ═══ HOME LANDING: what needs me today ═══ */
+.home-landing { display:grid; gap:16px; }
+.home-landing-hero { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; padding:20px 22px; background:linear-gradient(135deg,#0e5d3a,#25935f); color:#fff; border-radius:14px; }
+.home-landing-eyebrow { font-size:12px; opacity:.82; margin-bottom:5px; }
+.home-landing-hero h1 { margin:0; font-size:26px; line-height:1.3; }
+.home-landing-hero p { margin:7px 0 0; font-size:13px; opacity:.9; }
+.home-landing-date { font-family:var(--mono); font-size:12px; white-space:nowrap; opacity:.9; }
+.home-landing-grid { display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); gap:16px; }
+.home-block { min-width:0; background:var(--surface); border:1px solid var(--border-subtle); border-radius:12px; box-shadow:var(--shadow-sm); padding:18px; }
+.home-block--actions { grid-column:span 4; }
+.home-block--attention { grid-column:span 8; }
+.home-block--new, .home-block--upcoming, .home-block--recent { grid-column:span 4; }
+.home-block-head { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:13px; }
+.home-block h2 { margin:0; font-size:16px; color:var(--text); }
+.home-block-note { color:var(--text-3); font-size:11px; }
+.home-list { display:grid; gap:8px; }
+.home-row { width:100%; display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px; background:var(--surface-2); border:1px solid transparent; border-radius:8px; color:var(--text); text-align:right; }
+button.home-row { cursor:pointer; font:inherit; }
+button.home-row:hover { border-color:var(--primary-100); background:var(--primary-50); }
+.home-row-main { min-width:0; display:grid; gap:2px; }
+.home-row-title { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:13px; font-weight:700; }
+.home-row-meta { color:var(--text-3); font-size:11px; }
+.home-count { min-width:28px; color:var(--primary); font-family:var(--mono); font-size:18px; font-weight:800; text-align:left; }
+.home-sla { flex-shrink:0; padding:3px 7px; border-radius:999px; background:var(--info-bg); color:var(--info); font-size:11px; font-weight:700; }
+.home-sla.overdue { background:var(--danger-bg); color:var(--danger); }
+.home-status { flex-shrink:0; color:var(--text-3); font-size:11px; }
+.home-actions { display:grid; grid-template-columns:1fr 1fr; gap:9px; }
+.home-action { min-height:48px; padding:10px; border:1px solid var(--border); border-radius:8px; background:#fff; color:var(--text-2); font:inherit; font-size:12px; font-weight:700; text-align:right; cursor:pointer; }
+.home-action:hover { border-color:var(--primary); color:var(--primary); background:var(--primary-50); }
+.home-empty, .home-error { padding:18px 8px; color:var(--text-3); font-size:12px; text-align:center; }
+.home-error { color:var(--danger); }
+.home-loading { height:54px; border-radius:8px; background:linear-gradient(90deg,var(--surface-2),#fff,var(--surface-2)); background-size:200% 100%; animation:homeShimmer 1.2s ease-in-out infinite; }
+@keyframes homeShimmer { to { background-position:-200% 0; } }
+.sa-tab-nav, .library-tab-nav { display:flex; gap:0; flex-wrap:wrap; margin-bottom:20px; border-bottom:2px solid var(--border); }
+.sa-tab-nav button, .library-tab-nav button { padding:10px 15px; margin-bottom:-2px; border:0; border-bottom:2px solid transparent; background:transparent; color:var(--text-3); font:inherit; font-size:13px; font-weight:700; cursor:pointer; }
+.sa-tab-nav button.active, .library-tab-nav button.active { color:var(--primary); border-bottom-color:var(--primary); }
+.sa-pane, .library-pane { display:none; }
+.sa-pane.active, .library-pane.active { display:block; }
+@media (max-width:1100px) { .home-block--attention,.home-block--actions,.home-block--new,.home-block--upcoming,.home-block--recent { grid-column:span 6; } }
+@media (max-width:700px) { .home-landing-hero { align-items:flex-start; flex-direction:column; } .home-block--attention,.home-block--actions,.home-block--new,.home-block--upcoming,.home-block--recent { grid-column:span 12; } .home-actions { grid-template-columns:1fr; } }
+
 .page-section { display: none; }
 .page-section.active { display: block; animation: fadeUp 0.3s ease; }
 @keyframes fadeUp {
@@ -2751,127 +2793,55 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
     </div>
 
     <!-- Scrollable navigation region -->
-    <div class="sidebar-scroll">
+    <div class="sidebar-scroll" aria-label="التنقل الرئيسي">
 
-    <div class="sidebar-section">
-      <div class="sidebar-section-title">الرئيسية</div>
+    <div class="sidebar-section" data-nav-group>
+      <div class="sidebar-section-title">نظرة عامة</div>
       <div class="sidebar-nav">
-        <a class="nav-item active" data-page="home" onclick="showSection('home')">
-          <span class="ico"><svg><use href="#i-home"/></svg></span>
-          <span>الرئيسية</span>
-        </a>
-        <!-- Nav restore: قسم التقارير التنفيذية كان بلا أي مدخل تنقّل -->
-        <a class="nav-item" data-page="reports" onclick="showSection('reports')">
-          <span class="ico"><svg><use href="#i-trending-up"/></svg></span>
-          <span>الأداء التنفيذي للمشاريع</span>
-        </a>
+        <a class="nav-item active" data-page="home" onclick="showSection('home')"><span class="ico"><svg><use href="#i-home"/></svg></span><span>الرئيسية</span></a>
+        <a class="nav-item" data-page="reports" onclick="showSection('reports')"><span class="ico"><svg><use href="#i-trending-up"/></svg></span><span>الأداء التنفيذي للمشاريع</span></a>
       </div>
     </div>
 
-    <!-- ═ الفعاليات والمناسبات ═ -->
-    <div class="sidebar-section">
-      <div class="sidebar-section-title">الفعاليات والمناسبات</div>
+    <div class="sidebar-section" data-nav-group>
+      <div class="sidebar-section-title">الرصد والمعلومات</div>
       <div class="sidebar-nav">
-        <a class="nav-item" data-page="intldays" onclick="showSection('intldays')">
-          <span class="ico"><svg><use href="#i-calendar"/></svg></span>
-          <span>الأيام العالمية</span>
-        </a>
-        <a class="nav-item" data-page="aiyear" onclick="showSection('aiyear')">
-          <span class="ico"><svg><use href="#i-brain"/></svg></span>
-          <span>عام الذكاء الاصطناعي 2026</span>
-        </a>
+        <a class="nav-item" data-page="media_monitoring" onclick="showSection('media_monitoring')"><span class="ico"><svg><use href="#i-news"/></svg></span><span>الرصد الإعلامي</span><span class="nav-item-count" id="mm-nav-count">—</span></a>
+        <a class="nav-item" data-page="news" onclick="showSection('news')"><span class="ico"><svg><use href="#i-globe"/></svg></span><span>أخبار هيئات المنافسة</span></a>
       </div>
     </div>
 
-    <!-- ═ 1. التواصل الداخلي ═ -->
-    <div class="sidebar-section">
-      <div class="sidebar-section-title">التواصل الداخلي</div>
+    <div class="sidebar-section" data-nav-group>
+      <div class="sidebar-section-title">التخطيط والمناسبات</div>
       <div class="sidebar-nav">
-        <a class="nav-item" data-page="shorfah" onclick="showSection('shorfah')">
-          <span class="ico"><svg><use href="#i-book"/></svg></span>
-          <span>نشرة شُرفة</span>
-          <span class="nav-item-count" id="shorfah-nav-count">—</span>
-        </a>
+        <a class="nav-item" data-page="intldays" onclick="showSection('intldays')"><span class="ico"><svg><use href="#i-calendar"/></svg></span><span>الأيام العالمية</span></a>
+        <a class="nav-item" data-page="aiyear" onclick="showSection('aiyear')"><span class="ico"><svg><use href="#i-brain"/></svg></span><span>عام الذكاء الاصطناعي 2026</span></a>
       </div>
     </div>
 
-    <!-- ═ 2. الرسائل الأسبوعية ═ -->
-    <div class="sidebar-section">
-      <div class="sidebar-section-title">الرسائل الأسبوعية</div>
+    <div class="sidebar-section" data-nav-group>
+      <div class="sidebar-section-title">الإنتاج والنشر</div>
       <div class="sidebar-nav">
-        <a class="nav-item" data-page="weekstart" onclick="showSection('weekstart')">
-          <span class="ico"><svg><use href="#i-star"/></svg></span>
-          <span>بداية الأسبوع</span>
-        </a>
-        <a class="nav-item" data-page="weekend" onclick="showSection('weekend')">
-          <span class="ico"><svg><use href="#i-calendar"/></svg></span>
-          <span>نهاية الأسبوع</span>
-        </a>
+        <a class="nav-item" data-page="shorfah" onclick="showSection('shorfah')"><span class="ico"><svg><use href="#i-book"/></svg></span><span>نشرة شُرفة</span><span class="nav-item-count" id="shorfah-nav-count">—</span></a>
+        <a class="nav-item" data-page="weekstart" onclick="showSection('weekstart')"><span class="ico"><svg><use href="#i-star"/></svg></span><span>بداية الأسبوع</span></a>
+        <a class="nav-item" data-page="weekend" onclick="showSection('weekend')"><span class="ico"><svg><use href="#i-calendar"/></svg></span><span>نهاية الأسبوع</span></a>
       </div>
     </div>
 
-    <!-- ═ 3. التواصل الخارجي ═ -->
-    <div class="sidebar-section">
-      <div class="sidebar-section-title">التواصل الخارجي</div>
+    <div class="sidebar-section" data-nav-group>
+      <div class="sidebar-section-title">الإنشاء والأدوات</div>
       <div class="sidebar-nav">
-        <a class="nav-item" data-page="media_monitoring" onclick="showSection('media_monitoring')">
-          <span class="ico"><svg><use href="#i-news"/></svg></span>
-          <span>الرصد الإعلامي</span>
-          <span class="nav-item-count" id="mm-nav-count">—</span>
-        </a>
-        <a class="nav-item" data-page="news" onclick="showSection('news')">
-          <span class="ico"><svg><use href="#i-globe"/></svg></span>
-          <span>أخبار هيئات المنافسة</span>
-        </a>
+        <a class="nav-item" data-page="designs" onclick="showSection('designs')"><span class="ico"><svg><use href="#i-image"/></svg></span><span>إنشاء التصاميم</span></a>
+        <a class="nav-item" data-page="smart_assistant" onclick="showSection('smart_assistant')"><span class="ico"><svg><use href="#i-bot"/></svg></span><span>المساعد الذكي</span></a>
+        <a class="nav-item" data-page="libraries" onclick="showSection('libraries')"><span class="ico"><svg><use href="#i-book"/></svg></span><span>المكتبات</span></a>
       </div>
     </div>
 
-    <!-- ═ 4. ستوديو المحتوى ═ -->
-    <div class="sidebar-section">
-      <div class="sidebar-section-title">ستوديو المحتوى</div>
-      <div class="sidebar-nav">
-        <!-- إنشاء التصاميم (يشمل التصميم السريع بالأيقونات كتبويب داخلي) -->
-        <a class="nav-item" data-page="designs" onclick="showSection('designs')">
-          <span class="ico"><svg><use href="#i-image"/></svg></span>
-          <span>إنشاء التصاميم</span>
-        </a>
-        <a class="nav-item" data-page="gac_library" onclick="showSection('gac_library')">
-          <span class="ico"><svg><use href="#i-book"/></svg></span>
-          <span>مكتبة الهيئة</span>
-        </a>
-        <a class="nav-item" data-page="smart_assistant" onclick="showSection('smart_assistant')">
-          <span class="ico"><svg><use href="#i-bot"/></svg></span>
-          <span>المساعد الذكي</span>
-        </a>
-        <!-- Nav restore: إعادة إدخالات التنقّل للأقسام التي بقيت موجودة في الواجهة.
-             مداخلها القديمة داخل الصفحات محفوظة كما هي ولم تُحذف. -->
-        <a class="nav-item" data-page="icon_event_studio" onclick="showSection('icon_event_studio')">
-          <span class="ico"><svg><use href="#i-star"/></svg></span>
-          <span>التصميم السريع بالأيقونات</span>
-        </a>
-        <a class="nav-item" data-page="prompts_lib" onclick="showSection('prompts_lib')">
-          <span class="ico"><svg><use href="#i-bulb"/></svg></span>
-          <span>مكتبة الأوامر</span>
-        </a>
-        <a class="nav-item" data-page="places" onclick="showSection('places')">
-          <span class="ico"><svg><use href="#i-bookmark"/></svg></span>
-          <span>مكتبة الأماكن المقترحة</span>
-        </a>
-      </div>
-    </div>
-
-    <!-- ═ 5. الإدارة ═ -->
-    <div class="sidebar-section">
+    <div class="sidebar-section" data-nav-group>
       <div class="sidebar-section-title">الإدارة</div>
       <div class="sidebar-nav">
-        <a class="nav-item" data-page="settings" onclick="showSection('settings')">
-          <span class="ico"><svg><use href="#i-settings"/></svg></span>
-          <span>الإعدادات</span>
-        </a>
-        <a class="nav-item" id="nav-admin-panel" data-page="admin_panel" onclick="showSection('admin_panel')" style="display:none;">
-          <span class="ico"><svg><use href="#i-shield"/></svg></span>
-          <span>لوحة التحكم</span>
-        </a>
+        <a class="nav-item" data-page="settings" onclick="showSection('settings')"><span class="ico"><svg><use href="#i-settings"/></svg></span><span>الإعدادات</span></a>
+        <a class="nav-item" id="nav-admin-panel" data-page="admin_panel" onclick="showSection('admin_panel')" style="display:none;"><span class="ico"><svg><use href="#i-shield"/></svg></span><span>لوحة التحكم</span></a>
       </div>
     </div>
 
@@ -2987,118 +2957,19 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
        HOME PAGE — الرئيسية
   ══════════════════════════════════ -->
   <div class="page-section active" id="section-home">
-
-    <!-- ── Hero Header ── -->
-    <div class="dash-hero">
-      <div class="dash-greeting"><span id="dash-user-name">—</span> <span id="dash-user-role-badge" class="dash-role-badge" style="display:none"></span></div>
-      <div class="dash-dates">
-        <span id="dash-day-name">—</span>
-        <span class="dash-date-sep">·</span>
-        <span id="dash-date-gregorian">—</span>
-        <span class="dash-date-sep">·</span>
-        <span id="dash-date-hijri">—</span>
-      </div>
-      <div class="dash-context-msg" id="dash-context-msg">جارٍ التحميل...</div>
-    </div>
-
-    <!-- ── KPI Strip — مؤشرات عمل الفريق ── -->
-    <div class="dash-kpi-strip">
-      <!-- FE cleanup: onclick="showSection('internal_requests')" removed — target section
-           was deleted in the nav-IA consolidation; this card is now a static KPI display
-           only (value is already a hardcoded '—' placeholder, requests KPI not implemented). -->
-      <div class="dash-kpi-card">
-        <div class="dash-kpi-val" id="dash-kpi-req-internal">—</div>
-        <div class="dash-kpi-label">إجمالي طلبات التصاميم الداخلية</div>
-      </div>
-      <div class="dash-kpi-card">
-        <div class="dash-kpi-val" id="dash-kpi-req-external">—</div>
-        <div class="dash-kpi-label">إجمالي طلبات التصاميم الخارجية</div>
-      </div>
-      <div class="dash-kpi-card">
-        <div class="dash-kpi-val" id="dash-kpi-camp-internal">—</div>
-        <div class="dash-kpi-label">إجمالي الحملات الداخلية</div>
-      </div>
-      <div class="dash-kpi-card">
-        <div class="dash-kpi-val" id="dash-kpi-camp-external">—</div>
-        <div class="dash-kpi-label">إجمالي الحملات الخارجية</div>
-      </div>
-      <div class="dash-kpi-card" onclick="showSection('shorfah')" style="cursor:pointer">
-        <div class="dash-kpi-val" id="dash-kpi-shorfah-pct">—</div>
-        <div class="dash-kpi-label">نسبة اكتمال نشرة شرفة</div>
+    <div class="home-landing" id="home-landing">
+      <header class="home-landing-hero">
+        <div><div class="home-landing-eyebrow">مساحة العمل اليومية</div><h1>ما الذي يحتاج تدخلك اليوم؟</h1><p id="home-landing-welcome">نجمع الأولويات من المسارات المتاحة لك.</p></div>
+        <div class="home-landing-date" id="home-landing-date">—</div>
+      </header>
+      <div class="home-landing-grid">
+        <section class="home-block home-block--attention" aria-labelledby="home-attention-title"><div class="home-block-head"><h2 id="home-attention-title">ما ينتظر إجرائي</h2><span class="home-block-note">أقسام شُرفة المسندة إليك</span></div><div id="home-attention-body" class="home-list"><div class="home-loading"></div></div></section>
+        <section class="home-block home-block--actions" aria-labelledby="home-actions-title"><div class="home-block-head"><h2 id="home-actions-title">ابدأ الآن</h2></div><div class="home-actions"><button class="home-action" onclick="homeGo('designs')">تصميم جديد</button><button class="home-action" onclick="homeGo('weekstart')">رسالة أسبوعية</button><button class="home-action" onclick="homeGo('shorfah')">قسم في شُرفة</button><button class="home-action" onclick="homeGo('smart_assistant')">اسأل المساعد</button></div></section>
+        <section class="home-block home-block--new" aria-labelledby="home-new-title"><div class="home-block-head"><h2 id="home-new-title">الجديد منذ آخر دخول</h2><span class="home-block-note" id="home-new-note">يُحفظ محلياً</span></div><div id="home-new-body" class="home-list"><div class="home-loading"></div></div></section>
+        <section class="home-block home-block--upcoming" aria-labelledby="home-upcoming-title"><div class="home-block-head"><h2 id="home-upcoming-title">القادم</h2><span class="home-block-note">30 يوماً</span></div><div id="home-upcoming-body" class="home-list"><div class="home-loading"></div></div></section>
+        <section class="home-block home-block--recent" aria-labelledby="home-recent-title"><div class="home-block-head"><h2 id="home-recent-title">أنتجته مؤخراً</h2><span class="home-block-note">مخرجات وقوالب</span></div><div id="home-recent-body" class="home-list"><div class="home-loading"></div></div></section>
       </div>
     </div>
-
-    <!-- ── Two-Column: Intl Days + Upcoming Events (replaces old Recent Activations) ── -->
-    <div class="dash-two-col">
-      <div class="dash-col-card">
-        <div class="dash-col-head">
-          <span class="dash-col-title">🗓️ الأيام العالمية القادمة</span>
-          <button class="link-action" onclick="showSection('intldays')">عرض الخطة <span class="ico"><svg><use href="#i-arrow-left"/></svg></span></button>
-        </div>
-        <div id="dash-intl-days">
-          <div class="loading-wrap"><div class="spinner"></div></div>
-        </div>
-      </div>
-      <div class="dash-col-card">
-        <div class="dash-col-head">
-          <span class="dash-col-title">📅 الفعاليات القادمة</span>
-          <!-- FE cleanup: onclick="showSection('external_requests')" removed — target section
-               was deleted in the nav-IA consolidation, and this widget's data (intl days /
-               AI-year activations, see dashLoadUpcomingEvents) was never sourced from the
-               external_requests page anyway. No live equivalent destination exists. -->
-        </div>
-        <div id="home-upcoming-events">
-          <div class="loading-wrap"><div class="spinner"></div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── GAC Social Feed (إكس + لينكدإن) ── -->
-    <div class="dash-section">
-      <div class="dash-section-head">
-        <h2 class="dash-section-title">📱 تحديثات الهيئة على منصات التواصل</h2>
-        <span style="color:#6b7280;font-size:13px;">متابعة من الحسابات الرسمية</span>
-      </div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;">
-        <!-- X / Twitter card -->
-        <div class="card" style="padding:18px;display:flex;flex-direction:column;gap:12px;border-top:4px solid #000;">
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
-            <div style="display:flex;align-items:center;gap:10px;">
-              <span style="width:36px;height:36px;background:#000;color:#fff;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-weight:900;font-size:18px;">𝕏</span>
-              <div>
-                <div style="font-weight:700;color:#111827;"><bdi dir="ltr">@SaudiGAC</bdi></div>
-                <div style="color:#6b7280;font-size:12px;">الهيئة العامة للمنافسة</div>
-              </div>
-            </div>
-            <a href="https://twitter.com/SaudiGAC" target="_blank" rel="noopener" class="btn btn-secondary" style="font-size:13px;padding:6px 14px;">متابعة</a>
-          </div>
-          <!-- Why: Twitter's public timeline endpoint returned 429 on an ordinary dashboard
-               load. Do not make an unaffiliated third-party rate limit a dashboard dependency;
-               the user can still open the official account explicitly. -->
-          <div style="min-height:160px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;color:#6b7280;padding:20px;">
-            <p style="margin:0;font-size:13px;">تابع آخر تحديثات الهيئة من الحساب الرسمي على <bdi dir="ltr">X</bdi>.</p>
-            <a href="https://twitter.com/SaudiGAC" target="_blank" rel="noopener" class="btn btn-secondary" style="font-size:13px;padding:6px 14px;">فتح الحساب الرسمي</a>
-          </div>
-        </div>
-        <!-- LinkedIn card -->
-        <div class="card" id="home-social-card" style="padding:18px;display:flex;flex-direction:column;gap:12px;border-top:4px solid #0A66C2;">
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
-            <div style="display:flex;align-items:center;gap:10px;">
-              <span style="width:36px;height:36px;background:#0A66C2;color:#fff;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-weight:900;font-size:18px;">in</span>
-              <div>
-                <div style="font-weight:700;color:#111827;">General Authority for Competition</div>
-                <div style="color:#6b7280;font-size:12px;">الصفحة الرسمية على <bdi dir="ltr">LinkedIn</bdi></div>
-              </div>
-            </div>
-            <a href="https://www.linkedin.com/company/general-authority-for-competition" target="_blank" rel="noopener" class="btn btn-secondary" style="font-size:13px;padding:6px 14px;">زيارة</a>
-          </div>
-          <div id="gac-linkedin-feed" style="height:480px;overflow:auto;border:1px solid #e5e7eb;border-radius:10px;padding:16px;">
-            <div class="loading-wrap"><div class="spinner"></div><div class="loading-text">جارٍ تحميل المنشورات...</div></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
   </div>
 
 
@@ -3914,6 +3785,11 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
       </div>
     </div>
 
+    <div class="sa-tab-nav" role="tablist" aria-label="أقسام المساعد الذكي">
+      <button class="active" type="button" data-sa-tab="tools" onclick="saSwitchTab('tools')">الأدوات</button>
+      <button type="button" data-sa-tab="prompts" onclick="saSwitchTab('prompts')">مكتبة الأوامر</button>
+    </div>
+    <div id="sa-pane-tools" class="sa-pane active">
     <!-- Tools grid -->
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:20px;" id="sa-tools-grid">
       <div class="sa-tool" data-tool="generate" onclick="saPickTool('generate')">
@@ -3973,6 +3849,7 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
         <div id="sa-output" style="margin-top:20px;"></div>
       </div>
     </div>
+    </div><!-- /sa-pane-tools -->
   </div>
 
   <!-- ══ Settings ══ -->
@@ -4567,10 +4444,10 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
     </div>
 
     <div class="adm-tabs" id="des-tab-nav">
-      <button class="adm-tab active" data-tab="assets" onclick="desSwitchTab('assets')">إدارة الأصول</button>
+      <button class="adm-tab" data-tab="assets" onclick="showSection('libraries'); librariesSwitchTab('brand')">الشعارات والخطوط</button>
       <button class="adm-tab" data-tab="templates" onclick="desSwitchTab('templates')">القوالب</button>
       <button class="adm-tab" data-tab="editor" onclick="desSwitchTab('editor')">المحرّر</button>
-      <button class="adm-tab" data-tab="icons" onclick="desSwitchTab('icons'); showSection('icon_event_studio');">التصميم السريع بالأيقونات</button>
+      <button class="adm-tab" data-tab="icons" onclick="desSwitchTab('icons');">التصميم السريع بالأيقونات</button>
     </div>
 
     <!-- ── Tab: Assets ─────────────────────────────────────────── -->
@@ -4813,7 +4690,14 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
   </div><!-- /section-designs -->
 
   <!-- ══ GAC Library (مكتبة الهيئة) Section ══ -->
-  <div class="page-section" id="section-gac_library">
+  <div class="page-section" id="section-libraries">
+    <div class="page-head"><div><h1 class="page-title">المكتبات</h1><p class="page-sub">محتوى مرجعي وأصول العلامة التجارية ومكتبة الأماكن في مكان واحد.</p></div></div>
+    <div class="library-tab-nav" role="tablist" aria-label="أقسام المكتبات">
+      <button class="active" type="button" data-library-tab="gac" onclick="librariesSwitchTab('gac')">مكتبة الهيئة</button>
+      <button type="button" data-library-tab="places" onclick="librariesSwitchTab('places')">الأماكن المقترحة</button>
+      <button type="button" data-library-tab="brand" onclick="librariesSwitchTab('brand')">الشعارات والخطوط</button>
+    </div>
+    <div id="lib-pane-gac" class="library-pane active">
     <div class="page-head">
       <div>
         <h1 class="page-title">مكتبة الهيئة</h1>
@@ -4845,7 +4729,7 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
   </div><!-- /section-gac_library -->
 
   <!-- ══ Places Library Section ══ -->
-  <div class="page-section" id="section-places">
+  <div id="lib-pane-places" class="library-pane">
     <div class="page-head">
       <div>
         <h1 class="page-title">مكتبة الأماكن المقترحة</h1>
@@ -4914,7 +4798,9 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
       لا توجد أماكن في المكتبة بعد. اضغط "إضافة مكان" لإضافة أول مكان.
     </div>
     <div id="plcs-grid" class="plcs-grid" style="display:none;"></div>
-  </div><!-- /section-places -->
+  </div><!-- /lib-pane-places -->
+    <div id="lib-pane-brand" class="library-pane"><div class="home-empty">جارٍ تجهيز الشعارات والخطوط...</div></div>
+  </div><!-- /section-libraries -->
 
   <!-- ══ Shorfah — Monthly Magazine ══ -->
   <div class="page-section" id="section-shorfah">
@@ -5441,6 +5327,7 @@ var PAGE_PERM_MAP = {
   'designs':        'design_studio',
   'icon_event_studio': 'design_studio',
   'gac_library':    'design_studio',
+  'libraries':       'design_studio',
   'prompts_lib':    'smart_assistant',
   'places':         'weekend',
   'initiatives':    'initiatives',
@@ -5726,8 +5613,21 @@ function authUpdateUI() {
     if (page === 'admin_panel') return;
     if (u.isSuperAdmin) return;
     if (page === 'home') return;
+    // 'libraries' is a container for three panes with three different rules (مكتبة الهيئة is
+    // open to every authenticated user, الأماكن and الشعارات are admin-only). Gating the row on a
+    // single permKey would have withdrawn مكتبة الهيئة from ordinary users, so the row follows
+    // authCanView() and the individual panes are gated by librariesApplyTabPermissions().
+    if (page === 'libraries') return;
     var allowed = perms[permKey] && perms[permKey].includes('view');
     if (!allowed) el.style.display = 'none';
+  });
+  // A group title without any usable destination is visual noise. Evaluate actual
+  // computed display because RBAC also changes the admin entry after initial markup.
+  document.querySelectorAll('[data-nav-group]').forEach(function(group) {
+    var hasVisibleChild = Array.prototype.some.call(group.querySelectorAll('.nav-item[data-page]'), function(item) {
+      return window.getComputedStyle(item).display !== 'none';
+    });
+    group.style.display = hasVisibleChild ? '' : 'none';
   });
 
   // ── Button visibility by permission ──
@@ -5764,6 +5664,9 @@ function authCanView(pageName) {
   if (pageName === 'admin_panel') return AUTH_USER.role === 'admin' || AUTH_USER.role === 'super_admin';
   if (pageName === 'designs') return AUTH_USER.role === 'admin' || AUTH_USER.role === 'super_admin';
   if (pageName === 'places') return AUTH_USER.role === 'admin' || AUTH_USER.role === 'super_admin';
+  // Any authenticated user can reach the libraries container because مكتبة الهيئة is always
+  // viewable; the panes they may not see are removed by librariesApplyTabPermissions().
+  if (pageName === 'libraries') return !!AUTH_USER;
   if (pageName === 'smart_assistant' || pageName === 'settings') return !!AUTH_USER;
   if (pageName === 'gac_library') return !!AUTH_USER;
   if (pageName === 'shorfah') return !!AUTH_USER;
@@ -7099,6 +7002,7 @@ const PAGE_LABELS = {
   smart_assistant:'المساعد الذكي', settings:'الإعدادات',
   admin_panel:'لوحة التحكم',
   designs:'إنشاء التصاميم',
+  libraries:'المكتبات',
   gac_library:'مكتبة الهيئة',
   shorfah:'شُرفة — مجلة شهرية',
   media_monitoring:'الرصد الإعلامي',
@@ -7153,6 +7057,11 @@ function _navGetCurrent() {
 }
 
 function showSection(name) {
+  // Legacy in-page entry points remain valid while their standalone sidebar rows are folded into parent tabs.
+  if (name === 'icon_event_studio') { showSection('designs'); desSwitchTab('icons'); return; }
+  if (name === 'prompts_lib') { showSection('smart_assistant'); saSwitchTab('prompts'); return; }
+  if (name === 'gac_library') { showSection('libraries'); librariesSwitchTab('gac'); return; }
+  if (name === 'places') { showSection('libraries'); librariesSwitchTab('places'); return; }
   if (!NAV_SUPPRESS_PUSH) {
     var cur = _navGetCurrent();
     if (cur && cur !== name && cur !== '403') {
@@ -7188,7 +7097,8 @@ function showSection(name) {
   document.body.classList.toggle('designs-mode', name === 'designs');
   if (name === 'aiyear') aiyInit();
   if (name === 'admin_panel') adminInit();
-  if (name === 'designs') designsInit();
+  if (name === 'designs') { designsInit(); desSwitchTab('templates'); }
+  if (name === 'libraries') librariesInit();
   if (name === 'places') PLCS.init();
   if (name === 'weekend') wk2AdminInit();
   if (name === 'shorfah') shorfahInit();
@@ -7422,25 +7332,113 @@ function dashApplyRoleFilters() {
   } catch(e) {}
 }
 
-async function homeDashboardInit() {
-  dashSetGreeting();
-  dashApplyRoleFilters();
+function homeDigit(value) {
+  return String(value == null ? '' : value).replace(/[\u0660-\u0669]/g, function(c) { return '0123456789'.charAt(c.charCodeAt(0) - 1632); });
+}
+function homeNumber(value) { return homeDigit(Number(value || 0).toLocaleString('en-US')); }
+function homeEsc(value) { return escHtml(homeDigit(value == null ? '' : String(value))); }
+function homeItems(data) { return Array.isArray(data) ? data : ((data && (data.items || data.results || data.data)) || []); }
+function homeDate(value) { var d = new Date(value); return isNaN(d) ? null : d; }
+function homeRender(id, html) { var el = document.getElementById(id); if (el) el.innerHTML = html; }
+function homeEmpty(message) { return '<div class="home-empty">' + homeEsc(message) + '</div>'; }
+function homeError(message) { return '<div class="home-error">' + homeEsc(message) + '</div>'; }
+function homeGo(page) { showSection(page); if (page === 'designs') desSwitchTab('templates'); }
+function homeUserId() { var u = window.AUTH_USER || {}; return String(u.id || u.userId || u.user_id || ''); }
+function homeAssigned(section) {
+  var id = homeUserId(); if (!id) return false;
+  var direct = [section.assignedUserId, section.assigned_user_id, section.userId, section.user_id, section.contributorId, section.contributor_id];
+  if (direct.some(function(v) { return String(v || '') === id; })) return true;
+  var assignments = section.assignments || section.assignees || section.contributors || [];
+  return Array.isArray(assignments) && assignments.some(function(a) { return String((a || {}).userId || (a || {}).user_id || (a || {}).id || '') === id; });
+}
+function homeSlaDeadline(section, defaults) {
+  var explicit = section.slaDueAt || section.sla_due_at || section.dueDate || section.due_date || section.deadline;
+  var date = homeDate(explicit); if (date) return date;
+  var defaultDays = (defaults || []).filter(function(d) { return String(d.sectionType || d.section_type || '') === String(section.sectionType || section.section_type || ''); })[0];
+  var start = homeDate(section.assignedAt || section.assigned_at || section.createdAt || section.created_at);
+  if (start && defaultDays && Number(defaultDays.slaDays || defaultDays.sla_days)) return new Date(start.getTime() + Number(defaultDays.slaDays || defaultDays.sla_days) * 86400000);
+  return null;
+}
+function homeCountdown(deadline) {
+  if (!deadline) return { text:'دون موعد محدد', overdue:false };
+  var hours = Math.ceil((deadline.getTime() - Date.now()) / 3600000);
+  if (hours < 0) return { text:'متأخر ' + homeNumber(Math.abs(hours)) + ' ساعة', overdue:true };
+  if (hours < 24) return { text:'متبقٍ ' + homeNumber(hours) + ' ساعة', overdue:false };
+  return { text:'متبقٍ ' + homeNumber(Math.ceil(hours / 24)) + ' يوم', overdue:false };
+}
+async function homeLoadAttention() {
   try {
-    var res = await apiFetch(apiUrl('/dashboard/summary'));
-    if (!res.ok) return;
-    var data = await res.json();
-    dashSummaryData = data;
-    dashRenderKPIs(data);
-    // Service cards section removed (per user request — duplicate of sidebar)
-    if (typeof dashRenderServiceCards === 'function') { try { dashRenderServiceCards(data); } catch(e){} }
-    dashRenderIntlDays(data.intlDaysUpcoming || []);
-  } catch(e) { /* silent — page still functional */ }
-  // Load media-monitoring count for KPI card
-  dashLoadMediaMonitoring();
-  // Load Shorfah completion % (preview section removed — KPI only)
-  dashLoadShorfahPreview();
-  // Load Upcoming Events (replaces old Recent Activations column)
-  dashLoadUpcomingEvents();
+    var pair = await Promise.all([
+      apiFetch(apiUrl('/shorfah/issues')).then(function(r) { if (!r.ok) throw new Error('issues'); return r.json(); }),
+      apiFetch(apiUrl('/shorfah/sla-defaults')).then(function(r) { return r.ok ? r.json() : { defaults:[] }; }).catch(function() { return { defaults:[] }; })
+    ]);
+    var issues = homeItems(pair[0]), defaults = pair[1].defaults || homeItems(pair[1]);
+    if (!issues.length) { homeRender('home-attention-body', homeEmpty('لا توجد أعداد شُرفة متاحة حالياً.')); return; }
+    var details = await Promise.all(issues.slice(0, 8).map(function(issue) {
+      return apiFetch(apiUrl('/shorfah/issues/') + encodeURIComponent(issue.id)).then(function(r) { return r.ok ? r.json() : null; }).catch(function() { return null; });
+    }));
+    var sections = [];
+    details.forEach(function(detail, i) { homeItems(detail && (detail.sections || detail.items)).forEach(function(section) { if (homeAssigned(section)) sections.push({ section:section, issue:issues[i] }); }); });
+    if (!sections.length) { homeRender('home-attention-body', homeEmpty('لا توجد أقسام شُرفة مسندة إليك اليوم.')); return; }
+    homeRender('home-attention-body', sections.slice(0, 5).map(function(item) {
+      var s = item.section, countdown = homeCountdown(homeSlaDeadline(s, defaults));
+      return '<button class="home-row" onclick="homeGo(\'shorfah\')"><span class="home-row-main"><span class="home-row-title">' + homeEsc(s.titleAr || s.title_ar || s.title || s.sectionType || 'قسم شُرفة') + '</span><span class="home-row-meta">' + homeEsc(item.issue.titleAr || item.issue.title_ar || item.issue.issueNo || 'شُرفة') + '</span></span><span class="home-sla' + (countdown.overdue ? ' overdue' : '') + '">' + homeEsc(countdown.text) + '</span></button>';
+    }).join(''));
+  } catch (e) { homeRender('home-attention-body', homeError('تعذر تحميل الأقسام المسندة.')); }
+}
+function homeFreshCount(items, lastSeen) { return items.filter(function(item) { var d = homeDate(item.publishedAt || item.published_at || item.createdAt || item.created_at || item.date); return !lastSeen || (d && d.getTime() > lastSeen); }).length; }
+async function homeLoadNew() {
+  try {
+    var seenKey = 'icbank.home.lastSeen.v1', lastSeen = Number(localStorage.getItem(seenKey) || 0);
+    var pair = await Promise.all([
+      apiFetch(apiUrl('/final-media-reports')).then(function(r) { if (!r.ok) throw new Error('monitoring'); return r.json(); }),
+      apiFetch(apiUrl('/gac/news')).then(function(r) { if (!r.ok) throw new Error('news'); return r.json(); })
+    ]);
+    var monitoring = homeItems(pair[0]), news = homeItems(pair[1]);
+    var monitorFresh = homeFreshCount(monitoring, lastSeen), newsFresh = homeFreshCount(news, lastSeen);
+    localStorage.setItem(seenKey, String(Date.now()));
+    var note = document.getElementById('home-new-note'); if (note) note.textContent = lastSeen ? 'آخر ظهور محفوظ محلياً' : 'أول زيارة محفوظة محلياً';
+    if (!monitoring.length && !news.length) { homeRender('home-new-body', homeEmpty('لا توجد عناصر جديدة منذ آخر دخول.')); return; }
+    homeRender('home-new-body', '<button class="home-row" onclick="homeGo(\'media_monitoring\')"><span class="home-row-main"><span class="home-row-title">الرصد الإعلامي</span><span class="home-row-meta">تقارير الرصد الجديدة</span></span><span class="home-count">' + homeNumber(monitorFresh) + '</span></button><button class="home-row" onclick="homeGo(\'news\')"><span class="home-row-main"><span class="home-row-title">أخبار هيئات المنافسة</span><span class="home-row-meta">أخبار مضافة حديثاً</span></span><span class="home-count">' + homeNumber(newsFresh) + '</span></button>');
+  } catch (e) { homeRender('home-new-body', homeError('تعذر تحميل المستجدات.')); }
+}
+function homeUpcomingDate(item) { return homeDate(item.date || item.dayDate || item.day_date || item.eventDate || item.event_date || item.activationDate || item.activation_date); }
+async function homeLoadUpcoming() {
+  try {
+    var pair = await Promise.all([
+      apiFetch(apiUrl('/intl-days/archive')).then(function(r) { if (!r.ok) throw new Error('days'); return r.json(); }),
+      apiFetch(apiUrl('/ai-year/activations')).then(function(r) { if (!r.ok) throw new Error('activations'); return r.json(); }),
+      apiFetch(apiUrl('/ai-year/stats')).then(function(r) { return r.ok ? r.json() : {}; }).catch(function() { return {}; })
+    ]);
+    var now = new Date(), until = new Date(now.getTime() + 30 * 86400000);
+    var days = homeItems(pair[0]).filter(function(item) { var d = homeUpcomingDate(item); return d && d >= new Date(now.getFullYear(), now.getMonth(), now.getDate()) && d <= until; }).sort(function(a,b) { return homeUpcomingDate(a) - homeUpcomingDate(b); });
+    var activations = homeItems(pair[1]), statuses = {};
+    activations.forEach(function(item) { var status = item.status || 'غير محدد'; statuses[status] = (statuses[status] || 0) + 1; });
+    var rows = [];
+    days.slice(0, 3).forEach(function(day) { var d = homeUpcomingDate(day); rows.push('<button class="home-row" onclick="homeGo(\'intldays\')"><span class="home-row-main"><span class="home-row-title">' + homeEsc(day.nameAr || day.name_ar || day.name || day.title || 'يوم عالمي') + '</span><span class="home-row-meta">' + homeEsc(d.toLocaleDateString('ar-SA-u-ca-gregory-nu-latn', { day:'numeric', month:'short' })) + '</span></span><span class="home-status">يوم عالمي</span></button>'); });
+    Object.keys(statuses).slice(0, 3).forEach(function(status) { rows.push('<button class="home-row" onclick="homeGo(\'aiyear\')"><span class="home-row-main"><span class="home-row-title">تفعيلات عام الذكاء الاصطناعي</span><span class="home-row-meta">' + homeEsc(status) + '</span></span><span class="home-count">' + homeNumber(statuses[status]) + '</span></button>'); });
+    if (!rows.length) { homeRender('home-upcoming-body', homeEmpty('لا توجد مناسبات أو تفعيلات قادمة خلال 30 يوماً.')); return; }
+    homeRender('home-upcoming-body', rows.join(''));
+  } catch (e) { homeRender('home-upcoming-body', homeError('تعذر تحميل العناصر القادمة.')); }
+}
+async function homeLoadRecent() {
+  try {
+    var pair = await Promise.all([
+      apiFetch(apiUrl('/week-start/outputs')).then(function(r) { if (!r.ok) throw new Error('outputs'); return r.json(); }),
+      apiFetch(apiUrl('/designs/templates')).then(function(r) { if (!r.ok) throw new Error('templates'); return r.json(); })
+    ]);
+    var outputs = homeItems(pair[0]).map(function(item) { return { item:item, page:'weekstart', date:homeDate(item.createdAt || item.created_at || item.updatedAt || item.updated_at), type:'رسالة أسبوعية' }; });
+    var templates = homeItems(pair[1]).map(function(item) { return { item:item, page:'designs', date:homeDate(item.createdAt || item.created_at || item.updatedAt || item.updated_at), type:'قالب تصميم' }; });
+    var all = outputs.concat(templates).sort(function(a,b) { return (b.date || 0) - (a.date || 0); });
+    if (!all.length) { homeRender('home-recent-body', homeEmpty('لا توجد مخرجات حديثة بعد.')); return; }
+    homeRender('home-recent-body', all.slice(0, 4).map(function(entry) { var x = entry.item; return '<button class="home-row" onclick="homeGo(\'' + entry.page + '\')"><span class="home-row-main"><span class="home-row-title">' + homeEsc(x.titleAr || x.title_ar || x.title || x.name || x.templateNameAr || x.template_name_ar || entry.type) + '</span><span class="home-row-meta">' + homeEsc(entry.type) + '</span></span><span class="home-status">عرض</span></button>'; }).join(''));
+  } catch (e) { homeRender('home-recent-body', homeError('تعذر تحميل المخرجات الحديثة.')); }
+}
+async function homeDashboardInit() {
+  var u = window.AUTH_USER || {}, welcome = document.getElementById('home-landing-welcome'), date = document.getElementById('home-landing-date');
+  if (welcome) welcome.textContent = (u.name ? 'مرحباً ' + u.name + '، هذه أولوياتك من المسارات المتاحة.' : 'نجمع الأولويات من المسارات المتاحة لك.');
+  if (date) date.textContent = homeDigit(new Date().toLocaleDateString('ar-SA-u-ca-gregory-nu-latn', { weekday:'long', year:'numeric', month:'long', day:'numeric' }));
+  homeLoadAttention(); homeLoadNew(); homeLoadUpcoming(); homeLoadRecent();
 }
 
 function dashLoadUpcomingEvents() {
@@ -14566,6 +14564,66 @@ document.addEventListener('DOMContentLoaded', function() {
     };
   }
 });
+
+function saSwitchTab(tab) {
+  document.querySelectorAll('[data-sa-tab]').forEach(function(btn) { btn.classList.toggle('active', btn.getAttribute('data-sa-tab') === tab); });
+  document.querySelectorAll('.sa-pane').forEach(function(pane) { pane.classList.toggle('active', pane.id === 'sa-pane-' + tab); });
+  if (tab === 'prompts' && window.PL) PL.load();
+}
+// Each library pane keeps the permission rule its standalone page had before the panes were
+// folded together, so consolidating the navigation grants nobody a page they could not open
+// before and withdraws none they could.
+var LIBRARY_TAB_PAGE = { gac: 'gac_library', places: 'places', brand: 'designs' };
+
+function librariesTabAllowed(tab) {
+  var page = LIBRARY_TAB_PAGE[tab];
+  return page ? authCanView(page) : false;
+}
+
+function librariesApplyTabPermissions() {
+  document.querySelectorAll('[data-library-tab]').forEach(function(btn) {
+    btn.style.display = librariesTabAllowed(btn.getAttribute('data-library-tab')) ? '' : 'none';
+  });
+}
+
+function librariesFirstAllowedTab() {
+  var order = ['gac', 'places', 'brand'];
+  for (var i = 0; i < order.length; i++) {
+    if (librariesTabAllowed(order[i])) return order[i];
+  }
+  return null;
+}
+
+function librariesSwitchTab(tab) {
+  librariesApplyTabPermissions();
+  // Refuse a pane the user may not see, whether the request came from a tab button or from a
+  // legacy in-page entry point such as the 📍 button inside نهاية الأسبوع.
+  if (!librariesTabAllowed(tab)) {
+    var fallback = librariesFirstAllowedTab();
+    if (!fallback) return;
+    tab = fallback;
+  }
+  document.querySelectorAll('[data-library-tab]').forEach(function(btn) { btn.classList.toggle('active', btn.getAttribute('data-library-tab') === tab); });
+  document.querySelectorAll('.library-pane').forEach(function(pane) { pane.classList.toggle('active', pane.id === 'lib-pane-' + tab); });
+  if (tab === 'gac' && window.GACLIB) GACLIB.init();
+  if (tab === 'places' && window.PLCS) PLCS.init();
+  if (tab === 'brand' && window.DES) DES.init();
+}
+function librariesInit() {
+  librariesApplyTabPermissions();
+  var first = librariesFirstAllowedTab();
+  if (first) librariesSwitchTab(first);
+}
+document.addEventListener('DOMContentLoaded', function() {
+  // Move the full, existing page implementations into their parent tabs so their IDs and handlers remain intact.
+  var icon = document.getElementById('section-icon_event_studio'), designs = document.getElementById('section-designs');
+  if (icon && designs) { icon.classList.remove('page-section'); icon.classList.add('adm-pane'); icon.id = 'des-pane-icons'; designs.appendChild(icon); }
+  var prompts = document.getElementById('section-prompts_lib'), assistant = document.getElementById('section-smart_assistant');
+  if (prompts && assistant) { prompts.classList.remove('page-section'); prompts.classList.add('sa-pane'); prompts.id = 'sa-pane-prompts'; assistant.appendChild(prompts); }
+  var assets = document.getElementById('des-pane-assets'), brand = document.getElementById('lib-pane-brand');
+  if (assets && brand) { assets.classList.remove('adm-pane', 'active'); brand.innerHTML = ''; brand.appendChild(assets); }
+});
+
 </script>
 
 </body>
