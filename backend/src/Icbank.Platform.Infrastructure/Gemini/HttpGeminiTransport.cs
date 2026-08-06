@@ -137,25 +137,37 @@ public sealed class HttpGeminiTransport : IGeminiTransport
 
         List<string> queries = metadata["webSearchQueries"]?.AsArray().Select(q => q?.GetValue<string>() ?? string.Empty).ToList()
             ?? new List<string>();
+        IReadOnlyList<GeminiCitation> citations = ExtractCitations(metadata);
+        string? searchEntryPointHtml = ExtractSearchEntryPointHtml(metadata);
 
-        var citations = new List<GeminiCitation>();
+        return (queries, citations, searchEntryPointHtml);
+    }
+
+    private static IReadOnlyList<GeminiCitation> ExtractCitations(JsonNode metadata)
+    {
         JsonArray? chunks = metadata["groundingChunks"]?.AsArray();
         JsonArray? supports = metadata["groundingSupports"]?.AsArray();
-        if (chunks is not null && supports is not null)
+        if (chunks is null || supports is null)
         {
-            foreach (JsonNode? support in supports)
-            {
-                citations.AddRange(BuildCitationsForSupport(support, chunks));
-            }
+            return Array.Empty<GeminiCitation>();
         }
 
+        var citations = new List<GeminiCitation>();
+        foreach (JsonNode? support in supports)
+        {
+            citations.AddRange(BuildCitationsForSupport(support, chunks));
+        }
+
+        return citations;
+    }
+
+    private static string? ExtractSearchEntryPointHtml(JsonNode metadata)
+    {
         // Why: groundingMetadata.searchEntryPoint.renderedContent is Google's "Search Suggestions"
         // HTML. Whether displaying it is mandatory under Google's ToS for grounded results is an
         // open question this port cannot resolve -- it is captured verbatim and passed through so
         // the frontend can render it if required, never discarded silently.
-        var searchEntryPointHtml = metadata["searchEntryPoint"]?["renderedContent"]?.GetValue<string>();
-
-        return (queries, citations, searchEntryPointHtml);
+        return metadata["searchEntryPoint"]?["renderedContent"]?.GetValue<string>();
     }
 
     private static IEnumerable<GeminiCitation> BuildCitationsForSupport(JsonNode? support, JsonArray chunks)
