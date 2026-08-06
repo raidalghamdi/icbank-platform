@@ -61,6 +61,9 @@ public sealed class AppDbContext : DbContext, IApplicationDbContext
     /// <summary>Gets the set of rotatable refresh tokens.</summary>
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
+    /// <summary>Gets the set of short-lived, single-use download tokens (GAP 2).</summary>
+    public DbSet<DownloadToken> DownloadTokens => Set<DownloadToken>();
+
     /// <summary>Gets the dedicated privileged-action audit log.</summary>
     public DbSet<AuditLogEntry> AuditLogEntries => Set<AuditLogEntry>();
 
@@ -221,6 +224,9 @@ public sealed class AppDbContext : DbContext, IApplicationDbContext
 
     /// <inheritdoc cref="IApplicationDbContext.RefreshTokens" />
     IQueryable<RefreshToken> IApplicationDbContext.RefreshTokens => RefreshTokens;
+
+    /// <inheritdoc cref="IApplicationDbContext.DownloadTokens" />
+    IQueryable<DownloadToken> IApplicationDbContext.DownloadTokens => DownloadTokens;
 
     /// <inheritdoc cref="IApplicationDbContext.DailyReports" />
     IQueryable<DailyReport> IApplicationDbContext.DailyReports => DailyReports;

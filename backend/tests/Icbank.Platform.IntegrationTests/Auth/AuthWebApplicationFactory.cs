@@ -71,6 +71,8 @@ public sealed class AuthWebApplicationFactory : WebApplicationFactory<Program>
                 ["Jwt:Audience"] = "icbank-platform-tests-clients",
                 ["Jwt:AccessTokenMinutes"] = "15",
                 ["Jwt:RefreshTokenHours"] = "8",
+                ["DownloadTokens:SigningKey"] = "integration-test-download-token-key-not-for-production-32b",
+                ["DownloadTokens:LifetimeSeconds"] = "120",
                 ["AzureAd:Enabled"] = "true",
                 ["AzureAd:AllowedRedirectTargets:0"] = "/dashboard",
                 ["Seed:AllowInProduction"] = "false",

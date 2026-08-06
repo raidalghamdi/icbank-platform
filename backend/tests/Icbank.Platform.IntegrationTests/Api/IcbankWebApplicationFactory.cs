@@ -23,6 +23,7 @@ public sealed class IcbankWebApplicationFactory : WebApplicationFactory<Program>
                 ["Jwt:SigningKey"] = "integration-test-signing-key-not-for-production-use-32bytes",
                 ["Jwt:Issuer"] = "icbank-platform-tests",
                 ["Jwt:Audience"] = "icbank-platform-tests-clients",
+                ["DownloadTokens:SigningKey"] = "integration-test-download-token-key-not-for-production-32b",
                 ["Seed:AllowInProduction"] = "false",
                 ["Cron:ApiKey"] = "test-cron-key",
             });

@@ -53,6 +53,9 @@ public interface IApplicationDbContext
     /// <summary>Gets a queryable over rotatable refresh tokens.</summary>
     IQueryable<RefreshToken> RefreshTokens { get; }
 
+    /// <summary>Gets a queryable over short-lived, single-use download tokens (GAP 2: bearer-only download endpoints reached from a plain browser navigation).</summary>
+    IQueryable<DownloadToken> DownloadTokens { get; }
+
     /// <summary>Gets a queryable over ingested daily-report payloads (Wave 1: Daily Report).</summary>
     IQueryable<DailyReport> DailyReports { get; }
 

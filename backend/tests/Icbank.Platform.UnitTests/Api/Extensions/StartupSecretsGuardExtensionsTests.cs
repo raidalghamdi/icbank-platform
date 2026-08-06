@@ -18,6 +18,7 @@ public sealed class StartupSecretsGuardExtensionsTests
         ["ConnectionStrings:Default"] = "Server=tcp:example;Database=icbank;",
         ["Jwt:SigningKey"] = "a-sufficiently-long-signing-key-value",
         ["Cron:ApiKey"] = "cron-api-key-value",
+        ["DownloadTokens:SigningKey"] = "a-sufficiently-long-download-token-key-value",
     };
 
     [Fact]
@@ -74,6 +75,22 @@ public sealed class StartupSecretsGuardExtensionsTests
 
         act.Should().Throw<InvalidOperationException>()
             .WithMessage("*Cron:ApiKey*");
+    }
+
+    [Fact]
+    public void AddIcbankStartupSecretsGuard_MissingDownloadTokenSigningKey_ThrowsNamingTheKey()
+    {
+        // Why: GAP 2's signed single-use download token is only as safe as this key -- an empty
+        // key would let the app boot and mint download tokens with an effectively guessable
+        // signature, same failure mode R-BE-043 already calls out for Jwt:SigningKey.
+        var config = new Dictionary<string, string?>(AllSecretsPresent);
+        config.Remove("DownloadTokens:SigningKey");
+        WebApplicationBuilder builder = CreateBuilder("Production", config);
+
+        Action act = () => builder.AddIcbankStartupSecretsGuard();
+
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("*DownloadTokens:SigningKey*");
     }
 
     [Fact]
