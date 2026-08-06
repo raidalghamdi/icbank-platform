@@ -4910,11 +4910,15 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
             بدء تجميع البيانات
           </button>
           <!-- Phase 7: PDF preview & PDF download hidden — Word is the only official export -->
-          <a id="shorfah-pdf-preview-btn" class="btn btn-ghost btn-sm" href="#" target="_blank" style="display:none;flex:1 1 140px;justify-content:center;">
+          <!-- GAP 2 fix (see API-GAPS-NOTES.md): these were plain <a href> navigations against a
+               now bearer-only route, which 401s without an Authorization header. Converted to
+               buttons that mint a short-lived single-use download token on click, then navigate
+               to the via-token route — the token is never pre-set on href/cached across renders. -->
+          <a id="shorfah-pdf-preview-btn" class="btn btn-ghost btn-sm" href="#" target="_blank" onclick="return shorfahOpenPdfViaToken(event, 'preview');" style="display:none;flex:1 1 140px;justify-content:center;">
             <svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
             معاينة
           </a>
-          <a id="shorfah-pdf-download-btn" class="btn btn-secondary btn-sm" href="#" download style="display:none;flex:1 1 140px;justify-content:center;">
+          <a id="shorfah-pdf-download-btn" class="btn btn-secondary btn-sm" href="#" onclick="return shorfahOpenPdfViaToken(event, 'download');" style="display:none;flex:1 1 140px;justify-content:center;">
             <svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             تحميل PDF
           </a>
@@ -9318,14 +9322,22 @@ async function idSave() {
 }
 
 // ── Export Word ──────────────────────────────────────────────────
-function idExport() {
+// GAP 2 fix (see API-GAPS-NOTES.md): the export route is bearer-only, so a plain
+// window.open() navigation would 401 (no way to attach an Authorization header to a
+// top-level browser navigation). Mint a short-lived single-use download token via the
+// existing bearer token first, then navigate to the via-token route. The token must be
+// minted immediately before navigating — never cached — since it is single-use and expires
+// quickly.
+async function idExport() {
   if (!idCurrentDayId) { alert('احفظ في الأرشيف أولاً للتمكن من التصدير.'); return; }
-  // KNOWN GAP (see FRONTEND-WIRING-NOTES.md): this is a plain browser navigation, so it
-  // cannot attach the required Authorization bearer header under the new JWT-bearer-only
-  // API (no cookie fallback is configured server-side). Path corrected for versioning, but
-  // this will 401 until either the backend adds a short-lived signed-URL variant or this is
-  // rewritten as an apiFetch()+blob download like the icon-event render flow above.
-  window.open(apiUrl('/intl-days/export/' + idCurrentDayId), '_blank');
+  try {
+    var res = await apiFetch(apiUrl('/intl-days/export/' + idCurrentDayId + '/download-token'), { method: 'POST' });
+    if (!res.ok) throw await apiError(res);
+    var data = await res.json();
+    window.open(apiUrl('/intl-days/export/' + idCurrentDayId + '/via-token?token=' + encodeURIComponent(data.token)), '_blank');
+  } catch (e) {
+    alert('تعذّر تجهيز رابط التصدير: ' + friendlyError(e));
+  }
 }
 
 // ── Refresh (force re-search) ────────────────────────────────────
@@ -11959,17 +11971,19 @@ async function shorfahOpenIssue(id) {
     var isPublished = data.issue.status === 'published';
     var previewBtn = document.getElementById('shorfah-pdf-preview-btn');
     var downloadBtn = document.getElementById('shorfah-pdf-download-btn');
-    // KNOWN GAP (see FRONTEND-WIRING-NOTES.md): both of these are plain <a href> navigations,
-    // so neither can attach the required Authorization bearer header under the new
-    // JWT-bearer-only API (no cookie fallback is configured server-side). Paths corrected for
-    // versioning, but both will 401 until either the backend adds a short-lived signed-URL
-    // variant or these are rewritten as apiFetch()+blob download.
+    // GAP 2 fix (see API-GAPS-NOTES.md): these routes are bearer-only, so a plain <a href>
+    // navigation would 401 (no Authorization header on a top-level navigation). The actual
+    // href is no longer pre-computed here — shorfahOpenPdfViaToken() mints a fresh single-use
+    // token on each click and appends it to the via-token route. Only the issue id and
+    // preview-mode flag are stashed as data attributes for that handler to read.
     if (previewBtn) {
-      previewBtn.href = apiUrl('/shorfah/issues/'+id+'/pdf') + (isPublished ? '' : '?preview=1');
+      previewBtn.dataset.issueId = id;
+      previewBtn.dataset.preview = isPublished ? '0' : '1';
     }
     if (downloadBtn) {
       // Real .pdf binary route (Puppeteer). For non-published issues, allow preview-mode download.
-      downloadBtn.href = apiUrl('/shorfah/issues/'+id+'/pdf.pdf') + (isPublished ? '' : '?preview=1');
+      downloadBtn.dataset.issueId = id;
+      downloadBtn.dataset.preview = isPublished ? '0' : '1';
       downloadBtn.setAttribute('download', 'shorfah-issue-'+(data.issue.issueNo||data.issue.issue_no||id)+'.pdf');
     }
     // Review Round 5: Word btn is now a real fetch with auth token
@@ -11998,6 +12012,34 @@ async function shorfahOpenIssue(id) {
   } catch(e) {
     board.innerHTML = '<div style="color:#b91c1c;padding:24px;">خطأ: '+e.message+'</div>';
   }
+}
+
+// GAP 2 fix (see API-GAPS-NOTES.md): shared handler for both the PDF preview <a href> and the
+// PDF download <a href>. Mints a fresh single-use download token immediately before navigating
+// (never cached/pre-fetched, since the token is single-use and expires quickly), then opens the
+// matching via-token route with the token appended. Returns false to cancel the default <a>
+// navigation (the real navigation happens via window.open once the token is in hand).
+async function shorfahOpenPdfViaToken(evt, kind) {
+  if (evt && evt.preventDefault) evt.preventDefault();
+  var btn = evt && evt.currentTarget;
+  if (!btn || !btn.dataset.issueId) return false;
+  var id = btn.dataset.issueId;
+  var preview = btn.dataset.preview === '1' ? '&preview=1' : '';
+  var routeSegment = kind === 'download' ? '/pdf.pdf' : '/pdf';
+  try {
+    var res = await apiFetch(apiUrl('/shorfah/issues/'+id+'/pdf/download-token'), { method: 'POST' });
+    if (!res.ok) throw await apiError(res);
+    var data = await res.json();
+    var url = apiUrl('/shorfah/issues/'+id+routeSegment+'/via-token?token='+encodeURIComponent(data.token)+preview);
+    // Both preview and download open in a new tab: the binary route returns application/pdf
+    // with no explicit Content-Disposition: attachment, so navigating _self would leave the
+    // app; a new tab lets the browser's native PDF viewer (with its own save/download
+    // control) handle it without losing the current page state.
+    window.open(url, '_blank');
+  } catch (e) {
+    alert('تعذّر تجهيز رابط ' + (kind === 'download' ? 'تحميل PDF' : 'معاينة PDF') + ': ' + friendlyError(e));
+  }
+  return false;
 }
 
 // Review Round 5: تنزيل Word — يحمل Bearer token ويفتح Blob محلياً
