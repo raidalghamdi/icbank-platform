@@ -97,6 +97,32 @@ public sealed class JsonColumnReaderTests
     }
 
     [Fact]
+    public void ReadObjectList_NumericValueForStringProperty_PreservesItsTextualValue()
+    {
+        var row = new SourceRow(new Dictionary<string, object?>
+        {
+            ["items"] = """[{"fontWeight":700}]""",
+        });
+
+        List<FontPayload> result = row.ReadObjectList<FontPayload>("items");
+
+        result.Should().ContainSingle().Which.FontWeight.Should().Be("700");
+    }
+
+    [Fact]
+    public void ReadObject_NullValueForNonNullableInt_DefaultsToZero()
+    {
+        var row = new SourceRow(new Dictionary<string, object?>
+        {
+            ["payload"] = """{"name":"x","count":null}""",
+        });
+
+        SamplePayload? result = row.ReadObject<SamplePayload>("payload");
+
+        result.Should().BeEquivalentTo(new SamplePayload("x", 0));
+    }
+
+    [Fact]
     public void ReadObjectList_JsonElementArrayShape_DeserializesLikeALiveNpgsqlColumn()
     {
         using var doc = JsonDocument.Parse("[{\"name\":\"a\",\"count\":1}]");
@@ -149,4 +175,9 @@ public sealed class JsonColumnReaderTests
     }
 
     private sealed record SamplePayload(string Name, int Count);
+
+    private sealed class FontPayload
+    {
+        public string? FontWeight { get; init; }
+    }
 }

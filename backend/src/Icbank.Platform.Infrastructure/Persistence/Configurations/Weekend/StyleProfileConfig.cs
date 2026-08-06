@@ -8,8 +8,6 @@ namespace Icbank.Platform.Infrastructure.Persistence.Configurations.Weekend;
 /// <summary>EF Core mapping for <see cref="StyleProfile"/> (DATA-MODEL.md section 3.9 <c>style_profile</c>).</summary>
 public sealed class StyleProfileConfig : IEntityTypeConfiguration<StyleProfile>
 {
-    private const int QuoteUsageMaxLength = 20;
-
     /// <inheritdoc />
     public void Configure(EntityTypeBuilder<StyleProfile> builder)
     {
@@ -18,7 +16,10 @@ public sealed class StyleProfileConfig : IEntityTypeConfiguration<StyleProfile>
 
         builder.Property(p => p.ToneSummary).HasColumnName("tone_summary").HasColumnType("nvarchar(max)");
         builder.Property(p => p.AvgParagraphLength).HasColumnName("avg_paragraph_length").HasColumnType("real");
-        builder.Property(p => p.QuoteUsage).HasColumnName("quote_usage").HasMaxLength(QuoteUsageMaxLength);
+
+        // Source is unbounded text and the live rehearsal contains values longer than the
+        // former 20-character limit; preserve the complete source expression.
+        builder.Property(p => p.QuoteUsage).HasColumnName("quote_usage").HasColumnType("nvarchar(max)");
 
         builder.Property(p => p.OpenerPatterns).HasColumnName("opener_patterns_json").HasColumnType("nvarchar(max)")
             .HasConversion(JsonListValueConverter.Create<string>()).Metadata.SetValueComparer(JsonListValueConverter.CreateComparer<string>());

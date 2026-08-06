@@ -30,9 +30,26 @@ public sealed class UserPageOverrideTableMigrator : ITableMigrator
 
         await using AppDbContext destination = context.CreateDestinationContext();
 
+        var sourceRows = new List<SourceRow>();
         await foreach (SourceRow row in context.Source.ReadTableAsync(SourceTableName, cancellationToken))
         {
-            result.RowsRead++;
+            sourceRows.Add(row);
+        }
+
+        result.RowsRead = sourceRows.Count;
+        (IReadOnlyList<SourceRow> rowsToMigrate, IReadOnlyList<SourceRow> supersededRows) = UserPageOverrideDeduplicator.SelectLastWrites(sourceRows);
+        foreach (SourceRow supersededRow in supersededRows)
+        {
+            result.RowsSkippedDueToDataIssue++;
+            result.Notes.Add(
+                $"Source row id={supersededRow.GetInt32("id")} was rejected as a superseded duplicate " +
+                $"for user/page/permission ({supersededRow.GetInt32("user_id")}, " +
+                $"{supersededRow.GetInt32("page_id")}, {supersededRow.GetInt32("permission_id")}); " +
+                "the highest source id for that key is retained by the explicit last-write-wins rule.");
+        }
+
+        foreach (SourceRow row in rowsToMigrate)
+        {
             var sourceId = row.GetInt32("id");
 
             var existingId = await context.IdMap.TryGetDestinationIdAsync(SourceTableName, sourceId, cancellationToken);

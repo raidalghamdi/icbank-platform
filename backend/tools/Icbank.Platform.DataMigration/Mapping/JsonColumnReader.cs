@@ -12,10 +12,7 @@ namespace Icbank.Platform.DataMigration.Mapping;
 /// </summary>
 public static class JsonColumnReader
 {
-    private static readonly JsonSerializerOptions Options = new()
-    {
-        PropertyNameCaseInsensitive = true,
-    };
+    private static readonly JsonSerializerOptions Options = CreateOptions();
 
     /// <summary>Deserializes a raw column value (JSON text, or a pre-parsed <see cref="JsonElement"/>) into <typeparamref name="T"/>.</summary>
     /// <typeparam name="T">The target .NET type.</typeparam>
@@ -76,5 +73,58 @@ public static class JsonColumnReader
             string s => s,
             _ => JsonSerializer.Serialize(raw),
         };
+    }
+
+    private static JsonSerializerOptions CreateOptions()
+    {
+        var options = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+        };
+        options.Converters.Add(new NumberToStringConverter());
+        options.Converters.Add(new NullToZeroIntConverter());
+        return options;
+    }
+
+    private sealed class NumberToStringConverter : System.Text.Json.Serialization.JsonConverter<string>
+    {
+        public override string? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+            reader.TokenType switch
+            {
+                JsonTokenType.String => reader.GetString(),
+                JsonTokenType.Number => ReadNumber(ref reader),
+                JsonTokenType.True => bool.TrueString.ToLowerInvariant(),
+                JsonTokenType.False => bool.FalseString.ToLowerInvariant(),
+                _ => throw new JsonException($"Cannot convert JSON token {reader.TokenType} to string."),
+            };
+
+        public override void Write(Utf8JsonWriter writer, string value, JsonSerializerOptions options) =>
+            writer.WriteStringValue(value);
+
+        private static string ReadNumber(ref Utf8JsonReader reader)
+        {
+            if (reader.TryGetInt64(out var integer))
+            {
+                return integer.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            }
+
+            return reader.GetDouble().ToString("R", System.Globalization.CultureInfo.InvariantCulture);
+        }
+    }
+
+    private sealed class NullToZeroIntConverter : System.Text.Json.Serialization.JsonConverter<int>
+    {
+        public override bool HandleNull => true;
+
+        public override int Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+            reader.TokenType switch
+            {
+                JsonTokenType.Null => 0,
+                JsonTokenType.Number => reader.GetInt32(),
+                _ => throw new JsonException($"Cannot convert JSON token {reader.TokenType} to int."),
+            };
+
+        public override void Write(Utf8JsonWriter writer, int value, JsonSerializerOptions options) =>
+            writer.WriteNumberValue(value);
     }
 }

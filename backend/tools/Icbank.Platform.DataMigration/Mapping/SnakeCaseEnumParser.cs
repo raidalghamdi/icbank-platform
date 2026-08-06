@@ -19,16 +19,27 @@ public static class SnakeCaseEnumParser
     public static TEnum Parse<TEnum>(string snakeCaseValue)
         where TEnum : struct, Enum
     {
-        var pascalCase = ToPascalCase(snakeCaseValue);
-        if (Enum.TryParse<TEnum>(pascalCase, ignoreCase: true, out TEnum parsed))
+        if (TryParse(snakeCaseValue, out TEnum parsed))
         {
             return parsed;
         }
 
         throw new ArgumentException(
-            $"Value '{snakeCaseValue}' (converted to '{pascalCase}') is not a member of {typeof(TEnum).Name}.",
+            $"Value '{snakeCaseValue}' (converted to '{ToPascalCase(snakeCaseValue)}') is not a member of {typeof(TEnum).Name}.",
             nameof(snakeCaseValue));
     }
+
+    /// <summary>
+    /// Attempts to parse a <c>snake_case</c> source value into a destination enum without
+    /// throwing, so a migrator can turn an unsupported source value into a counted rejection.
+    /// </summary>
+    /// <typeparam name="TEnum">The destination enum type.</typeparam>
+    /// <param name="snakeCaseValue">The raw source value.</param>
+    /// <param name="parsed">The parsed destination value when successful.</param>
+    /// <returns><see langword="true"/> when the value is a member of <typeparamref name="TEnum"/>.</returns>
+    public static bool TryParse<TEnum>(string snakeCaseValue, out TEnum parsed)
+        where TEnum : struct, Enum =>
+        Enum.TryParse(ToPascalCase(snakeCaseValue), ignoreCase: true, out parsed);
 
     /// <summary>Converts a <c>snake_case</c> string to <c>PascalCase</c>, e.g. <c>intl_participation</c> → <c>IntlParticipation</c>.</summary>
     /// <param name="snakeCaseValue">The source value.</param>

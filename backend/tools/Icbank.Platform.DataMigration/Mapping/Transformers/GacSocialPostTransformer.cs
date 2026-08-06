@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Icbank.Platform.DataMigration.Mapping.Dtos;
 using Icbank.Platform.DataMigration.Source;
 using Icbank.Platform.DataMigration.Validation;
@@ -18,8 +19,10 @@ public static class GacSocialPostTransformer
     /// <returns>The mapped, destination-ready DTO.</returns>
     public static MappedGacSocialPost Transform(SourceRow row)
     {
-        DateTime createdAtRaw = row.GetRawTimestamp("created_at")
-            ?? throw new InvalidOperationException("gac_social_posts.created_at was null.");
+        // The legacy relation has no created_at column. fetched_at is its ingestion timestamp
+        // and is the only source field that preserves the target auditable creation time.
+        DateTime createdAtRaw = row.GetRawTimestamp("fetched_at")
+            ?? throw new InvalidOperationException("gac_social_posts.fetched_at was null.");
 
         return new MappedGacSocialPost(
             SourceId: row.GetInt32("id"),
@@ -31,10 +34,26 @@ public static class GacSocialPostTransformer
             MediaUrl: row.GetNullableString("media_url"),
             MediaType: string.IsNullOrEmpty(row.GetNullableString("media_type")) ? "None" : row.GetString("media_type"),
             PostedAt: TimestampConverter.ToDestinationOffset(row.GetRawTimestamp("posted_at")),
-            LikeCount: row.GetNullableInt32("likes"),
-            CommentCount: row.GetNullableInt32("comments"),
-            ShareCount: row.GetNullableInt32("shares"),
+            LikeCount: GetMetricCount(row, "likes"),
+            CommentCount: GetMetricCount(row, "comments"),
+            ShareCount: GetMetricCount(row, "shares"),
             Account: row.GetString("account"),
             CreatedAtUtc: createdAtRaw);
+    }
+
+    private static int? GetMetricCount(SourceRow row, string propertyName)
+    {
+        var metricsJson = row.GetNullableString("metrics");
+        if (string.IsNullOrWhiteSpace(metricsJson))
+        {
+            return null;
+        }
+
+        using var metrics = JsonDocument.Parse(metricsJson);
+        return metrics.RootElement.TryGetProperty(propertyName, out JsonElement property) &&
+            property.ValueKind == JsonValueKind.Number &&
+            property.TryGetInt32(out var value)
+            ? value
+            : null;
     }
 }

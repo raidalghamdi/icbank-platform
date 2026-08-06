@@ -52,6 +52,7 @@ public sealed class PermissionResolver : IPermissionResolver
 
         List<(string Key, OverrideGrantType GrantType)> overrides = await _dbContext.UserPageOverrides
             .Where(o => o.UserId == userId)
+            .OrderBy(o => o.Id)
             .Select(o => new ValueTuple<string, OverrideGrantType>(
                 o.Page.Slug + ":" + o.Permission.Name.ToLowerInvariant(),
                 o.GrantType))

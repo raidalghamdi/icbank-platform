@@ -12,7 +12,7 @@ namespace Icbank.Platform.DataMigration.Migration.Migrators;
 /// Migrates <c>gac_social_posts</c> → <see cref="GacSocialPost"/>. Detects rows that would
 /// violate the new <c>ux_gac_social_posts_platform_external_id</c> unique index (AMBIGUOUS-7 /
 /// task requirement 3) and reports them instead of letting the insert throw: for each duplicate
-/// group, the earliest-created row (by source <c>created_at</c>) is migrated and every other row
+/// group, the earliest-fetched row (by source <c>fetched_at</c>) is migrated and every other row
 /// in the group is skipped and named in the report, so a human can decide whether to
 /// reconcile/merge the skipped rows later.
 /// </summary>
@@ -57,7 +57,7 @@ public sealed class GacSocialPostTableMigrator : ITableMigrator
 
             result.Notes.Add(
                 $"Duplicate key (platform={group.Key.Platform}, external_id={group.Key.ExternalId}): " +
-                $"source ids [{string.Join(", ", group.SourceIds)}] — kept earliest-created id {keepSourceId}, " +
+                $"source ids [{string.Join(", ", group.SourceIds)}] — kept earliest-fetched id {keepSourceId}, " +
                 $"skipped [{string.Join(", ", skipped)}] to satisfy the new unique index.");
         }
 
@@ -78,8 +78,9 @@ public sealed class GacSocialPostTableMigrator : ITableMigrator
                 continue;
             }
 
+            GacSocialPlatform platform = Enum.Parse<GacSocialPlatform>(mapped.Platform, ignoreCase: true);
             var alreadyExists = await destination.GacSocialPosts.IgnoreQueryFilters()
-                .AnyAsync(p => p.Platform.ToString() == mapped.Platform && p.ExternalId == mapped.ExternalId, cancellationToken);
+                .AnyAsync(p => p.Platform == platform && p.ExternalId == mapped.ExternalId, cancellationToken);
             if (alreadyExists)
             {
                 result.RowsSkippedAlreadyMigrated++;
@@ -88,7 +89,7 @@ public sealed class GacSocialPostTableMigrator : ITableMigrator
 
             var entity = new GacSocialPost
             {
-                Platform = Enum.Parse<GacSocialPlatform>(mapped.Platform, ignoreCase: true),
+                Platform = platform,
                 ExternalId = mapped.ExternalId,
                 ContentAr = mapped.ContentAr,
                 ContentEn = mapped.ContentEn,

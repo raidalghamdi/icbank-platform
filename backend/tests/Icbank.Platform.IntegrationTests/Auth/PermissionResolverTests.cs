@@ -117,6 +117,44 @@ public sealed class PermissionResolverTests
     }
 
     [Fact]
+    public async Task ResolveAsync_ContradictoryOverrides_AppliesThemInAscendingIdOrder()
+    {
+        using AppDbContext dbContext = CreateInMemoryContext(nameof(ResolveAsync_ContradictoryOverrides_AppliesThemInAscendingIdOrder));
+        Page page = new() { Slug = "shorfah", NameAr = "shorfah", CreatedBy = "test" };
+        Permission editPermission = new() { Name = "edit", NameAr = "edit", CreatedBy = "test" };
+        var user = new User { Email = "ordered-overrides@example.com", Name = "Ordered Overrides", CreatedBy = "test" };
+        dbContext.AddRange(page, editPermission, user);
+        await dbContext.SaveChangesAsync(CancellationToken.None);
+
+        // Add the high id first to ensure the test does not accidentally pass due to provider
+        // insertion order. The later id is the authoritative last write and must therefore win.
+        dbContext.UserPageOverrides.Add(new UserPageOverride
+        {
+            Id = 200,
+            UserId = user.Id,
+            PageId = page.Id,
+            PermissionId = editPermission.Id,
+            GrantType = OverrideGrantType.Allow,
+            CreatedBy = "test",
+        });
+        dbContext.UserPageOverrides.Add(new UserPageOverride
+        {
+            Id = 100,
+            UserId = user.Id,
+            PageId = page.Id,
+            PermissionId = editPermission.Id,
+            GrantType = OverrideGrantType.Deny,
+            CreatedBy = "test",
+        });
+        await dbContext.SaveChangesAsync(CancellationToken.None);
+
+        var resolver = new PermissionResolver(dbContext);
+        PermissionResolution resolution = await resolver.ResolveAsync(user.Id, CancellationToken.None);
+
+        resolution.Permissions.Should().Contain("shorfah:edit");
+    }
+
+    [Fact]
     public async Task ResolveAsync_UserWithZeroRoles_DefaultsToGuest()
     {
         using AppDbContext dbContext = CreateInMemoryContext(nameof(ResolveAsync_UserWithZeroRoles_DefaultsToGuest));

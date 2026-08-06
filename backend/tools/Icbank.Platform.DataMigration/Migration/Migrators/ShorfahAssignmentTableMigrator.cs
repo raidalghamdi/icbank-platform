@@ -28,11 +28,35 @@ public sealed class ShorfahAssignmentTableMigrator : ITableMigrator
 
         await using AppDbContext destination = context.CreateDestinationContext();
 
+        var sourceRows = new List<SourceRow>();
         await foreach (SourceRow row in context.Source.ReadTableAsync(SourceTableName, cancellationToken))
         {
             result.RowsRead++;
-            var sourceId = row.GetInt32("id");
+            sourceRows.Add(row);
+        }
 
+        (IReadOnlyList<SourceRow> rowsToMigrate, IReadOnlyList<SourceRow> supersededRows) =
+            ShorfahAssignmentDeduplicator.SelectLastWrites(sourceRows);
+        var supersededSourceIdsByWinner = sourceRows
+            .GroupBy(row => (SectionId: row.GetInt32("section_id"), UserId: row.GetInt32("user_id")))
+            .ToDictionary(
+                group => group.Max(row => row.GetInt32("id")),
+                group => group
+                    .Select(row => row.GetInt32("id"))
+                    .Where(sourceId => sourceId != group.Max(row => row.GetInt32("id")))
+                    .ToArray());
+        foreach (SourceRow supersededRow in supersededRows)
+        {
+            result.RowsSkippedDueToDataIssue++;
+            result.Notes.Add(
+                $"shorfah_assignments source id {supersededRow.GetInt32("id")}: rejected as a superseded duplicate " +
+                $"for section/user ({supersededRow.GetInt32("section_id")}, {supersededRow.GetInt32("user_id")}); " +
+                "highest source id is retained by the explicit last-write-wins rule.");
+        }
+
+        foreach (SourceRow row in rowsToMigrate)
+        {
+            var sourceId = row.GetInt32("id");
             var existingId = await context.IdMap.TryGetDestinationIdAsync(SourceTableName, sourceId, cancellationToken);
             if (existingId.HasValue)
             {
@@ -67,6 +91,16 @@ public sealed class ShorfahAssignmentTableMigrator : ITableMigrator
             await destination.SaveChangesAsync(cancellationToken);
 
             await context.IdMap.RecordAsync(SourceTableName, sourceId, entity.Id, context.DateTimeProvider.UtcNow, cancellationToken);
+            foreach (var supersededSourceId in supersededSourceIdsByWinner[sourceId])
+            {
+                await context.IdMap.RecordAsync(
+                    SourceTableName,
+                    supersededSourceId,
+                    entity.Id,
+                    context.DateTimeProvider.UtcNow,
+                    cancellationToken);
+            }
+
             result.RowsInserted++;
         }
 

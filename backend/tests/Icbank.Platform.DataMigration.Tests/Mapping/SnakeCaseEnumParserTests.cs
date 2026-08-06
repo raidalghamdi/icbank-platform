@@ -1,5 +1,6 @@
 using FluentAssertions;
 using Icbank.Platform.DataMigration.Mapping;
+using Icbank.Platform.Domain.Gac;
 using Icbank.Platform.Domain.MediaMonitoring;
 using Icbank.Platform.Domain.Shorfah;
 using Xunit;
@@ -127,5 +128,14 @@ public sealed class SnakeCaseEnumParserTests
     public void ToPascalCase_HyphenDelimitedValue_ConvertsSameAsUnderscore()
     {
         SnakeCaseEnumParser.ToPascalCase("content-creation").Should().Be("ContentCreation");
+    }
+
+    [Fact]
+    public void TryParse_UnsupportedGacNewsCategory_ReturnsFalseForCountedMigrationRejection()
+    {
+        var parsed = SnakeCaseEnumParser.TryParse("announcement", out GacNewsCategory category);
+
+        parsed.Should().BeFalse();
+        category.Should().Be(default);
     }
 }

@@ -38,6 +38,16 @@ public sealed class GacNewsItemTableMigrator : ITableMigrator
             DateTime createdAt = row.GetRawTimestamp("created_at") ?? context.DateTimeProvider.UtcNow.UtcDateTime;
             DateTime? publishedAtRaw = row.GetRawTimestamp("published_at");
             var category = row.GetNullableString("category");
+            GacNewsCategory parsedCategory = default;
+            if (!string.IsNullOrEmpty(category) &&
+                !SnakeCaseEnumParser.TryParse(category, out parsedCategory))
+            {
+                result.RowsSkippedDueToDataIssue++;
+                result.Notes.Add(
+                    $"gac_news_items source id {sourceId}: category is not represented by the target " +
+                    "GacNewsCategory enum — skipped as a data-quality rejection.");
+                continue;
+            }
 
             var entity = new GacNewsItem
             {
@@ -47,7 +57,7 @@ public sealed class GacNewsItemTableMigrator : ITableMigrator
                 TitleEn = row.GetNullableString("title_en"),
                 BodyAr = row.GetNullableString("body_ar"),
                 BodyEn = row.GetNullableString("body_en"),
-                Category = string.IsNullOrEmpty(category) ? null : SnakeCaseEnumParser.Parse<GacNewsCategory>(category),
+                Category = string.IsNullOrEmpty(category) ? null : parsedCategory,
                 SourceUrl = row.GetNullableString("source_url"),
                 ImageUrl = row.GetNullableString("image_url"),
                 PublishedAt = publishedAtRaw.HasValue ? new DateTimeOffset(publishedAtRaw.Value, TimeSpan.Zero) : null,

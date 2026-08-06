@@ -86,9 +86,7 @@ public sealed class GacSocialPostTransformerTests
     {
         // Hard case: a null metric means "unknown", not "zero engagement" -- must not collapse.
         Dictionary<string, object?> values = BaseRow();
-        values["likes"] = null;
-        values["comments"] = null;
-        values["shares"] = null;
+        values["metrics"] = null;
         SourceRow row = SourceRowFixture.Build(values);
 
         MappedGacSocialPost result = GacSocialPostTransformer.Transform(row);
@@ -99,10 +97,10 @@ public sealed class GacSocialPostTransformerTests
     }
 
     [Fact]
-    public void Transform_CreatedAtMissing_Throws()
+    public void Transform_FetchedAtMissing_Throws()
     {
         Dictionary<string, object?> values = BaseRow();
-        values.Remove("created_at");
+        values.Remove("fetched_at");
         SourceRow row = SourceRowFixture.Build(values);
 
         Action act = () => GacSocialPostTransformer.Transform(row);
@@ -161,10 +159,8 @@ public sealed class GacSocialPostTransformerTests
         ["media_url"] = "https://cdn.example.com/img.png",
         ["media_type"] = "image",
         ["posted_at"] = new DateTime(2026, 4, 1, 8, 30, 0),
-        ["likes"] = 42,
-        ["comments"] = 3,
-        ["shares"] = 1,
+        ["metrics"] = """{"likes":42,"comments":3,"shares":1}""",
         ["account"] = "@icbank",
-        ["created_at"] = new DateTime(2026, 4, 1, 8, 31, 0),
+        ["fetched_at"] = new DateTime(2026, 4, 1, 8, 31, 0),
     };
 }
