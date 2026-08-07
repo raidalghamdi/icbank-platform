@@ -113,16 +113,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Wait for the new container to come up
+      # Waiting on "200 from /login" was wrong, and it produced a false green followed by a
+      # false red: App Service keeps serving the PREVIOUS container until the new one is
+      # warm, and the previous container answers 200 perfectly well. So the byte comparison
+      # below would run against the old build -- passing if the deploy changed nothing,
+      # failing loudly if it did. The only reliable readiness signal is the artefact itself,
+      # so poll until the served login page IS the committed one.
+      - name: Wait for the new build to actually be serving
         run: |
           BASE="${{ needs.deploy.outputs.app-url }}"
-          for i in $(seq 1 30); do
-            CODE=$(curl -s -o /dev/null -w '%{http_code}' "$BASE/login" || true)
-            if [ "$CODE" = "200" ]; then echo "up after ${i} attempt(s)"; exit 0; fi
-            echo "attempt $i: /login returned $CODE, retrying in 10s"
+          WANT=$(sha256sum "$FRONTEND_DIR/login.html" | cut -d' ' -f1)
+          for i in $(seq 1 40); do
+            curl -sS "$BASE/login" -o live.out 2>/dev/null || true
+            GOT=$(sha256sum live.out 2>/dev/null | cut -d' ' -f1)
+            if [ "$GOT" = "$WANT" ]; then
+              echo "new build live after ${i} attempt(s) (~$((i*10))s)"
+              exit 0
+            fi
+            echo "attempt $i: serving ${GOT:0:12}, want ${WANT:0:12} — retrying in 10s"
             sleep 10
           done
-          echo "::error::Site did not return 200 on /login within 5 minutes"
+          echo "::error::Deployed build never became live within ~7 minutes"
           exit 1
 
       - name: Confirm the live bytes match the committed files
