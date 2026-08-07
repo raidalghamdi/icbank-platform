@@ -247,13 +247,24 @@ const server = http.createServer(async (req, res) => {
 
   const urlPath = (req.url || '/').split('?')[0];
 
-  // Public paths that don't require auth
+  // Public paths that don't require auth.
+  //
+  // The brand stylesheet and the webfonts have to be here, not just the login HTML. The gate
+  // below answers 302 to /login for anything unauthenticated, so a signed-out browser asking
+  // for /css/dga.css or a .woff2 got redirected to an HTML page: the stylesheet never applied
+  // and the sign-in screen rendered in whatever the OS fell back to. Neither is sensitive --
+  // they are static brand assets, served to anyone who loads the login page anyway.
+  const isPublicAsset =
+    urlPath.startsWith('/fonts/') ||
+    urlPath.startsWith('/css/');
+
   const isPublicPath =
     urlPath === '/login' ||
     urlPath === '/login.html' ||
     urlPath === '/wk2-data' ||
     urlPath === '/runtime-config.js' ||
-    urlPath === '/public/favicon.svg';
+    urlPath === '/public/favicon.svg' ||
+    isPublicAsset;
 
   // Server-side auth gate — redirect to /login only when the browser has no
   // session indicator at all.  Two JS-accessible cookies signal presence:
@@ -320,7 +331,16 @@ const server = http.createServer(async (req, res) => {
       }
 
       const extension = path.extname(staticFilePath).toLowerCase();
+      // Why .html is here: without it index.html fell through to application/octet-stream and
+      // the browser downloaded the file instead of rendering it. "/" was fine because it is
+      // served by serveApplicationShell, which sets text/html itself -- so the bug only showed
+      // on a direct link to /index.html, which is exactly what a bookmark or a shared URL is.
       const contentTypes = {
+        '.html': 'text/html; charset=utf-8',
+        '.json': 'application/json; charset=utf-8',
+        '.ico': 'image/x-icon',
+        '.webp': 'image/webp',
+        '.map': 'application/json; charset=utf-8',
         '.css': 'text/css; charset=utf-8',
         '.js': 'application/javascript; charset=utf-8',
         '.jpg': 'image/jpeg',

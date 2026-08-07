@@ -4,7 +4,7 @@
 outstanding* for `raidalghamdi/icbank-platform`, with the values already substituted, so it
 can be pasted straight into [Azure Cloud Shell](https://shell.azure.com) (Bash).
 
-The Azure infrastructure already exists — resource group `icbank-dev-rg`, API
+The Azure infrastructure already exists — resource group `rg-icbank-dev`, API
 `icbank-dev-api`, frontend `icbank-dev-frontend`, SQL `icbank-dev-sql`, in subscription
 `f1422c2e-a1f8-4794-bfa4-d1c9c16e9287`. What does not exist is the **identity GitHub
 Actions authenticates as**, which is why `Frontend CD` fails at the `Azure login` step with:
@@ -50,7 +50,7 @@ done
 # Contributor scoped to the resource group is enough for both CD pipelines. Subscription
 # scope is only needed if you re-run the Bicep that creates the resource group itself.
 az role assignment create --assignee "$SP_OBJECT_ID" --role Contributor \
-  --scope "/subscriptions/f1422c2e-a1f8-4794-bfa4-d1c9c16e9287/resourceGroups/icbank-dev-rg"
+  --scope "/subscriptions/f1422c2e-a1f8-4794-bfa4-d1c9c16e9287/resourceGroups/rg-icbank-dev"
 
 echo "AZURE_CLIENT_ID=$APP_ID"
 echo "AZURE_TENANT_ID=$(az account show --query tenantId -o tsv)"
@@ -70,7 +70,7 @@ Then **Settings → Secrets and variables → Actions**:
 | Secrets | `AZURE_CLIENT_ID` | from Step A |
 | Secrets | `AZURE_TENANT_ID` | from Step A |
 | Secrets | `AZURE_SUBSCRIPTION_ID` | `f1422c2e-a1f8-4794-bfa4-d1c9c16e9287` |
-| Variables | `AZURE_RESOURCE_GROUP` | `icbank-dev-rg` |
+| Variables | `AZURE_RESOURCE_GROUP` | `rg-icbank-dev` |
 | Variables | `FRONTEND_APP_SERVICE_NAME` | `icbank-dev-frontend` (already set) |
 
 Paste into a plain text editor first if you are copying from a chat window or a rendered

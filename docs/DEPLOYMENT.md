@@ -197,7 +197,7 @@ az deployment sub create \
   --location uaenorth \
   --template-file infra/main.bicep \
   --parameters infra/parameters/dev.bicepparam \
-  --parameters resourceGroupName=icbank-dev-rg \
+  --parameters resourceGroupName=rg-icbank-dev \
   --parameters sqlEntraAdminObjectId="<object-id-from-above>" \
   --parameters sqlEntraAdminLogin="icbank-platform-sql-admins" \
   --parameters sqlEntraAdminTenantId="$(az account show --query tenantId -o tsv)"
@@ -215,11 +215,11 @@ az deployment sub create \
 > the form this repo's Bicep files were written and bicep-built against:
 >
 > ```bash
-> az group create --name icbank-dev-rg --location uaenorth
+> az group create --name rg-icbank-dev --location uaenorth
 >
 > az deployment group create \
 >   --name "icbank-dev-$(date +%Y%m%d%H%M%S)" \
->   --resource-group icbank-dev-rg \
+>   --resource-group rg-icbank-dev \
 >   --template-file infra/main.bicep \
 >   --parameters infra/parameters/dev.bicepparam \
 >   --parameters sqlEntraAdminObjectId="<object-id-from-above>" \
@@ -227,7 +227,7 @@ az deployment sub create \
 >   --parameters sqlEntraAdminTenantId="$(az account show --query tenantId -o tsv)"
 > ```
 >
-> Swap `dev.bicepparam` / `icbank-dev-rg` / `uaenorth` for `staging`/`prod` and your chosen
+> Swap `dev.bicepparam` / `rg-icbank-dev` / `uaenorth` for `staging`/`prod` and your chosen
 > region as appropriate. `sqlEntraAdminObjectId/Login/TenantId` have no default in `main.bicep`
 > on purpose — there is no safe default for "who administers this environment's database" — so
 > they must be supplied on every environment's first deploy this way, once, after which they are
@@ -239,7 +239,7 @@ its outputs — you'll need several of them in Steps 5–6:
 
 ```bash
 az deployment group show \
-  --resource-group icbank-dev-rg \
+  --resource-group rg-icbank-dev \
   --name "<the deployment name you used above>" \
   --query properties.outputs
 ```
@@ -343,7 +343,7 @@ verified email domain separately (this repo's Bicep does not create one — see
 [What gets provisioned, and why](#what-gets-provisioned-and-why)), then set:
 
 ```bash
-az deployment group create --resource-group icbank-dev-rg \
+az deployment group create --resource-group rg-icbank-dev \
   --template-file infra/main.bicep --parameters infra/parameters/dev.bicepparam \
   --parameters acsEmailEndpoint="https://<your-acs-resource>.communication.azure.com" \
   --parameters acsEmailSenderAddress="DoNotReply@<your-verified-domain>" \
@@ -378,7 +378,7 @@ environment-specific):
 
 | Variable | Value | How to obtain |
 |---|---|---|
-| `AZURE_RESOURCE_GROUP` | e.g. `icbank-dev-rg` | Whatever you named it in Step 3 |
+| `AZURE_RESOURCE_GROUP` | e.g. `rg-icbank-dev` | Whatever you named it in Step 3 |
 | `APP_SERVICE_NAME` | e.g. `icbank-dev-api` | `appServiceName` output from Step 3 |
 | `SQL_SERVER_NAME` | e.g. `icbank-dev-sql` | `sqlServerName` output from Step 3 |
 | `SQL_SERVER_FQDN` | e.g. `icbank-dev-sql.database.windows.net` | `sqlServerFqdn` output from Step 3 |
