@@ -74,7 +74,7 @@ public sealed partial class DatabaseSeeder
     // adds suggestions, the seeder must not undo that on the next restart.
     private async Task SeedInternationalDaysAsync(CancellationToken cancellationToken)
     {
-        var existing = await _dbContext.InternationalDays
+        List<string> existing = await _dbContext.InternationalDays
             .Select(d => d.DayNameAr)
             .ToListAsync(cancellationToken);
         var known = new HashSet<string>(existing, StringComparer.Ordinal);

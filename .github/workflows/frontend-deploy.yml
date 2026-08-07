@@ -161,19 +161,41 @@ jobs:
       # warm, and the previous container answers 200 perfectly well. So the byte comparison
       # below would run against the old build -- passing if the deploy changed nothing,
       # failing loudly if it did. The only reliable readiness signal is the artefact itself,
-      # so poll until the served login page IS the committed one.
+      # so poll until the served files ARE the committed ones.
+      #
+      # Waits on every file the next step verifies, not just one of them.
+      #
+      # This used to poll login.html alone and then declare the build live. login.html changes
+      # rarely, so on any release that did not touch it the very first poll matched -- against
+      # the OLD build -- and the wait returned immediately. The byte check then ran against a
+      # half-swapped site and failed on index.html. That is exactly what happened on the release
+      # that shipped the authCanView fix: the deploy was fine, the site was correct a minute
+      # later, and the pipeline still reported failure.
       - name: Wait for the new build to actually be serving
         run: |
           BASE="${{ needs.deploy.outputs.app-url }}"
-          WANT=$(sha256sum "$FRONTEND_DIR/login.html" | cut -d' ' -f1)
           for i in $(seq 1 40); do
-            curl -sS "$BASE/login" -o live.out 2>/dev/null || true
-            GOT=$(sha256sum live.out 2>/dev/null | cut -d' ' -f1)
-            if [ "$GOT" = "$WANT" ]; then
-              echo "new build live after ${i} attempt(s) (~$((i*10))s)"
+            pending=""
+            # "/" is behind a presence-only session gate, so a dummy cookie is enough.
+            for pair in "login:$FRONTEND_DIR/login.html:" ":$FRONTEND_DIR/index.html:1"; do
+              path="${pair%%:*}"; rest="${pair#*:}"
+              localfile="${rest%%:*}"; needcookie="${rest##*:}"
+              want=$(sha256sum "$localfile" | cut -d' ' -f1)
+              if [ -n "$needcookie" ]; then
+                curl -sS "$BASE/$path" -H 'Cookie: has_session=1' -o live.out 2>/dev/null || true
+              else
+                curl -sS "$BASE/$path" -o live.out 2>/dev/null || true
+              fi
+              got=$(sha256sum live.out 2>/dev/null | cut -d' ' -f1)
+              if [ "$got" != "$want" ]; then
+                pending="$pending /$path(${got:0:8}!=${want:0:8})"
+              fi
+            done
+            if [ -z "$pending" ]; then
+              echo "whole build live after ${i} attempt(s) (~$((i*10))s)"
               exit 0
             fi
-            echo "attempt $i: serving ${GOT:0:12}, want ${WANT:0:12} — retrying in 10s"
+            echo "attempt $i: still stale:$pending — retrying in 10s"
             sleep 10
           done
           echo "::error::Deployed build never became live within ~7 minutes"
