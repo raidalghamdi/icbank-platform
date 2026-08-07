@@ -139,6 +139,52 @@ public sealed class GenerateIconEventDesignCommandHandlerTests
         result.Value.Variants.Should().OnlyContain(v => v.MainIcon == "graduation-cap");
     }
 
+    /// <summary>
+    /// Regression: the Node source ranked the first line of <c>raw_data</c> above the extracted
+    /// headline. Raw input is normally one newline-free paragraph, so that made the model's short
+    /// headline unreachable in raw mode and rendered a whole sentence in the headline slot.
+    /// </summary>
+    [Fact]
+    public async Task Handle_RawModeSingleParagraph_PrefersExtractedHeadlineOverWholeParagraph()
+    {
+        const string paragraph = "ورشة عمل عن الامتثال لأحكام نظام المنافسة بحضور 40 موظفاً من عدة إدارات، تستمر ثلاثة أيام";
+        _extractor.ExtractAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(BuildExtraction(aiHeadline: "ورشة عمل: الامتثال لنظام المنافسة"));
+
+        Result<GenerateIconEventDesignResultDto> result = await _handler.Handle(
+            BuildCommand(rawData: paragraph), CancellationToken.None);
+
+        result.Value!.Variants.Should().OnlyContain(v => v.Headline == "ورشة عمل: الامتثال لنظام المنافسة");
+        result.Value.Variants.Should().OnlyContain(v => v.Headline != paragraph);
+    }
+
+    [Fact]
+    public async Task Handle_ExplicitHeadlineSupplied_OutranksExtractedHeadline()
+    {
+        _extractor.ExtractAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(BuildExtraction(aiHeadline: "عنوان من النموذج"));
+
+        Result<GenerateIconEventDesignResultDto> result = await _handler.Handle(
+            BuildCommand(rawData: "نص خام طويل للاختبار", headline: "عنوان المستخدم"), CancellationToken.None);
+
+        result.Value!.Variants.Should().OnlyContain(v => v.Headline == "عنوان المستخدم");
+    }
+
+    [Fact]
+    public async Task Handle_ExtractedHeadlineBlank_FallsBackToTruncatedRawFirstLine()
+    {
+        var paragraph = new string('أ', 200);
+        _extractor.ExtractAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(BuildExtraction(aiHeadline: "   "));
+
+        Result<GenerateIconEventDesignResultDto> result = await _handler.Handle(
+            BuildCommand(rawData: paragraph), CancellationToken.None);
+
+        var headline = result.Value!.Variants[0].Headline;
+        headline.Should().HaveLength(61).And.EndWith("…");
+        headline.Should().NotBe(paragraph);
+    }
+
     [Fact]
     public async Task Handle_Always_WritesAuditEntry()
     {
@@ -150,12 +196,19 @@ public sealed class GenerateIconEventDesignCommandHandlerTests
             ActorUserId, "design.icon_event.generate", "IconEventDesign", Arg.Any<string>(), Arg.Any<object?>(), Arg.Any<object?>(), Arg.Any<CancellationToken>());
     }
 
-    private static GenerateIconEventDesignCommand BuildCommand(string? rawData = null, string? mainIconOverride = null, string? eventType = null) =>
-        new(ActorUserId, rawData, Headline: null, Subtitle: null, Department: null, Hashtag: null, Date: null, Time: null, Location: null, eventType, "landscape", mainIconOverride);
+    private static GenerateIconEventDesignCommand BuildCommand(
+        string? rawData = null,
+        string? mainIconOverride = null,
+        string? eventType = null,
+        string? headline = null) =>
+        new(ActorUserId, rawData, headline, Subtitle: null, Department: null, Hashtag: null, Date: null, Time: null, Location: null, eventType, "landscape", mainIconOverride);
 
-    private static IconEventExtractionResultDto BuildExtraction(IReadOnlyList<IconEventStatDto>? stats = null, IReadOnlyList<string>? layouts = null)
+    private static IconEventExtractionResultDto BuildExtraction(
+        IReadOnlyList<IconEventStatDto>? stats = null,
+        IReadOnlyList<string>? layouts = null,
+        string aiHeadline = "عنوان الفعالية")
     {
-        var extracted = new IconEventExtractedDataDto("عنوان الفعالية", "وصف", string.Empty, string.Empty, string.Empty, string.Empty, stats ?? Array.Empty<IconEventStatDto>());
+        var extracted = new IconEventExtractedDataDto(aiHeadline, "وصف", string.Empty, string.Empty, string.Empty, string.Empty, stats ?? Array.Empty<IconEventStatDto>());
         IReadOnlyList<string> resolvedLayouts = layouts ?? DefaultLayouts;
         var variants = resolvedLayouts.Select(l => new IconEventVariantProposalDto(l, "sparkles", SupportingIconStub, "سبب")).ToList();
         return new IconEventExtractionResultDto(extracted, variants);

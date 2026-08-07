@@ -14475,14 +14475,17 @@ window.MM = (function(){
         return;
       }
       // See periodFields(): the API contract is {periodLabel, audience, dateFrom, dateTo,
-      // focusTopics}. reportType/sources/language/autoSave were Node-era fields the .NET endpoint
+      // focusTopics, sources}. reportType/language/autoSave remain Node-era fields the .NET endpoint
       // does not accept, and omitting the required periodLabel made every generate return 400.
+      // `sources` is now accepted and honoured, so the wizard's step-3 selection is sent through
+      // instead of being collected and discarded.
       var payload = {
         periodLabel: period.periodLabel,
         audience: state.wizAnswers.audience,
         dateFrom: period.dateFrom,
         dateTo: period.dateTo,
-        focusTopics: state.wizAnswers.focusTopics
+        focusTopics: state.wizAnswers.focusTopics,
+        sources: state.wizAnswers.sources || []
       };
       var res = await apiFetch(apiUrl('/final-media-reports/generate'), { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
       if (!res.ok) {
@@ -14931,7 +14934,10 @@ window.MM = (function(){
         audience: document.getElementById('mm-gen-audience').value,
         dateFrom: period.dateFrom,
         dateTo: period.dateTo,
-        focusTopics: ''
+        focusTopics: '',
+        // The checkboxes above used to be assembled into `sources` and then dropped here, so
+        // unticking a channel had no effect on the generated report. The backend now filters on it.
+        sources: sources
       };
       var res = await apiFetch(apiUrl('/final-media-reports/generate'), {
         method:'POST',

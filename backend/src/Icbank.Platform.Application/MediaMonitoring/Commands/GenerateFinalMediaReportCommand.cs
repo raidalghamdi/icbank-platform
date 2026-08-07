@@ -18,6 +18,16 @@ namespace Icbank.Platform.Application.MediaMonitoring.Commands;
 /// <param name="DateFrom">The range start.</param>
 /// <param name="DateTo">The range end.</param>
 /// <param name="FocusTopics">Optional focus-topics free text.</param>
+/// <param name="Sources">
+/// The source channels to include: <c>news</c>, <c>linkedin</c>, <c>twitter</c>. Null or empty means
+/// include everything, which preserves the behaviour of every caller that predates this parameter.
+/// </param>
 public sealed record GenerateFinalMediaReportCommand(
-    int ActorUserId, string PeriodLabel, string? Audience, DateTimeOffset DateFrom, DateTimeOffset DateTo, string? FocusTopics)
+    int ActorUserId,
+    string PeriodLabel,
+    string? Audience,
+    DateTimeOffset DateFrom,
+    DateTimeOffset DateTo,
+    string? FocusTopics,
+    IReadOnlyList<string>? Sources = null)
     : IRequest<Result<GenerateFinalMediaReportResultDto>>;

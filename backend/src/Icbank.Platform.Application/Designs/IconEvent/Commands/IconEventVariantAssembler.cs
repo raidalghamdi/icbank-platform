@@ -95,6 +95,23 @@ public static class IconEventVariantAssembler
         return new GenerateIconEventDesignResultDto(variants, variants.Count, extracted, "تم استخدام التنويعات الافتراضية لتعذّر الاتصال بـ AI — يمكنك إعادة المحاولة");
     }
 
+    /// <summary>Chooses the headline to render, preferring the user's own wording, then the model's.</summary>
+    /// <param name="explicitHeadline">The headline the user typed in structured mode, if any.</param>
+    /// <param name="rawData">The raw free-text input supplied in raw mode.</param>
+    /// <param name="aiHeadline">The short headline the extractor produced.</param>
+    /// <returns>The headline to render on every variant.</returns>
+    /// <remarks>
+    /// Why this diverges from the Node source: <c>routes/icon-event-designs.ts</c> ordered this
+    /// <c>headline || rawFirstLine || extracted.headline</c> and labelled it "Priority: (1) explicit
+    /// headline from user, (2) first non-empty line of raw_data, (3) AI extracted". Raw input is
+    /// almost always a single paragraph with no newline, so "first non-empty line" evaluated to the
+    /// entire paragraph and the extracted headline was unreachable in raw mode -- the one mode whose
+    /// whole purpose is extraction. The prompt asks the model for <c>عنوان 2-6 كلمات</c>
+    /// (IconEventExtractionPrompts), so honouring the raw paragraph instead rendered a full sentence
+    /// in the headline slot of a 1080x1080 canvas and duplicated it into the subtitle.
+    /// The AI headline now outranks the raw text, which is only used as a truncated fallback for when
+    /// extraction returns nothing (or the local template extractor is active).
+    /// </remarks>
     private static string ResolveHeadline(string? explicitHeadline, string? rawData, string aiHeadline)
     {
         if (!string.IsNullOrWhiteSpace(explicitHeadline))
@@ -102,13 +119,20 @@ public static class IconEventVariantAssembler
             return explicitHeadline.Trim();
         }
 
+        if (!string.IsNullOrWhiteSpace(aiHeadline))
+        {
+            return aiHeadline.Trim();
+        }
+
         var firstLine = (rawData ?? string.Empty).Split('\n').Select(l => l.Trim()).FirstOrDefault(l => l.Length > 0);
         if (!string.IsNullOrEmpty(firstLine))
         {
-            return firstLine;
+            return firstLine.Length > FallbackHeadlineLength
+                ? firstLine[..FallbackHeadlineLength].TrimEnd() + "…"
+                : firstLine;
         }
 
-        return string.IsNullOrWhiteSpace(aiHeadline) ? "عنوان الفعالية" : aiHeadline;
+        return "عنوان الفعالية";
     }
 
     private static string ResolveSubtitle(string? explicitSubtitle, string rawFull, string finalHeadline, string contactEmail, string contactPhone, string aiSubtitle)

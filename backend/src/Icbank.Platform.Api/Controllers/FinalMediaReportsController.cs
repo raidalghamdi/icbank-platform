@@ -77,7 +77,14 @@ public sealed class FinalMediaReportsController : ControllerBase
         [FromBody] GenerateFinalMediaReportRequest request, CancellationToken cancellationToken)
     {
         var actorUserId = CurrentUserId.TryRead(User) ?? throw new InvalidOperationException("Authenticated request missing subject claim.");
-        var command = new GenerateFinalMediaReportCommand(actorUserId, request.PeriodLabel, request.Audience, request.DateFrom, request.DateTo, request.FocusTopics);
+        var command = new GenerateFinalMediaReportCommand(
+            actorUserId,
+            request.PeriodLabel,
+            request.Audience,
+            request.DateFrom,
+            request.DateTo,
+            request.FocusTopics,
+            request.Sources);
         Result<GenerateFinalMediaReportResultDto> result = await _sender.Send(command, cancellationToken);
         if (!result.IsSuccess)
         {

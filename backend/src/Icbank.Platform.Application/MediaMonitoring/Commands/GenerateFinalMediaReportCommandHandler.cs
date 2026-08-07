@@ -35,10 +35,29 @@ public sealed class GenerateFinalMediaReportCommandHandler : IRequestHandler<Gen
     /// <inheritdoc />
     public async Task<Result<GenerateFinalMediaReportResultDto>> Handle(GenerateFinalMediaReportCommand request, CancellationToken cancellationToken)
     {
-        List<GacSocialPost> posts = await _queryExecutor.ToListAsync(
-            _dbContext.GacSocialPosts.Where(p => p.PostedAt >= request.DateFrom && p.PostedAt <= request.DateTo), cancellationToken);
-        List<GacNewsItem> news = await _queryExecutor.ToListAsync(
-            _dbContext.GacNewsItems.Where(n => n.PublishedAt >= request.DateFrom && n.PublishedAt <= request.DateTo), cancellationToken);
+        // The source checkboxes were previously decorative: the front end assembled a `sources` array
+        // and never sent it, so unticking a channel changed nothing in the generated report.
+        var selection = ReportSourceSelection.From(request.Sources);
+
+        List<GacSocialPost> posts;
+        if (selection.IncludeAnySocial)
+        {
+            var platforms = selection.Platforms.ToList();
+            posts = await _queryExecutor.ToListAsync(
+                _dbContext.GacSocialPosts.Where(p =>
+                    p.PostedAt >= request.DateFrom && p.PostedAt <= request.DateTo && platforms.Contains(p.Platform)),
+                cancellationToken);
+        }
+        else
+        {
+            posts = new List<GacSocialPost>();
+        }
+
+        List<GacNewsItem> news = selection.IncludeNews
+            ? await _queryExecutor.ToListAsync(
+                _dbContext.GacNewsItems.Where(n => n.PublishedAt >= request.DateFrom && n.PublishedAt <= request.DateTo),
+                cancellationToken)
+            : new List<GacNewsItem>();
 
         if (posts.Count == 0 && news.Count == 0)
         {

@@ -19,6 +19,9 @@ public sealed class GenerateFinalMediaReportCommandHandlerTests
 {
     private const int ActorUserId = 12;
 
+    private static readonly string[] LinkedInOnly = { "linkedin" };
+    private static readonly string[] UnrecognisedChannelOnly = { "unrecognised-channel" };
+
     private readonly IApplicationDbContext _dbContext = Substitute.For<IApplicationDbContext>();
     private readonly TestAsyncQueryExecutor _queryExecutor = new();
     private readonly IAuditLogService _auditLogService = Substitute.For<IAuditLogService>();
@@ -83,5 +86,89 @@ public sealed class GenerateFinalMediaReportCommandHandlerTests
 
         result.Value!.NoSourceData!.TotalNewsAvailable.Should().Be(1);
         result.Value.NoSourceData.EarliestAvailableDate.Should().Be(new DateTimeOffset(2020, 1, 1, 0, 0, 0, TimeSpan.Zero));
+    }
+
+    [Fact]
+    public async Task Handle_NewsSourceUnticked_ExcludesNewsAndReportsNoSourceData()
+    {
+        _dbContext.GacNewsItems.Returns(new[]
+        {
+            new GacNewsItem { TitleAr = "خبر", PublishedAt = DateTimeOffset.UtcNow.AddDays(-1) },
+        }.AsQueryable());
+        var command = new GenerateFinalMediaReportCommand(
+            ActorUserId,
+            "يوليو 2026",
+            "عام",
+            DateTimeOffset.UtcNow.AddDays(-7),
+            DateTimeOffset.UtcNow,
+            null,
+            LinkedInOnly);
+
+        Result<GenerateFinalMediaReportResultDto> result = await _handler.Handle(command, CancellationToken.None);
+
+        result.Value!.NoSourceData.Should().NotBeNull();
+        result.Value.Draft.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task Handle_TwitterUntickedButLinkedInSelected_ExcludesTwitterPosts()
+    {
+        _dbContext.GacSocialPosts.Returns(new[]
+        {
+            new GacSocialPost { Platform = GacSocialPlatform.Twitter, PostedAt = DateTimeOffset.UtcNow.AddDays(-1) },
+        }.AsQueryable());
+        var command = new GenerateFinalMediaReportCommand(
+            ActorUserId,
+            "يوليو 2026",
+            "عام",
+            DateTimeOffset.UtcNow.AddDays(-7),
+            DateTimeOffset.UtcNow,
+            null,
+            LinkedInOnly);
+
+        Result<GenerateFinalMediaReportResultDto> result = await _handler.Handle(command, CancellationToken.None);
+
+        result.Value!.NoSourceData.Should().NotBeNull();
+        result.Value.NoSourceData!.Code.Should().Be("NO_SOURCE_DATA");
+    }
+
+    [Fact]
+    public async Task Handle_SourcesOmitted_IncludesEverythingSoOlderClientsAreUnaffected()
+    {
+        _dbContext.GacSocialPosts.Returns(new[]
+        {
+            new GacSocialPost { Platform = GacSocialPlatform.Twitter, PostedAt = DateTimeOffset.UtcNow.AddDays(-1) },
+        }.AsQueryable());
+        _sectionGenerator.GenerateAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string?>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(new FinalReportSections { ExecutiveSummary = "ملخص" });
+        var command = new GenerateFinalMediaReportCommand(
+            ActorUserId, "يوليو 2026", "عام", DateTimeOffset.UtcNow.AddDays(-7), DateTimeOffset.UtcNow, null);
+
+        Result<GenerateFinalMediaReportResultDto> result = await _handler.Handle(command, CancellationToken.None);
+
+        result.Value!.Draft.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task Handle_AllSourcesUnticked_SkipsTheAiCallEntirely()
+    {
+        _dbContext.GacNewsItems.Returns(new[]
+        {
+            new GacNewsItem { TitleAr = "خبر", PublishedAt = DateTimeOffset.UtcNow.AddDays(-1) },
+        }.AsQueryable());
+        var command = new GenerateFinalMediaReportCommand(
+            ActorUserId,
+            "يوليو 2026",
+            "عام",
+            DateTimeOffset.UtcNow.AddDays(-7),
+            DateTimeOffset.UtcNow,
+            null,
+            UnrecognisedChannelOnly);
+
+        Result<GenerateFinalMediaReportResultDto> result = await _handler.Handle(command, CancellationToken.None);
+
+        result.Value!.NoSourceData.Should().NotBeNull();
+        await _sectionGenerator.DidNotReceive().GenerateAsync(
+            Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string?>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 }

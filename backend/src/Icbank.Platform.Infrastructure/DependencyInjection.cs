@@ -4,9 +4,11 @@ using Azure.Communication.Email;
 using Azure.Storage.Blobs;
 using Icbank.Platform.Application.Auth;
 using Icbank.Platform.Application.Common.Interfaces;
+using Icbank.Platform.Application.Gac.News;
 using Icbank.Platform.Infrastructure.Gemini;
 using Icbank.Platform.Infrastructure.Http;
 using Icbank.Platform.Infrastructure.Identity;
+using Icbank.Platform.Infrastructure.News;
 using Icbank.Platform.Infrastructure.Notifications;
 using Icbank.Platform.Infrastructure.Persistence;
 using Icbank.Platform.Infrastructure.Persistence.Interceptors;
@@ -42,9 +44,71 @@ public static partial class DependencyInjection
         AddSeeding(services, configuration);
         AddPersistence(services, configuration);
         AddResilientHttpClients(services);
+        AddNewsSourceServices(services, configuration);
 
         return services;
     }
+
+    /// <summary>
+    /// Registers the news ingest providers selected by <c>NewsSources:EnabledProviders</c>.
+    /// </summary>
+    /// <param name="services">The DI service collection.</param>
+    /// <param name="configuration">The application configuration.</param>
+    /// <remarks>
+    /// Every provider is constructed here and filtered by configuration rather than compiled in, so
+    /// changing which upstream the Authority monitors is an App Service setting, not a release. An
+    /// unrecognised key is logged and ignored instead of throwing: a typo in a config value must not
+    /// take the whole API down at startup.
+    /// </remarks>
+    private static void AddNewsSourceServices(IServiceCollection services, IConfiguration configuration)
+    {
+        var options = new NewsSourceOptions();
+        configuration.GetSection(NewsSourceOptions.SectionName).Bind(options);
+        services.AddSingleton(options);
+        services.AddSingleton(new NewsFetchSettings(
+            options.Terms,
+            options.Language,
+            options.Region,
+            options.WithinDays,
+            options.MaxItemsPerTerm));
+
+        services.AddHttpClient("news");
+        var newsDataApiKey = NewsDataApiKeyResolver.Resolve(configuration);
+
+        foreach (var providerKey in options.EnabledProviders.Select(k => k.Trim()).Where(k => k.Length > 0).Distinct())
+        {
+            RegisterNewsProvider(services, providerKey, newsDataApiKey);
+        }
+    }
+
+    private static void RegisterNewsProvider(IServiceCollection services, string providerKey, string? newsDataApiKey)
+    {
+        if (string.Equals(providerKey, GoogleNewsRssProvider.Key, StringComparison.OrdinalIgnoreCase))
+        {
+            services.AddSingleton<INewsSourceProvider>(sp => new GoogleNewsRssProvider(
+                sp.GetRequiredService<IHttpClientFactory>().CreateClient("news"),
+                sp.GetRequiredService<NewsSourceOptions>(),
+                sp.GetRequiredService<ILogger<GoogleNewsRssProvider>>()));
+            return;
+        }
+
+        if (string.Equals(providerKey, NewsDataIoProvider.Key, StringComparison.OrdinalIgnoreCase))
+        {
+            services.AddSingleton<INewsSourceProvider>(sp => new NewsDataIoProvider(
+                sp.GetRequiredService<IHttpClientFactory>().CreateClient("news"),
+                sp.GetRequiredService<NewsSourceOptions>(),
+                newsDataApiKey,
+                sp.GetRequiredService<ILogger<NewsDataIoProvider>>()));
+            return;
+        }
+
+        using ILoggerFactory loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+        ILogger logger = loggerFactory.CreateLogger(typeof(DependencyInjection).FullName ?? nameof(DependencyInjection));
+        LogUnknownNewsProvider(logger, providerKey);
+    }
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Unknown news provider key {ProviderKey} in NewsSources:EnabledProviders; ignoring it. Valid keys are google-news-rss and newsdata-io.")]
+    private static partial void LogUnknownNewsProvider(ILogger logger, string providerKey);
 
     /// <summary>Registers the current-user/request-context ports, identity/auth ports, and other security-related singletons/scoped services.</summary>
     /// <param name="services">The DI service collection.</param>

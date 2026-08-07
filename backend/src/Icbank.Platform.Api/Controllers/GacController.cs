@@ -101,6 +101,39 @@ public sealed class GacController : ControllerBase
         return Ok(result.Value);
     }
 
+    /// <summary>Upserts a batch of news items, deduplicated by source URL.</summary>
+    /// <param name="request">The batch of news items to upsert.</param>
+    /// <param name="cancellationToken">A token used to observe cancellation requests.</param>
+    /// <returns>200 OK with the ingest summary, or 400 on validation failure.</returns>
+    [HttpPost("news/ingest")]
+    [Authorize(Policy = AuthorizationPolicyExtensions.CronApiKeyPolicyName)]
+    public async Task<ActionResult<IngestGacNewsItemsResult>> IngestNewsAsync(
+        [FromBody] IngestGacNewsRequest request, CancellationToken cancellationToken)
+    {
+        Result<IngestGacNewsItemsResult> result =
+            await _sender.Send(new IngestGacNewsItemsCommand(request.Items), cancellationToken);
+        return Ok(result.Value);
+    }
+
+    /// <summary>Pulls fresh coverage from the enabled news providers and ingests it.</summary>
+    /// <param name="request">Optional per-run overrides for the search terms and lookback window.</param>
+    /// <param name="cancellationToken">A token used to observe cancellation requests.</param>
+    /// <returns>200 OK with the fetch summary, including per-provider yields.</returns>
+    /// <remarks>
+    /// Returns 200 with zero counts rather than an error when a provider yields nothing, because the
+    /// upstream is a best-effort feed and an empty week is a legitimate outcome, not a failure the
+    /// cron should retry.
+    /// </remarks>
+    [HttpPost("news/fetch")]
+    [Authorize(Policy = AuthorizationPolicyExtensions.CronApiKeyPolicyName)]
+    public async Task<ActionResult<FetchGacNewsResult>> FetchNewsAsync(
+        [FromBody] FetchGacNewsRequest? request, CancellationToken cancellationToken)
+    {
+        Result<FetchGacNewsResult> result =
+            await _sender.Send(new FetchGacNewsCommand(request?.Terms, request?.WithinDays), cancellationToken);
+        return Ok(result.Value);
+    }
+
     /// <summary>Seeds 5 fixed sample Twitter/X posts (fixture data pending real X API integration).</summary>
     /// <param name="cancellationToken">A token used to observe cancellation requests.</param>
     /// <returns>200 OK with the seed summary.</returns>
