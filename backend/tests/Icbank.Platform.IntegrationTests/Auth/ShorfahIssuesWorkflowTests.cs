@@ -379,7 +379,23 @@ public sealed class ShorfahIssuesWorkflowTests : IDisposable
         Task<HttpResponseMessage> second = client.PostAsync(new Uri($"/api/v1/shorfah/issues/{issue.Id}/start-review", UriKind.Relative), content: null);
         HttpResponseMessage[] responses = await Task.WhenAll(first, second);
 
-        responses.Should().OnlyContain(r => r.StatusCode == HttpStatusCode.OK, "both racing start-review calls request the same legal collecting->in_review transition, so both may legitimately succeed (idempotent target state) without corrupting the row");
+        // Not "both return 200". The row carries an optimistic-concurrency token, so whichever
+        // call loses the race hits DbUpdateConcurrencyException and GlobalExceptionMiddleware
+        // maps that to 409 -- by design. Whether the two requests collide at all depends on how
+        // their transactions interleave, which is timing, not behaviour: demanding 200 from both
+        // made this test pass or fail on scheduling luck. It is exactly the kind of test that is
+        // green until it blocks a deployment, which is what it did here.
+        //
+        // The property actually worth holding is that a lost race is refused cleanly rather than
+        // silently corrupting the row, so assert that instead: every response is a considered
+        // answer, at least one caller wins, and the issue lands in one legal state.
+        responses.Should().OnlyContain(
+            r => r.StatusCode == HttpStatusCode.OK || r.StatusCode == HttpStatusCode.Conflict,
+            "a racing start-review either performs the collecting->in_review transition or is refused with 409 by the concurrency token; any other status means the race produced an unconsidered outcome");
+
+        responses.Should().Contain(
+            r => r.StatusCode == HttpStatusCode.OK,
+            "the transition is legal, so the race must not end with both callers refused");
 
         HttpResponseMessage finalState = await client.GetAsync(new Uri($"/api/v1/shorfah/issues/{issue.Id}", UriKind.Relative));
         GetIssuePayload? detail = await finalState.Content.ReadFromJsonAsync<GetIssuePayload>();
