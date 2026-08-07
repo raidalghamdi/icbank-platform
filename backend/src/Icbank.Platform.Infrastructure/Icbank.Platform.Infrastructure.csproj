@@ -1,0 +1,52 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\Icbank.Platform.Domain\Icbank.Platform.Domain.csproj" />
+    <ProjectReference Include="..\Icbank.Platform.Application\Icbank.Platform.Application.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Why: BlobPathResolver is intentionally internal (Storage/BlobPathResolver.cs: it is a
+         shared implementation detail of the Azure Blob adapters, not part of the Infrastructure
+         layer's public surface), but its folder-prefix-to-container mapping is exactly the kind
+         of pure logic that should be unit tested directly rather than only indirectly through
+         every adapter that calls it. -->
+    <InternalsVisibleTo Include="Icbank.Platform.UnitTests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
+    <PackageReference Include="Microsoft.Extensions.Http.Resilience" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
+    <PackageReference Include="Hangfire.AspNetCore" />
+    <PackageReference Include="Hangfire.SqlServer" />
+    <PackageReference Include="HtmlSanitizer" />
+    <PackageReference Include="QuestPDF" />
+    <PackageReference Include="DocumentFormat.OpenXml" />
+    <PackageReference Include="PdfPig" />
+    <PackageReference Include="HtmlAgilityPack" />
+    <PackageReference Include="Azure.Storage.Blobs" />
+    <PackageReference Include="Azure.Communication.Email" />
+    <!-- Aliased: Azure.Core >= 1.55.0 (floor of Azure.Storage.Blobs 12.29.1) embeds its own
+         internal Azure.Identity.DefaultAzureCredential type, which collides (CS0433) with the
+         real Azure.Identity package's type of the identical fully-qualified name when both
+         assemblies are referenced directly. Aliasing forces callers to disambiguate via
+         `extern alias identity;` + `identity::Azure.Identity.DefaultAzureCredential`. -->
+    <PackageReference Include="Azure.Identity" Aliases="identity" />
+    <PackageReference Include="Polly" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Rendering\Fonts\FrutigerLTArabic-Roman.ttf" />
+    <EmbeddedResource Include="Rendering\Fonts\FrutigerLTArabic-Bold.ttf" />
+    <EmbeddedResource Include="Rendering\Fonts\FrutigerLTArabic-Light.ttf" />
+  </ItemGroup>
+
+</Project>

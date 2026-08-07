@@ -5,9 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#1E40AF">
 <title>تسجيل الدخول — منصة التواصل المؤسسي</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="/public/favicon.svg">
+<script src="/runtime-config.js"></script>
+<!-- The approved typeface, served from this origin. This page previously pulled IBM Plex
+     Sans Arabic and Inter from the Google Fonts CDN: off-brand faces, a third-party request
+     from the sign-in page of a government platform, and a hard failure behind a corporate
+     firewall that would drop the login screen to a system font. -->
+<link rel="preload" as="font" type="font/woff2" href="/fonts/frutiger/FrutigerLTArabic-Roman.woff2" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="/fonts/frutiger/FrutigerLTArabic-Bold.woff2" crossorigin>
+<link rel="stylesheet" href="/css/dga.css">
 <style>
 :root {
   --primary:        #1E40AF;
@@ -26,7 +32,7 @@
   --danger-bg:      #FEF2F2;
   --success:        #16A34A;
   --success-bg:     #F0FDF4;
-  --sans: 'IBM Plex Sans Arabic', 'Inter', system-ui, sans-serif;
+  --sans: 'Frutiger LT Arabic', system-ui, sans-serif;
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html { -webkit-font-smoothing: antialiased; }
@@ -77,7 +83,7 @@ body {
   color: var(--text-3);
   letter-spacing: 0.5px;
   text-transform: uppercase;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--sans);
 }
 
 .login-card {
@@ -142,16 +148,19 @@ body {
 .field-icon svg { width: 100%; height: 100%; stroke-width: 2; }
 .toggle-pass {
   position: absolute;
-  left: 13px;
+  left: 0;
   top: 50%;
   transform: translateY(-50%);
   background: none;
   border: none;
   cursor: pointer;
   color: var(--text-4);
-  padding: 0;
-  width: 17px; height: 17px;
+  /* 44x44 hit area (WCAG 2.5.5) while the glyph stays visually at 13px inset */
+  padding: 0 13px;
+  width: 44px; height: 44px;
+  min-width: 44px; min-height: 44px;
   display: flex; align-items: center; justify-content: center;
+  box-sizing: border-box;
 }
 .toggle-pass:hover { color: var(--text-2); }
 .toggle-pass svg { width: 17px; height: 17px; stroke-width: 2; }
@@ -169,10 +178,13 @@ body {
   cursor: pointer;
 }
 .checkbox-wrap input[type="checkbox"] {
-  width: 16px; height: 16px;
+  width: 18px; height: 18px;
   accent-color: var(--primary);
   cursor: pointer;
+  flex-shrink: 0;
 }
+/* Keep the whole label row a comfortable target */
+.checkbox-wrap { min-height: 44px; }
 .checkbox-wrap span {
   font-size: 13px;
   color: var(--text-2);
@@ -271,6 +283,63 @@ body {
   font-size: 11.5px;
   color: var(--text-4);
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   RESPONSIVE — small-screen spacing
+   The card must breathe on a 375px phone and stay scrollable on short
+   viewports (the login form is taller than a landscape phone).
+   ══════════════════════════════════════════════════════════════════ */
+@media (max-width: 600px) {
+  body {
+    align-items: flex-start;
+    padding: 24px 16px 32px;
+    min-height: 100dvh;
+  }
+  .login-wrap { max-width: 100%; }
+  .login-brand { margin-bottom: 24px; }
+  .brand-logo { width: 50px; height: 50px; }
+  .login-card { padding: 24px 18px; border-radius: 14px; }
+  .login-heading { font-size: 17px; }
+  .login-sub { font-size: 12.5px; margin-bottom: 22px; }
+  .field { margin-bottom: 16px; }
+  .field-options { margin-bottom: 20px; }
+  .sso-divider { margin: 18px 0; }
+  .login-footer { margin-top: 18px; }
+}
+
+@media (max-width: 380px) {
+  body { padding: 18px 12px 26px; }
+  .login-card { padding: 20px 14px; border-radius: 12px; }
+  .login-heading { font-size: 16px; }
+  .field label { font-size: 12.5px; }
+  .checkbox-wrap span { font-size: 12.5px; }
+  .brand-sub { font-size: 10px; }
+}
+
+/* Short viewports (landscape phones): let the page scroll instead of clipping */
+@media (max-height: 620px) {
+  body { align-items: flex-start; padding-top: 20px; padding-bottom: 28px; }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   TOUCH TARGETS — 44x44 minimum on touch-primary devices
+   16px inputs also stop iOS Safari from zooming on focus.
+   ══════════════════════════════════════════════════════════════════ */
+@media (hover: none) and (pointer: coarse) {
+  .field input,
+  #user-type,
+  select {
+    min-height: 44px;
+    height: 44px;
+    font-size: 16px;
+  }
+  .btn-login { min-height: 46px; }
+  .btn-sso { min-height: 44px; }
+  .toggle-pass { width: 44px; height: 44px; }
+  .checkbox-wrap { min-height: 44px; }
+  .checkbox-wrap input[type="checkbox"] { width: 22px; height: 22px; }
+  .login-footer a { display: inline-block; min-height: 44px; line-height: 44px; }
+}
 </style>
 </head>
 <body>
@@ -297,7 +366,7 @@ body {
       <div class="field">
         <label for="user-type">نوع المستخدم</label>
         <div class="field-input-wrap">
-          <select id="user-type" name="userType" style="width:100%;padding:12px 44px 12px 14px;font-size:14px;border:1px solid var(--border);border-radius:8px;font-family:inherit;background:#fff;appearance:none;cursor:pointer;">
+          <select id="user-type" name="userType" style="width:100%;min-height:44px;padding:12px 44px 12px 14px;font-size:14px;border:1px solid var(--border);border-radius:8px;font-family:inherit;background:#fff;appearance:none;cursor:pointer;">
             <option value="team_member">عضو فريق التواصل المؤسسي</option>
             <option value="approved_manager">مدير معتمد</option>
             <option value="system_admin">مسؤول النظام</option>
@@ -360,7 +429,7 @@ body {
 
     <div id="sso-section">
       <div class="sso-divider">أو</div>
-      <a href="/api/auth/sso/azure/start" class="btn-sso" id="sso-btn">
+      <a href="/api/v1/auth/sso/azure/start" class="btn-sso" id="sso-btn">
         <svg class="sso-icon" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
           <rect x="1" y="1" width="9" height="9" fill="#F25022"/>
           <rect x="11" y="1" width="9" height="9" fill="#7FBA00"/>
@@ -379,6 +448,14 @@ body {
 
 <script>
 (function() {
+  // Same single-configurable-base-URL mechanism as index.html (see its API CONFIG block
+  // for the full rationale) — kept duplicated rather than shared via an extra <script src>
+  // tag, since this file has no build step and must keep working as a single static file
+  // that can be opened/served independently of index.html.
+  var API_BASE = (typeof window !== 'undefined' && window.__API_BASE__) || '';
+  var API_VERSION = (typeof window !== 'undefined' && window.__API_VERSION__) || 'v1';
+  function apiUrl(path) { return API_BASE + '/api/' + API_VERSION + path; }
+
   const form = document.getElementById('login-form');
   const emailInput = document.getElementById('email');
   const passInput = document.getElementById('password');
@@ -430,7 +507,7 @@ body {
 
     setLoading(true);
     try {
-      const resp = await fetch('/api/auth/login', {
+      const resp = await fetch(apiUrl('/auth/login'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -439,7 +516,9 @@ body {
       const data = await resp.json();
 
       if (!resp.ok) {
-        showError(data.error || 'خطأ في تسجيل الدخول');
+        // New API returns application/problem+json ({title,detail}) instead of the old
+        // {error} shape — prefer detail, then title, then the old key, then a fallback.
+        showError(data.detail || data.title || data.error || 'خطأ في تسجيل الدخول');
         setLoading(false);
         return;
       }
@@ -474,7 +553,7 @@ body {
 
   (async function loadSsoConfig() {
     try {
-      const resp = await fetch('/api/auth/sso/config');
+      const resp = await fetch(apiUrl('/auth/sso/config'));
       if (!resp.ok) return;
       const data = await resp.json();
       if (data.enabled) {

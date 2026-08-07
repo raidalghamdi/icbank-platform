@@ -43,8 +43,8 @@
     }
   },
   "typography": {
-    "primary_ar": "Cairo (preferred for body, headlines accepted)",
-    "primary_en": "IBM Plex Sans",
+    "primary_ar": "Frutiger LT Arabic (GAC-approved; Light 300 / Roman 400 / Bold 700)",
+    "primary_en": "Frutiger LT Arabic (the approved face carries Latin as well)",
     "weights": {
       "headline": 700,
       "subhead": 600,

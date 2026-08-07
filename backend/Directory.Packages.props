@@ -1,0 +1,130 @@
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- EF Core / SQL Server — pinned to latest 8.0.x patch as of Aug 2026.
+         Deviation: conventions doc says 8.0.16; 8.0.29 is the latest 8.0.x patch available today.
+         See SCAFFOLD-NOTES.md. -->
+    <PackageVersion Include="Microsoft.EntityFrameworkCore" Version="8.0.29" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.29" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.29" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.29" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.29" />
+
+    <!-- FluentValidation — pinned to 11.x per contract (do NOT upgrade to 12.x without sign-off). -->
+    <PackageVersion Include="FluentValidation" Version="11.11.0" />
+    <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="11.11.0" />
+
+    <!-- MediatR — pinned to 12.x per contract (13.x+ is dual-licensed, see §8 of conventions doc). -->
+    <PackageVersion Include="MediatR" Version="12.4.1" />
+
+    <!-- Serilog -->
+    <PackageVersion Include="Serilog.AspNetCore" Version="8.0.3" />
+    <PackageVersion Include="Serilog.Sinks.Console" Version="6.0.0" />
+    <PackageVersion Include="Serilog.Sinks.Seq" Version="8.0.0" />
+    <!-- Pinned to the pre-3.x AspNetCore/ApplicationInsights line: Serilog.Sinks.ApplicationInsights
+         5.0.1 (latest stable) requires Microsoft.ApplicationInsights < 3.0.0, which conflicts with
+         Microsoft.ApplicationInsights.AspNetCore 3.x (needs ApplicationInsights >= 3.1.2). 2.23.0
+         is the latest AspNetCore package compatible with the Serilog sink and still supports net8.0. -->
+    <PackageVersion Include="Serilog.Sinks.ApplicationInsights" Version="5.0.1" />
+    <PackageVersion Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.23.0" />
+    <PackageVersion Include="Serilog.Enrichers.Environment" Version="3.0.1" />
+    <PackageVersion Include="Serilog.Exceptions" Version="8.4.0" />
+
+    <!-- API docs / versioning -->
+    <PackageVersion Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+    <PackageVersion Include="Asp.Versioning.Mvc" Version="8.1.1" />
+    <PackageVersion Include="Asp.Versioning.Mvc.ApiExplorer" Version="8.1.1" />
+
+    <!-- Resilience (Polly v8 wrapper) -->
+    <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="8.10.0" />
+    <PackageVersion Include="Polly" Version="8.6.6" />
+
+    <!-- Auth -->
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.29" />
+    <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.2.0" />
+
+    <!-- Health checks -->
+    <PackageVersion Include="AspNetCore.HealthChecks.SqlServer" Version="8.0.2" />
+
+    <!-- Background jobs -->
+    <PackageVersion Include="Hangfire.AspNetCore" Version="1.8.18" />
+    <PackageVersion Include="Hangfire.SqlServer" Version="1.8.18" />
+
+    <!-- HTML sanitization (SEC-11) — Ganss.Xss (MIT), pinned to the version that fixes
+         GHSA-j92c-7v7g-gj3f (template-tag sanitizer bypass); do not downgrade below 9.0.892.
+         Bumped 9.0.892 -> 9.1.982 to resolve GHSA-pgww-w46g-26qg (CVE-2026-54570, mXSS via
+         annotation-xml HTML integration point bypass): 9.0.892 hard-pinned its transitive
+         AngleSharp dependency to exactly 0.17.1, which carries that advisory. Verified from
+         the published nuspec that HtmlSanitizer >= 9.1.973 depends on AngleSharp >= 1.6.0
+         (9.1.982 depends on AngleSharp 1.7.0), so upgrading the sanitizer itself resolves the
+         transitive vulnerability without needing to override HtmlSanitizer's own pin. Do not
+         downgrade below 9.1.973. -->
+    <PackageVersion Include="HtmlSanitizer" Version="9.1.982" />
+
+    <!-- Azure integration — Key Vault configuration provider, managed-identity credential,
+         Blob Storage adapters, Application Insights sink, Communication Services email.
+         See spec/AZURE-NOTES.md for why each was chosen and pinned at this version. -->
+    <PackageVersion Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.5.1" />
+    <PackageVersion Include="Azure.Security.KeyVault.Secrets" Version="4.11.0" />
+    <PackageVersion Include="Azure.Identity" Version="1.13.2" />
+    <PackageVersion Include="Azure.Storage.Blobs" Version="12.29.1" />
+    <PackageVersion Include="Azure.Communication.Email" Version="1.1.0" />
+
+    <!-- Data migration tool (Postgres source read) -->
+    <PackageVersion Include="Npgsql" Version="8.0.9" />
+    <!-- Pinned above the 5.2.0 EF Core SqlServer 8.0.29 pulls in transitively - closes
+         CVE-2024-0056 (GHSA-98g6-xh36-x2p7), fixed in 5.1.3/5.2.3 - for the tool's own
+         id-mapping bookkeeping table, which deliberately uses raw ADO.NET, not EF Core. -->
+    <PackageVersion Include="Microsoft.Data.SqlClient" Version="5.2.3" />
+    <PackageVersion Include="Serilog.Sinks.File" Version="6.0.0" />
+    <PackageVersion Include="Serilog.Extensions.Hosting" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="8.0.1" />
+
+    <!-- Testing -->
+    <PackageVersion Include="xunit" Version="2.9.2" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="2.8.2" />
+    <PackageVersion Include="FluentAssertions" Version="6.12.1" />
+    <PackageVersion Include="NSubstitute" Version="5.3.0" />
+    <PackageVersion Include="Testcontainers.MsSql" Version="4.1.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.29" />
+    <PackageVersion Include="coverlet.collector" Version="6.0.2" />
+    <PackageVersion Include="Bogus" Version="35.6.1" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+
+    <!--
+      R-BE-076 - transitive security pins. Central transitive pinning is on, so
+      declaring these here forces the whole graph onto a non-vulnerable version.
+      Each entry must cite the advisory it closes and the package that pulled the
+      vulnerable version in, so the pin can be retired when the parent updates.
+    -->
+    <!-- GHSA-5crp-9r3c-p9vr (High) - pulled in by Hangfire.SqlServer 1.8.18 -->
+    <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
+    <!-- GHSA-wvxc-855f-jvrv (Moderate) - Azure.Identity is now also a direct dependency
+         (Key Vault + managed identity for Blob/SQL), not just transitive; version unchanged. -->
+    <!-- GHSA-x674-v45j-fwxw (Low) - transitive of Azure.Identity. Bumped 4.67.2 -> 4.87.0:
+         Azure.Storage.Blobs 12.29.1 pulls Azure.Core 1.55.0, which floors this at >= 4.83.1;
+         4.87.0 is the latest stable and satisfies both the floor and the original advisory.
+         (Kept at azure branch's floor across the merge — do not revert to 4.67.2.) -->
+    <PackageVersion Include="Microsoft.Identity.Client" Version="4.87.0" />
+
+    <!-- Rendering/document providers (feat/rendering) — pure libraries, no external API keys.
+         QuestPDF Community license (free under $1M annual revenue; not OSI-approved but no-cost
+         for this project) — set QuestPDF.Settings.License = LicenseType.Community at startup.
+         PdfPig and DocumentFormat.OpenXml are MIT/MS-PL-style permissive/Apache 2.0. -->
+    <PackageVersion Include="QuestPDF" Version="2026.7.2" />
+    <PackageVersion Include="DocumentFormat.OpenXml" Version="3.5.1" />
+    <PackageVersion Include="PdfPig" Version="0.1.15" />
+    <PackageVersion Include="HtmlAgilityPack" Version="1.12.4" />
+
+    <!-- Analyzers (root Directory.Build.props) -->
+    <PackageVersion Include="Roslynator.Analyzers" Version="4.12.9" />
+    <PackageVersion Include="StyleCop.Analyzers" Version="1.2.0-beta.556" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="8.0.0" />
+  </ItemGroup>
+</Project>

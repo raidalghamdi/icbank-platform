@@ -1,0 +1,29 @@
+<Project>
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>                         <!-- nullable reference types mandatory -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>  <!-- warnings-as-errors -->
+    <WarningsNotAsErrors>CS1591</WarningsNotAsErrors>    <!-- missing XML doc is a build gate elsewhere, not a hard error here -->
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <AnalysisMode>Recommended</AnalysisMode>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile> <!-- required for Swashbuckle, R-BE-035 -->
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <LangVersion>12.0</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Roslynator + StyleCop enforce R-BE-091/093/094/095 as build-breaking warnings -->
+    <PackageReference Include="Roslynator.Analyzers" PrivateAssets="all" />
+    <PackageReference Include="StyleCop.Analyzers" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- StyleCop requires a settings file; suppress documentation-header rules (SA1633 family) which are
+         not part of this contract (XML doc content itself is optional; CS1591 is explicitly not-as-error above). -->
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)stylecop.json" Link="stylecop.json" />
+  </ItemGroup>
+</Project>

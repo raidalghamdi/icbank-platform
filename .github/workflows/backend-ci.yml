@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
 
 env:
-  DOTNET_VERSION: '8.0.x'
+  DOTNET_VERSION: '8.0.423'
   COVERAGE_THRESHOLD: 70
   # Api + Infrastructure were widened into coverlet.runsettings' Include list and measured at
   # 87.4% line coverage (see SECURITY-HARDENING-NOTES.md for the exact run this floor is derived

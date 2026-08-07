@@ -24,7 +24,7 @@ import {
 } from "@workspace/db";
 import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
 import { z } from "zod";
-import { requireAdmin } from "../middleware/auth";
+import { requireAdmin, requireAuth } from "../middleware/auth";
 import { geminiText } from "../lib/aiProviders";
 
 const router = Router();
@@ -180,7 +180,10 @@ const GenerateSchema = z.object({
   customTitle: z.string().optional(),
 });
 
-router.post("/media-reports/generate", async (req: Request, res: Response) => {
+// SEC-02: this router is mounted before requireAuth in routes/index.ts (so
+// that the public GET reads above stay public); this AI-generating endpoint
+// mutates data and calls a paid AI provider, so it needs its own auth check.
+router.post("/media-reports/generate", requireAuth, async (req: Request, res: Response) => {
   try {
     const parsed = GenerateSchema.parse(req.body);
     const now = new Date();
@@ -374,7 +377,9 @@ const PromptCreateSchema = z.object({
   isApproved: z.boolean().optional(),
 });
 
-router.post("/prompts", async (req: Request, res: Response) => {
+// SEC-02: template management, mirrors the requireAdmin already on the
+// sibling DELETE /prompts/:id below.
+router.post("/prompts", requireAdmin, async (req: Request, res: Response) => {
   try {
     const parsed = PromptCreateSchema.parse(req.body);
     const user = (req as any).user;
@@ -396,7 +401,7 @@ router.post("/prompts", async (req: Request, res: Response) => {
 });
 
 // UPDATE
-router.put("/prompts/:id", async (req: Request, res: Response) => {
+router.put("/prompts/:id", requireAdmin, async (req: Request, res: Response) => {
   const id = Number(req.params["id"]);
   if (!Number.isFinite(id)) {
     res.status(400).json({ error: "Invalid id" });
@@ -430,7 +435,8 @@ router.delete("/prompts/:id", requireAdmin, async (req: Request, res: Response) 
 });
 
 // RUN: execute prompt with provided variables
-router.post("/prompts/:id/run", async (req: Request, res: Response) => {
+// SEC-02: executes a prompt via the AI provider — authenticated users only.
+router.post("/prompts/:id/run", requireAuth, async (req: Request, res: Response) => {
   const id = Number(req.params["id"]);
   if (!Number.isFinite(id)) {
     res.status(400).json({ error: "Invalid id" });
@@ -478,7 +484,9 @@ router.post("/prompts/:id/run", async (req: Request, res: Response) => {
 });
 
 // Review Round 2: quick smart-assistant endpoint — direct prompt without saving
-router.post("/ai/quick", async (req: Request, res: Response) => {
+// SEC-02: calls geminiText on arbitrary caller-supplied input — was reachable
+// by anyone on the internet since this router mounts before requireAuth.
+router.post("/ai/quick", requireAuth, async (req: Request, res: Response) => {
   try {
     const { tool, input, tone, count } = (req.body ?? {}) as { tool?: string; input?: string; tone?: string; count?: number };
     if (!tool || !input) {

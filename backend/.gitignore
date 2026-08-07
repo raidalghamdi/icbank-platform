@@ -1,0 +1,12 @@
+bin/
+obj/
+*.user
+
+# Test and coverage output
+coverage/
+coverage_*/
+coveragereport/
+TestResults/
+*.trx
+*.coverage
+*.cobertura.xml

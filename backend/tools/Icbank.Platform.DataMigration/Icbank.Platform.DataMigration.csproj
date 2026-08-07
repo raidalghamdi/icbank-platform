@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Icbank.Platform.DataMigration</RootNamespace>
+    <AssemblyName>Icbank.Platform.DataMigration</AssemblyName>
+    <!-- Arabic source content requires ICU-backed culture-aware comparison, casing and collation. -->
+    <InvariantGlobalization>false</InvariantGlobalization>
+    <UserSecretsId>icbank-platform-data-migration</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Npgsql: pinned exact version (Directory.Packages.props), actively maintained 8.0.x line
+         matching the rest of the solution's EF Core 8.0.29 target. See docs/DATA-MIGRATION.md. -->
+    <PackageReference Include="Npgsql" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" />
+    <PackageReference Include="Microsoft.Data.SqlClient" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
+    <PackageReference Include="Serilog.AspNetCore" />
+    <PackageReference Include="Serilog.Sinks.Console" />
+    <PackageReference Include="Serilog.Sinks.File" />
+    <PackageReference Include="Serilog.Exceptions" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Icbank.Platform.Domain\Icbank.Platform.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Icbank.Platform.Application\Icbank.Platform.Application.csproj" />
+    <ProjectReference Include="..\..\src\Icbank.Platform.Infrastructure\Icbank.Platform.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>
