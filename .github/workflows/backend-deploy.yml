@@ -235,6 +235,13 @@ jobs:
         # Derived, not queried: `az webapp show` needs an authenticated CLI and this job no
         # longer logs in to Azure. App Service always assigns <name>.azurewebsites.net. A custom
         # domain would have to become a repository variable.
+        #
+        # working-directory is overridden because the workflow sets `backend` as the default for
+        # every run step, and this job never checks the repository out -- it only downloads the
+        # publish artifact, so backend/ does not exist here and bash cannot start. The step this
+        # replaced had the same defect and would have failed the same way; nobody found out
+        # because azure/login failed first and the job never reached it.
+        working-directory: ${{ github.workspace }}
         run: echo "app_url=https://${{ vars.APP_SERVICE_NAME }}.azurewebsites.net" >> "$GITHUB_OUTPUT"
 
   # The gate job proves the code is correct in isolation (WebApplicationFactory, swapped
