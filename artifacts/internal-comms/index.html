@@ -4936,19 +4936,19 @@ button.home-row:hover { border-color:var(--primary-100); background:var(--primar
             <input type="radio" name="ies-size" value="square" checked style="display:none;" />
             <div style="width:60px;height:60px;background:#0069A7;border-radius:8px;margin:0 auto 10px;"></div>
             <div style="font-weight:800;color:#003C5A;">مربع 1:1</div>
-            <div style="font-size:12px;color:#76777A;">1080×1080 — Instagram</div>
+            <div dir="ltr" style="font-size:12px;color:#76777A;text-align:center;">1080×1080 — Instagram</div>
           </label>
           <label class="ies-size-card" data-size="story" style="cursor:pointer;border:2px solid #DCDDDE;background:#fff;border-radius:12px;padding:16px;text-align:center;transition:all 0.2s;">
             <input type="radio" name="ies-size" value="story" style="display:none;" />
             <div style="width:34px;height:60px;background:#76777A;border-radius:8px;margin:0 auto 10px;"></div>
             <div style="font-weight:800;color:#003C5A;">ستوري 9:16</div>
-            <div style="font-size:12px;color:#76777A;">1080×1920 — WhatsApp/Stories</div>
+            <div dir="ltr" style="font-size:12px;color:#76777A;text-align:center;">1080×1920 — WhatsApp/Stories</div>
           </label>
           <label class="ies-size-card" data-size="landscape" style="cursor:pointer;border:2px solid #DCDDDE;background:#fff;border-radius:12px;padding:16px;text-align:center;transition:all 0.2s;">
             <input type="radio" name="ies-size" value="landscape" style="display:none;" />
             <div style="width:80px;height:45px;background:#76777A;border-radius:8px;margin:0 auto 10px;"></div>
             <div style="font-weight:800;color:#003C5A;">عريض 16:9</div>
-            <div style="font-size:12px;color:#76777A;">1920×1080 — LinkedIn</div>
+            <div dir="ltr" style="font-size:12px;color:#76777A;text-align:center;">1920×1080 — LinkedIn</div>
           </label>
         </div>
       </div>
@@ -5975,6 +5975,29 @@ async function apiError(res) {
   return err;
 }
 
+// ─── Problem Details text extractor ────────────────────────────
+// Pulls the most specific human-readable text out of an RFC 7807 body. The API returns
+// FluentValidation failures as {title:"Validation failed", detail:"<joined messages>",
+// errors:{ "<Property>": ["<message>", ...] }}. The per-field messages are the only useful part
+// and many are already authored in Arabic, so they are preferred over the generic English title.
+function apiErrorText(body) {
+  if (!body) return '';
+  if (typeof body === 'string') return body;
+  var parts = [];
+  if (body.errors && typeof body.errors === 'object') {
+    Object.keys(body.errors).forEach(function (field) {
+      var messages = body.errors[field];
+      if (Array.isArray(messages)) {
+        messages.forEach(function (m) { if (m && parts.indexOf(m) === -1) parts.push(m); });
+      } else if (messages && parts.indexOf(messages) === -1) {
+        parts.push(messages);
+      }
+    });
+  }
+  if (parts.length) return parts.join(' — ');
+  return body.detail || body.error || body.title || body.message || '';
+}
+
 // ─── Friendly error translator ──────────────────────────────────
 // Converts raw JSON/stack errors from server into clean Arabic messages.
 // Recognises common patterns: 503 AI overload, Chromium PDF failure,
@@ -5986,7 +6009,9 @@ function friendlyError(err, fallback) {
   // raw parsed Problem Details body passed straight through by call sites that don't go
   // through apiError() — detail is preferred (most specific), then title, then the old
   // Node-era .error field, then .message, then a plain string/toString fallback.
-  var msg = typeof err === 'string' ? err : (err.detail || err.title || err.message || err.error || err.toString());
+  // Why apiErrorText() is consulted first: for a validation 400 the field-level messages live in
+  // .errors, and reading .detail/.title before them surfaced the generic "Validation failed".
+  var msg = typeof err === 'string' ? err : (apiErrorText(err) || err.message || err.toString());
   if (!msg || typeof msg !== 'string') return fallback;
 
   // Strip JSON wrapper if message contains a nested JSON error
@@ -6008,17 +6033,20 @@ function friendlyError(err, fallback) {
   if (/unauthorized|unauthenticated|forbidden|401|403/i.test(msg)) {
     return 'انتهت صلاحية الجلسة أو لا تملك صلاحية تنفيذ هذا الإجراء.';
   }
+  // Already Arabic message — return as-is (trim long ones).
+  // Why this moved above the validation branch: the API now returns the validators' own
+  // field-level Arabic text, which is far more actionable than the generic "review the fields"
+  // line. Left below, a message like "المقاس مطلوب" would be discarded by the keyword test.
+  if (/[\u0600-\u06FF]/.test(msg)) {
+    return msg.length > 200 ? msg.slice(0, 200) + '…' : msg;
+  }
   // Validation
-  if (/validation|invalid|required|missing/i.test(msg)) {
+  if (/validation|invalid|required|missing|must not be empty/i.test(msg)) {
     return 'بيانات الإدخال غير مكتملة أو غير صحيحة. راجع الحقول وحاول مجدداً.';
   }
   // Server 5xx
   if (/500|internal server|server error/i.test(msg)) {
     return 'حدث خلل في الخادم. تم تسجيل الخطأ وسنعمل على إصلاحه.';
-  }
-  // Already Arabic message — return as-is (trim long ones)
-  if (/[\u0600-\u06FF]/.test(msg)) {
-    return msg.length > 200 ? msg.slice(0, 200) + '…' : msg;
   }
   return fallback;
 }
@@ -14441,16 +14469,21 @@ window.MM = (function(){
     try {
       // Log wizard answers
       apiFetch(apiUrl('/qa-queries'), { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ queryType:'wizard', wizardAnswers: state.wizAnswers }) }).catch(function(){});
+      var period = periodFields(state.wizAnswers.reportType, state.wizAnswers.dateFrom, state.wizAnswers.dateTo);
+      if (!period) {
+        alert('الرجاء تحديد فترة التقرير المخصصة.');
+        return;
+      }
+      // See periodFields(): the API contract is {periodLabel, audience, dateFrom, dateTo,
+      // focusTopics}. reportType/sources/language/autoSave were Node-era fields the .NET endpoint
+      // does not accept, and omitting the required periodLabel made every generate return 400.
       var payload = {
-        reportType: state.wizAnswers.reportType,
+        periodLabel: period.periodLabel,
         audience: state.wizAnswers.audience,
-        sources: state.wizAnswers.sources,
-        focusTopics: state.wizAnswers.focusTopics,
-        language: state.wizAnswers.language || 'ar',
-        autoSave: true
+        dateFrom: period.dateFrom,
+        dateTo: period.dateTo,
+        focusTopics: state.wizAnswers.focusTopics
       };
-      if (state.wizAnswers.dateFrom) payload.dateFrom = state.wizAnswers.dateFrom;
-      if (state.wizAnswers.dateTo) payload.dateTo = state.wizAnswers.dateTo;
       var res = await apiFetch(apiUrl('/final-media-reports/generate'), { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
       if (!res.ok) {
         var errTxt = await res.text();
@@ -14565,6 +14598,29 @@ window.MM = (function(){
 
   function audienceLabel(a){ return ({executive:'🎯 تنفيذي',manager:'📊 إداري',analyst:'🔍 تحليلي'})[a] || '📊 إداري'; }
   function typeLabel(t){ return ({weekly:'أسبوعي',monthly:'شهري',custom:'مخصص'})[t] || 'أسبوعي'; }
+
+  // Builds the period fields POST /final-media-reports/generate actually requires.
+  // Why this exists: the .NET request contract is
+  // {periodLabel, audience, dateFrom, dateTo, focusTopics} — periodLabel is validated NotEmpty and
+  // dateFrom/dateTo are non-nullable DateTimeOffset. The Node-era payload sent reportType/sources/
+  // language/autoSave and only sent dates for the custom type, so periodLabel was always absent and
+  // the endpoint returned 400 on every attempt for every report type. reportType is a UI concept
+  // only; it is translated here into the concrete range the API expects.
+  function periodFields(reportType, customFrom, customTo) {
+    function iso(d){ return d.toISOString().slice(0, 10); }
+    var to = new Date();
+    var from = new Date();
+    if (reportType === 'custom') {
+      if (!customFrom || !customTo) return null;
+      from = new Date(customFrom + 'T00:00:00Z');
+      to = new Date(customTo + 'T23:59:59Z');
+      return { periodLabel: iso(from) + ' — ' + iso(to), dateFrom: from.toISOString(), dateTo: to.toISOString() };
+    }
+    var days = reportType === 'monthly' ? 30 : 7;
+    from.setUTCDate(from.getUTCDate() - days);
+    var label = (reportType === 'monthly' ? 'آخر 30 يوماً' : 'آخر 7 أيام') + ' (' + iso(from) + ' — ' + iso(to) + ')';
+    return { periodLabel: label, dateFrom: from.toISOString(), dateTo: to.toISOString() };
+  }
 
   function renderList() {
     var loadingEl = document.getElementById('mm-loading');
@@ -14862,24 +14918,21 @@ window.MM = (function(){
       if (document.getElementById('mm-src-linkedin').checked) sources.push('linkedin');
       if (document.getElementById('mm-src-news').checked) sources.push('news');
       if (document.getElementById('mm-src-twitter').checked) sources.push('twitter');
-      var payload = {
-        reportType: document.getElementById('mm-gen-type').value,
-        audience: document.getElementById('mm-gen-audience').value,
-        sources: sources,
-        focusTopics: '',
-        language: 'ar',
-        autoSave: true
-      };
-      var customTitle = document.getElementById('mm-gen-title').value.trim();
-      if (customTitle) payload.title = customTitle;
-      if (payload.reportType === 'custom') {
-        payload.dateFrom = document.getElementById('mm-gen-from').value;
-        payload.dateTo = document.getElementById('mm-gen-to').value;
-        if (!payload.dateFrom || !payload.dateTo) {
-          alert('الرجاء تحديد فترة التقرير المخصصة.');
-          return;
-        }
+      // Same contract correction as wizGenerate() — see periodFields().
+      var reportType = document.getElementById('mm-gen-type').value;
+      var period = periodFields(reportType, document.getElementById('mm-gen-from').value, document.getElementById('mm-gen-to').value);
+      if (!period) {
+        alert('الرجاء تحديد فترة التقرير المخصصة.');
+        return;
       }
+      var customTitle = document.getElementById('mm-gen-title').value.trim();
+      var payload = {
+        periodLabel: customTitle || period.periodLabel,
+        audience: document.getElementById('mm-gen-audience').value,
+        dateFrom: period.dateFrom,
+        dateTo: period.dateTo,
+        focusTopics: ''
+      };
       var res = await apiFetch(apiUrl('/final-media-reports/generate'), {
         method:'POST',
         headers:{'Content-Type':'application/json'},
@@ -15329,13 +15382,18 @@ async function iesGenerate() {
   if (prevExtracted) prevExtracted.style.display = 'none';
 
   try {
+    // Why these two keys changed: the .NET API binds JSON with the default camelCase policy, so
+    // the Node-era snake_case names `raw_data` and `event_type` never bound to
+    // GenerateIconEventDesignRequest.RawData/.EventType — they silently arrived as null. In raw
+    // mode that tripped the "raw data or headline required" validator on every single attempt,
+    // which is the 400 behind "تعذر توليد التصاميم: Validation failed".
     var body = { size: size, department: department, hashtag: hashtag, date: date, time: time, location: location };
     if (iesCurrentMode === 'raw') {
-      body.raw_data = rawData;
+      body.rawData = rawData;
     } else {
       body.headline = headline;
       body.subtitle = subtitle;
-      body.event_type = eventType;
+      body.eventType = eventType;
     }
     var res = await apiFetch(apiUrl('/designs/icon-event/generate'), {
       method: 'POST',
@@ -15343,7 +15401,10 @@ async function iesGenerate() {
       body: JSON.stringify(body)
     });
     var data = await res.json();
-    if (!res.ok || !data.variants) throw new Error((data.detail || data.title || data.error) || 'فشل التوليد');
+    // Why the errors dictionary is read first: a 400 from FluentValidation puts the per-field
+    // Arabic messages in `errors`, while `title` is the generic untranslated "Validation failed".
+    // Reading only detail/title/error surfaced that useless title with no reason attached.
+    if (!res.ok || !data.variants) throw new Error(apiErrorText(data) || 'فشل التوليد');
     iesVariants = data.variants;
     iesRenderVariants(size, data.warning, data.extracted);
   } catch (err) {

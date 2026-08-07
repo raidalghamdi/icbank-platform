@@ -64,16 +64,50 @@ public sealed class GlobalExceptionMiddleware
         }
     }
 
+    /// <summary>
+    /// Builds the Problem Details body for a failed FluentValidation run, carrying the per-field
+    /// messages the validators authored.
+    /// </summary>
+    /// <param name="exception">The validation exception whose failures should be surfaced.</param>
+    /// <returns>A 400 <see cref="ProblemDetails"/> with <c>detail</c> and an <c>errors</c> dictionary.</returns>
+    /// <remarks>
+    /// Why: this previously returned only <c>Title = "Validation failed"</c> and dropped every
+    /// <see cref="FluentValidation.Results.ValidationFailure"/>. Clients had no way to learn which
+    /// field was rejected, so the UI could only show a bare untranslated "Validation failed" with an
+    /// empty reason. Validator messages are author-written constants (many already Arabic), not
+    /// runtime internals, so surfacing them does not violate R-BE-079's ban on leaking
+    /// <c>ex.Message</c>/<c>StackTrace</c> from unexpected exceptions.
+    /// </remarks>
+    private static ProblemDetails BuildValidationProblem(ValidationException exception)
+    {
+        var errors = exception.Errors
+            .GroupBy(failure => failure.PropertyName, StringComparer.Ordinal)
+            .ToDictionary(
+                group => group.Key,
+                group => group.Select(failure => failure.ErrorMessage).ToArray(),
+                StringComparer.Ordinal);
+
+        var problem = new ProblemDetails
+        {
+            Status = StatusCodes.Status400BadRequest,
+            Title = "Validation failed",
+            Detail = string.Join(" ", exception.Errors.Select(failure => failure.ErrorMessage).Distinct(StringComparer.Ordinal)),
+        };
+
+        if (errors.Count > 0)
+        {
+            problem.Extensions["errors"] = errors;
+        }
+
+        return problem;
+    }
+
     /// <summary>Maps a thrown exception to the corresponding Problem Details shape (R-BE-031).</summary>
     /// <param name="exception">The exception that was caught.</param>
     /// <returns>A <see cref="ProblemDetails"/> instance with status and title set, never exposing internals.</returns>
     private static ProblemDetails MapToProblemDetails(Exception exception) => exception switch
     {
-        ValidationException => new ProblemDetails
-        {
-            Status = StatusCodes.Status400BadRequest,
-            Title = "Validation failed",
-        },
+        ValidationException validation => BuildValidationProblem(validation),
         UnauthorizedAccessException => new ProblemDetails
         {
             Status = StatusCodes.Status403Forbidden,

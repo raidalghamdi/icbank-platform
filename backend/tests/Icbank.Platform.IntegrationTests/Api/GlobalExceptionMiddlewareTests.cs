@@ -33,6 +33,34 @@ public sealed class GlobalExceptionMiddlewareTests
     }
 
     [Fact]
+    public async Task InvokeAsync_ValidationException_SurfacesPerFieldMessagesInDetailAndErrors()
+    {
+        // Why: the middleware used to return only Title = "Validation failed" and discard every
+        // ValidationFailure. Clients had no way to render which field was rejected, so the UI showed
+        // a bare untranslated "Validation failed" with an empty reason on every 400.
+        FluentValidation.Results.ValidationFailure[] failures = new[]
+        {
+            new FluentValidation.Results.ValidationFailure("PeriodLabel", "فترة التقرير (periodLabel) مطلوبة."),
+            new FluentValidation.Results.ValidationFailure("Size", "المقاس مطلوب (square | story | landscape)"),
+        };
+
+        HttpContext context = await InvokeWithThrowingNext(() => throw new ValidationException(failures));
+
+        context.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
+        var body = await ReadResponseBody(context);
+        body.Should().Contain("errors");
+
+        ProblemDetails problem = JsonSerializer.Deserialize<ProblemDetails>(body, JsonOptions)!;
+        problem.Detail.Should().Contain("periodLabel").And.Contain("المقاس");
+
+        Dictionary<string, string[]> errors = JsonSerializer.Deserialize<Dictionary<string, string[]>>(
+            problem.Extensions["errors"]!.ToString()!, JsonOptions)!;
+        errors.Should().ContainKey("PeriodLabel");
+        errors.Should().ContainKey("Size");
+        errors["PeriodLabel"].Should().ContainSingle().Which.Should().Contain("periodLabel");
+    }
+
+    [Fact]
     public async Task InvokeAsync_UnauthorizedAccessException_Returns403WithForbiddenTitle()
     {
         HttpContext context = await InvokeWithThrowingNext(

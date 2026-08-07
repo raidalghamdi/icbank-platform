@@ -8,7 +8,9 @@ public sealed class GenerateFinalMediaReportCommandValidator : AbstractValidator
     /// <summary>Initializes a new instance of the <see cref="GenerateFinalMediaReportCommandValidator"/> class.</summary>
     public GenerateFinalMediaReportCommandValidator()
     {
-        RuleFor(command => command.PeriodLabel).NotEmpty();
+        RuleFor(command => command.PeriodLabel)
+            .NotEmpty()
+            .WithMessage("فترة التقرير (periodLabel) مطلوبة.");
         RuleFor(command => command.DateTo)
             .GreaterThanOrEqualTo(command => command.DateFrom)
             .WithMessage("dateTo يجب أن يكون بعد أو يساوي dateFrom.");
