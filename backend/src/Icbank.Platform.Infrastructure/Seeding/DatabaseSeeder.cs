@@ -60,7 +60,52 @@ public sealed partial class DatabaseSeeder
         await SeedPagesAsync(cancellationToken);
         await SeedPermissionsAsync(cancellationToken);
         await SeedDefaultRolePermissionsAsync(cancellationToken);
+        await SeedInternationalDaysAsync(cancellationToken);
         return await SeedInitialSuperAdminAsync(cancellationToken);
+    }
+
+    // Why: the dashboard's "upcoming events" panel and the الأيام العالمية page both read
+    // international_days, and nothing has ever populated it, so every deployment has shown an
+    // empty landing page to every user. These are genuine observances with citable sources, not
+    // demo scaffolding, so seeding them is safe anywhere and nobody has to clear them out later.
+    //
+    // Matched on the Arabic name, which is the only stable natural key the table has. Existing
+    // rows are left untouched rather than overwritten: once the Authority edits a description or
+    // adds suggestions, the seeder must not undo that on the next restart.
+    private async Task SeedInternationalDaysAsync(CancellationToken cancellationToken)
+    {
+        var existing = await _dbContext.InternationalDays
+            .Select(d => d.DayNameAr)
+            .ToListAsync(cancellationToken);
+        var known = new HashSet<string>(existing, StringComparer.Ordinal);
+
+        var added = 0;
+        foreach (InternationalDaySeedRow row in InternationalDaySeedCatalog.Rows)
+        {
+            if (!known.Add(row.NameAr))
+            {
+                continue;
+            }
+
+            _dbContext.InternationalDays.Add(new Domain.InternationalDays.InternationalDay
+            {
+                DayNameAr = row.NameAr,
+                DayNameEn = row.NameEn,
+                AnnualDate = row.AnnualDate,
+                Category = row.Category,
+                OfficialOrganizer = row.Organizer,
+                OfficialOrganizerSource = row.OrganizerSource,
+                HistorySummary = row.History,
+                CreatedBy = "seeder",
+            });
+            added++;
+        }
+
+        if (added > 0)
+        {
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            LogInternationalDaysSeeded(_logger, added);
+        }
     }
 
     private async Task SeedRolesAsync(CancellationToken cancellationToken)
@@ -220,6 +265,9 @@ public sealed partial class DatabaseSeeder
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Seeded initial super-admin account {Email}. Password was NOT logged.")]
     private static partial void LogSuperAdminSeeded(ILogger logger, string email);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Seeded {Count} international day(s) into an empty or partial catalogue.")]
+    private static partial void LogInternationalDaysSeeded(ILogger logger, int count);
 
     private static string RoleMachineName(RoleName roleName) => roleName switch
     {
