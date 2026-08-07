@@ -14,13 +14,19 @@ on:
         required: true
         options: [dev, staging, prod]
 
-# Why OIDC and not a publish profile: a publish profile is a long-lived secret with deploy
-# rights that lives in GitHub settings forever. azure/login exchanges a short-lived GitHub
-# OIDC token for an Azure AD token instead, so nothing reusable is stored. This reuses the
-# exact same AZURE_CLIENT_ID / AZURE_TENANT_ID / AZURE_SUBSCRIPTION_ID federation that
-# Backend CD already relies on -- see docs/DEPLOYMENT.md.
+# Auth: publish profile, deliberately, despite OIDC being the stronger pattern.
+#
+# OIDC needs an Azure AD app registration with a federated credential, and creating one
+# requires directory permissions nobody on this project has been able to apply. The result was
+# that CD sat unusable for weeks while the frontend was deployed by hand. A publish profile is
+# a long-lived credential and that is a real downside -- but it is scoped to this one App
+# Service, it is revocable in one click from the portal (Deployment Center -> Manage publish
+# profile -> Reset), and it needs no directory rights at all.
+#
+# If the AD app registration ever does get created, switching back is: restore the
+# permissions/id-token block, swap the deploy step for azure/login + `az webapp deploy`, and
+# delete the AZURE_WEBAPP_PUBLISH_PROFILE secret.
 permissions:
-  id-token: write
   contents: read
 
 env:
@@ -75,40 +81,26 @@ jobs:
           zip -rq "$GITHUB_WORKSPACE/frontend.zip" . -x '*.git*' 'node_modules/*'
           unzip -l "$GITHUB_WORKSPACE/frontend.zip" | tail -1
 
-      - name: Azure login (OIDC federated credential)
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
-      # Why set the startup command explicitly: App Service's Node autodetect runs `npm start`,
-      # and this package.json has no `start` script (only dev/build/serve). Without this the
-      # container falls back to serving the directory statically and every deep link 404s
-      # instead of hitting the shell fallback in server.mjs.
-      - name: Pin the startup command
-        run: |
-          az webapp config set \
-            --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
-            --name "${{ vars.FRONTEND_APP_SERVICE_NAME }}" \
-            --startup-file "node server.mjs"
-
+      # The startup command is set on the App Service itself ("node server.mjs") and persists
+      # across deploys, so there is no az step here. It matters because App Service's Node
+      # autodetect runs `npm start`, and this package.json has no start script -- without it the
+      # container serves the directory statically and every deep link 404s instead of reaching
+      # the shell fallback in server.mjs. If the app is ever recreated from scratch, set it
+      # again under Configuration -> General settings -> Startup Command.
       - name: Deploy to App Service
-        run: |
-          az webapp deploy \
-            --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
-            --name "${{ vars.FRONTEND_APP_SERVICE_NAME }}" \
-            --src-path frontend.zip \
-            --type zip
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ vars.FRONTEND_APP_SERVICE_NAME }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: frontend.zip
 
+      # Derived rather than looked up: `az webapp show` needs an authenticated CLI, and this
+      # job no longer logs in to Azure. The default hostname of an App Service is always
+      # <name>.azurewebsites.net, so there is nothing to query. A custom domain would need
+      # this to become a variable.
       - name: Resolve the deployed app URL
         id: resolve-url
-        run: |
-          HOSTNAME=$(az webapp show \
-            --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
-            --name "${{ vars.FRONTEND_APP_SERVICE_NAME }}" \
-            --query defaultHostName -o tsv)
-          echo "app_url=https://$HOSTNAME" >> "$GITHUB_OUTPUT"
+        run: echo "app_url=https://${{ vars.FRONTEND_APP_SERVICE_NAME }}.azurewebsites.net" >> "$GITHUB_OUTPUT"
 
   # server.mjs streams both HTML files to the client verbatim (res.end(data), no templating),
   # so "did the deploy actually land" is answerable exactly: sha256 of the served body must
@@ -160,6 +152,54 @@ jobs:
           # shell here. No real credential belongs in a CI log.
           check "GET /login" "$BASE/login" "$FRONTEND_DIR/login.html"
           check "GET /"      "$BASE/"      "$FRONTEND_DIR/index.html" -H 'Cookie: has_session=1'
+
+          exit $FAILED
+
+      # Added after a real escape: the auth gate 302'd every unauthenticated request that was
+      # not on a short allowlist, and the allowlist omitted /css and /fonts. So the sign-in
+      # page -- the one screen every user sees before anything else -- loaded with no
+      # stylesheet and no webfont and rendered in an OS fallback face, while the whole branch
+      # existed to guarantee the approved face. The Playwright harness could not see it: it
+      # runs against proxy.mjs, which has no auth gate. This runs against the deployed site
+      # signed out, which is the only place the bug exists.
+      - name: Assert brand assets load before sign-in
+        run: |
+          BASE="${{ needs.deploy.outputs.app-url }}"
+          FAILED=0
+
+          for ASSET in /css/dga.css \
+                       /fonts/frutiger/FrutigerLTArabic-Roman.woff2 \
+                       /fonts/frutiger/FrutigerLTArabic-Bold.woff2; do
+            CODE=$(curl -s -o asset.out -w '%{http_code}' "$BASE$ASSET")
+            if [ "$CODE" != "200" ]; then
+              echo "::error::$ASSET returned $CODE while signed out (must be 200)"
+              FAILED=1
+              continue
+            fi
+            # A 302 body or an HTML error page would still be "200 with bytes", so for the
+            # fonts check the actual wOF2 magic number rather than trusting the status line.
+            case "$ASSET" in
+              *.woff2)
+                if [ "$(head -c 4 asset.out)" != "wOF2" ]; then
+                  echo "::error::$ASSET is not a woff2 payload"
+                  FAILED=1
+                else
+                  echo "OK   $ASSET — $(wc -c < asset.out) bytes, wOF2"
+                fi
+                ;;
+              *) echo "OK   $ASSET — $(wc -c < asset.out) bytes" ;;
+            esac
+          done
+
+          # ...and the gate must still gate. If this ever returns 200 the allowlist has been
+          # widened too far and the app shell is public.
+          CODE=$(curl -s -o /dev/null -w '%{http_code}' "$BASE/index.html")
+          if [ "$CODE" != "302" ]; then
+            echo "::error::/index.html returned $CODE signed out; expected a 302 to /login"
+            FAILED=1
+          else
+            echo "OK   /index.html still gated"
+          fi
 
           exit $FAILED
 
