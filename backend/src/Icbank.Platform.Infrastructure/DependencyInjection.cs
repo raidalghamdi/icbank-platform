@@ -72,7 +72,17 @@ public static partial class DependencyInjection
             options.WithinDays,
             options.MaxItemsPerTerm));
 
-        services.AddHttpClient("news");
+        // Configured here rather than per provider so every current and future provider inherits it.
+        // The timeout is the important part: a fetch issues one request per term per provider in
+        // sequence, so on HttpClient's 100-second default a single unresponsive upstream stalls the
+        // whole job for minutes. The providers treat a timeout as an empty result, so failing fast
+        // costs only that term's contribution to the run.
+        services.AddHttpClient("news", client =>
+        {
+            client.Timeout = TimeSpan.FromSeconds(Math.Clamp(options.RequestTimeoutSeconds, 1, 120));
+            client.DefaultRequestHeaders.UserAgent.ParseAdd(options.UserAgent);
+            client.DefaultRequestHeaders.AcceptLanguage.ParseAdd(options.Language);
+        });
         var newsDataApiKey = NewsDataApiKeyResolver.Resolve(configuration);
 
         foreach (var providerKey in options.EnabledProviders.Select(k => k.Trim()).Where(k => k.Length > 0).Distinct())

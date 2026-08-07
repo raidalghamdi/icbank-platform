@@ -47,4 +47,26 @@ public sealed class NewsSourceOptions
 
     /// <summary>Gets or sets the base URL for the NewsData.io latest-news endpoint.</summary>
     public string NewsDataBaseUrl { get; set; } = "https://newsdata.io/api/1/latest";
+
+    /// <summary>
+    /// Gets or sets the per-request timeout, in seconds, for every news provider call.
+    /// </summary>
+    /// <remarks>
+    /// Deliberately far below <see cref="HttpClient"/>'s 100-second default. A scheduled fetch issues
+    /// one request per term per provider sequentially, so the default would let a single unresponsive
+    /// upstream stall the whole job for minutes; the providers already degrade a timeout to an empty
+    /// list, so failing fast simply means that term contributes nothing to this run.
+    /// </remarks>
+    public int RequestTimeoutSeconds { get; set; } = 20;
+
+    /// <summary>
+    /// Gets or sets the <c>User-Agent</c> sent with every news provider request.
+    /// </summary>
+    /// <remarks>
+    /// Google News serves the feed to any agent, including none at all, so this is not a workaround —
+    /// it identifies the caller to the upstream so that traffic from this platform is attributable
+    /// rather than anonymous, and gives the operator a contact point if the volume is ever a problem.
+    /// </remarks>
+    public string UserAgent { get; set; } =
+        "Mozilla/5.0 (compatible; IcbankNewsBot/1.0; +https://icbank-dev-api.azurewebsites.net)";
 }
