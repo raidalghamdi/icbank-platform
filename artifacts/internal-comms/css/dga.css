@@ -2,58 +2,48 @@
    dga.css — DGA Nazm Design System for the GAC UAT platform.
    ----------------------------------------------------------------------------
    Tokens sourced from https://design.dga.gov.sa/ (index-PDaQ7SHU.css).
-   Brand color: green (#25935F). Fonts served LOCALLY from wwwroot/fonts/.
+   Brand color: green (#25935F). Typeface: Frutiger LT Arabic (GAC-approved), served
+   LOCALLY from fonts/frutiger/.
    No external HTTP traffic.
    ============================================================================ */
 
-/* --- Local @font-face declarations ----------------------------------------- */
+/* --- Approved brand typeface -----------------------------------------------
+   Frutiger LT Arabic is the GAC-approved typeface and is the ONLY text face this
+   platform declares. Everything — Arabic and Latin, UI and print — resolves to it.
+   Three static weights ship (Light 300 / Roman 400 / Bold 700); CSS weight matching
+   maps 500 down to 400 and 600 up to 700, so no synthetic bolding occurs.
+
+   Served locally. Never load this face, or any other, from a third-party CDN: it
+   would break behind the corporate firewall, leak traffic off-network, and put an
+   unapproved face on screen whenever the CDN is unreachable.
+
+   NOTE ON LICENSING — read before deploying to production. These binaries carry
+   Monotype/Linotype `name` records with fsType=4 (Preview & Print). That embedding
+   bit does not by itself grant webfont redistribution rights, and serving the file
+   over HTTP is redistribution. Confirm GAC's Frutiger licence covers self-hosted
+   web use, and replace these files with the binaries from GAC's official brand
+   package. See fonts/frutiger/PROVENANCE.md.
+   -------------------------------------------------------------------------- */
 
 @font-face {
-    font-family: "Cairo";
-    src: url("../fonts/cairo/Cairo-Variable.ttf") format("truetype-variations");
-    font-weight: 100 900;
+    font-family: "Frutiger LT Arabic";
+    src: url("../fonts/frutiger/FrutigerLTArabic-Light.woff2") format("woff2");
+    font-weight: 300;
     font-style: normal;
     font-display: swap;
 }
 
-/* Display serif for the landing masthead and section headings. Vendored rather than pulled from
-   the Google Fonts CDN so the platform keeps working behind the corporate firewall and leaks no
-   request to a third party. SIL OFL 1.1 — licence text sits beside the file in fonts/markazi/. */
 @font-face {
-    font-family: "Markazi Text";
-    src: url("../fonts/markazi/MarkaziText-Variable.woff2") format("woff2-variations");
-    font-weight: 400 700;
-    font-style: normal;
-    font-display: swap;
-}
-
-@font-face {
-    font-family: "IBM Plex Sans";
-    src: url("../fonts/plex/IBMPlexSans-Regular.woff2") format("woff2");
+    font-family: "Frutiger LT Arabic";
+    src: url("../fonts/frutiger/FrutigerLTArabic-Roman.woff2") format("woff2");
     font-weight: 400;
     font-style: normal;
     font-display: swap;
 }
 
 @font-face {
-    font-family: "IBM Plex Sans";
-    src: url("../fonts/plex/IBMPlexSans-Medium.woff2") format("woff2");
-    font-weight: 500;
-    font-style: normal;
-    font-display: swap;
-}
-
-@font-face {
-    font-family: "IBM Plex Sans";
-    src: url("../fonts/plex/IBMPlexSans-SemiBold.woff2") format("woff2");
-    font-weight: 600;
-    font-style: normal;
-    font-display: swap;
-}
-
-@font-face {
-    font-family: "IBM Plex Sans";
-    src: url("../fonts/plex/IBMPlexSans-Bold.woff2") format("woff2");
+    font-family: "Frutiger LT Arabic";
+    src: url("../fonts/frutiger/FrutigerLTArabic-Bold.woff2") format("woff2");
     font-weight: 700;
     font-style: normal;
     font-display: swap;
@@ -131,8 +121,8 @@
     --header-height:  72px;
 
     /* Typography */
-    --font-en: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
-    --font-ar: "Cairo", "IBM Plex Sans", system-ui, sans-serif;
+    --font-en: "Frutiger LT Arabic", system-ui, -apple-system, sans-serif;
+    --font-ar: "Frutiger LT Arabic", system-ui, sans-serif;
 }
 
 /* --- Resets ---------------------------------------------------------------- */

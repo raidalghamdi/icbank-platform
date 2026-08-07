@@ -44,7 +44,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Rendering\Fonts\Cairo-Variable.ttf" />
+    <EmbeddedResource Include="Rendering\Fonts\FrutigerLTArabic-Roman.ttf" />
+    <EmbeddedResource Include="Rendering\Fonts\FrutigerLTArabic-Bold.ttf" />
+    <EmbeddedResource Include="Rendering\Fonts\FrutigerLTArabic-Light.ttf" />
   </ItemGroup>
 
 </Project>

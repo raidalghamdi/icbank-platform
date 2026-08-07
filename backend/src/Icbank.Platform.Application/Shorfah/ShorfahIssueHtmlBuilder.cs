@@ -20,7 +20,7 @@ namespace Icbank.Platform.Application.Shorfah;
 public static class ShorfahIssueHtmlBuilder
 {
     private const string Styles = "<style>" +
-        "body{font-family:'Cairo','Arial',sans-serif;direction:rtl;margin:40px;color:#1a1a1a;}" +
+        "body{font-family:'Frutiger LT Arabic','Arial',sans-serif;direction:rtl;margin:40px;color:#1a1a1a;}" +
         "h1{color:#0069A7;border-bottom:2px solid #0069A7;padding-bottom:8px;}" +
         "h2{color:#0069A7;margin-top:24px;}" +
         ".meta{color:#888888;font-size:14px;margin-bottom:16px;}" +

@@ -11,9 +11,10 @@
 <title>منصة التواصل المؤسسي</title>
 <link rel="icon" type="image/svg+xml" href="/public/favicon.svg">
 <script src="/runtime-config.js"></script>
-<link rel="preload" as="font" type="font/ttf" href="/fonts/cairo/Cairo-Variable.ttf" crossorigin>
-<link rel="preload" as="font" type="font/woff2" href="/fonts/plex/IBMPlexSans-Regular.woff2" crossorigin>
-<link rel="preload" as="font" type="font/woff2" href="/fonts/markazi/MarkaziText-Variable.woff2" crossorigin>
+<!-- Only the two weights that appear above the fold are preloaded. Light (300) is used
+     for large display headings further down and is left to normal discovery. -->
+<link rel="preload" as="font" type="font/woff2" href="/fonts/frutiger/FrutigerLTArabic-Roman.woff2" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="/fonts/frutiger/FrutigerLTArabic-Bold.woff2" crossorigin>
 <link rel="stylesheet" href="/css/dga.css">
 <style>
 /* ═══ TOKENS ═══ */
@@ -70,8 +71,11 @@
   --radius-md:      6px;
   --radius-lg:      8px;
 
-  --sans:    'Cairo', 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
-  --sans-en: 'IBM Plex Sans', 'Cairo', system-ui, sans-serif;
+  /* Frutiger LT Arabic is the GAC-approved face and covers both Arabic and Latin, so
+     --sans and --sans-en resolve to the same family. Kept as two tokens because call
+     sites distinguish them; they must never diverge onto an unapproved face again. */
+  --sans:    'Frutiger LT Arabic', system-ui, -apple-system, sans-serif;
+  --sans-en: 'Frutiger LT Arabic', system-ui, -apple-system, sans-serif;
   --mono:    'IBM Plex Mono', ui-monospace, monospace;
 
   --sidebar-w: 264px;
@@ -1181,9 +1185,12 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
    Everything below the masthead is built from what the signed-in user can
    actually reach, so two people never see the same landing page.
    ═══════════════════════════════════════════════════════════════════════ */
-/* The redesign is a printed-broadsheet metaphor: a gold seal, a double masthead rule, Markazi Text
-   for display copy and a faint dotted ground. Those tokens live here rather than in :root because
-   they dress this one route — the rest of the platform keeps its existing chrome. */
+/* The redesign is a printed-broadsheet metaphor: a gold seal, a double masthead rule and a faint
+   dotted ground. The mockup carried this with a display serif, but the approved GAC typeface is
+   Frutiger LT Arabic and nothing else is permitted on screen, so the editorial hierarchy is built
+   from weight and scale within that one family instead — Light 300 for the large display lines,
+   Bold 700 for section heads. Those tokens live here rather than in :root because they dress this
+   one route; the rest of the platform keeps its existing chrome. */
 .home-landing {
   --hl-deep:#1E4A36;      /* masthead rule, headings, widget CTA */
   --hl-mid:#3C7B57;       /* eyebrows and the "assigned by" line */
@@ -1200,10 +1207,12 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
      drawn on the landing container only, so no other route inherits it. */
   background:radial-gradient(circle at 1px 1px, rgba(30,74,54,.05) 1px, transparent 0) 0 0/16px 16px;
 }
+/* One family everywhere. The mockup's display serif is not an approved face, so the editorial
+   voice comes from weight contrast inside Frutiger instead: Light 300 for the big display lines,
+   Bold 700 for the small section heads. That spread is wide enough to read as hierarchy without
+   a second family. */
 .home-landing h1, .home-landing h2, .home-landing h3, .hl-seal-mark {
-  /* Markazi Text is vendored in fonts/markazi and declared in css/dga.css. Cairo is the fallback
-     so headings stay on-brand rather than dropping to a system serif if the file fails. */
-  font-family:'Markazi Text', 'Cairo', serif;
+  font-family:var(--sans);
 }
 
 /* ── Masthead ── */
@@ -1235,7 +1244,9 @@ body.designs-mode .main-inner { max-width: 100%; padding-left: 24px; padding-rig
   background:var(--hl-gold); color:var(--hl-ink); padding:3px 10px; border-radius:999px;
   font-size:11.5px; font-weight:600; letter-spacing:.2px; white-space:nowrap;
 }
-.hl-name { margin:0; font-size:clamp(28px, 5.6vw, 40px); font-weight:700; line-height:1.15; letter-spacing:.2px; color:var(--hl-deep); }
+/* Arabic descenders sit well below the line box, so a Latin-tight 1.2 puts the tail of the
+   final letter almost onto the masthead rule. 1.32 buys the ink real clearance. */
+.hl-name { margin:0; font-size:clamp(27px, 5.4vw, 38px); font-weight:300; line-height:1.32; letter-spacing:-.2px; color:var(--hl-deep); }
 .hl-affil { margin:5px 0 0; font-size:12.5px; color:var(--hl-ink-soft); }
 .hl-affil-admin { color:var(--hl-mid); font-weight:600; }
 
@@ -5476,7 +5487,7 @@ button.home-row:hover { border-color:var(--primary-100); background:var(--primar
         </div>
         <div id="shorfah-editor-meta" style="font-size:12px;color:var(--text-3);margin-bottom:10px;"></div>
         <label style="display:block;font-weight:700;margin-bottom:6px;">المحتوى (Markdown):</label>
-        <textarea id="shorfah-editor-content" style="width:100%;height:300px;padding:12px;border:1px solid var(--border);border-radius:8px;font-family:'Tajawal',system-ui,sans-serif;font-size:15px;line-height:1.7;resize:vertical;" dir="rtl"></textarea>
+        <textarea id="shorfah-editor-content" style="width:100%;height:300px;padding:12px;border:1px solid var(--border);border-radius:8px;font-family:var(--sans);font-size:15px;line-height:1.7;resize:vertical;" dir="rtl"></textarea>
         <!-- Phase 7: Media UI removed — images are managed only in the Word export template.
              (Kept hidden inputs for backward compatibility with existing JS.) -->
         <div id="shorfah-media-panel" style="display:none;">
@@ -5779,6 +5790,21 @@ button.home-row:hover { border-color:var(--primary-100); background:var(--primar
 </div><!-- end .app -->
 
 <script>
+/* ── Approved typeface, for documents that leave this page ────────────────────
+   Print previews, popup windows and file exports are still GAC-branded output, so
+   they carry the approved face as well. They render outside this document's
+   stylesheet, so each needs its own @font-face with absolute URLs — a relative path
+   resolves against about:blank in a popup and fetches nothing. */
+var BRAND_FONT_STACK = "'Frutiger LT Arabic',system-ui,sans-serif";
+function brandFontFaceCss() {
+  var origin = location.origin;
+  return ['300:Light', '400:Roman', '700:Bold'].map(function (spec) {
+    var part = spec.split(':');
+    return '@font-face{font-family:"Frutiger LT Arabic";src:url("' + origin +
+           '/fonts/frutiger/FrutigerLTArabic-' + part[1] + '.woff2") format("woff2");' +
+           'font-weight:' + part[0] + ';font-style:normal;font-display:swap;}';
+  }).join('');
+}
 // ════════════════════════════════════════
 // API CONFIG — single configurable base URL + version prefix
 // ════════════════════════════════════════
@@ -9474,7 +9500,7 @@ function wk2AdminPreview(id) {
   var c = d.content || {};
   var w = window.open('', '_blank', 'width=900,height=700');
   w.document.write('<html dir="rtl" lang="ar"><head><meta charset="utf-8"><title>معاينة مسودة ' + d.id + '</title>' +
-    '<style>body{font-family:"Tajawal",sans-serif;padding:24px;background:#f9fafb;color:#111827;line-height:1.7}h2{color:#7C3AED;border-bottom:2px solid #7C3AED;padding-bottom:6px;margin-top:24px}pre{background:#fff;padding:14px;border-radius:8px;border:1px solid #e5e7eb;overflow:auto;font-size:12px}</style></head><body>' +
+    '<style>' + brandFontFaceCss() + 'body{font-family:' + BRAND_FONT_STACK + ';padding:24px;background:#f9fafb;color:#111827;line-height:1.7}h2{color:#7C3AED;border-bottom:2px solid #7C3AED;padding-bottom:6px;margin-top:24px}pre{background:#fff;padding:14px;border-radius:8px;border:1px solid #e5e7eb;overflow:auto;font-size:12px}</style></head><body>' +
     '<h1>معاينة مسودة نهاية الأسبوع — ' + escHtml(d.weekendDate) + '</h1>' +
     '<p><b>الحالة:</b> ' + escHtml(d.status) + ' · <b>المدينة:</b> ' + escHtml(d.city) + ' · <b>النموذج:</b> ' + escHtml(d.modelName || '') + '</p>' +
     (c.summary ? '<h2>الملخص</h2><p>' + escHtml(c.summary) + '</p>' : '') +
@@ -10062,7 +10088,7 @@ function wsCopy(model) {
 function wsExport(model) {
   var text = wsFullTexts[model] || (document.getElementById('ws-text-' + model) || {}).textContent || '';
   if (!text) return;
-  var html = '<html dir="rtl"><head><meta charset="UTF-8"><style>body{font-family:Arial,sans-serif;font-size:14pt;direction:rtl;line-height:1.9;padding:50px 60px;}</style></head><body>' +
+  var html = '<html dir="rtl"><head><meta charset="UTF-8"><style>body{font-family:\'Frutiger LT Arabic\',Arial,sans-serif;font-size:14pt;direction:rtl;line-height:1.9;padding:50px 60px;}</style></head><body>' +
     text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>') +
     '</body></html>';
   var blob = new Blob([html], { type: 'application/msword' });
@@ -11683,7 +11709,7 @@ var DES = (function() {
         'font-size:' + _s(slot.default_font_size,scale) + 'px;' +
         'color:' + slot.color + ';' +
         'text-align:' + (slot.alignment || 'right') + ';' +
-        'font-family:\'Segoe UI\',Tahoma,Arial,sans-serif;">' +
+        'font-family:' + BRAND_FONT_STACK + ';">' +
         textContent + '</div>';
     });
 
@@ -11983,7 +12009,7 @@ var DES = (function() {
       document.body.appendChild(m);
     }
     m.style.width      = slot.width + 'px';
-    m.style.fontFamily = fontStack || "Tahoma,'Segoe UI',Arial,sans-serif";
+    m.style.fontFamily = fontStack || BRAND_FONT_STACK;
     var lo = 12, hi = maxFontSize, best = lo;
     while (lo <= hi) {
       var mid = Math.round((lo + hi) / 2);
@@ -12022,7 +12048,7 @@ var DES = (function() {
     var fontFamily = (document.getElementById('des-ed-font')  || {}).value || '';
     var titleSz    = parseInt((document.getElementById('des-ed-title-sz') || {}).value) || 72;
     var bodySz     = parseInt((document.getElementById('des-ed-body-sz')  || {}).value) || 40;
-    var fontStack  = fontFamily ? "'" + fontFamily + "',Tahoma,Arial,sans-serif" : "Tahoma,'Segoe UI',Arial,sans-serif";
+    var fontStack  = fontFamily ? "'" + fontFamily + "'," + BRAND_FONT_STACK : BRAND_FONT_STACK;
 
     var TEXT_MAP = { title: titleText, body: bodyText };
     var SIZE_MAP = { title: titleSz,   body: bodySz  };
@@ -14787,7 +14813,7 @@ window.MM = (function(){
       if (!data.ok) throw new Error((data.detail || data.title || data.error)||'فشل');
       var w = window.open('', '_blank');
       if (w){
-        w.document.write('<html dir="rtl" lang="ar"><head><meta charset="utf-8"><title>ملخص تنفيذي — '+escHtml(state.current.reportNumber||'')+'</title><style>body{font-family:"Segoe UI",Tahoma,sans-serif;max-width:780px;margin:30px auto;padding:24px;background:#f9fafb;color:#0e3b4a;line-height:1.8;}h1{color:#1a6e7a;border-bottom:3px solid #b8924a;padding-bottom:8px;}.box{background:white;padding:20px;border-radius:10px;border-right:4px solid #1a6e7a;}</style></head><body><h1>ملخص تنفيذي</h1><div style="font-size:12px;color:#6b7280;margin-bottom:14px;">'+escHtml(state.current.reportNumber||'')+' · '+escHtml(state.current.title||'')+'</div><div class="box">'+mmRenderMarkdown(data.summary||'').replace(/\n/g,'<br>')+'</div></body></html>');
+        w.document.write('<html dir="rtl" lang="ar"><head><meta charset="utf-8"><title>ملخص تنفيذي — '+escHtml(state.current.reportNumber||'')+'</title><style>' + brandFontFaceCss() + 'body{font-family:' + BRAND_FONT_STACK + ';max-width:780px;margin:30px auto;padding:24px;background:#f9fafb;color:#0e3b4a;line-height:1.8;}h1{color:#1a6e7a;border-bottom:3px solid #b8924a;padding-bottom:8px;}.box{background:white;padding:20px;border-radius:10px;border-right:4px solid #1a6e7a;}</style></head><body><h1>ملخص تنفيذي</h1><div style="font-size:12px;color:#6b7280;margin-bottom:14px;">'+escHtml(state.current.reportNumber||'')+' · '+escHtml(state.current.title||'')+'</div><div class="box">'+mmRenderMarkdown(data.summary||'').replace(/\n/g,'<br>')+'</div></body></html>');
         w.document.close();
       } else {
         alert(data.summary||'');

@@ -7,9 +7,13 @@
 <title>تسجيل الدخول — منصة التواصل المؤسسي</title>
 <link rel="icon" type="image/svg+xml" href="/public/favicon.svg">
 <script src="/runtime-config.js"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!-- The approved typeface, served from this origin. This page previously pulled IBM Plex
+     Sans Arabic and Inter from the Google Fonts CDN: off-brand faces, a third-party request
+     from the sign-in page of a government platform, and a hard failure behind a corporate
+     firewall that would drop the login screen to a system font. -->
+<link rel="preload" as="font" type="font/woff2" href="/fonts/frutiger/FrutigerLTArabic-Roman.woff2" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="/fonts/frutiger/FrutigerLTArabic-Bold.woff2" crossorigin>
+<link rel="stylesheet" href="/css/dga.css">
 <style>
 :root {
   --primary:        #1E40AF;
@@ -28,7 +32,7 @@
   --danger-bg:      #FEF2F2;
   --success:        #16A34A;
   --success-bg:     #F0FDF4;
-  --sans: 'IBM Plex Sans Arabic', 'Inter', system-ui, sans-serif;
+  --sans: 'Frutiger LT Arabic', system-ui, sans-serif;
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html { -webkit-font-smoothing: antialiased; }
@@ -79,7 +83,7 @@ body {
   color: var(--text-3);
   letter-spacing: 0.5px;
   text-transform: uppercase;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--sans);
 }
 
 .login-card {

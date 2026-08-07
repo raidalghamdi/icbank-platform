@@ -9,7 +9,7 @@ namespace Icbank.Platform.Infrastructure.MediaMonitoring;
 /// spoofed <c>application/pdf</c> content type). Renders the already-HTML-encoded document (see
 /// <see cref="FinalReportHtmlBuilder"/>) to a true PDF byte stream via QuestPDF (Community license
 /// -- see <c>RENDERING-NOTES.md</c>) and <see cref="HtmlDocumentPdfComposer"/>, with an embedded
-/// Cairo font (SIL OFL 1.1) providing full Arabic glyph coverage and right-to-left layout so the
+/// GAC-approved Frutiger LT Arabic font, providing full Arabic glyph coverage and right-to-left layout so the
 /// container never depends on a system font being present.
 /// </summary>
 public sealed class QuestPdfFinalReportPdfRenderer : IFinalReportPdfRenderer
