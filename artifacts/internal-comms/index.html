@@ -14517,7 +14517,7 @@ window.MM = (function(){
           });
           return;
         }
-        throw new Error(friendlyError(ejFull.detail || ejFull.title || ejFull, 'فشل التوليد'));
+        throw new Error(friendlyError(ejFull, 'فشل التوليد'));
       }
       var data = await res.json();
       state.draft = data.draft;
@@ -14961,7 +14961,7 @@ window.MM = (function(){
           });
           return;
         }
-        throw new Error(friendlyError(ejFull.detail || ejFull.title || ejFull, 'فشل التوليد'));
+        throw new Error(friendlyError(ejFull, 'فشل التوليد'));
       }
       var data = await res.json();
       closeGenerateModal();
