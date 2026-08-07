@@ -4,6 +4,7 @@ using FluentAssertions;
 using Icbank.Platform.Domain.InternationalDays;
 using Icbank.Platform.Domain.Shorfah;
 using Icbank.Platform.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -250,10 +251,39 @@ public sealed class DownloadTokenFlowTests : IDisposable
         return (await mintResponse.Content.ReadFromJsonAsync<MintPayload>())!;
     }
 
+    /// <summary>
+    /// Seeds a Shorfah issue, allocating the next free issue number.
+    /// </summary>
+    /// <remarks>
+    /// IssueNo has to be assigned explicitly. shorfah_issues carries a unique index on
+    /// issue_no (ux_shorfah_issues_issue_no), so leaving it at the CLR default of 0 means the
+    /// helper can only ever be called once per test database -- the second call collides.
+    /// That is a real constraint doing its job, not a schema quirk to work around: issue
+    /// numbers are what readers cite, so two issues sharing one is meaningless.
+    ///
+    /// This only ever surfaced in CI. Locally there is no SQL Server, the suite falls back to
+    /// the InMemory provider, and InMemory does not enforce unique indexes at all -- so the
+    /// duplicate insert succeeded and the test passed against a database state that SQL Server
+    /// would never have allowed.
+    /// </remarks>
     private async Task<int> SeedShorfahIssueAsync()
     {
         using AppDbContext dbContext = CreateDbContext();
-        var issue = new ShorfahIssue { TitleAr = "عدد تجريبي", Month = 8, Year = 2026, CreatedBy = "test" };
+
+        // Derived from the table rather than a counter so the value stays correct no matter
+        // what else has already seeded an issue (the app's own seeder, or another helper).
+        int nextIssueNo = await dbContext.ShorfahIssues
+            .Select(existing => (int?)existing.IssueNo)
+            .MaxAsync(CancellationToken.None) ?? 0;
+
+        var issue = new ShorfahIssue
+        {
+            TitleAr = "عدد تجريبي",
+            Month = 8,
+            Year = 2026,
+            IssueNo = nextIssueNo + 1,
+            CreatedBy = "test",
+        };
         dbContext.Add(issue);
         await dbContext.SaveChangesAsync(CancellationToken.None);
         return issue.Id;

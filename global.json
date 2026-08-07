@@ -1,0 +1,7 @@
+{
+  "//": "Pinned exactly, not floated. CI used to resolve dotnet-version '8.0.x' to whatever the newest patch was that day, while this repo was developed on 8.0.423. The SDK ships the Roslyn analyzers, so a newer patch enforces subtly different rules: IDE0008 fired on RenderingGuard.cs in CI and was invisible locally, which is a broken build that no amount of local checking could reproduce. rollForward 'disable' means the SDK version is part of the source tree. Bumping it is a deliberate commit that touches this file AND DOTNET_VERSION in .github/workflows/*.yml -- keep the two in step.",
+  "sdk": {
+    "version": "8.0.423",
+    "rollForward": "disable"
+  }
+}

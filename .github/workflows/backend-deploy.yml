@@ -18,7 +18,7 @@ on:
         options: [dev, staging, prod]
 
 env:
-  DOTNET_VERSION: '8.0.x'
+  DOTNET_VERSION: '8.0.423'
   COVERAGE_THRESHOLD: 70
 
 defaults:
