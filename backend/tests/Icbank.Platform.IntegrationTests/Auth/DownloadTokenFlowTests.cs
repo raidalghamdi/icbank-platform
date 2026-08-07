@@ -272,7 +272,7 @@ public sealed class DownloadTokenFlowTests : IDisposable
 
         // Derived from the table rather than a counter so the value stays correct no matter
         // what else has already seeded an issue (the app's own seeder, or another helper).
-        int nextIssueNo = await dbContext.ShorfahIssues
+        var nextIssueNo = await dbContext.ShorfahIssues
             .Select(existing => (int?)existing.IssueNo)
             .MaxAsync(CancellationToken.None) ?? 0;
 

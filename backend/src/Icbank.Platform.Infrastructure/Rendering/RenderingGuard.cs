@@ -40,7 +40,7 @@ public static class RenderingGuard
         using var timeoutSource = new CancellationTokenSource(timeout ?? DefaultTimeout);
         using var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutSource.Token);
 
-        Task<T> renderTask = Task.Run(render, linkedSource.Token);
+        var renderTask = Task.Run(render, linkedSource.Token);
         try
         {
             return await renderTask.WaitAsync(linkedSource.Token);
