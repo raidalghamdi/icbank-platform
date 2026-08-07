@@ -25,13 +25,17 @@ defaults:
   run:
     working-directory: backend
 
-# Why: OIDC federated credentials (azure/login) exchange a short-lived GitHub Actions OIDC
-# token for an Azure AD access token -- no client secret or publish profile is ever stored as a
-# GitHub secret. This requires id-token: write. See docs/DEPLOYMENT.md "App registration and
-# OIDC federation setup" for how AZURE_CLIENT_ID/AZURE_TENANT_ID/AZURE_SUBSCRIPTION_ID and the
-# federated credential itself are created.
+# Auth: publish profile for the App Service, SQL login for the migrations. OIDC would be the
+# better pattern and this workflow was written for it, but it needs an Azure AD app registration
+# with a federated credential and nobody on the project holds the directory rights to create
+# one -- so the pipeline never completed a run and the backend was deployed by hand instead.
+#
+# Both credentials are long-lived, which is the real cost. Both are narrowly scoped (one App
+# Service; one database login that the app already uses) and both are rotatable without
+# touching Azure AD: Deployment Center -> Manage publish profile -> Reset, and a password reset
+# on the SQL login. If the app registration is ever created, restore `permissions: id-token:
+# write`, put azure/login back, and delete AZURE_API_PUBLISH_PROFILE and SQL_CONNECTION_STRING.
 permissions:
-  id-token: write
   contents: read
 
 jobs:
@@ -148,24 +152,39 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: Azure login (OIDC federated credential)
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
-      - name: Open a temporary SQL firewall rule for this runner
-        id: firewall
+      # No azure/login here any more. This pipeline never completed a single run: it failed at
+      # azure/login with "Not all values are present. Ensure 'client-id' and 'tenant-id' are
+      # supplied", because the OIDC secrets were never created -- that needs an Azure AD app
+      # registration with a federated credential and nobody on the project holds the directory
+      # rights to make one. The backend was being deployed by hand instead.
+      #
+      # The comment that used to sit on the migration step said azureADOnlyAuthentication was
+      # true and so no SQL credential could exist. That is not true of this environment:
+      # icbank-dev-sql has azureADOnlyAuthentication = false, and the running API authenticates
+      # with a SQL login today. So migrations can use the same SQL credential the app uses,
+      # with no directory rights involved.
+      - name: Confirm the runner can reach SQL before doing anything
         run: |
-          RUNNER_IP=$(curl -sS https://ifconfig.me)
-          echo "runner_ip=$RUNNER_IP" >> "$GITHUB_OUTPUT"
-          az sql server firewall-rule create \
-            --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
-            --server "${{ vars.SQL_SERVER_NAME }}" \
-            --name "gh-actions-migrate-${{ github.run_id }}" \
-            --start-ip-address "$RUNNER_IP" \
-            --end-ip-address "$RUNNER_IP"
+          # GitHub-hosted runners are themselves Azure-hosted, so the server's
+          # AllowAllWindowsAzureIps rule normally covers them and no per-run firewall opening is
+          # needed. "Normally" is doing work in that sentence, so fail here with an explanation
+          # rather than 40 lines later inside dotnet ef.
+          python3 - <<'PROBE'
+          import socket, sys, urllib.request
+          host = "${{ vars.SQL_SERVER_FQDN }}"
+          if not host:
+              sys.exit("SQL_SERVER_FQDN repository variable is not set")
+          try:
+              with socket.create_connection((host, 1433), timeout=20):
+                  print(f"TCP 1433 to {host} is open")
+          except OSError as exc:
+              ip = urllib.request.urlopen("https://api.ipify.org", timeout=20).read().decode()
+              sys.exit(
+                  f"::error::cannot reach {host}:1433 from this runner ({ip}): {exc}\n"
+                  f"Add a firewall rule for the runner, or confirm 'Allow Azure services and "
+                  f"resources to access this server' is enabled on icbank-dev-sql."
+              )
+          PROBE
 
       - name: Restore and build (no-op if cached, needed for dotnet ef)
         run: |
@@ -184,22 +203,12 @@ jobs:
             --startup-project src/Icbank.Platform.Api \
             --no-build --configuration Release
         env:
-          # Why Active Directory Default and not a SQL login/password: sql.bicep provisions the
-          # server with azureADOnlyAuthentication: true, so there is no SQL credential to use even
-          # if we wanted one. The federated OIDC identity that azure/login just authenticated as
-          # must itself be a member of the sqlEntraAdminObjectId admin group (or otherwise granted
-          # db_ddladmin) for this to succeed -- see docs/DEPLOYMENT.md "Letting the CD pipeline
-          # reach SQL".
-          ConnectionStrings__Default: 'Server=tcp:${{ vars.SQL_SERVER_FQDN }},1433;Database=${{ vars.SQL_DATABASE_NAME }};Authentication=Active Directory Default;Encrypt=True;TrustServerCertificate=False;'
+          # The same SQL login the running API uses. Held as a secret rather than assembled from
+          # variables because it carries a password. If this environment is ever moved to
+          # Entra-only auth, this goes back to 'Authentication=Active Directory Default' and the
+          # job needs an identity with db_ddladmin -- see docs/DEPLOYMENT.md.
+          ConnectionStrings__Default: ${{ secrets.SQL_CONNECTION_STRING }}
 
-      - name: Remove the temporary SQL firewall rule
-        if: always()
-        run: |
-          az sql server firewall-rule delete \
-            --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
-            --server "${{ vars.SQL_SERVER_NAME }}" \
-            --name "gh-actions-migrate-${{ github.run_id }}" \
-            --yes || true
 
   deploy:
     needs: migrate
@@ -214,32 +223,19 @@ jobs:
           name: backend-publish
           path: publish
 
-      - name: Azure login (OIDC federated credential)
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
       - name: Deploy to App Service
-        run: |
-          cd publish
-          zip -r ../publish.zip .
-          cd ..
-          az webapp deploy \
-            --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
-            --name "${{ vars.APP_SERVICE_NAME }}" \
-            --src-path publish.zip \
-            --type zip
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ vars.APP_SERVICE_NAME }}
+          publish-profile: ${{ secrets.AZURE_API_PUBLISH_PROFILE }}
+          package: publish
 
       - name: Resolve the deployed app URL
         id: resolve-url
-        run: |
-          HOSTNAME=$(az webapp show \
-            --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
-            --name "${{ vars.APP_SERVICE_NAME }}" \
-            --query defaultHostName -o tsv)
-          echo "app_url=https://$HOSTNAME" >> "$GITHUB_OUTPUT"
+        # Derived, not queried: `az webapp show` needs an authenticated CLI and this job no
+        # longer logs in to Azure. App Service always assigns <name>.azurewebsites.net. A custom
+        # domain would have to become a repository variable.
+        run: echo "app_url=https://${{ vars.APP_SERVICE_NAME }}.azurewebsites.net" >> "$GITHUB_OUTPUT"
 
   # The gate job proves the code is correct in isolation (WebApplicationFactory, swapped
   # database/clock). This job is the only place that proves the actual deployed instance -- real
