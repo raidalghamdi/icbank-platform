@@ -1,0 +1,201 @@
+name: Frontend CD
+
+# Manual dispatch only, matching Backend CD. This pipeline has not been run against a live
+# Azure tenant from this repository, so wiring it to fire on every push would turn an
+# unverified assumption into an unattended deploy. Once an operator has watched it succeed
+# once against dev, switching the `on:` block to `push: branches: [main]` with a
+# `paths: [artifacts/internal-comms/**]` filter is a one-line change.
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment (must match a GitHub Environment holding its own secrets/variables)'
+        type: choice
+        required: true
+        options: [dev, staging, prod]
+
+# Why OIDC and not a publish profile: a publish profile is a long-lived secret with deploy
+# rights that lives in GitHub settings forever. azure/login exchanges a short-lived GitHub
+# OIDC token for an Azure AD token instead, so nothing reusable is stored. This reuses the
+# exact same AZURE_CLIENT_ID / AZURE_TENANT_ID / AZURE_SUBSCRIPTION_ID federation that
+# Backend CD already relies on -- see docs/DEPLOYMENT.md.
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  FRONTEND_DIR: artifacts/internal-comms
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    outputs:
+      app-url: ${{ steps.resolve-url.outputs.app_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # The frontend is static HTML served by a dependency-free Node server, so there is no
+      # install or build step to run. What there IS to check is that the inline scripts parse:
+      # a syntax error in index.html would deploy a blank page that still returns HTTP 200,
+      # which no smoke test hitting "/" would catch.
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Syntax-check the server and every inline script block
+        run: |
+          cd "$FRONTEND_DIR"
+          node --check server.mjs
+          node - <<'EOF'
+          const fs = require('fs');
+          const vm = require('vm');
+          let failed = 0;
+          for (const file of ['index.html', 'login.html']) {
+            const html = fs.readFileSync(file, 'utf8');
+            const blocks = html.match(/<script(?![^>]*\bsrc=)[^>]*>[\s\S]*?<\/script>/g) || [];
+            blocks.forEach((raw, i) => {
+              const body = raw.replace(/^<script[^>]*>/, '').replace(/<\/script>$/, '');
+              try {
+                new vm.Script(body, { filename: `${file}#script[${i}]` });
+              } catch (err) {
+                console.error(`::error file=${file}::inline script ${i} failed to parse: ${err.message}`);
+                failed++;
+              }
+            });
+            console.log(`${file}: ${blocks.length} inline script block(s) checked`);
+          }
+          if (failed) process.exit(1);
+          EOF
+
+      - name: Package the site
+        run: |
+          cd "$FRONTEND_DIR"
+          zip -rq "$GITHUB_WORKSPACE/frontend.zip" . -x '*.git*' 'node_modules/*'
+          unzip -l "$GITHUB_WORKSPACE/frontend.zip" | tail -1
+
+      - name: Azure login (OIDC federated credential)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      # Why set the startup command explicitly: App Service's Node autodetect runs `npm start`,
+      # and this package.json has no `start` script (only dev/build/serve). Without this the
+      # container falls back to serving the directory statically and every deep link 404s
+      # instead of hitting the shell fallback in server.mjs.
+      - name: Pin the startup command
+        run: |
+          az webapp config set \
+            --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
+            --name "${{ vars.FRONTEND_APP_SERVICE_NAME }}" \
+            --startup-file "node server.mjs"
+
+      - name: Deploy to App Service
+        run: |
+          az webapp deploy \
+            --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
+            --name "${{ vars.FRONTEND_APP_SERVICE_NAME }}" \
+            --src-path frontend.zip \
+            --type zip
+
+      - name: Resolve the deployed app URL
+        id: resolve-url
+        run: |
+          HOSTNAME=$(az webapp show \
+            --resource-group "${{ vars.AZURE_RESOURCE_GROUP }}" \
+            --name "${{ vars.FRONTEND_APP_SERVICE_NAME }}" \
+            --query defaultHostName -o tsv)
+          echo "app_url=https://$HOSTNAME" >> "$GITHUB_OUTPUT"
+
+  # server.mjs streams both HTML files to the client verbatim (res.end(data), no templating),
+  # so "did the deploy actually land" is answerable exactly: sha256 of the served body must
+  # equal sha256 of the committed file. A status-code smoke test cannot tell a fresh deploy
+  # from a stale container still serving the previous build.
+  verify-live-bytes:
+    needs: deploy
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Wait for the new container to come up
+        run: |
+          BASE="${{ needs.deploy.outputs.app-url }}"
+          for i in $(seq 1 30); do
+            CODE=$(curl -s -o /dev/null -w '%{http_code}' "$BASE/login" || true)
+            if [ "$CODE" = "200" ]; then echo "up after ${i} attempt(s)"; exit 0; fi
+            echo "attempt $i: /login returned $CODE, retrying in 10s"
+            sleep 10
+          done
+          echo "::error::Site did not return 200 on /login within 5 minutes"
+          exit 1
+
+      - name: Confirm the live bytes match the committed files
+        run: |
+          BASE="${{ needs.deploy.outputs.app-url }}"
+          FAILED=0
+
+          check() {
+            local label="$1" url="$2" localfile="$3"; shift 3
+            # "$@" carries any extra curl args (e.g. the session cookie for "/")
+            curl -sS --fail-with-body "$@" "$url" -o live.out
+            local live_sum local_sum
+            live_sum=$(sha256sum live.out | cut -d' ' -f1)
+            local_sum=$(sha256sum "$localfile" | cut -d' ' -f1)
+            if [ "$live_sum" = "$local_sum" ]; then
+              echo "OK   $label — $(wc -c < live.out) bytes, sha256 ${live_sum:0:12}"
+            else
+              echo "::error::$label does not match $localfile"
+              echo "  live  $(wc -c < live.out) bytes  sha256 $live_sum"
+              echo "  local $(wc -c < "$localfile") bytes  sha256 $local_sum"
+              FAILED=1
+            fi
+          }
+
+          # "/" is behind a server-side session gate that only checks for the PRESENCE of a
+          # cookie (see the auth gate in server.mjs), so a dummy value is enough to fetch the
+          # shell here. No real credential belongs in a CI log.
+          check "GET /login" "$BASE/login" "$FRONTEND_DIR/login.html"
+          check "GET /"      "$BASE/"      "$FRONTEND_DIR/index.html" -H 'Cookie: has_session=1'
+
+          exit $FAILED
+
+      # Guards the two things this release actually changed, so a future regression that
+      # reverts either one fails the pipeline rather than shipping quietly.
+      - name: Assert the release invariants are present in the served shell
+        run: |
+          BASE="${{ needs.deploy.outputs.app-url }}"
+          curl -sS -H 'Cookie: has_session=1' "$BASE/" -o shell.html
+          FAILED=0
+
+          # Collapsible nav groups: six real buttons carrying persistence keys.
+          COUNT=$(grep -o 'data-group-key=' shell.html | wc -l)
+          if [ "$COUNT" -ne 6 ]; then
+            echo "::error::expected 6 collapsible nav groups, served shell has $COUNT"
+            FAILED=1
+          else
+            echo "OK   6 collapsible nav groups"
+          fi
+
+          # The off-canvas drawer must be parked with a transform, not a negative offset:
+          # a negative offset enlarges the scroll area and widens the mobile layout viewport.
+          if grep -q 'right: -300px' shell.html; then
+            echo "::error::sidebar is parked with a negative offset again (regression)"
+            FAILED=1
+          else
+            echo "OK   drawer parked with a transform"
+          fi
+
+          for needle in 'icbank.nav.groups.v1' 'max-width: 1023.98px' 'tbl-cards'; do
+            if grep -qF "$needle" shell.html; then
+              echo "OK   found $needle"
+            else
+              echo "::error::served shell is missing $needle"
+              FAILED=1
+            fi
+          done
+
+          exit $FAILED
