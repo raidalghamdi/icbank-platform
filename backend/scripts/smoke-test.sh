@@ -38,6 +38,9 @@ BASE="${SMOKE_BASE_URL:-http://127.0.0.1:${PORT}}"
 LOG_FILE="$(mktemp)"
 SEED_EMAIL="${SMOKE_SEED_EMAIL:-smoke-superadmin@icbank.local}"
 SEED_PASSWORD="${SMOKE_SEED_PASSWORD:-Sm0ke!Test-Password_2026}"
+# Used by step 5b to clear the first-login restriction. Must satisfy the same complexity
+# policy as the seeded one, and must differ from it or the change is rejected.
+ROTATED_PASSWORD="${SMOKE_ROTATED_PASSWORD:-Sm0ke!Rotated-Password_2026}"
 FAILURES=0
 API_PID=""
 
@@ -212,7 +215,47 @@ fi
 
 AUTH_HEADER="Authorization: Bearer ${TOKEN}"
 
-# ── 6. Authorized traffic ──────────────────────────────────────────────────────
+# A freshly seeded super-admin holds a temporary password, and MustChangePasswordMiddleware
+# answers 403 must_change_password to every data endpoint until it is replaced. Skipping this
+# meant the smoke test logged in and then asserted 200 on endpoints the product is designed to
+# refuse -- three failures that looked like broken authorization but were the gate working.
+# The must_change_password claim is baked into the token, so the new password only takes
+# effect for a token minted after the change: change, then log in again.
+log "5b. Replacing the temporary password"
+# Conditional, because only a freshly seeded account sits behind the gate. In deployed mode the
+# super-admin has usually rotated its password long ago, and an unconditional change would fail
+# the current-password check and report a failure that is really just a healthy account. Ask
+# the product whether the gate is active rather than assuming it is.
+GATE=$(curl -sS -o /dev/null -w '%{http_code}' "${BASE}/api/v1/dashboard/summary" -H "$AUTH_HEADER" 2>/dev/null)
+
+if [[ "$GATE" != "403" ]]; then
+  pass "account is already past the temporary-password gate (dashboard returned $GATE)"
+else
+  CHANGED=$(curl -sS -o /dev/null -w '%{http_code}' -X POST "${BASE}/api/v1/auth/change-password" \
+    -H 'Content-Type: application/json' -H "$AUTH_HEADER" \
+    -d "{\"currentPassword\":\"${SEED_PASSWORD}\",\"newPassword\":\"${ROTATED_PASSWORD}\"}" 2>/dev/null)
+
+  if [[ "$CHANGED" == "200" ]]; then
+    pass "temporary password replaced (200)"
+  else
+    fail "change-password returned $CHANGED, expected 200"
+  fi
+
+  LOGIN_BODY=$(curl -sS -X POST "${BASE}/api/v1/auth/login" \
+    -H 'Content-Type: application/json' \
+    -d "{\"email\":\"${SEED_EMAIL}\",\"password\":\"${ROTATED_PASSWORD}\"}" 2>/dev/null)
+  TOKEN=$(printf '%s' "$LOGIN_BODY" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("accessToken",""))' 2>/dev/null)
+
+  if [[ -n "$TOKEN" ]]; then
+    pass "re-login with the new password issued a token without the change-password claim"
+  else
+    fail "re-login after the password change did not return a token"
+    echo "  response: ${LOGIN_BODY:0:400}"
+  fi
+
+  AUTH_HEADER="Authorization: Bearer ${TOKEN}"
+fi
+
 log "6. Authorized requests"
 assert_status "/auth/me returns the caller's profile"  200 GET /api/v1/auth/me   -H "$AUTH_HEADER"
 assert_status "dashboard summary is served"            200 GET /api/v1/dashboard/summary -H "$AUTH_HEADER"
@@ -264,7 +307,7 @@ fi
 # ── 10. Credentials must never reach the logs ──────────────────────────────────
 if [[ "$DEPLOYED_MODE" -eq 0 ]]; then
   log "10. No credentials in the logs (R-BE-054)"
-  if grep -qF "$SEED_PASSWORD" "$LOG_FILE"; then
+  if grep -qF "$SEED_PASSWORD" "$LOG_FILE" || grep -qF "$ROTATED_PASSWORD" "$LOG_FILE"; then
     fail "the seeded password appears in the application log"
   else
     pass "no seeded password in the application log"
