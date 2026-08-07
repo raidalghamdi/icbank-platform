@@ -12,10 +12,21 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Target environment (must match a GitHub Environment with its own secrets/variables and, for prod, required reviewers)'
+        # Only dev is offered because only dev exists. The repository has GitHub Environments
+        # named dev, Preview and Production, and Azure holds exactly one set of resources
+        # (rg-icbank-dev). Offering staging and prod here was not merely useless, it was unsafe:
+        # environment-scoped variables fall back to repository-level ones when the environment
+        # does not define its own, and the repository-level values all point at dev. Selecting
+        # "prod" therefore deployed to dev, ran migrations against the dev database, smoke-tested
+        # dev, and reported success -- a green "production deploy" that never touched production.
+        #
+        # Add an option back only together with its Azure resources and an environment holding
+        # its own APP_SERVICE_NAME, SQL_SERVER_FQDN, AZURE_RESOURCE_GROUP and
+        # FRONTEND_APP_SERVICE_NAME. The preflight job below enforces that pairing.
+        description: 'Target environment. Only dev is provisioned; see docs/CD-ACTIVATION.md before adding another.'
         type: choice
         required: true
-        options: [dev, staging, prod]
+        options: [dev]
 
 env:
   DOTNET_VERSION: '8.0.423'
@@ -39,9 +50,59 @@ permissions:
   contents: read
 
 jobs:
+  # Refuses to run when the chosen environment has not been given resources of its own.
+  #
+  # GitHub resolves `vars.X` from the environment first and the repository second, with no
+  # warning when it falls through. Every repository-level value here names a dev resource, so a
+  # target lacking its own variables does not fail -- it quietly becomes dev. This job asserts
+  # that each resolved name actually carries the target's own token, which is true for dev today
+  # (icbank-dev-api, icbank-dev-sql..., rg-icbank-dev) and false for anything that inherited
+  # them. It costs seconds and runs before the SQL service container starts.
+  preflight:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      # No checkout in this job, so the workflow-level `working-directory: backend` would leave
+      # bash unable to start at all.
+      - name: Confirm the target owns its resources
+        working-directory: ${{ github.workspace }}
+        env:
+          TARGET: ${{ inputs.environment }}
+          APP_SERVICE_NAME: ${{ vars.APP_SERVICE_NAME }}
+          FRONTEND_APP_SERVICE_NAME: ${{ vars.FRONTEND_APP_SERVICE_NAME }}
+          SQL_SERVER_FQDN: ${{ vars.SQL_SERVER_FQDN }}
+          AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+        run: |
+          set -euo pipefail
+          failed=0
+          for name in APP_SERVICE_NAME FRONTEND_APP_SERVICE_NAME SQL_SERVER_FQDN AZURE_RESOURCE_GROUP; do
+            value="${!name:-}"
+            if [ -z "$value" ]; then
+              echo "::error::$name is not set for environment '$TARGET'."
+              failed=1
+              continue
+            fi
+            case "$value" in
+              *-"$TARGET"-*|*-"$TARGET")
+                echo "  ok   $name = $value"
+                ;;
+              *)
+                echo "::error::$name resolves to '$value', which is not a '$TARGET' resource."
+                echo "::error::Environment '$TARGET' has no $name of its own, so the repository-level value was used."
+                failed=1
+                ;;
+            esac
+          done
+          if [ "$failed" -ne 0 ]; then
+            echo "::error::Refusing to deploy: '$TARGET' would be deployed onto another environment's resources."
+            exit 1
+          fi
+          echo "All four resource names belong to '$TARGET'."
+
   # Every gate the CI workflow enforces on a PR is re-run here before anything is deployed.
   # A pipeline that deploys code no gate has verified is worse than no pipeline at all.
   gate:
+    needs: preflight
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     services:

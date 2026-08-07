@@ -9,10 +9,15 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Target environment (must match a GitHub Environment holding its own secrets/variables)'
+        # Only dev is offered because only dev exists, and offering more was unsafe rather than
+        # merely useless -- see the matching note in backend-deploy.yml. Environment variables
+        # fall back to repository-level ones silently, and every repository-level value names a
+        # dev resource, so picking "prod" republished the dev site and called it a production
+        # deploy. The preflight job refuses that.
+        description: 'Target environment. Only dev is provisioned; see docs/CD-ACTIVATION.md before adding another.'
         type: choice
         required: true
-        options: [dev, staging, prod]
+        options: [dev]
 
 # Auth: publish profile, deliberately, despite OIDC being the stronger pattern.
 #
@@ -33,7 +38,36 @@ env:
   FRONTEND_DIR: artifacts/internal-comms
 
 jobs:
+  # Mirrors backend-deploy.yml: refuse a target that would inherit another environment's
+  # resources. The frontend only needs the one variable it actually deploys to.
+  preflight:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - name: Confirm the target owns its resources
+        env:
+          TARGET: ${{ inputs.environment }}
+          FRONTEND_APP_SERVICE_NAME: ${{ vars.FRONTEND_APP_SERVICE_NAME }}
+        run: |
+          set -euo pipefail
+          if [ -z "${FRONTEND_APP_SERVICE_NAME:-}" ]; then
+            echo "::error::FRONTEND_APP_SERVICE_NAME is not set for environment '$TARGET'."
+            exit 1
+          fi
+          case "$FRONTEND_APP_SERVICE_NAME" in
+            *-"$TARGET"-*|*-"$TARGET")
+              echo "FRONTEND_APP_SERVICE_NAME = $FRONTEND_APP_SERVICE_NAME belongs to '$TARGET'."
+              ;;
+            *)
+              echo "::error::FRONTEND_APP_SERVICE_NAME resolves to '$FRONTEND_APP_SERVICE_NAME', which is not a '$TARGET' resource."
+              echo "::error::Environment '$TARGET' defines no value of its own, so the repository-level one was used."
+              echo "::error::Refusing to publish '$TARGET' over another environment's site."
+              exit 1
+              ;;
+          esac
+
   deploy:
+    needs: preflight
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     outputs:
