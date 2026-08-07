@@ -317,6 +317,34 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # The smoke script starts asserting immediately, and App Service does not finish a slot
+      # swap the moment the deploy step returns. On the release that added the observance
+      # seeder, every assertion came back 500 -- including ones that only expect a 404 -- and
+      # the run went red. Re-running the same job minutes later passed with nothing changed.
+      #
+      # /health/ready alone does not settle this: it was already answering 200 while the rest
+      # of the pipeline still 500'd. So this waits for a route that should NOT exist to return
+      # a clean 404, which only happens once routing, the error contract and the middleware
+      # chain are all live.
+      - name: Wait for the deployed instance to finish starting
+        working-directory: ${{ github.workspace }}
+        env:
+          BASE: ${{ needs.deploy.outputs.app-url }}
+        run: |
+          set -uo pipefail
+          for i in $(seq 1 40); do
+            ready=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 "$BASE/health/ready" || echo 000)
+            routed=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 "$BASE/api/v1/__startup_probe__" || echo 000)
+            if [ "$ready" = "200" ] && [ "$routed" = "404" ]; then
+              echo "instance answering correctly after ${i} attempt(s) (~$((i*10))s)"
+              exit 0
+            fi
+            echo "attempt $i: /health/ready=$ready, unknown-route=$routed (want 200 and 404) — retrying in 10s"
+            sleep 10
+          done
+          echo "::error::Deployed instance never started answering correctly within ~7 minutes"
+          exit 1
+
       - name: Run smoke assertions against the deployed instance
         run: |
           chmod +x scripts/smoke-test.sh

@@ -261,6 +261,29 @@ assert_status "/auth/me returns the caller's profile"  200 GET /api/v1/auth/me  
 assert_status "dashboard summary is served"            200 GET /api/v1/dashboard/summary -H "$AUTH_HEADER"
 assert_status "shorfah issue list is served"           200 GET /api/v1/shorfah/issues    -H "$AUTH_HEADER"
 
+# The dashboard's upcoming-observances panel reads the international_days table. Nothing ever
+# wrote to that table, so the panel was permanently empty on every environment and no test
+# noticed -- a 200 with an empty list looks identical to a 200 with content. The seeder now
+# populates it, and this assertion is what keeps it populated: it fails if the table is empty,
+# if the seeder stops running, or if a date string stops parsing (the parser returns null on a
+# bad date and the handler silently skips the row, which is invisible otherwise).
+SUMMARY=$(curl -sS "${BASE}/api/v1/dashboard/summary" -H "$AUTH_HEADER" 2>/dev/null)
+if printf '%s' "$SUMMARY" | python3 -c '
+import json,sys
+body = json.load(sys.stdin)
+days = body.get("intlDaysUpcoming") or []
+if not days:
+    sys.exit(1)
+for d in days:
+    if not d.get("name") or not d.get("date") or d.get("daysUntil") is None:
+        sys.exit(1)
+sys.exit(0)
+' 2>/dev/null; then
+  pass "dashboard lists upcoming observances (the seed catalogue is present)"
+else
+  fail "dashboard returned no upcoming observances — international_days is empty or its dates do not parse"
+fi
+
 log "7. Pagination envelope on a list endpoint"
 ENVELOPE=$(curl -sS "${BASE}/api/v1/shorfah/issues" -H "$AUTH_HEADER" 2>/dev/null)
 if printf '%s' "$ENVELOPE" | python3 -c '
