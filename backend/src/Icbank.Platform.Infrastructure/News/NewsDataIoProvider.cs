@@ -111,29 +111,37 @@ public sealed partial class NewsDataIoProvider : INewsSourceProvider
 
         using (document)
         {
-            if (!document.RootElement.TryGetProperty("results", out JsonElement results) ||
-                results.ValueKind != JsonValueKind.Array)
-            {
-                return Array.Empty<FetchedNewsItem>();
-            }
-
-            var items = new List<FetchedNewsItem>();
-            foreach (JsonElement element in results.EnumerateArray())
-            {
-                if (items.Count >= maxItems)
-                {
-                    break;
-                }
-
-                FetchedNewsItem? item = ParseItem(element);
-                if (item is not null)
-                {
-                    items.Add(item);
-                }
-            }
-
-            return items;
+            return ReadResults(document.RootElement, maxItems);
         }
+    }
+
+    /// <summary>Reads the <c>results</c> array from a parsed payload.</summary>
+    /// <param name="root">The response root object.</param>
+    /// <param name="maxItems">The cap on returned items.</param>
+    /// <returns>The parsed items, or empty when the payload carries no results array.</returns>
+    private static IReadOnlyList<FetchedNewsItem> ReadResults(JsonElement root, int maxItems)
+    {
+        if (!root.TryGetProperty("results", out JsonElement results) || results.ValueKind != JsonValueKind.Array)
+        {
+            return Array.Empty<FetchedNewsItem>();
+        }
+
+        var items = new List<FetchedNewsItem>();
+        foreach (JsonElement element in results.EnumerateArray())
+        {
+            if (items.Count >= maxItems)
+            {
+                break;
+            }
+
+            FetchedNewsItem? item = ParseItem(element);
+            if (item is not null)
+            {
+                items.Add(item);
+            }
+        }
+
+        return items;
     }
 
     private static FetchedNewsItem? ParseItem(JsonElement element)

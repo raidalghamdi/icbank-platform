@@ -38,26 +38,8 @@ public sealed class GenerateFinalMediaReportCommandHandler : IRequestHandler<Gen
         // The source checkboxes were previously decorative: the front end assembled a `sources` array
         // and never sent it, so unticking a channel changed nothing in the generated report.
         var selection = ReportSourceSelection.From(request.Sources);
-
-        List<GacSocialPost> posts;
-        if (selection.IncludeAnySocial)
-        {
-            var platforms = selection.Platforms.ToList();
-            posts = await _queryExecutor.ToListAsync(
-                _dbContext.GacSocialPosts.Where(p =>
-                    p.PostedAt >= request.DateFrom && p.PostedAt <= request.DateTo && platforms.Contains(p.Platform)),
-                cancellationToken);
-        }
-        else
-        {
-            posts = new List<GacSocialPost>();
-        }
-
-        List<GacNewsItem> news = selection.IncludeNews
-            ? await _queryExecutor.ToListAsync(
-                _dbContext.GacNewsItems.Where(n => n.PublishedAt >= request.DateFrom && n.PublishedAt <= request.DateTo),
-                cancellationToken)
-            : new List<GacNewsItem>();
+        List<GacSocialPost> posts = await LoadPostsAsync(request, selection, cancellationToken);
+        List<GacNewsItem> news = await LoadNewsAsync(request, selection, cancellationToken);
 
         if (posts.Count == 0 && news.Count == 0)
         {
@@ -99,6 +81,44 @@ public sealed class GenerateFinalMediaReportCommandHandler : IRequestHandler<Gen
         sections.QuotesAppendix.Select(q => new QuoteAppendixItemDto(q.Quote, q.Source, q.Date, q.Topic)).ToList(),
         sections.Methodology,
         sections.Sources.Select(s => new SourceRefDto(s.Name, s.Url, s.Description)).ToList());
+
+    /// <summary>Loads the in-range social posts for the selected platforms.</summary>
+    /// <param name="request">The generate request, carrying the date range.</param>
+    /// <param name="selection">The resolved source selection.</param>
+    /// <param name="cancellationToken">A token used to observe cancellation requests.</param>
+    /// <returns>The matching posts, or an empty list when no social channel is selected.</returns>
+    private async Task<List<GacSocialPost>> LoadPostsAsync(
+        GenerateFinalMediaReportCommand request, ReportSourceSelection selection, CancellationToken cancellationToken)
+    {
+        if (!selection.IncludeAnySocial)
+        {
+            return new List<GacSocialPost>();
+        }
+
+        var platforms = selection.Platforms.ToList();
+        return await _queryExecutor.ToListAsync(
+            _dbContext.GacSocialPosts.Where(p =>
+                p.PostedAt >= request.DateFrom && p.PostedAt <= request.DateTo && platforms.Contains(p.Platform)),
+            cancellationToken);
+    }
+
+    /// <summary>Loads the in-range press/news items when the news channel is selected.</summary>
+    /// <param name="request">The generate request, carrying the date range.</param>
+    /// <param name="selection">The resolved source selection.</param>
+    /// <param name="cancellationToken">A token used to observe cancellation requests.</param>
+    /// <returns>The matching news items, or an empty list when news is deselected.</returns>
+    private async Task<List<GacNewsItem>> LoadNewsAsync(
+        GenerateFinalMediaReportCommand request, ReportSourceSelection selection, CancellationToken cancellationToken)
+    {
+        if (!selection.IncludeNews)
+        {
+            return new List<GacNewsItem>();
+        }
+
+        return await _queryExecutor.ToListAsync(
+            _dbContext.GacNewsItems.Where(n => n.PublishedAt >= request.DateFrom && n.PublishedAt <= request.DateTo),
+            cancellationToken);
+    }
 
     private async Task<NoSourceDataDto> BuildNoSourceDataDiagnosticAsync(CancellationToken cancellationToken)
     {

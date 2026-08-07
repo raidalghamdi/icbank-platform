@@ -33,26 +33,11 @@ public sealed class FetchGacNewsCommandHandler : IRequestHandler<FetchGacNewsCom
         var withinDays = request.WithinDays is > 0 ? request.WithinDays.Value : _settings.WithinDays;
 
         var perProvider = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        var collected = new List<FetchedNewsItem>();
-
-        foreach (INewsSourceProvider provider in _providers)
-        {
-            perProvider.TryAdd(provider.ProviderKey, 0);
-
-            foreach (var term in terms.Where(t => !string.IsNullOrWhiteSpace(t)))
-            {
-                var query = new NewsSourceQuery(
-                    term.Trim(), _settings.Language, _settings.Region, withinDays, _settings.MaxItemsPerTerm);
-
-                IReadOnlyList<FetchedNewsItem> items = await provider.FetchAsync(query, cancellationToken);
-                perProvider[provider.ProviderKey] += items.Count;
-                collected.AddRange(items);
-            }
-        }
+        List<FetchedNewsItem> collected = await CollectAsync(terms, withinDays, perProvider, cancellationToken);
 
         // Deduplicate before handing off so the ingest command's Skipped count reports genuine
         // cross-term overlap rather than noise: the four configured terms overlap heavily, and the
-        // same article routinely matches three of them.
+        // same article routinely matches three of them. The richest body wins.
         var batch = collected
             .GroupBy(i => i.SourceUrl, StringComparer.OrdinalIgnoreCase)
             .Select(g => ToIngestItem(g.OrderByDescending(i => i.Body?.Length ?? 0).First()))
@@ -82,4 +67,36 @@ public sealed class FetchGacNewsCommandHandler : IRequestHandler<FetchGacNewsCom
         Kind: null,
         Category: null,
         Tags: new[] { item.ProviderKey });
+
+    /// <summary>Queries every enabled provider for every term.</summary>
+    /// <param name="terms">The search terms.</param>
+    /// <param name="withinDays">The lookback window in days.</param>
+    /// <param name="perProvider">Accumulates each provider's item count, including zero.</param>
+    /// <param name="cancellationToken">A token used to observe cancellation requests.</param>
+    /// <returns>Every item returned, before deduplication.</returns>
+    private async Task<List<FetchedNewsItem>> CollectAsync(
+        IReadOnlyList<string> terms,
+        int withinDays,
+        Dictionary<string, int> perProvider,
+        CancellationToken cancellationToken)
+    {
+        var collected = new List<FetchedNewsItem>();
+
+        foreach (INewsSourceProvider provider in _providers)
+        {
+            perProvider.TryAdd(provider.ProviderKey, 0);
+
+            foreach (var term in terms.Where(t => !string.IsNullOrWhiteSpace(t)))
+            {
+                var query = new NewsSourceQuery(
+                    term.Trim(), _settings.Language, _settings.Region, withinDays, _settings.MaxItemsPerTerm);
+
+                IReadOnlyList<FetchedNewsItem> items = await provider.FetchAsync(query, cancellationToken);
+                perProvider[provider.ProviderKey] += items.Count;
+                collected.AddRange(items);
+            }
+        }
+
+        return collected;
+    }
 }

@@ -25,24 +25,12 @@ public sealed class IngestGacNewsItemsCommandHandler
     public async Task<Result<IngestGacNewsItemsResult>> Handle(
         IngestGacNewsItemsCommand request, CancellationToken cancellationToken)
     {
+        Dictionary<string, GacNewsItem> byUrl = await LoadExistingByUrlAsync(request.Items, cancellationToken);
+
         var inserted = 0;
         var updated = 0;
         var skipped = 0;
         var seenInBatch = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var urls = request.Items.Select(i => i.SourceUrl.Trim()).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
-
-        // One query for the whole batch rather than one per item: a weekly fetch across four search
-        // terms submits up to 200 rows, and SingleOrDefaultAsync per row would both round-trip 200
-        // times and throw if the table already held two rows for a URL (there is no unique index on
-        // source_url, so that is possible for anything ingested before this handler existed).
-        List<GacNewsItem> existingItems = await _queryExecutor.ToListAsync(
-            _dbContext.GacNewsItems.Where(n => n.SourceUrl != null && urls.Contains(n.SourceUrl)), cancellationToken);
-
-        var byUrl = new Dictionary<string, GacNewsItem>(StringComparer.OrdinalIgnoreCase);
-        foreach (GacNewsItem row in existingItems.Where(r => r.SourceUrl is not null))
-        {
-            byUrl.TryAdd(row.SourceUrl!, row);
-        }
 
         foreach (IngestGacNewsItem item in request.Items)
         {
@@ -120,4 +108,34 @@ public sealed class IngestGacNewsItemsCommandHandler
 
     private static GacNewsCategory? ParseCategory(string? value) =>
         Enum.TryParse<GacNewsCategory>(value, ignoreCase: true, out GacNewsCategory parsed) ? parsed : null;
+
+    /// <summary>
+    /// Loads the already-stored rows for the batch's URLs in a single query.
+    /// </summary>
+    /// <param name="items">The submitted batch.</param>
+    /// <param name="cancellationToken">A token used to observe cancellation requests.</param>
+    /// <returns>The existing rows, keyed by source URL.</returns>
+    /// <remarks>
+    /// One query for the whole batch rather than one per item: a weekly fetch across four search
+    /// terms submits up to 200 rows, and a per-row lookup would both round-trip 200 times and throw
+    /// if the table already held two rows for a URL. There is no unique index on <c>source_url</c>,
+    /// so duplicates are possible for anything ingested before this handler existed; the first row
+    /// wins rather than the call failing.
+    /// </remarks>
+    private async Task<Dictionary<string, GacNewsItem>> LoadExistingByUrlAsync(
+        IReadOnlyList<IngestGacNewsItem> items, CancellationToken cancellationToken)
+    {
+        var urls = items.Select(i => i.SourceUrl.Trim()).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+
+        List<GacNewsItem> existingItems = await _queryExecutor.ToListAsync(
+            _dbContext.GacNewsItems.Where(n => n.SourceUrl != null && urls.Contains(n.SourceUrl)), cancellationToken);
+
+        var byUrl = new Dictionary<string, GacNewsItem>(StringComparer.OrdinalIgnoreCase);
+        foreach (GacNewsItem row in existingItems.Where(r => r.SourceUrl is not null))
+        {
+            byUrl.TryAdd(row.SourceUrl!, row);
+        }
+
+        return byUrl;
+    }
 }
