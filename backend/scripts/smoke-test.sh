@@ -103,6 +103,27 @@ if [[ "$DEPLOYED_MODE" -eq 0 ]]; then
   # ASPNETCORE_URLS - the app boots and seeds successfully but listens on a different
   # address, so every assertion below fails against a port nothing is bound to.
   # launchSettings is a local-development convenience and has no business in CI.
+  # The startup guard's required-key list and this script's environment block are two copies
+  # of the same knowledge, and they drifted: DownloadTokens:SigningKey was added to the guard
+  # and never added here, so the API aborted on boot and the smoke job failed for a reason
+  # that had nothing to do with the code under test. Rather than fix the omission and wait for
+  # the next one, read the guard's list and prove this script covers it.
+  GUARD_SRC="src/Icbank.Platform.Api/Extensions/StartupSecretsGuardExtensions.cs"
+  missing_keys=""
+  while read -r key; do
+    [ -n "$key" ] || continue
+    # "Jwt:SigningKey" is set as the env var Jwt__SigningKey
+    env_name="${key//:/__}"
+    grep -q "^[[:space:]]*${env_name}=" "$0" || missing_keys="$missing_keys $key"
+  done <<< "$(sed -n '/RequiredKeys/,/};/p' "$GUARD_SRC" | grep -oE '"[A-Za-z]+:[A-Za-z]+"' | tr -d '"')"
+
+  if [ -n "$missing_keys" ]; then
+    fail "smoke script does not set required startup key(s):$missing_keys"
+    printf '  add them to the environment block below, then re-run\n'
+    exit 1
+  fi
+  pass "smoke script sets every key the startup guard requires"
+
   log "2. Starting the API as a real process"
   ASPNETCORE_ENVIRONMENT=Staging \
   ASPNETCORE_URLS="$BASE" \
@@ -112,6 +133,7 @@ if [[ "$DEPLOYED_MODE" -eq 0 ]]; then
   Jwt__Audience='icbank-platform-clients' \
   Cors__AllowedOrigins__0='http://127.0.0.1:3000' \
   Cron__ApiKey='smoke-cron-key' \
+  DownloadTokens__SigningKey='smoke-download-token-key-not-for-production-32bytes' \
   Seed__InitialSuperAdminEmail="$SEED_EMAIL" \
   Seed__InitialSuperAdminPassword="$SEED_PASSWORD" \
   Shorfah__FrontendBaseUrl="$BASE" \
