@@ -62,7 +62,7 @@ public static class EmbeddedArabicFontProvider
                 return;
             }
 
-            foreach (string fileName in FontResources)
+            foreach (var fileName in FontResources)
             {
                 using Stream fontStream = OpenFontStream(fileName);
                 QuestPDF.Drawing.FontManager.RegisterFont(fontStream);
@@ -74,7 +74,7 @@ public static class EmbeddedArabicFontProvider
 
     private static Stream OpenFontStream(string fileName)
     {
-        string resourceName = ResourcePrefix + fileName;
+        var resourceName = ResourcePrefix + fileName;
         System.Reflection.Assembly assembly = typeof(EmbeddedArabicFontProvider).Assembly;
         Stream? stream = assembly.GetManifestResourceStream(resourceName);
         if (stream is null)
