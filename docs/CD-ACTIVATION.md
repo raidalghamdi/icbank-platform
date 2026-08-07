@@ -5,11 +5,16 @@ document is the short version of what changed and the one thing still outstandin
 
 ## Status
 
+Both pipelines are green. Backend CD completed its first successful run on 7 Aug 2026
+([run 31175109917](https://github.com/raidalghamdi/icbank-platform/actions/runs/31175109917)) --
+`gate -> migrate -> deploy -> smoke-test`, all four jobs, 19 smoke assertions against the live
+API. Before that it had never completed a single run.
+
 | Pipeline | State |
 |---|---|
-| Frontend CD (`frontend-deploy.yml`) | **Green.** Run 31156244260 deployed end to end. |
-| Backend CI (`backend-ci.yml`) | **Green.** `build-test-analyze` and `smoke-test` both pass. |
-| Backend CD (`backend-deploy.yml`) | **Wired, never yet run.** Needs two secrets — see below. |
+| Frontend CD (`frontend-deploy.yml`) | **Green** (run 31156244260) |
+| Backend CI (`backend-ci.yml`) | **Green** |
+| Backend CD (`backend-deploy.yml`) | **Green** (run 31175109917) |
 
 ## What changed, and why
 
@@ -64,23 +69,32 @@ Repository secrets:
 | `AZURE_API_PUBLISH_PROFILE` | Backend deploy |
 | `SQL_CONNECTION_STRING` | Backend migrations |
 
-## Outstanding — two secrets, set by hand
+## The CI service account
 
-The backend CD `smoke-test` job logs in to the deployed API and asserts real traffic. It needs a
-working account. These are **your** credentials, so set them yourself rather than routing them
-through anyone else:
+Backend CD's smoke job logs in to the deployed API and asserts real traffic. It authenticates as
+`svc-smoke@gac.gov.sa`, held in `SMOKE_SEED_EMAIL` / `SMOKE_SEED_PASSWORD`.
 
-**Settings → Secrets and variables → Actions → New repository secret**
+Two things about that account are deliberate and worth not undoing:
 
-| Name | Value |
-|---|---|
-| `SMOKE_SEED_EMAIL` | the admin email for the deployed dev API |
-| `SMOKE_SEED_PASSWORD` | that account's current password |
+**It is past the must-change-password gate.** `CreateUserCommandHandler` sets
+`MustChangePassword = true` unconditionally, even when an explicit password is supplied. An
+account created through `POST /api/v1/admin/users` therefore sits behind
+`MustChangePasswordMiddleware`, and the smoke script would rotate its password on the first run
+-- so the second run would fail to log in, because the password in the GitHub secret is no
+longer the account's password. Green once, red forever after. The account was provisioned with
+the flag already clear, and the smoke script's rotation step is conditional, so it never fires.
 
-Without them the script falls back to its local-CI defaults, which will not match the deployed
-account, and the job fails at login.
+**It is least-privileged.** Only `super_admin` and `admin` carry any permissions in this database
+(90 each, including delete); the other seven seeded roles are empty. Rather than give a CI
+account whose password lives in a GitHub secret 90 permissions, it holds the empty `viewer` role
+plus two explicit `user_page_overrides` Allow rows -- `dashboard:view` and `shorfah:view` --
+which is exactly what the smoke script reads. It is verified to receive 403 from
+`/api/v1/admin/users`.
 
-## Then dispatch
+To rotate its password: reset the hash and keep `must_change_password = 0`, then update
+`SMOKE_SEED_PASSWORD`. Do not clear the account through the admin API, which will re-arm the gate.
+
+## Dispatching
 
 ```bash
 gh workflow run backend-deploy.yml --ref feat/dotnet8-backend-foundation -f environment=dev
