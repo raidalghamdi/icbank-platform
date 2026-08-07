@@ -6313,17 +6313,30 @@ function authCanView(pageName) {
   if (!AUTH_USER) return false;
   if (AUTH_USER.isSuperAdmin) return true;
   if (pageName === 'home') return true;
-  if (pageName === 'admin_panel') return AUTH_USER.role === 'admin' || AUTH_USER.role === 'super_admin';
-  if (pageName === 'designs') return AUTH_USER.role === 'admin' || AUTH_USER.role === 'super_admin';
-  if (pageName === 'places') return AUTH_USER.role === 'admin' || AUTH_USER.role === 'super_admin';
-  // Any authenticated user can reach the libraries container because مكتبة الهيئة is always
-  // viewable; the panes they may not see are removed by librariesApplyTabPermissions().
-  if (pageName === 'libraries') return !!AUTH_USER;
-  if (pageName === 'smart_assistant' || pageName === 'settings') return !!AUTH_USER;
-  if (pageName === 'gac_library') return !!AUTH_USER;
-  if (pageName === 'shorfah') return !!AUTH_USER;
-  if (pageName === 'media_monitoring') return !!AUTH_USER;
-  if (pageName === 'prompts_lib') return !!AUTH_USER;
+  // The libraries container is the one page that is not a permission of its own: it is a shell
+  // around three panes that each map to a different slug. Show it when at least one pane is
+  // allowed, rather than to everyone. That keeps the original intent -- do not strand a user in
+  // an empty shell, do not hide a library they may read -- without the blanket pass, and it
+  // stays correct on its own as pane permissions change.
+  if (pageName === 'libraries') return librariesFirstAllowedTab() !== null;
+
+  // Everything else resolves through the permission matrix.
+  //
+  // This function used to hardcode `return !!AUTH_USER` for shorfah, media_monitoring,
+  // libraries, smart_assistant, settings, gac_library and prompts_lib, so any authenticated
+  // user reached all seven regardless of what the matrix said -- the admin panel could revoke
+  // them and nothing changed. Every one of those page names already maps onto a slug the API
+  // really issues (gac_library and libraries -> design_studio, prompts_lib -> smart_assistant,
+  // the rest are backend pages under their own name), so the fallback below has always been
+  // able to answer correctly for them.
+  //
+  // The admin_panel/designs/places branches went with them. They granted access by role name
+  // rather than by permission, which is the same bypass in a narrower form: revoke
+  // design_studio from the admin role and an admin would still have seen the page. Today the
+  // admin role holds all 90 grants (18 pages x 5 verbs) so this changes nothing, but it now
+  // follows the matrix if that is ever narrowed. super_admin is unaffected -- it short-circuits
+  // above, matching PermissionResolver, which treats super_admin as unconditional.
+  //
   // FE cleanup: removed dead branches for internal_requests, external_requests,
   // internal_campaigns, external_campaigns, change_campaigns, social_platforms,
   // press_releases, media_coverage and performance_reports -- all nine page names were

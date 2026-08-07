@@ -75,6 +75,15 @@ jobs:
           if (failed) process.exit(1);
           EOF
 
+      # Parsing is not the only thing that can be wrong and still return HTTP 200. authCanView()
+      # decides which pages a signed-in user may open, and it spent a long release hardcoding
+      # `true` for seven of them -- the live smoke checks never noticed, because they sign in as
+      # a super admin, who is allowed everything by design and so cannot observe a bypass.
+      - name: Check page permissions are decided by the matrix
+        run: |
+          cd "$FRONTEND_DIR"
+          node tools/authcanview.test.mjs
+
       - name: Package the site
         run: |
           cd "$FRONTEND_DIR"
