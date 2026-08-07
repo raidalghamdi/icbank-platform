@@ -5,16 +5,30 @@ document is the short version of what changed and the one thing still outstandin
 
 ## Status
 
-Both pipelines are green. Backend CD completed its first successful run on 7 Aug 2026
-([run 31175109917](https://github.com/raidalghamdi/icbank-platform/actions/runs/31175109917)) --
-`gate -> migrate -> deploy -> smoke-test`, all four jobs, 19 smoke assertions against the live
-API. Before that it had never completed a single run.
+All three pipelines are green from `main`. PR #1 is merged, so `main` now carries the work.
 
-| Pipeline | State |
+| Pipeline | State (run from `main`) |
 |---|---|
-| Frontend CD (`frontend-deploy.yml`) | **Green** (run 31156244260) |
-| Backend CI (`backend-ci.yml`) | **Green** |
-| Backend CD (`backend-deploy.yml`) | **Green** (run 31175109917) |
+| Frontend CD (`frontend-deploy.yml`) | **Green** — [run 31180332097](https://github.com/raidalghamdi/icbank-platform/actions/runs/31180332097) |
+| Backend CI (`backend-ci.yml`) | **Green** — [run 31180323282](https://github.com/raidalghamdi/icbank-platform/actions/runs/31180323282) |
+| Backend CD (`backend-deploy.yml`) | **Green** — [run 31182004647](https://github.com/raidalghamdi/icbank-platform/actions/runs/31182004647), all five jobs |
+
+Backend CD runs `preflight -> gate -> migrate -> deploy -> smoke-test`.
+
+### Two races fixed along the way
+
+Both pipelines went red on deployments that were actually fine, because each asserted before
+the platform had finished swapping. Neither was a code problem, and both would have recurred.
+
+- **Frontend.** The readiness wait polled `login.html` only. That file changes rarely, so on any
+  release that did not touch it the first poll matched the *old* build, the wait returned at
+  once, and the byte check then ran mid-swap and failed on `index.html`. It now waits on every
+  file the check verifies.
+- **Backend.** The smoke script began asserting the moment the deploy step returned, and got 500
+  on everything — including assertions that only expect a 404. `/health/ready` was already
+  answering 200 at that point, so it is not a sufficient signal; the job now also waits for an
+  unknown route to return a clean 404, which only happens once routing and the middleware chain
+  are live.
 
 ## What changed, and why
 
@@ -135,8 +149,20 @@ Note that environment names are case-sensitive: the existing `Production` enviro
 `prod`. Two unused environments (`Preview`, `prolific-spontaneity / production`) are also present
 and appear to be left over from another integration.
 
-## Worth fixing separately
+## Still open
 
-The Frutiger font licensing question is still open with GAC. It blocks nothing technically; the
-binaries are drop-in replaceable under the same filenames. See
-`artifacts/internal-comms/fonts/frutiger/PROVENANCE.md`.
+None of these block a deployment.
+
+- **Frutiger font licensing**, open with GAC. The files carry `alfont_com` filename prefixes,
+  Monotype/Linotype trademarks and `OS/2.fsType = 4`. Nothing breaks technically and the
+  binaries are drop-in replaceable under the same filenames once a licensed set arrives. See
+  `artifacts/internal-comms/fonts/frutiger/PROVENANCE.md`.
+- **A stale SQL firewall rule**, `sandbox-migration-rehearsal` (54.237.68.156) on
+  `icbank-dev-sql`. Left over from a migration rehearsal and should be removed: SQL server ->
+  Networking -> delete the rule.
+- **Two unused GitHub environments**, `Preview` and `prolific-spontaneity / production`. They
+  appear to be left over from another integration and are unrelated to these pipelines.
+- **Empty KPI tiles.** Activation and archive counters read real tables and read zero, because
+  the Authority has not entered that content yet. This is deliberate — seeding invented numbers
+  would make the dashboard look like it were measuring something. Observance dates are seeded
+  because they are public facts, not measurements.
