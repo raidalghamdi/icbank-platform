@@ -166,3 +166,30 @@ None of these block a deployment.
   the Authority has not entered that content yet. This is deliberate — seeding invented numbers
   would make the dashboard look like it were measuring something. Observance dates are seeded
   because they are public facts, not measurements.
+
+## Azure access without expiring tokens
+
+Hand-pasted ARM bearer tokens expire after an hour and a client-credentials grant issues no
+refresh token, so every Azure task used to stall waiting for a new one.
+
+Access now goes through a service principal, `icbank-agent`, holding **Contributor scoped to
+`rg-icbank-dev` only** — not the subscription. Its secret lives in the credential vault and is
+injected at request time, so it never appears in a command, a file, or a log. `scripts/arm.py`
+mints a fresh token on demand:
+
+```bash
+python3 scripts/arm.py mint                      # needs the login.microsoftonline.com credential
+python3 scripts/arm.py GET  <arm-path>           # uses the cached token
+python3 scripts/arm.py DELETE <arm-path>
+```
+
+Minting and calling are separate steps on purpose: the request proxy only tunnels hosts that
+were explicitly declared, and declaring the ARM host would inject the old expired token over the
+freshly minted one.
+
+Two details worth knowing if this ever needs rebuilding. Azure AD accepts client credentials in
+the `Authorization` header per RFC 6749, which is what keeps the secret out of the request body.
+And the tenant ID is discoverable without any token at all — an unauthenticated ARM request
+returns it in the `WWW-Authenticate` header.
+
+Rotate with `az ad sp credential reset --id <appId>`, then update the vault entry.
