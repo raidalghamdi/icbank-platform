@@ -27,11 +27,7 @@ public sealed class PermissionResolver : IPermissionResolver
     /// <inheritdoc />
     public async Task<PermissionResolution> ResolveAsync(int userId, CancellationToken cancellationToken)
     {
-        List<string> roleNames = await _dbContext.UserRoles
-            .Where(ur => ur.UserId == userId)
-            .Select(ur => ur.Role.Name)
-            .Distinct()
-            .ToListAsync(cancellationToken);
+        List<string> roleNames = await LoadRoleNamesAsync(userId, cancellationToken);
 
         var isSuperAdmin = roleNames.Contains(RoleName.SuperAdmin.ToString(), StringComparer.OrdinalIgnoreCase)
             || roleNames.Any(name => string.Equals(name, "super_admin", StringComparison.OrdinalIgnoreCase));
@@ -43,25 +39,13 @@ public sealed class PermissionResolver : IPermissionResolver
             roleNames.Add("guest");
         }
 
-        List<string> roleGrants = await _dbContext.RolePermissions
-            .Where(rp => roleNames.Contains(rp.Role.Name))
-            .Select(rp => rp.Page.Slug + ":" + rp.Permission.Name.ToLowerInvariant())
-            .ToListAsync(cancellationToken);
-
+        List<string> roleGrants = await LoadRoleGrantsAsync(roleNames, cancellationToken);
         var effective = new HashSet<string>(roleGrants, StringComparer.OrdinalIgnoreCase);
 
-        List<(string Key, OverrideGrantType GrantType, string? CreatedByName)> overrides = await _dbContext.UserPageOverrides
-            .Where(o => o.UserId == userId)
-            .OrderBy(o => o.Id)
-            .Select(o => new ValueTuple<string, OverrideGrantType, string?>(
-                o.Page.Slug + ":" + o.Permission.Name.ToLowerInvariant(),
-                o.GrantType,
-                o.CreatedByUser != null ? o.CreatedByUser.Name : null))
-            .ToListAsync(cancellationToken);
-
-        foreach ((var key, OverrideGrantType grantType, _) in overrides)
+        List<OverrideRow> overrides = await LoadOverridesAsync(userId, cancellationToken);
+        foreach (OverrideRow row in overrides)
         {
-            ApplyOverride(effective, key, grantType);
+            ApplyOverride(effective, row.Key, row.GrantType);
         }
 
         // Presentational only: the administrator behind the newest override, so the UI can name
@@ -94,4 +78,31 @@ public sealed class PermissionResolver : IPermissionResolver
 
         effective.Add(key);
     }
+
+    private async Task<List<string>> LoadRoleNamesAsync(int userId, CancellationToken cancellationToken)
+        => await _dbContext.UserRoles
+            .Where(ur => ur.UserId == userId)
+            .Select(ur => ur.Role.Name)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+
+    private async Task<List<string>> LoadRoleGrantsAsync(List<string> roleNames, CancellationToken cancellationToken)
+        => await _dbContext.RolePermissions
+            .Where(rp => roleNames.Contains(rp.Role.Name))
+            .Select(rp => rp.Page.Slug + ":" + rp.Permission.Name.ToLowerInvariant())
+            .ToListAsync(cancellationToken);
+
+    // Ordered by Id so the fold below is deterministic; see the accessGrantedBy comment above.
+    private async Task<List<OverrideRow>> LoadOverridesAsync(int userId, CancellationToken cancellationToken)
+        => await _dbContext.UserPageOverrides
+            .Where(o => o.UserId == userId)
+            .OrderBy(o => o.Id)
+            .Select(o => new OverrideRow(
+                o.Page.Slug + ":" + o.Permission.Name.ToLowerInvariant(),
+                o.GrantType,
+                o.CreatedByUser != null ? o.CreatedByUser.Name : null))
+            .ToListAsync(cancellationToken);
+
+    /// <summary>One user_page_overrides row, flattened to just what resolution needs.</summary>
+    private readonly record struct OverrideRow(string Key, OverrideGrantType GrantType, string? CreatedByName);
 }
