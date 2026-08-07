@@ -97,21 +97,45 @@ To rotate its password: reset the hash and keep `must_change_password = 0`, then
 ## Dispatching
 
 ```bash
-gh workflow run backend-deploy.yml --ref feat/dotnet8-backend-foundation -f environment=dev
+gh workflow run backend-deploy.yml --ref main -f environment=dev
 ```
 
-Jobs run `gate → migrate → deploy → smoke-test`. **Migrations run against the live dev
-database.** The gate job is the place to stop it if that is not wanted yet.
+Jobs run `preflight → gate → migrate → deploy → smoke-test`. **Migrations run against the live
+dev database.** The gate job is the place to stop it if that is not wanted yet.
 
-> **Do not dispatch either pipeline from `main`.** `main` still has none of this work, so a run
-> from `main` publishes an empty site over the live one. It happened once and was recovered.
-> Run from `feat/dotnet8-backend-foundation` until PR #1 merges.
+PR #1 is merged, so `main` now holds this work and both pipelines have run green from it. The
+earlier warning about never dispatching from `main` no longer applies.
+
+## Adding staging or production
+
+`dev` is the only option the dispatch form offers, and the only environment that exists.
+
+The input used to offer `dev`, `staging` and `prod`. That was not a harmless placeholder.
+GitHub resolves `vars.X` from the environment first and the repository second, and it does not
+warn when it falls through — and every repository-level variable here names a dev resource. A
+run targeting `prod` would have deployed the API to `icbank-dev-api`, migrated `icbank-dev-sql`,
+smoke-tested dev, and gone green while reporting a production deploy. The frontend equivalent
+would have republished the dev site under the same claim.
+
+So adding a target is now a three-part operation, and the `preflight` job checks you did all of
+it:
+
+1. Create the Azure resources, named with the environment token: `icbank-<env>-api`,
+   `icbank-<env>-frontend`, `icbank-<env>-sql`, `rg-icbank-<env>`.
+2. Create the GitHub Environment and give it **its own** `APP_SERVICE_NAME`,
+   `FRONTEND_APP_SERVICE_NAME`, `SQL_SERVER_FQDN` and `AZURE_RESOURCE_GROUP` variables, plus its
+   own `AZURE_API_PUBLISH_PROFILE`, `AZURE_WEBAPP_PUBLISH_PROFILE` and `SQL_CONNECTION_STRING`
+   secrets. For production, add required reviewers here too.
+3. Add the name to the `options:` list in both `backend-deploy.yml` and `frontend-deploy.yml`.
+
+`preflight` asserts every resolved resource name carries the target's own token. Miss a variable
+in step 2 and the run stops with an explicit error instead of quietly retargeting dev.
+
+Note that environment names are case-sensitive: the existing `Production` environment is not
+`prod`. Two unused environments (`Preview`, `prolific-spontaneity / production`) are also present
+and appear to be left over from another integration.
 
 ## Worth fixing separately
-
-`authCanView()` in the frontend hardcodes `true` for `shorfah`, `media_monitoring`, `libraries`,
-`smart_assistant`, `settings`, `gac_library` and `prompts_lib`, bypassing the permission matrix.
-Left alone deliberately — it is a behaviour change, not a deployment concern.
 
 The Frutiger font licensing question is still open with GAC. It blocks nothing technically; the
 binaries are drop-in replaceable under the same filenames. See
