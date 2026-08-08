@@ -74,11 +74,12 @@ public sealed class IconEventHtmlComposerTests
     {
         // Regression guard: the plate geometry was authored at 2000x1125 and emitted verbatim, which
         // pushed a 200px tile onto a 479px-tall card and clipped the meta row off the bottom edge.
+        // The tiles are now sized in em off the grid so the fitting pass moves art and copy together.
         var large = _composer.Render(Input(IconEventSizePreset.DesktopHd, IconEventLayoutType.Grid));
         var small = _composer.Render(Input(IconEventSizePreset.WebMini, IconEventLayoutType.Grid));
 
-        large.Should().Contain(Tile(864));
-        small.Should().Contain(Tile(479));
+        large.Should().Contain(TileGrid(864)).And.Contain("width:1em;height:1em");
+        small.Should().Contain(TileGrid(479)).And.Contain("width:1em;height:1em");
     }
 
     [Fact]
@@ -96,10 +97,10 @@ public sealed class IconEventHtmlComposerTests
         offenders.Should().BeEmpty();
     }
 
-    private static string Tile(int canvasHeight)
+    private static string TileGrid(int canvasHeight)
     {
         var side = (int)Math.Round(200 * (canvasHeight / 1125.0), MidpointRounding.AwayFromZero);
-        return string.Create(CultureInfo.InvariantCulture, $"width:{side}px;height:{side}px");
+        return string.Create(CultureInfo.InvariantCulture, $"font-size:{side}px");
     }
 
     private static IconEventInput Input(IconEventSizePreset size, IconEventLayoutType layout) => new()

@@ -12,7 +12,20 @@ namespace Icbank.Platform.Infrastructure.Designs;
 /// </remarks>
 internal static class IconEventPlanFragments
 {
-    internal static string RenderBody(IconEventRenderContext context, string align)
+    internal static string RenderBody(IconEventRenderContext context, string align) =>
+        RenderBody(context, align, withList: true);
+
+    /// <summary>Renders the planned copy, optionally leaving the list to the composition itself.</summary>
+    /// <param name="context">The resolved render context.</param>
+    /// <param name="align">The text alignment to apply.</param>
+    /// <param name="withList">Whether the list should be printed as text.</param>
+    /// <returns>The body markup, or an empty string when the plan carries no body.</returns>
+    /// <remarks>
+    /// The tile composition already gives every list item its own piece of art, so printing the
+    /// same items again as a list left two competing readings of one message on the canvas and
+    /// squeezed the tiles down to the point where the art was unreadable.
+    /// </remarks>
+    internal static string RenderBody(IconEventRenderContext context, string align, bool withList)
     {
         IconEventContentPlan plan = context.Plan;
         if (!plan.HasBody)
@@ -22,7 +35,11 @@ internal static class IconEventPlanFragments
 
         var parts = new StringBuilder();
         AppendLead(parts, context, align);
-        AppendBullets(parts, context, align);
+        if (withList)
+        {
+            AppendBullets(parts, context, align);
+        }
+
         AppendClosingNote(parts, context, align);
 
         var gap = Math.Max(6, context.Tokens.ParagraphGap - 4);

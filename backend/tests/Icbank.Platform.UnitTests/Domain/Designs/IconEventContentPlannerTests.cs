@@ -137,6 +137,41 @@ public sealed class IconEventContentPlannerTests
     public void AValidSuggestedIcon_IsHonoured() =>
         IconEventIconResolver.Resolve("shield", "أي نص").Should().Be("shield");
 
+    [Fact]
+    public void AnOpeningParagraph_YieldsSpaceToTheListBesideIt()
+    {
+        // A paragraph written to fill the canvas on its own leaves a list nothing but the bottom
+        // third, where it renders at a size nobody reads.
+        var budget = IconEventContentBudget.Resolve(IconEventSizePreset.Uhd4k);
+
+        budget.LeadCharsBeside(0).Should().Be(budget.LeadChars);
+        budget.LeadCharsBeside(4).Should().BeLessThan(budget.LeadChars);
+        budget.LeadCharsBeside(4).Should().BeGreaterThanOrEqualTo(80);
+    }
+
+    [Fact]
+    public void TheMetaRow_ShrinksSoItStaysOnOneLine()
+    {
+        // Chips wrap rather than shrink, so a full row under a list silently steals two more lines.
+        var budget = IconEventContentBudget.Resolve(IconEventSizePreset.Uhd4k);
+
+        budget.MaxMetaChipsBeside(0).Should().Be(budget.MaxMetaChips);
+        budget.MaxMetaChipsBeside(4).Should().Be(2);
+    }
+
+    [Fact]
+    public void RhetoricalQuestions_AreLeftOutOfThePoster()
+    {
+        // A poster has no room to answer a question it asks, so the question is dead weight.
+        IconEventInput input = Input(IconEventSizePreset.DesktopHd);
+        input.Subtitle = "متى قد تحدث المشكلة؟ راجع سجل الحضور يومياً. كيف تكتشفها؟";
+
+        IconEventContentPlan plan = IconEventContentPlanner.Plan(input);
+
+        (plan.Lead ?? string.Empty).Should().NotContain("؟");
+        plan.Bullets.Where(bullet => bullet.Text.Contains('؟', StringComparison.Ordinal)).Should().BeEmpty();
+    }
+
     private static IconEventInput Input(IconEventSizePreset size) => new()
     {
         Headline = "متابعتك تصنع الفرق",

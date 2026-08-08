@@ -21,22 +21,39 @@ public static class IconEventContentPlanner
         return new IconEventContentPlan
         {
             Headline = IconEventTextTrimmer.Trim(input.Headline, budget.HeadlineChars) ?? string.Empty,
-            Lead = BuildLead(structure, input.Subtitle, budget),
+            Lead = BuildLead(structure, input.Subtitle, budget, bulletTexts.Count),
             Bullets = BuildBullets(bulletTexts),
             Stats = TakeStats(input.Stats, budget),
             ClosingNote = budget.ShowsClosingNote ? IconEventTextTrimmer.Trim(structure.ClosingNote, budget.BulletChars) : null,
-            MetaChips = BuildMetaChips(input, budget),
+            MetaChips = BuildMetaChips(input, budget, bulletTexts.Count),
             MainIcon = mainIcon,
             SupportingIcons = IconEventIconResolver.ResolveMany(input.SupportingIcons, bulletTexts, 3, used),
         };
     }
 
-    private static string? BuildLead(IconEventTextStructure structure, string? subtitle, IconEventContentBudget budget)
+    private static string? BuildLead(IconEventTextStructure structure, string? subtitle, IconEventContentBudget budget, int bulletCount)
     {
+        var allowance = budget.LeadCharsBeside(bulletCount);
         // Structured copy already separated its opening paragraph; unstructured copy has to be cut
         // down from the whole body, and leading with its first sentences reads best.
-        var source = structure.IsStructured ? structure.Lead : FirstSentences(subtitle, budget.LeadChars);
-        return IconEventTextTrimmer.Trim(source, budget.LeadChars);
+        var source = structure.IsStructured ? DropQuestions(structure.Lead) : FirstSentences(DropQuestions(subtitle), allowance);
+        return IconEventTextTrimmer.Trim(source, allowance);
+    }
+
+    /// <summary>Removes rhetorical questions, which set up copy the poster has no room to answer.</summary>
+    /// <param name="text">The copy to clean.</param>
+    /// <returns>The copy without its question sentences, or <see langword="null"/> when none remain.</returns>
+    private static string? DropQuestions(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return text;
+        }
+
+        IEnumerable<string> kept = IconEventTextStructureParser.SplitSentences(text)
+            .Where(sentence => !sentence.EndsWith('؟') && !sentence.EndsWith('?'));
+        var joined = string.Join(' ', kept).Trim();
+        return joined.Length == 0 ? text : joined;
     }
 
     private static string? FirstSentences(string? subtitle, int budgetChars)
@@ -91,7 +108,7 @@ public static class IconEventContentPlanner
 
         return items
             .Take(budget.MaxBullets)
-            .Select(item => IconEventTextTrimmer.Trim(item, budget.BulletChars))
+            .Select(item => IconEventTextTrimmer.Trim(DropQuestions(item), budget.BulletChars))
             .OfType<string>()
             .ToList();
     }
@@ -121,7 +138,7 @@ public static class IconEventContentPlanner
                 .Select(stat => stat with { Icon = IconEventIconResolver.Resolve(stat.Icon, stat.Label) })
                 .ToList();
 
-    private static IReadOnlyList<IconEventMetaChip> BuildMetaChips(IconEventInput input, IconEventContentBudget budget)
+    private static IReadOnlyList<IconEventMetaChip> BuildMetaChips(IconEventInput input, IconEventContentBudget budget, int bulletCount)
     {
         var candidates = new (string Icon, string? Value)[]
         {
@@ -134,7 +151,7 @@ public static class IconEventContentPlanner
 
         return candidates
             .Where(candidate => !string.IsNullOrWhiteSpace(candidate.Value))
-            .Take(budget.MaxMetaChips)
+            .Take(budget.MaxMetaChipsBeside(bulletCount))
             .Select(candidate => new IconEventMetaChip(candidate.Icon, IconEventTextTrimmer.Collapse(candidate.Value!)))
             .ToList();
     }

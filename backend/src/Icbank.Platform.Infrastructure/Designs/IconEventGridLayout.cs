@@ -10,7 +10,7 @@ internal static class IconEventGridLayout
         var body = RenderBody(context);
         var grid = RenderGrid(context);
         var chips = IconEventPlanFragments.RenderMetaChips(context, "center");
-        return $"<div class=\"poster grid-layout\" style=\"{PosterStyle(context)}\">{Chrome(context)}{body}{grid}{chips}{Footer(context)}</div>";
+        return $"<div class=\"poster grid-layout\" data-fit-mode=\"grow\" style=\"{PosterStyle(context)}\">{Chrome(context)}{body}{grid}{chips}{Footer(context)}</div>";
     }
 
     private static string Chrome(IconEventRenderContext context) =>
@@ -38,8 +38,8 @@ internal static class IconEventGridLayout
 
     private static string RenderBody(IconEventRenderContext context)
     {
-        var body = IconEventPlanFragments.RenderBody(context, "center");
-        var paragraphs = body.Length == 0 ? string.Empty : $"<div style=\"max-width:{context.Px(1500)}px;margin:0 auto;\">{body}</div>";
+        var body = IconEventPlanFragments.RenderBody(context, "center", withList: false);
+        var paragraphs = body.Length == 0 ? string.Empty : $"<div style=\"width:84%;margin:0 auto;\">{body}</div>";
         return $"<div style=\"width:100%;color:#fff;text-align:center;flex:none;\"><h1 style=\"font-size:{context.Px(68)}px;font-weight:900;margin:0 0 {context.Tokens.ParagraphGap}px;line-height:1.15;letter-spacing:-1px;\">{context.Headline}</h1>{paragraphs}</div>";
     }
 
@@ -47,14 +47,16 @@ internal static class IconEventGridLayout
     {
         // The plan already resolved three distinct supporting icons against the copy, so the grid
         // never has to pad itself with a decorative placeholder.
-        var icons = context.Plan.SupportingIcons.Prepend(context.Plan.MainIcon).Take(4).ToList();
+        List<string> icons = context.Plan.Bullets.Count > 0
+            ? context.Plan.Bullets.Select(bullet => bullet.Icon).Take(4).ToList()
+            : context.Plan.SupportingIcons.Prepend(context.Plan.MainIcon).Take(4).ToList();
 
-        return $"<div class=\"grid-plates\" style=\"flex:1 1 auto;min-height:0;display:flex;align-items:center;justify-content:center;padding:{context.Px(24)}px 0;\"><div style=\"display:grid;grid-template-columns:repeat(2,{context.Px(200)}px);gap:{context.Px(32)}px;\">{string.Concat(icons.Select(icon => RenderGridIcon(context, icon)))}</div></div>";
+        return $"<div class=\"grid-plates\" style=\"flex:0 0 auto;display:flex;align-items:center;justify-content:center;padding:{context.Px(24)}px 0;margin:auto 0;\"><div style=\"display:grid;font-size:{context.Px(200)}px;grid-template-columns:repeat(2,1em);gap:0.16em;\">{string.Concat(icons.Select(icon => RenderGridIcon(context, icon)))}</div></div>";
     }
 
     private static string RenderGridIcon(IconEventRenderContext context, string icon)
     {
         var svg = IconEventIconLibrary.Render(icon, context.Px(110), context.Palette.Accent);
-        return $"<div style=\"width:{context.Px(200)}px;height:{context.Px(200)}px;background:rgba(255,255,255,0.12);border:{context.Px(2)}px solid rgba(255,255,255,0.25);border-radius:{context.Px(28)}px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(10px);\"><div style=\"color:{context.Palette.Accent};\">{svg}</div></div>";
+        return $"<div style=\"width:1em;height:1em;background:rgba(255,255,255,0.12);border:{context.Px(2)}px solid rgba(255,255,255,0.25);border-radius:0.14em;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(10px);\"><div style=\"color:{context.Palette.Accent};\">{svg}</div></div>";
     }
 }

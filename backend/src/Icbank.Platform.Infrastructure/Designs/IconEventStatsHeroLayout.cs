@@ -12,7 +12,7 @@ internal static class IconEventStatsHeroLayout
     {
         IconEventStatsHeroMetrics metrics = IconEventStatsHeroMetricsFactory.Create(context);
         IReadOnlyList<IconEventStat> stats = ResolveStats(context.Plan.Stats);
-        return $"<div class=\"poster stats-hero-layout\" style=\"width:{context.Width}px;height:{context.Height}px;position:relative;overflow:hidden;font-family:Frutiger LT Arabic,Cairo,Tajawal,sans-serif;direction:rtl;color:{White};background-image:url('{IconEventVisualAssets.StatsHeroBackgroundDataUri}');background-size:cover;background-position:center;\">{RenderLogo(context, metrics)}{RenderDepartment(context, metrics)}{RenderHeadline(context, metrics)}{RenderSubtitle(context, metrics)}{RenderStats(stats, metrics)}{RenderHashtag(context, metrics)}</div>";
+        return $"<div class=\"poster stats-hero-layout\" data-fit-mode=\"shrink\" style=\"width:{context.Width}px;height:{context.Height}px;position:relative;overflow:hidden;font-family:Frutiger LT Arabic,Cairo,Tajawal,sans-serif;direction:rtl;color:{White};background-image:url('{IconEventVisualAssets.StatsHeroBackgroundDataUri}');background-size:cover;background-position:center;\">{RenderLogo(context, metrics)}{RenderDepartment(context, metrics)}{RenderHeadline(context, metrics)}{RenderSubtitle(context, metrics)}{RenderStats(stats, metrics)}{RenderHashtag(context, metrics)}</div>";
     }
 
     private static string RenderDepartment(IconEventRenderContext context, IconEventStatsHeroMetrics metrics)
