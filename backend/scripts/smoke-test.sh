@@ -68,18 +68,90 @@ if [[ "$DEPLOYED_MODE" -eq 1 && ( -z "${SMOKE_SEED_EMAIL:-}" || -z "${SMOKE_SEED
   exit 1
 fi
 
+# ── Transient-fault retries (deployed mode only) ────────────────────────────────
+# The dev App Service runs a single worker with health-check-driven instance replacement,
+# so it recycles once more shortly *after* the deploy step returns. The warm-up gate in the
+# workflow proves the worker is serving before the assertions start, but it cannot prove it
+# will stay up: on runs 31234636892 and 31243308911 the first assertions passed and later
+# ones came back 500/502 or outright "Connection refused", and every endpoint was verified
+# healthy by hand minutes afterwards.
+#
+# So a connection failure or gateway error is retried a few times before it is called a
+# failure. This does not soften the bar. A genuinely broken endpoint returns the same wrong
+# status on every attempt and still fails the run -- only a fault that heals on its own
+# within ~24s is absorbed, which is exactly the worker-recycle window and nothing else.
+# 500 is deliberately included: a recycling worker's requests surface as 500 through the
+# App Service front end. A real 500 is deterministic and survives all four attempts.
+#
+# Local/CI mode keeps a single attempt: there the API is a child process of this script, so
+# a refused connection means it crashed and retrying would only delay the report.
+if [[ "$DEPLOYED_MODE" -eq 1 ]]; then
+  TRANSIENT_ATTEMPTS="${SMOKE_TRANSIENT_ATTEMPTS:-4}"
+else
+  TRANSIENT_ATTEMPTS=1
+fi
+TRANSIENT_BACKOFF_SECONDS="${SMOKE_TRANSIENT_BACKOFF_SECONDS:-8}"
+
+retry() { printf '  \033[33mRETRY\033[0m %s\n' "$*"; }
+
+# True when <actual> looks like the deployment cycling rather than a real answer. An expected
+# status is never transient, and neither is any 4xx -- those are the product answering.
+is_transient() {
+  local expected="$1" actual="$2"
+  [[ "$actual" == "$expected" ]] && return 1
+  case "$actual" in
+    000|500|502|503|504) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
 # ── Asserts an endpoint returns an expected status code ─────────────────────────
 # usage: assert_status <description> <expected> <method> <path> [curl args...]
 assert_status() {
   local description="$1" expected="$2" method="$3" path="$4"
   shift 4
-  local actual
-  actual=$(curl -sS -o /dev/null -w '%{http_code}' -X "$method" "${BASE}${path}" "$@" 2>/dev/null)
+  local actual attempt=1
+  while :; do
+    actual=$(curl -sS -o /dev/null -w '%{http_code}' -X "$method" "${BASE}${path}" "$@" 2>/dev/null)
+    if ! is_transient "$expected" "$actual" || (( attempt >= TRANSIENT_ATTEMPTS )); then
+      break
+    fi
+    retry "${description} — got ${actual} (attempt ${attempt}/${TRANSIENT_ATTEMPTS}), re-checking in ${TRANSIENT_BACKOFF_SECONDS}s"
+    sleep "$TRANSIENT_BACKOFF_SECONDS"
+    attempt=$((attempt + 1))
+  done
   if [[ "$actual" == "$expected" ]]; then
-    pass "$description (${actual})"
+    if (( attempt > 1 )); then
+      pass "$description (${actual} on attempt ${attempt})"
+    else
+      pass "$description (${actual})"
+    fi
   else
     fail "$description — expected ${expected}, got ${actual}"
   fi
+}
+
+# ── Fetches a response body, retrying the same transient faults ─────────────────
+# usage: body=$(fetch_body <description> <method> <path> [curl args...])
+# Writes only the body to stdout so it stays usable in a command substitution; retry chatter
+# goes to stderr, which the workflow log still shows.
+fetch_body() {
+  local description="$1" method="$2" path="$3"
+  shift 3
+  local attempt=1 status
+  local tmp
+  tmp="$(mktemp)"
+  while :; do
+    status=$(curl -sS -o "$tmp" -w '%{http_code}' -X "$method" "${BASE}${path}" "$@" 2>/dev/null)
+    if ! is_transient 200 "$status" || (( attempt >= TRANSIENT_ATTEMPTS )); then
+      break
+    fi
+    retry "${description} — got ${status} (attempt ${attempt}/${TRANSIENT_ATTEMPTS}), re-checking in ${TRANSIENT_BACKOFF_SECONDS}s" >&2
+    sleep "$TRANSIENT_BACKOFF_SECONDS"
+    attempt=$((attempt + 1))
+  done
+  cat "$tmp"
+  rm -f "$tmp"
 }
 
 if [[ "$DEPLOYED_MODE" -eq 0 ]]; then
@@ -201,9 +273,9 @@ assert_status "login rejects a wrong password"              401 POST /api/v1/aut
   -d "{\"email\":\"${SEED_EMAIL}\",\"password\":\"definitely-not-the-password\"}"
 
 log "5. Login with the seeded super-admin"
-LOGIN_BODY=$(curl -sS -X POST "${BASE}/api/v1/auth/login" \
+LOGIN_BODY=$(fetch_body "login" POST /api/v1/auth/login \
   -H 'Content-Type: application/json' \
-  -d "{\"email\":\"${SEED_EMAIL}\",\"password\":\"${SEED_PASSWORD}\"}" 2>/dev/null)
+  -d "{\"email\":\"${SEED_EMAIL}\",\"password\":\"${SEED_PASSWORD}\"}")
 TOKEN=$(printf '%s' "$LOGIN_BODY" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("accessToken",""))' 2>/dev/null)
 
 if [[ -n "$TOKEN" ]]; then
@@ -267,7 +339,7 @@ assert_status "shorfah issue list is served"           200 GET /api/v1/shorfah/i
 # populates it, and this assertion is what keeps it populated: it fails if the table is empty,
 # if the seeder stops running, or if a date string stops parsing (the parser returns null on a
 # bad date and the handler silently skips the row, which is invisible otherwise).
-SUMMARY=$(curl -sS "${BASE}/api/v1/dashboard/summary" -H "$AUTH_HEADER" 2>/dev/null)
+SUMMARY=$(fetch_body "dashboard summary" GET /api/v1/dashboard/summary -H "$AUTH_HEADER")
 if printf '%s' "$SUMMARY" | python3 -c '
 import json,sys
 body = json.load(sys.stdin)
@@ -285,7 +357,7 @@ else
 fi
 
 log "7. Pagination envelope on a list endpoint"
-ENVELOPE=$(curl -sS "${BASE}/api/v1/shorfah/issues" -H "$AUTH_HEADER" 2>/dev/null)
+ENVELOPE=$(fetch_body "shorfah issue list" GET /api/v1/shorfah/issues -H "$AUTH_HEADER")
 if printf '%s' "$ENVELOPE" | python3 -c '
 import json,sys
 body = json.load(sys.stdin)
@@ -305,14 +377,37 @@ assert_status "/api/v1/debug/env is not routable" 404 GET /api/v1/debug/env
 
 # ── 9. Error contract and headers ──────────────────────────────────────────────
 log "9. Error contract and security headers"
-NOT_FOUND_TYPE=$(curl -sS -o /dev/null -w '%{content_type}' "${BASE}/api/v1/no-such-route" 2>/dev/null)
+# Same recycle caveat as above: a cycling worker answers this with the App Service error page
+# (text/html) instead of the app's problem+json, so retry while the status looks transient.
+NOT_FOUND_ATTEMPT=1
+while :; do
+  NOT_FOUND_PROBE=$(curl -sS -o /dev/null -w '%{http_code} %{content_type}' "${BASE}/api/v1/no-such-route" 2>/dev/null)
+  NOT_FOUND_CODE="${NOT_FOUND_PROBE%% *}"
+  NOT_FOUND_TYPE="${NOT_FOUND_PROBE#* }"
+  if ! is_transient 404 "$NOT_FOUND_CODE" || (( NOT_FOUND_ATTEMPT >= TRANSIENT_ATTEMPTS )); then
+    break
+  fi
+  retry "unknown-route error contract — got ${NOT_FOUND_CODE} (attempt ${NOT_FOUND_ATTEMPT}/${TRANSIENT_ATTEMPTS}), re-checking in ${TRANSIENT_BACKOFF_SECONDS}s"
+  sleep "$TRANSIENT_BACKOFF_SECONDS"
+  NOT_FOUND_ATTEMPT=$((NOT_FOUND_ATTEMPT + 1))
+done
 if [[ "$NOT_FOUND_TYPE" == *"problem+json"* ]]; then
   pass "unknown routes return application/problem+json"
 else
   fail "unknown routes returned content type '${NOT_FOUND_TYPE}', expected problem+json"
 fi
 
-HEADERS=$(curl -sS -D - -o /dev/null "${BASE}/health/live" 2>/dev/null)
+HEADERS_ATTEMPT=1
+while :; do
+  HEADERS=$(curl -sS -D - -o /dev/null "${BASE}/health/live" 2>/dev/null)
+  HEADERS_CODE=$(curl -sS -o /dev/null -w '%{http_code}' "${BASE}/health/live" 2>/dev/null)
+  if ! is_transient 200 "$HEADERS_CODE" || (( HEADERS_ATTEMPT >= TRANSIENT_ATTEMPTS )); then
+    break
+  fi
+  retry "security headers — /health/live returned ${HEADERS_CODE} (attempt ${HEADERS_ATTEMPT}/${TRANSIENT_ATTEMPTS}), re-checking in ${TRANSIENT_BACKOFF_SECONDS}s"
+  sleep "$TRANSIENT_BACKOFF_SECONDS"
+  HEADERS_ATTEMPT=$((HEADERS_ATTEMPT + 1))
+done
 for header in "X-Content-Type-Options" "X-Frame-Options" "Referrer-Policy"; do
   if printf '%s' "$HEADERS" | grep -qi "^${header}:"; then
     pass "${header} is present"
