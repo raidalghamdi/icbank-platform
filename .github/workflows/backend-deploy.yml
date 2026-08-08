@@ -326,23 +326,44 @@ jobs:
       # of the pipeline still 500'd. So this waits for a route that should NOT exist to return
       # a clean 404, which only happens once routing, the error contract and the middleware
       # chain are all live.
+      #
+      # One good probe is still not enough. On run 31234636892 the instance answered correctly,
+      # the first eight assertions passed, and then /auth/me, the dashboard and even the 404
+      # routes returned 500/502 seventeen seconds later -- App Service had recycled the worker
+      # mid-run. Every one of those endpoints was verified healthy by hand straight afterwards.
+      # So the gate now requires a streak of consecutive clean probes: a worker that answers
+      # correctly three times across ~20s is past the restart window, whereas a single 200 only
+      # proves the instance was briefly up.
       - name: Wait for the deployed instance to finish starting
         working-directory: ${{ github.workspace }}
         env:
           BASE: ${{ needs.deploy.outputs.app-url }}
         run: |
           set -uo pipefail
+          REQUIRED_STREAK=3
+          streak=0
           for i in $(seq 1 40); do
             ready=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 "$BASE/health/ready" || echo 000)
             routed=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 "$BASE/api/v1/__startup_probe__" || echo 000)
             if [ "$ready" = "200" ] && [ "$routed" = "404" ]; then
-              echo "instance answering correctly after ${i} attempt(s) (~$((i*10))s)"
-              exit 0
+              streak=$((streak + 1))
+              if [ "$streak" -ge "$REQUIRED_STREAK" ]; then
+                echo "instance stable: ${streak} consecutive clean probes after ${i} attempt(s)"
+                exit 0
+              fi
+              echo "attempt $i: clean (${streak}/${REQUIRED_STREAK} of the required streak) — re-checking in 10s"
+            else
+              # A stumble resets the streak: the worker is still cycling, and starting the
+              # assertions now is exactly how the run above went red.
+              if [ "$streak" -gt 0 ]; then
+                echo "attempt $i: instance stumbled after ${streak} clean probe(s) — restarting the streak"
+              fi
+              streak=0
+              echo "attempt $i: /health/ready=$ready, unknown-route=$routed (want 200 and 404) — retrying in 10s"
             fi
-            echo "attempt $i: /health/ready=$ready, unknown-route=$routed (want 200 and 404) — retrying in 10s"
             sleep 10
           done
-          echo "::error::Deployed instance never started answering correctly within ~7 minutes"
+          echo "::error::Deployed instance never held ${REQUIRED_STREAK} consecutive clean probes within ~7 minutes"
           exit 1
 
       - name: Run smoke assertions against the deployed instance
