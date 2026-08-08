@@ -14544,6 +14544,16 @@ window.MM = (function(){
       }
       var data = await res.json();
       state.draft = data.draft;
+      // The .NET generate endpoint returns {draft, saved:null} unconditionally -- it hardcodes
+      // saved to null and has no autoSave input, so the Node-era "saved" branch below could never
+      // fire. Every generated report therefore stayed an unsaved draft with no server id, and the
+      // modal's PDF / email / summary buttons built /final-media-reports/undefined/... which the
+      // {reportId:int} routes rejected as a 404. Persisting the draft here is what the Node API
+      // used to do for an admin, and it is what makes those three actions work at all.
+      if (!data.saved && data.draft) {
+        data.saved = await saveDraft(data.draft, period);
+      }
+
       if (data.saved) {
         // Saved as final → reload list + open
         await load();
@@ -14567,6 +14577,30 @@ window.MM = (function(){
       nextBtn.disabled = false; nextBtn.textContent = orig;
     }
   }
+  // Persists a freshly generated draft and returns the saved report, or null when the account
+  // lacks the create permission -- in which case the caller falls back to the read-only preview.
+  async function saveDraft(draft, period){
+    try {
+      var res = await apiFetch(apiUrl('/final-media-reports'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: draft.title || ('التقرير الإعلامي — ' + (period.periodLabel || '')),
+          reportType: state.wizAnswers.reportType || null,
+          periodLabel: draft.periodLabel || period.periodLabel,
+          dateFrom: period.dateFrom,
+          dateTo: period.dateTo,
+          draft: draft
+        })
+      });
+      if (!res.ok) { return null; }
+      var body = await res.json();
+      return body.item || null;
+    } catch (_) {
+      return null;
+    }
+  }
+
   function showDraftPreview(d){
     state.current = d;
     var mEl = document.getElementById('mm-view-modal');
@@ -14864,8 +14898,17 @@ window.MM = (function(){
   function closeViewModal(){ var m=document.getElementById('mm-view-modal'); if(m) m.style.display='none'; state.current=null; }
 
   // ─── الإجراءات على التقرير المحفوظ ───
+  // The three actions below all call /final-media-reports/{id:int}/... . Without an id the URL
+  // interpolates "undefined", misses the int-constrained route and comes back as a bare 404 that
+  // reads like a server fault. Say plainly that the report is not saved instead.
+  function requireSavedReport(){
+    if (state.current && state.current.id) { return true; }
+    alert('هذا التقرير مسودة غير محفوظة، ولا يمكن تصديره أو إرساله قبل حفظه. قد لا تملك صلاحية حفظ التقارير.');
+    return false;
+  }
+
   async function exportPdf(){
-    if (!state.current) return;
+    if (!requireSavedReport()) return;
     var btn = event && event.target; var orig = btn ? btn.textContent : '';
     if (btn) { btn.disabled = true; btn.textContent = 'جارٍ إنشاء PDF…'; }
     try {
@@ -14883,7 +14926,7 @@ window.MM = (function(){
   }
 
   async function sendEmail(){
-    if (!state.current) return;
+    if (!requireSavedReport()) return;
     var to = prompt('أدخل البريد/البرد المرسل إليها (مفصولة بفاصلة):', '');
     if (!to) return;
     var emails = to.split(/[,،\s]+/).map(function(e){return e.trim();}).filter(function(e){return e && e.indexOf('@')>0;});
@@ -14897,7 +14940,7 @@ window.MM = (function(){
   }
 
   async function execSummary(){
-    if (!state.current) return;
+    if (!requireSavedReport()) return;
     if (!confirm('إعادة توليد ملخص تنفيذي مختصر من نفس التقرير؟ (لن يُعدّل التقرير الأصلي — يُعرض ملخص جديد)')) return;
     try {
       var res = await apiFetch(apiUrl('/final-media-reports/')+state.current.id+'/exec-summary', { method:'POST' });
