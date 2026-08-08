@@ -5,10 +5,12 @@ namespace Icbank.Platform.Application.Gac.Commands;
 /// <param name="Inserted">The number of new rows written.</param>
 /// <param name="Updated">The number of existing rows refreshed.</param>
 /// <param name="Skipped">The number of items dropped as duplicates.</param>
+/// <param name="Filtered">The number of items dropped as unrelated to competition policy.</param>
 /// <param name="PerProvider">Per-provider item counts, so a silently failing provider is visible in the response.</param>
 public sealed record FetchGacNewsResult(
     int Fetched,
     int Inserted,
     int Updated,
     int Skipped,
+    int Filtered,
     IReadOnlyDictionary<string, int> PerProvider);

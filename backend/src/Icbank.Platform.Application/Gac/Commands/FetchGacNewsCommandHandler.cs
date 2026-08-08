@@ -38,24 +38,33 @@ public sealed class FetchGacNewsCommandHandler : IRequestHandler<FetchGacNewsCom
         // Deduplicate before handing off so the ingest command's Skipped count reports genuine
         // cross-term overlap rather than noise: the four configured terms overlap heavily, and the
         // same article routinely matches three of them. The richest body wins.
-        var batch = collected
+        var deduped = collected
             .GroupBy(i => i.SourceUrl, StringComparer.OrdinalIgnoreCase)
-            .Select(g => ToIngestItem(g.OrderByDescending(i => i.Body?.Length ?? 0).First()))
+            .Select(g => g.OrderByDescending(i => i.Body?.Length ?? 0).First())
             .ToList();
+
+        // The providers match the search terms loosely, so drop anything that is not actually
+        // about competition policy before it reaches the media-monitoring page.
+        var batch = deduped
+            .Where(i => NewsRelevanceFilter.IsRelevant(i.Title, i.Body))
+            .Select(ToIngestItem)
+            .ToList();
+        var filtered = deduped.Count - batch.Count;
 
         // A zero-item run is reported as a success with empty counts, not an error. The Application
         // layer has no logger by design, so PerProvider is the diagnostic surface: it distinguishes
         // "no news this week" from "one provider is silently returning nothing".
         if (batch.Count == 0)
         {
-            return Result<FetchGacNewsResult>.Success(new FetchGacNewsResult(0, 0, 0, 0, perProvider));
+            return Result<FetchGacNewsResult>.Success(
+                new FetchGacNewsResult(collected.Count, 0, 0, 0, filtered, perProvider));
         }
 
         Result<IngestGacNewsItemsResult> ingest = await _sender.Send(new IngestGacNewsItemsCommand(batch), cancellationToken);
         IngestGacNewsItemsResult summary = ingest.Value!;
 
         return Result<FetchGacNewsResult>.Success(new FetchGacNewsResult(
-            collected.Count, summary.Inserted, summary.Updated, summary.Skipped, perProvider));
+            collected.Count, summary.Inserted, summary.Updated, summary.Skipped, filtered, perProvider));
     }
 
     private static IngestGacNewsItem ToIngestItem(FetchedNewsItem item) => new(

@@ -134,6 +134,23 @@ public sealed class GacController : ControllerBase
         return Ok(result.Value);
     }
 
+    /// <summary>Deletes stored news items that are not about competition policy.</summary>
+    /// <param name="cancellationToken">A token used to observe cancellation requests.</param>
+    /// <returns>200 OK with the number of items examined and removed.</returns>
+    /// <remarks>
+    /// Maintenance for rows ingested before the relevance filter existed, and for whenever the
+    /// filter vocabulary is tightened afterwards.
+    /// </remarks>
+    [HttpPost("news/purge-irrelevant")]
+    [Authorize(Policy = AuthorizationPolicyExtensions.CronApiKeyPolicyName)]
+    public async Task<ActionResult<PurgeIrrelevantGacNewsResult>> PurgeIrrelevantNewsAsync(
+        CancellationToken cancellationToken)
+    {
+        Result<PurgeIrrelevantGacNewsResult> result =
+            await _sender.Send(new PurgeIrrelevantGacNewsCommand(), cancellationToken);
+        return Ok(result.Value);
+    }
+
     /// <summary>Seeds 5 fixed sample Twitter/X posts (fixture data pending real X API integration).</summary>
     /// <param name="cancellationToken">A token used to observe cancellation requests.</param>
     /// <returns>200 OK with the seed summary.</returns>
