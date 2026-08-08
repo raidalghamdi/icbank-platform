@@ -230,10 +230,8 @@ public sealed class GeminiClientTests
     [Fact]
     public async Task GenerateJsonAsync_TruncatedFlatArray_RepairsToLastCompleteElement()
     {
-        // RepairTruncated's "safe boundary" tracking only fires at container depth 1 for the SAME
-        // bracket type as the root (it does not descend into a differently-typed nested container --
-        // e.g. objects inside a truncated array do not themselves advance the tracked depth). A flat
-        // array of scalars is the shape this ladder cleanly repairs.
+        // The simplest recoverable shape: every comma sits at the root, so the last complete
+        // element is unambiguous.
         _transport.Enqueue(GeminiTestResults.Text("[\"one\",\"two\",\"thre"));
 
         GeminiGenerationResult result = await _sut.GenerateJsonAsync("prompt", new GeminiCallOptions(Primary), CancellationToken.None);
@@ -242,15 +240,49 @@ public sealed class GeminiClientTests
     }
 
     [Fact]
-    public async Task GenerateJsonAsync_TruncationInsideNestedObjectValue_LosesWholeNestedValue_ExhaustsAndThrows()
+    public async Task GenerateJsonAsync_TruncatedInsideArrayOfObjects_ClosesBothContainers()
     {
-        // Honest limitation: RepairTruncated only tracks depth for the root's own bracket type, so
-        // truncation *inside* a nested object value is not something it can safely repair -- trimming
-        // to the last depth-1 boundary here would mean truncating before the nested object even opens,
-        // i.e. before any safe boundary exists at all if the truncation happens before the first
-        // top-level comma. This documents that the repair ladder is a best-effort heuristic, not a
-        // general JSON recovery tool, and callers must not assume nested truncation is recoverable.
-        const string truncated = "{\"nested\":{\"x\":1,\"y\":2,\"z\":\"trunc";
+        // The icon-event designer's shape: an object whose last member is an array of objects. A
+        // repairer that only counted braces closed this with a single "}", leaving the array open
+        // and the payload still unparseable, which reached the browser as a bare 500.
+        _transport.Enqueue(GeminiTestResults.Text("{\"extracted\":{\"headline\":\"h\"},\"variants\":[{\"layout\":\"grid\"},{\"layout\":\"spl"));
+
+        GeminiGenerationResult result = await _sut.GenerateJsonAsync("prompt", new GeminiCallOptions(Primary), CancellationToken.None);
+
+        result.Text.Should().Be("{\"extracted\":{\"headline\":\"h\"},\"variants\":[{\"layout\":\"grid\"}]}");
+    }
+
+    [Fact]
+    public async Task GenerateJsonAsync_TruncatedMidStringContainingBrackets_IgnoresBracketsInsideTheString()
+    {
+        // Brackets inside string values must not move the nesting stack, or the repair closes the
+        // wrong containers.
+        _transport.Enqueue(GeminiTestResults.Text("{\"a\":\"}]{[\",\"b\":\"trunc"));
+
+        GeminiGenerationResult result = await _sut.GenerateJsonAsync("prompt", new GeminiCallOptions(Primary), CancellationToken.None);
+
+        result.Text.Should().Be("{\"a\":\"}]{[\"}");
+    }
+
+    [Fact]
+    public async Task GenerateJsonAsync_TruncationInsideNestedObjectValue_KeepsTheCompletedMembers()
+    {
+        // Truncation deep inside a nested object drops only the incomplete member; the fields the
+        // model did finish are preserved.
+        _transport.Enqueue(GeminiTestResults.Text("{\"nested\":{\"x\":1,\"y\":2,\"z\":\"trunc"));
+
+        GeminiGenerationResult result = await _sut.GenerateJsonAsync("prompt", new GeminiCallOptions(Primary), CancellationToken.None);
+
+        result.Text.Should().Be("{\"nested\":{\"x\":1,\"y\":2}}");
+    }
+
+    [Fact]
+    public async Task GenerateJsonAsync_NoCompleteElementAtAll_ExhaustsAndThrows()
+    {
+        // Honest limitation: nothing was ever completed, so there is no boundary to trim back to.
+        // The ladder is a best-effort heuristic, not a general JSON recovery tool, and it must fail
+        // loudly rather than invent a payload the model never produced.
+        const string truncated = "{\"headline\":\"trunc";
         _transport.Enqueue(GeminiTestResults.Text(truncated));
         _transport.Enqueue(GeminiTestResults.Text(truncated));
         _transport.Enqueue(GeminiTestResults.Text(truncated));
@@ -261,20 +293,15 @@ public sealed class GeminiClientTests
     }
 
     [Fact]
-    public async Task GenerateJsonAsync_TrailingCommentaryAfterTopLevelObject_IsNotRepairable_ExhaustsAndThrows()
+    public async Task GenerateJsonAsync_TrailingCommentaryAfterTopLevelObject_KeepsTheObject()
     {
-        // Documents the flip side of the above: a bare top-level object (not an array) with trailing
-        // prose after its closing brace is NOT something RepairTruncated can fix, because depth never
-        // revisits 1 after the object's own close. Every one of the 3 parse attempts gets this same
-        // unparseable text back, so the ladder exhausts and GenerateJsonAsync must fail loudly rather
-        // than silently truncate to something that was never validated.
-        _transport.Enqueue(GeminiTestResults.Text("{\"a\":1} -- hope that helps!"));
-        _transport.Enqueue(GeminiTestResults.Text("{\"a\":1} -- hope that helps!"));
+        // The flip side of truncation: the model finished valid JSON and then kept talking. The
+        // completed object is recoverable by trimming at its closing brace.
         _transport.Enqueue(GeminiTestResults.Text("{\"a\":1} -- hope that helps!"));
 
-        Func<Task> act = () => _sut.GenerateJsonAsync("prompt", new GeminiCallOptions(Primary), CancellationToken.None);
+        GeminiGenerationResult result = await _sut.GenerateJsonAsync("prompt", new GeminiCallOptions(Primary), CancellationToken.None);
 
-        await act.Should().ThrowAsync<GeminiUnavailableException>();
+        result.Text.Should().Be("{\"a\":1}");
     }
 
     [Fact]

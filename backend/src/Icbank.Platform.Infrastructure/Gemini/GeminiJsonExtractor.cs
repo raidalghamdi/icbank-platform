@@ -27,93 +27,46 @@ public static class GeminiJsonExtractor
     /// <summary>
     /// Attempts to repair truncated JSON by tracking bracket/brace depth character-by-character,
     /// truncating at the last position where a top-level element cleanly ended, and closing any
-    /// remaining open containers. Mirrors the Node source's <c>repairTruncatedJson</c>.
+    /// remaining open containers.
     /// </summary>
     /// <param name="text">The (already fence-stripped) JSON text that failed to parse.</param>
     /// <returns>A best-effort repaired string; may still fail to parse for sufficiently malformed input.</returns>
     public static string RepairTruncated(string text)
     {
-        var openChar = text.Length > 0 && text[0] == '[' ? '[' : '{';
-        var closeChar = openChar == '[' ? ']' : '}';
-
-        var depth = 0;
-        var inString = false;
-        var escaped = false;
-        var lastSafeCommaOrCloseIndex = -1;
+        var state = new GeminiJsonRepairState();
+        var lastCompleteElementEnd = -1;
 
         for (var i = 0; i < text.Length; i++)
         {
-            var c = text[i];
-            (depth, inString, escaped, var isSafeBoundary) = AdvanceState(c, depth, inString, escaped, openChar, closeChar);
-            if (isSafeBoundary && depth == 1)
+            if (state.Advance(text[i]))
             {
-                lastSafeCommaOrCloseIndex = i;
+                lastCompleteElementEnd = i;
             }
         }
 
-        if (lastSafeCommaOrCloseIndex < 0)
+        if (lastCompleteElementEnd < 0)
         {
             return text;
         }
 
-        var truncated = text[..(lastSafeCommaOrCloseIndex + 1)].TrimEnd();
+        var truncated = text[..(lastCompleteElementEnd + 1)].TrimEnd();
         if (truncated.EndsWith(','))
         {
             truncated = truncated[..^1];
         }
 
-        return truncated + closeChar;
+        return truncated + Rescan(truncated).CloseRemaining();
     }
 
-    private static (int Depth, bool InString, bool Escaped, bool IsSafeBoundary) AdvanceState(
-        char c, int depth, bool inString, bool escaped, char openChar, char closeChar)
+    private static GeminiJsonRepairState Rescan(string text)
     {
-        if (inString)
+        var state = new GeminiJsonRepairState();
+        foreach (var c in text)
         {
-            return AdvanceStringState(c, depth, escaped);
+            state.Advance(c);
         }
 
-        if (c == '"')
-        {
-            return (depth, true, false, false);
-        }
-
-        if (c == openChar)
-        {
-            return (depth + 1, false, false, false);
-        }
-
-        if (c == closeChar)
-        {
-            return (depth - 1, false, false, depth - 1 == 1);
-        }
-
-        if (c == ',')
-        {
-            return (depth, false, false, depth == 1);
-        }
-
-        return (depth, false, false, false);
-    }
-
-    private static (int Depth, bool InString, bool Escaped, bool IsSafeBoundary) AdvanceStringState(char c, int depth, bool escaped)
-    {
-        if (escaped)
-        {
-            return (depth, true, false, false);
-        }
-
-        if (c == '\\')
-        {
-            return (depth, true, true, false);
-        }
-
-        if (c == '"')
-        {
-            return (depth, false, false, false);
-        }
-
-        return (depth, true, false, false);
+        return state;
     }
 
     private static string StripFence(string text, string fenceMarker)

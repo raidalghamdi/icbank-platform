@@ -1,4 +1,5 @@
 using FluentValidation;
+using Icbank.Platform.Infrastructure.Gemini;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -108,6 +109,17 @@ public sealed class GlobalExceptionMiddleware
     private static ProblemDetails MapToProblemDetails(Exception exception) => exception switch
     {
         ValidationException validation => BuildValidationProblem(validation),
+
+        // Why: the model chain being exhausted is a temporary upstream condition, not a defect in
+        // this service. Its message is an author-written Arabic string, so surfacing it does not
+        // leak internals under R-BE-079, and staff get "try again in two minutes" instead of a
+        // blank "An unexpected error occurred".
+        GeminiUnavailableException => new ProblemDetails
+        {
+            Status = StatusCodes.Status503ServiceUnavailable,
+            Title = GeminiUnavailableException.FallbackMessageAr,
+            Detail = GeminiUnavailableException.FallbackMessageAr,
+        },
         UnauthorizedAccessException => new ProblemDetails
         {
             Status = StatusCodes.Status403Forbidden,

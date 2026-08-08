@@ -14,6 +14,16 @@ namespace Icbank.Platform.Infrastructure.Designs;
 /// </summary>
 public sealed class GeminiIconEventDesignExtractor : IIconEventDesignExtractor
 {
+    /// <summary>
+    /// Output budget for one extraction call.
+    /// </summary>
+    /// <remarks>
+    /// One response carries the extracted brief plus three variant proposals, each with an Arabic
+    /// rationale. Arabic costs roughly one token per character, so the shared 2048 default cut the
+    /// payload off mid-array and the designer surfaced a 500 instead of any styles at all.
+    /// </remarks>
+    private const int MaxOutputTokens = 8192;
+
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
     private readonly IGeminiClient _client;
@@ -31,7 +41,7 @@ public sealed class GeminiIconEventDesignExtractor : IIconEventDesignExtractor
     /// <inheritdoc />
     public async Task<IconEventExtractionResultDto> ExtractAsync(string prompt, CancellationToken cancellationToken)
     {
-        var callOptions = new GeminiCallOptions(_options.TextModel);
+        var callOptions = new GeminiCallOptions(_options.TextModel, MaxOutputTokens: MaxOutputTokens);
         GeminiGenerationResult result = await _client.GenerateJsonAsync(prompt, callOptions, cancellationToken).ConfigureAwait(false);
 
         IconEventWireDto wire = JsonSerializer.Deserialize<IconEventWireDto>(result.Text, JsonOptions)
