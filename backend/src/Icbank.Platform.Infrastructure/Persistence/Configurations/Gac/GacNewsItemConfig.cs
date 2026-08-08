@@ -11,7 +11,12 @@ public sealed class GacNewsItemConfig : IEntityTypeConfiguration<GacNewsItem>
     private const int KindMaxLength = 20;
     private const int TitleMaxLength = 400;
     private const int CategoryMaxLength = 30;
-    private const int UrlMaxLength = 500;
+
+    // Google News RSS links are base64-encoded redirects that routinely run past 1,500
+    // characters, so the 500-character cap used elsewhere rejected roughly a third of
+    // real GAC coverage. 2,048 is the practical browser/URL ceiling.
+    private const int UrlMaxLength = 2048;
+
     private const int ExternalRefMaxLength = 100;
 
     /// <inheritdoc />

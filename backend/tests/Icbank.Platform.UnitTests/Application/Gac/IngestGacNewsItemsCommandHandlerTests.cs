@@ -101,6 +101,37 @@ public sealed class IngestGacNewsItemsCommandHandlerTests
         _dbContext.Received(1).Add(Arg.Is<GacNewsItem>(n => n.Kind == GacNewsKind.Decision));
     }
 
+    [Fact]
+    public async Task Handle_SourceUrlLongerThanTheColumn_SkipsInsteadOfFailingTheBatch()
+    {
+        // Google News redirect links can exceed the 2,048-character column, and handing one to
+        // the database used to fail the entire request with a 500 instead of dropping one row.
+        var overlongUrl = "https://news.google.com/rss/articles/" + new string('A', 2100);
+
+        Result<IngestGacNewsItemsResult> result = await _handler.Handle(
+            new IngestGacNewsItemsCommand(new[] { MakeItem(url: overlongUrl), MakeItem() }),
+            CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Value!.Skipped.Should().Be(1);
+        result.Value.Inserted.Should().Be(1);
+        _dbContext.Received(1).Add(Arg.Is<GacNewsItem>(n => n.SourceUrl == Url));
+    }
+
+    [Fact]
+    public async Task Handle_SourceUrlExactlyAtTheColumnLimit_IsStored()
+    {
+        const string prefix = "https://news.google.com/rss/articles/";
+        var boundaryUrl = prefix + new string('A', 2048 - prefix.Length);
+
+        Result<IngestGacNewsItemsResult> result = await _handler.Handle(
+            new IngestGacNewsItemsCommand(new[] { MakeItem(url: boundaryUrl) }), CancellationToken.None);
+
+        result.Value!.Inserted.Should().Be(1);
+        result.Value.Skipped.Should().Be(0);
+        _dbContext.Received(1).Add(Arg.Is<GacNewsItem>(n => n.SourceUrl == boundaryUrl));
+    }
+
     private static IngestGacNewsItem MakeItem(
         string? url = null, string? body = "ملخص الخبر", string? kind = null) => new(
         "هيئة المنافسة تتلقى طلبات تركز",

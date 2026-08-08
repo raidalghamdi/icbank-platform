@@ -8869,10 +8869,30 @@ async function loadGacSocialFeed() {
 // ════════════════════════════════════════
 // FETCH NEWS
 // ════════════════════════════════════════
-function fetchNews() {
+// Local (Saudi/GAC) coverage comes from the news pipeline that feeds gac_news_items. The global
+// regulator headlines stay curated in GLOBAL_NEWS because no provider supplies them. If the API
+// is unreachable or has not been populated yet we fall back to the curated local set rather than
+// showing an empty page.
+async function loadLocalNews() {
+  const items = homeItems(await homeApiJson('/gac/news?pageSize=100'));
+  const mapped = items.map(function (n) {
+    return {
+      title: n.titleAr || n.title || '',
+      description: n.bodyAr || '',
+      url: n.sourceUrl || '#',
+      publishedAt: n.publishedAt || null,
+      source: { name: n.sourceName || 'مصدر إخباري' },
+      tag: n.category || 'رصد إعلامي',
+      scope: 'local'
+    };
+  }).filter(function (a) { return a.title; });
+  return mapped.length ? mapped : [...LOCAL_NEWS];
+}
+
+async function fetchNews() {
   showLoaders(['home-news', 'all-news']);
   NEWS_GLOBAL = [...GLOBAL_NEWS];
-  NEWS_LOCAL  = [...LOCAL_NEWS];
+  NEWS_LOCAL  = await loadLocalNews();
   const all = [...NEWS_GLOBAL, ...NEWS_LOCAL]
     .sort((a,b) => new Date(b.publishedAt) - new Date(a.publishedAt));
   NEWS_DATA = all;

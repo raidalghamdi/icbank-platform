@@ -8,6 +8,7 @@ namespace Icbank.Platform.Application.Gac;
 /// <param name="BodyAr">The optional Arabic body.</param>
 /// <param name="Category">The optional category.</param>
 /// <param name="SourceUrl">The source URL, if any.</param>
+/// <param name="SourceName">The publishing outlet, if known (stored as the item's external ref).</param>
 /// <param name="PublishedAt">The UTC timestamp the item was published, if known.</param>
 public sealed record GacNewsItemDto(
     int Id,
@@ -17,4 +18,5 @@ public sealed record GacNewsItemDto(
     string? BodyAr,
     string? Category,
     string? SourceUrl,
+    string? SourceName,
     DateTimeOffset? PublishedAt);

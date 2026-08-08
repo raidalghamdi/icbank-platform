@@ -9,6 +9,12 @@ namespace Icbank.Platform.Application.Gac.Commands;
 public sealed class IngestGacNewsItemsCommandHandler
     : IRequestHandler<IngestGacNewsItemsCommand, Result<IngestGacNewsItemsResult>>
 {
+    /// <summary>
+    /// Mirrors the <c>source_url</c> column width. Anything longer is skipped rather than
+    /// handed to the database, which would otherwise fail the whole batch with a 500.
+    /// </summary>
+    private const int SourceUrlMaxLength = 2048;
+
     private readonly IApplicationDbContext _dbContext;
     private readonly IAsyncQueryExecutor _queryExecutor;
 
@@ -35,7 +41,7 @@ public sealed class IngestGacNewsItemsCommandHandler
         foreach (IngestGacNewsItem item in request.Items)
         {
             var url = item.SourceUrl.Trim();
-            if (!seenInBatch.Add(url))
+            if (url.Length > SourceUrlMaxLength || !seenInBatch.Add(url))
             {
                 skipped++;
                 continue;

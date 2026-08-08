@@ -44,5 +44,5 @@ public sealed class ListGacNewsItemsQueryHandler : IRequestHandler<ListGacNewsIt
     }
 
     private static GacNewsItemDto ToDto(GacNewsItem n) => new(
-        n.Id, n.Kind.ToString(), n.TitleAr, n.TitleEn, n.BodyAr, n.Category?.ToString(), n.SourceUrl, n.PublishedAt);
+        n.Id, n.Kind.ToString(), n.TitleAr, n.TitleEn, n.BodyAr, n.Category?.ToString(), n.SourceUrl, n.ExternalRef, n.PublishedAt);
 }
