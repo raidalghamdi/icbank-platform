@@ -27,7 +27,7 @@ public sealed class FrontendRequestContractTests
     public void IconEventGenerate_RawModeBody_BindsRawData()
     {
         const string body = """
-        {"size":"square","department":"","hashtag":"","date":"","time":"","location":"","rawData":"ورشة عمل عن الامتثال بحضور 40 موظفاً"}
+        {"department":"","hashtag":"","date":"","time":"","location":"","rawData":"ورشة عمل عن الامتثال بحضور 40 موظفاً"}
         """;
 
         GenerateIconEventDesignRequest? request =
@@ -35,14 +35,17 @@ public sealed class FrontendRequestContractTests
 
         request.Should().NotBeNull();
         request!.RawData.Should().NotBeNullOrWhiteSpace();
-        request.Size.Should().Be("square");
+
+        // The designer no longer picks a size before generating, so the key is absent and the
+        // handler falls back to the preview preset.
+        request.Size.Should().BeNull();
     }
 
     [Fact]
     public void IconEventGenerate_StructuredModeBody_BindsHeadlineAndEventType()
     {
         const string body = """
-        {"size":"story","department":"إدارة الاتصال","hashtag":"#هيئة_المنافسة","date":"2026-08-10","time":"10:00","location":"الرياض","headline":"ملتقى الامتثال","subtitle":"النسخة الثانية","eventType":"meeting"}
+        {"department":"إدارة الاتصال","hashtag":"#هيئة_المنافسة","date":"2026-08-10","time":"10:00","location":"الرياض","headline":"ملتقى الامتثال","subtitle":"النسخة الثانية","eventType":"meeting"}
         """;
 
         GenerateIconEventDesignRequest? request =
@@ -51,7 +54,7 @@ public sealed class FrontendRequestContractTests
         request.Should().NotBeNull();
         request!.Headline.Should().Be("ملتقى الامتثال");
         request.EventType.Should().Be("meeting");
-        request.Size.Should().Be("story");
+        request.Size.Should().BeNull();
     }
 
     [Theory]
@@ -63,7 +66,7 @@ public sealed class FrontendRequestContractTests
         // snake_case naming policy, so these keys are silently ignored. This is why the frontend
         // must send camelCase, and why an unknown key can never be trusted to surface an error.
         var body = $$"""
-        {"size":"square","{{snakeCaseKey}}":"قيمة كافية للتجاوز"}
+        {"{{snakeCaseKey}}":"قيمة كافية للتجاوز"}
         """;
 
         GenerateIconEventDesignRequest? request =
@@ -72,6 +75,25 @@ public sealed class FrontendRequestContractTests
         request.Should().NotBeNull();
         request!.RawData.Should().BeNull();
         request.EventType.Should().BeNull();
+    }
+
+    [Fact]
+    public void IconEventStudio_FrontendBody_BindsChosenVariantAndSizes()
+    {
+        const string body = """
+        {"headline":"ملتقى الامتثال","subtitle":"النسخة الثانية","department":"إدارة الاتصال","hashtag":"#هيئة_المنافسة","contactEmail":"info@gac.gov.sa","contactPhone":"920000000","date":"2026-08-10","time":"10:00","location":"الرياض","mainIcon":"users","supportingIcons":["calendar","clock"],"stats":[{"icon":"users","value":"135+","label":"مشارك"}],"layout":"stats-hero","sizes":["uhd-4k","desktop-hd","web-standard"]}
+        """;
+
+        GenerateIconEventStudioRequest? request =
+            JsonSerializer.Deserialize<GenerateIconEventStudioRequest>(body, ApiJsonOptions);
+
+        request.Should().NotBeNull();
+        request!.Headline.Should().Be("ملتقى الامتثال");
+        request.Layout.Should().Be("stats-hero");
+        request.Sizes.Should().BeEquivalentTo("uhd-4k", "desktop-hd", "web-standard");
+        request.SupportingIcons.Should().HaveCount(2);
+        request.Stats.Should().ContainSingle(s => s.Value == "135+");
+        request.ContactEmail.Should().Be("info@gac.gov.sa");
     }
 
     [Fact]

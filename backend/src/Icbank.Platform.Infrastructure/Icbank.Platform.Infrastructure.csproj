@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
     <ProjectReference Include="..\Icbank.Platform.Domain\Icbank.Platform.Domain.csproj" />
@@ -47,6 +47,13 @@
     <EmbeddedResource Include="Rendering\Fonts\FrutigerLTArabic-Roman.ttf" />
     <EmbeddedResource Include="Rendering\Fonts\FrutigerLTArabic-Bold.ttf" />
     <EmbeddedResource Include="Rendering\Fonts\FrutigerLTArabic-Light.ttf" />
+    <EmbeddedResource Include="Designs\Assets\IconEventAutoFit.js" />
+    <EmbeddedResource Include="Designs\Assets\Frutiger-LT-Arabic-45-Light.ttf" />
+    <EmbeddedResource Include="Designs\Assets\Frutiger-LT-Arabic-55-Roman.ttf" />
+    <EmbeddedResource Include="Designs\Assets\Frutiger-LT-Arabic-65-Bold.ttf" />
+    <EmbeddedResource Include="Designs\Assets\GacLogoWhite.png" />
+    <EmbeddedResource Include="Designs\Assets\GacLogoWhite.svg" />
+    <EmbeddedResource Include="Designs\Assets\StatsHeroBackground.png" />
   </ItemGroup>
 
 </Project>

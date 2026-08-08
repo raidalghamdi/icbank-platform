@@ -13,7 +13,7 @@ public sealed class GenerateIconEventDesignCommandValidatorTests
     [Fact]
     public void Validate_RawDataTooShortAndNoHeadline_Fails()
     {
-        GenerateIconEventDesignCommand command = Build(rawData: "abcd", headline: null, size: "landscape");
+        GenerateIconEventDesignCommand command = Build(rawData: "abcd", headline: null, size: "desktop-hd");
 
         ValidationResult result = _validator.Validate(command);
 
@@ -23,7 +23,7 @@ public sealed class GenerateIconEventDesignCommandValidatorTests
     [Fact]
     public void Validate_HeadlineLongEnough_Passes()
     {
-        GenerateIconEventDesignCommand command = Build(rawData: null, headline: "عنوان جيد", size: "landscape");
+        GenerateIconEventDesignCommand command = Build(rawData: null, headline: "عنوان جيد", size: "desktop-hd");
 
         ValidationResult result = _validator.Validate(command);
 
@@ -31,9 +31,9 @@ public sealed class GenerateIconEventDesignCommandValidatorTests
     }
 
     [Theory]
-    [InlineData("square")]
-    [InlineData("story")]
-    [InlineData("landscape")]
+    [InlineData("uhd-4k")]
+    [InlineData("web-standard")]
+    [InlineData("desktop-hd")]
     public void Validate_AllowedSize_Passes(string size)
     {
         GenerateIconEventDesignCommand command = Build(rawData: null, headline: "عنوان جيد", size: size);

@@ -1,18 +1,16 @@
 using FluentValidation;
+using Icbank.Platform.Domain.Designs;
 
 namespace Icbank.Platform.Application.Designs.IconEvent.Commands;
 
 /// <summary>
-/// Validates <see cref="GenerateIconEventDesignCommand"/> (R-BE-034), matching the Node source's
-/// "raw_data (≥5 chars) or headline (≥3 chars) required" rule and its size-preset allowlist
-/// (BUSINESS-RULES.md §7.4/§7.5).
+/// Validates <see cref="GenerateIconEventDesignCommand"/> (R-BE-034): "raw_data (≥5 chars) or
+/// headline (≥3 chars) required", plus an optional preview-size allowlist.
 /// </summary>
 public sealed class GenerateIconEventDesignCommandValidator : AbstractValidator<GenerateIconEventDesignCommand>
 {
     private const int MinRawDataLength = 5;
     private const int MinHeadlineLength = 3;
-
-    private static readonly HashSet<string> AllowedSizes = new(StringComparer.OrdinalIgnoreCase) { "square", "story", "landscape" };
 
     /// <summary>Initializes a new instance of the <see cref="GenerateIconEventDesignCommandValidator"/> class.</summary>
     public GenerateIconEventDesignCommandValidator()
@@ -21,9 +19,12 @@ public sealed class GenerateIconEventDesignCommandValidator : AbstractValidator<
             .Must(HasSufficientInput)
             .WithMessage("يجب إدخال بيانات خام أو عنوان للفعالية");
 
-        RuleFor(command => command.Size)
-            .Must(size => AllowedSizes.Contains(size))
-            .WithMessage("المقاس مطلوب (square | story | landscape)");
+        // Size is preview-only here: the designer picks output sizes after choosing a style, so an
+        // absent size is normal and resolves to the preview preset rather than failing the request.
+        RuleFor(command => command.Size!)
+            .Must(size => IconEventSizeCatalog.TryParse(size, out _))
+            .When(command => !string.IsNullOrWhiteSpace(command.Size))
+            .WithMessage($"مقاس غير معروف — المقاسات المتاحة: {string.Join(", ", IconEventSizeCatalog.WireValues)}");
     }
 
     private static bool HasSufficientInput(GenerateIconEventDesignCommand command)

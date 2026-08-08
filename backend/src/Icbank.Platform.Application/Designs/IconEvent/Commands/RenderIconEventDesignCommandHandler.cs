@@ -46,10 +46,14 @@ public sealed class RenderIconEventDesignCommandHandler : IRequestHandler<Render
             return Result<RenderIconEventDesignResultDto>.Failure("تجاوزت حد التوليد المؤقت، انتظر دقيقة وحاول مجدداً.");
         }
 
-        IconEventSizePreset size = Enum.Parse<IconEventSizePreset>(request.Size, ignoreCase: true);
+        if (!IconEventSizeCatalog.TryParse(request.Size, out IconEventSizePreset size))
+        {
+            return Result<RenderIconEventDesignResultDto>.Failure("مقاس غير معروف.");
+        }
+
         var isUltra = string.Equals(request.Quality, "ultra", StringComparison.OrdinalIgnoreCase);
         var scaleFactor = isUltra ? UltraScaleFactor : HdScaleFactor;
-        (var width, var height) = IconEventSizeCatalog.Resolve(size);
+        (var width, var height) = IconEventSizeCatalog.Dimensions(size);
 
         var bytes = await _imageRenderer.RenderAsync(request.Html, size, isUltra, cancellationToken);
         var objectPath = await _storageWriter.SaveAsync(StorageFolderPrefix, bytes, ImagePngContentType, cancellationToken);

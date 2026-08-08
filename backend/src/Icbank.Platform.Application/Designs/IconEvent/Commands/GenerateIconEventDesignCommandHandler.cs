@@ -46,7 +46,11 @@ public sealed class GenerateIconEventDesignCommandHandler
             return Result<GenerateIconEventDesignResultDto>.Failure("تجاوزت حد التوليد المؤقت، انتظر دقيقة وحاول مجدداً.");
         }
 
-        IconEventSizePreset size = Enum.Parse<IconEventSizePreset>(request.Size, ignoreCase: true);
+        // The three style previews are always drawn at the same preset; real output sizes are
+        // chosen in a later step and rendered by the studio endpoint.
+        IconEventSizePreset size = IconEventSizeCatalog.TryParse(request.Size, out IconEventSizePreset requested)
+            ? requested
+            : IconEventSizePreset.DesktopHd;
         var inputText = string.Join(' ', new[] { request.RawData, request.Headline, request.Subtitle }.Where(s => !string.IsNullOrEmpty(s)));
         var hasNumbers = inputText.Any(char.IsDigit);
 

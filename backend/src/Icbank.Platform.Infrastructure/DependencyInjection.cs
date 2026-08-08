@@ -411,7 +411,7 @@ public static partial class DependencyInjection
         // (called from AddSecurityServices) alongside the other three storage ports, so all four
         // share one Provider switch instead of being able to drift independently.
         services.AddSingleton<Icbank.Platform.Application.Designs.IDesignGenerationRateLimiter, Designs.InMemoryDesignGenerationRateLimiter>();
-        services.AddScoped<Icbank.Platform.Application.Designs.IconEvent.IIconEventHtmlRenderer, Designs.EncodedIconEventHtmlRenderer>();
+        services.AddScoped<Icbank.Platform.Application.Designs.IconEvent.IIconEventHtmlRenderer, Designs.IconEventHtmlComposer>();
         services.AddScoped<Icbank.Platform.Application.Designs.IconEvent.IIconEventImageRenderer, Designs.TemplateIconEventImageRenderer>();
         services.AddScoped<Icbank.Platform.Application.Designs.Composer.IDesignTemplateSeedCatalog, Designs.CuratedDesignTemplateSeedCatalog>();
         services.AddScoped<Icbank.Platform.Application.Designs.Composer.IGacLogoSeedCatalog, Designs.CuratedGacLogoSeedCatalog>();

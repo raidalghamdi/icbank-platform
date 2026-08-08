@@ -1,4 +1,5 @@
 using FluentValidation;
+using Icbank.Platform.Domain.Designs;
 
 namespace Icbank.Platform.Application.Designs.IconEvent.Commands;
 
@@ -19,7 +20,6 @@ public sealed class RenderIconEventDesignCommandValidator : AbstractValidator<Re
 {
     private const int MaxHtmlLength = 500_000;
 
-    private static readonly HashSet<string> AllowedSizes = new(StringComparer.OrdinalIgnoreCase) { "square", "story", "landscape" };
     private static readonly HashSet<string> AllowedQualities = new(StringComparer.OrdinalIgnoreCase) { "hd", "ultra" };
 
     /// <summary>Initializes a new instance of the <see cref="RenderIconEventDesignCommandValidator"/> class.</summary>
@@ -30,7 +30,9 @@ public sealed class RenderIconEventDesignCommandValidator : AbstractValidator<Re
             .Must(html => HtmlRemoteResourceScanner.FindRemoteReferences(html).Count == 0)
             .When(command => !string.IsNullOrEmpty(command.Html))
             .WithMessage("لا يُسمح بمراجع موارد خارجية (صور/سكربتات/روابط) داخل الـ HTML");
-        RuleFor(command => command.Size).Must(size => AllowedSizes.Contains(size)).WithMessage("html و size مطلوبان");
+        RuleFor(command => command.Size)
+            .Must(size => IconEventSizeCatalog.TryParse(size, out _))
+            .WithMessage($"مقاس غير معروف — المقاسات المتاحة: {string.Join(", ", IconEventSizeCatalog.WireValues)}");
         RuleFor(command => command.Quality!).Must(q => AllowedQualities.Contains(q))
             .When(command => !string.IsNullOrEmpty(command.Quality))
             .WithMessage("quality يجب أن يكون hd أو ultra");

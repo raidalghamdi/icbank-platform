@@ -44,7 +44,7 @@ public sealed class RenderIconEventDesignCommandHandlerTests
         _rateLimiter.TryConsume(ActorUserId).Returns(false);
 
         Result<RenderIconEventDesignResultDto> result = await _handler.Handle(
-            new RenderIconEventDesignCommand(ActorUserId, "<html></html>", "landscape", null), CancellationToken.None);
+            new RenderIconEventDesignCommand(ActorUserId, "<html></html>", "desktop-hd", null), CancellationToken.None);
 
         result.IsSuccess.Should().BeFalse();
         await _imageRenderer.DidNotReceive().RenderAsync(Arg.Any<string>(), Arg.Any<IconEventSizePreset>(), Arg.Any<bool>(), Arg.Any<CancellationToken>());
@@ -54,28 +54,28 @@ public sealed class RenderIconEventDesignCommandHandlerTests
     public async Task Handle_DefaultQuality_UsesHdScaleFactor()
     {
         Result<RenderIconEventDesignResultDto> result = await _handler.Handle(
-            new RenderIconEventDesignCommand(ActorUserId, "<html></html>", "landscape", null), CancellationToken.None);
+            new RenderIconEventDesignCommand(ActorUserId, "<html></html>", "desktop-hd", null), CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
         result.Value!.Quality.Should().Be("hd (3x)");
-        result.Value.Width.Should().Be(2000 * 3);
+        result.Value.Width.Should().Be(1440 * 3);
     }
 
     [Fact]
     public async Task Handle_UltraQuality_UsesQuadrupleScaleFactor()
     {
         Result<RenderIconEventDesignResultDto> result = await _handler.Handle(
-            new RenderIconEventDesignCommand(ActorUserId, "<html></html>", "square", "ultra"), CancellationToken.None);
+            new RenderIconEventDesignCommand(ActorUserId, "<html></html>", "web-standard", "ultra"), CancellationToken.None);
 
         result.Value!.Quality.Should().Be("ultra (4x)");
-        result.Value.Width.Should().Be(1200 * 4);
+        result.Value.Width.Should().Be(1067 * 4);
     }
 
     [Fact]
     public async Task Handle_Success_PersistsBytesAndReturnsObjectPath()
     {
         Result<RenderIconEventDesignResultDto> result = await _handler.Handle(
-            new RenderIconEventDesignCommand(ActorUserId, "<html></html>", "landscape", null), CancellationToken.None);
+            new RenderIconEventDesignCommand(ActorUserId, "<html></html>", "desktop-hd", null), CancellationToken.None);
 
         result.Value!.Url.Should().Be("designs/icon-event/abc.png");
         await _storageWriter.Received(1).SaveAsync("designs/icon-event/", RenderedBytes, "image/png", Arg.Any<CancellationToken>());
@@ -84,7 +84,7 @@ public sealed class RenderIconEventDesignCommandHandlerTests
     [Fact]
     public async Task Handle_Success_WritesAuditEntry()
     {
-        await _handler.Handle(new RenderIconEventDesignCommand(ActorUserId, "<html></html>", "landscape", null), CancellationToken.None);
+        await _handler.Handle(new RenderIconEventDesignCommand(ActorUserId, "<html></html>", "desktop-hd", null), CancellationToken.None);
 
         await _auditLogService.Received(1).RecordAsync(
             ActorUserId, "design.icon_event.render", "IconEventDesign", "designs/icon-event/abc.png", Arg.Any<object?>(), Arg.Any<object?>(), Arg.Any<CancellationToken>());

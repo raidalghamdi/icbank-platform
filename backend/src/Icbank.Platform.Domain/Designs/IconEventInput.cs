@@ -42,6 +42,9 @@ public sealed class IconEventInput
     /// <summary>Gets or sets the statistic chips, only populated for layouts that render them.</summary>
     public List<IconEventStat> Stats { get; set; } = new();
 
+    /// <summary>Gets or sets the named GAC color scheme, defaulting to the official teal identity.</summary>
+    public string ColorScheme { get; set; } = "teal";
+
     /// <summary>Gets or sets the layout variant.</summary>
     public IconEventLayoutType Layout { get; set; }
 

@@ -4795,16 +4795,22 @@ button.home-row:hover { border-color:var(--primary-100); background:var(--primar
       .ies-grid-2col { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
       .ies-grid-3col { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
       .ies-variants-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
+      .ies-sizes-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+      .ies-outputs-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:18px; }
+      .ies-style-card { transition:border-color 0.15s; }
       .ies-input { width:100%; padding:12px; border:2px solid #DCDDDE; border-radius:10px; font-size:15px; font-family:inherit; box-sizing:border-box; }
       .ies-input:focus { outline:none; border-color:#46BCCD; }
       .ies-label { display:block; margin-bottom:6px; font-weight:700; color:#003C5A; font-size:14px; }
       @media (max-width: 1024px) {
         .ies-variants-grid { grid-template-columns:repeat(2,1fr); }
+        .ies-sizes-grid { grid-template-columns:repeat(2,1fr); }
       }
       @media (max-width: 768px) {
         .ies-grid-2col { grid-template-columns:1fr; gap:14px; }
         .ies-grid-3col { grid-template-columns:1fr; gap:10px; }
         .ies-variants-grid { grid-template-columns:1fr; gap:16px; }
+        .ies-sizes-grid { grid-template-columns:1fr; gap:10px; }
+        .ies-outputs-grid { grid-template-columns:1fr; gap:14px; }
         #section-icon_event_studio .card { padding:18px !important; }
         #section-icon_event_studio .page-title { font-size:22px !important; flex-wrap:wrap; }
       }
@@ -4929,30 +4935,6 @@ button.home-row:hover { border-color:var(--primary-100); background:var(--primar
         </div>
       </div>
 
-      <div style="margin-top:24px;">
-        <label class="ies-label">📏 المقاس</label>
-        <div class="ies-grid-3col">
-          <label class="ies-size-card" data-size="square" style="cursor:pointer;border:2px solid #46BCCD;background:#E8F7FA;border-radius:12px;padding:16px;text-align:center;transition:all 0.2s;">
-            <input type="radio" name="ies-size" value="square" checked style="display:none;" />
-            <div style="width:60px;height:60px;background:#0069A7;border-radius:8px;margin:0 auto 10px;"></div>
-            <div style="font-weight:800;color:#003C5A;">مربع 1:1</div>
-            <div dir="ltr" style="font-size:12px;color:#76777A;text-align:center;">1080×1080 — Instagram</div>
-          </label>
-          <label class="ies-size-card" data-size="story" style="cursor:pointer;border:2px solid #DCDDDE;background:#fff;border-radius:12px;padding:16px;text-align:center;transition:all 0.2s;">
-            <input type="radio" name="ies-size" value="story" style="display:none;" />
-            <div style="width:34px;height:60px;background:#76777A;border-radius:8px;margin:0 auto 10px;"></div>
-            <div style="font-weight:800;color:#003C5A;">ستوري 9:16</div>
-            <div dir="ltr" style="font-size:12px;color:#76777A;text-align:center;">1080×1920 — WhatsApp/Stories</div>
-          </label>
-          <label class="ies-size-card" data-size="landscape" style="cursor:pointer;border:2px solid #DCDDDE;background:#fff;border-radius:12px;padding:16px;text-align:center;transition:all 0.2s;">
-            <input type="radio" name="ies-size" value="landscape" style="display:none;" />
-            <div style="width:80px;height:45px;background:#76777A;border-radius:8px;margin:0 auto 10px;"></div>
-            <div style="font-weight:800;color:#003C5A;">عريض 16:9</div>
-            <div dir="ltr" style="font-size:12px;color:#76777A;text-align:center;">1920×1080 — LinkedIn</div>
-          </label>
-        </div>
-      </div>
-
       <button id="ies-generate-btn" onclick="iesGenerate()" style="margin-top:24px;background:linear-gradient(135deg,#0069A7,#46BCCD);color:#fff;border:none;padding:16px 32px;border-radius:12px;font-size:17px;font-weight:800;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 4px 16px rgba(0,105,167,0.3);">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
         <span id="ies-btn-text">توليد 3 تصاميم بالذكاء</span>
@@ -4961,11 +4943,22 @@ button.home-row:hover { border-color:var(--primary-100); background:var(--primar
 
     <div id="ies-variants-container" style="display:none;margin-top:24px;">
       <h2 style="color:#003C5A;margin-bottom:16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-        <span>التنويعات المقترحة</span>
-        <span style="font-size:14px;color:#76777A;font-weight:400;">اختر التصميم الأنسب ونزّله بجودة HD</span>
+        <span>الخطوة ٢ — اختر النمط</span>
+        <span style="font-size:14px;color:#76777A;font-weight:400;">اختر أحد التصاميم الثلاثة ثم حدّد المقاسات</span>
       </h2>
       <div id="ies-extracted-preview" style="display:none;background:#F4FAFD;border:1px solid #B8D9E8;border-radius:10px;padding:14px;margin-bottom:16px;font-size:13px;color:#003C5A;"></div>
       <div id="ies-variants-grid" class="ies-variants-grid"></div>
+    </div>
+
+    <div id="ies-sizes-container" style="display:none;margin-top:28px;">
+      <h2 style="color:#003C5A;margin-bottom:6px;">الخطوة ٣ — اختر المقاسات</h2>
+      <p id="ies-chosen-style" style="color:#76777A;font-size:13px;margin:0 0 16px;"></p>
+      <div id="ies-sizes-grid" class="ies-sizes-grid"></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;">
+        <button id="ies-sizes-btn" onclick="iesGenerateSizes()" style="flex:1;min-width:220px;background:linear-gradient(135deg,#0069A7,#46BCCD);color:#fff;border:none;padding:15px 28px;border-radius:12px;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 4px 16px rgba(0,105,167,0.3);">توليد المقاسات المحددة</button>
+        <button onclick="iesBackToStyles()" style="background:#fff;color:#0069A7;border:2px solid #0069A7;padding:15px 22px;border-radius:12px;font-weight:800;cursor:pointer;font-size:14px;">← تغيير النمط</button>
+      </div>
+      <div id="ies-outputs" style="margin-top:24px;"></div>
     </div>
   </div>
 
@@ -15381,21 +15374,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 // ===== Icon Event Studio (IES) =====
+// Three-step flow: (1) describe the event and get three styles, (2) pick one,
+// (3) tick the output sizes to render. Size is deliberately absent from step 1 —
+// the AI extraction runs once there, and step 3 re-renders that same content
+// deterministically per size, so choosing more sizes never costs another AI call.
 let iesVariants = [];
+let iesChosenIndex = -1;
+let iesOutputs = [];
 
-// size card selection visual
-document.addEventListener('click', function(e) {
-  const card = e.target.closest('.ies-size-card');
-  if (!card) return;
-  document.querySelectorAll('.ies-size-card').forEach(c => {
-    c.style.borderColor = '#DCDDDE';
-    c.style.background = '#fff';
-  });
-  card.style.borderColor = '#46BCCD';
-  card.style.background = '#E8F7FA';
-  const radio = card.querySelector('input[type=radio]');
-  if (radio) radio.checked = true;
-});
+// Captured when step 1 runs so step 3 can resend the exact same content.
+let iesBrief = {};
+
+// Mirrors IconEventSizeCatalog on the server. Kept here only for labels and preview
+// scaling; the server is the authority on the actual pixel dimensions it renders.
+const IES_SIZES = [
+  { key: 'uhd-4k',       label: '4K فائق الدقة',   w: 3840, h: 2160, ratio: '16:9', note: 'ملف رئيسي عالي الجودة', on: true },
+  { key: 'desktop-hd',   label: 'سطح المكتب HD',   w: 1440, h: 864,  ratio: '5:3',  note: 'شاشات وعروض',          on: true },
+  { key: 'web-standard', label: 'ويب / بريد',      w: 1067, h: 712,  ratio: '3:2',  note: 'الموقع والنشرات',      on: true },
+  { key: 'web-small',    label: 'صغير',            w: 799,  h: 479,  ratio: '5:3',  note: 'بدون شعار أو إدارة',   on: false },
+  { key: 'web-mini',     label: 'مصغّر',           w: 639,  h: 479,  ratio: '4:3',  note: 'بدون شعار أو إدارة',   on: false }
+];
+
+// The three style previews are always drawn at this preset.
+const IES_PREVIEW = { w: 1440, h: 864, ratio: '1440/864' };
 
 // Current input mode: 'raw' (default) or 'structured'
 var iesCurrentMode = 'raw';
@@ -15419,38 +15420,36 @@ function iesSwitchMode(mode) {
   }
 }
 
+function iesReadBrief() {
+  var brief = {
+    department: ((document.getElementById('ies-department') || {}).value || '').trim(),
+    hashtag: ((document.getElementById('ies-hashtag') || {}).value || '').trim(),
+    date: ((document.getElementById('ies-date') || {}).value || '').trim(),
+    time: ((document.getElementById('ies-time') || {}).value || '').trim(),
+    location: ((document.getElementById('ies-location') || {}).value || '').trim()
+  };
+  if (iesCurrentMode === 'raw') {
+    brief.rawData = (((document.getElementById('ies-raw-data') || {}).value) || '').trim();
+  } else {
+    brief.headline = (((document.getElementById('ies-headline') || {}).value) || '').trim();
+    brief.subtitle = (((document.getElementById('ies-subtitle') || {}).value) || '').trim();
+    brief.eventType = (document.getElementById('ies-event-type') || {}).value || 'meeting';
+  }
+  return brief;
+}
+
 async function iesGenerate() {
-  // Determine current mode and validate input
-  var rawData = '';
-  var headline = '';
-  var subtitle = '';
-  var eventType = 'meeting';
+  var brief = iesReadBrief();
 
   if (iesCurrentMode === 'raw') {
-    rawData = (document.getElementById('ies-raw-data') || {}).value || '';
-    rawData = rawData.trim();
-    if (!rawData || rawData.length < 10) {
+    if (!brief.rawData || brief.rawData.length < 10) {
       alert('يرجى إدخال البيانات الخام (10 أحرف على الأقل) — مثلاً وصف الفعالية والأرقام والإدارة المنظّمة');
       return;
     }
-  } else {
-    headline = (document.getElementById('ies-headline') || {}).value || '';
-    headline = headline.trim();
-    if (!headline || headline.length < 3) {
-      alert('يرجى إدخال عنوان الفعالية (3 أحرف على الأقل)');
-      return;
-    }
-    eventType = (document.getElementById('ies-event-type') || {}).value || 'meeting';
-    subtitle = ((document.getElementById('ies-subtitle') || {}).value || '').trim();
+  } else if (!brief.headline || brief.headline.length < 3) {
+    alert('يرجى إدخال عنوان الفعالية (3 أحرف على الأقل)');
+    return;
   }
-
-  var department = ((document.getElementById('ies-department') || {}).value || '').trim();
-  var hashtag = ((document.getElementById('ies-hashtag') || {}).value || '').trim();
-  var date = ((document.getElementById('ies-date') || {}).value || '').trim();
-  var time = ((document.getElementById('ies-time') || {}).value || '').trim();
-  var location = ((document.getElementById('ies-location') || {}).value || '').trim();
-  var sizeRadio = document.querySelector('input[name=ies-size]:checked');
-  var size = sizeRadio ? sizeRadio.value : 'square';
 
   var btn = document.getElementById('ies-generate-btn');
   var btnText = document.getElementById('ies-btn-text');
@@ -15458,23 +15457,24 @@ async function iesGenerate() {
   btn.style.opacity = '0.7';
   btnText.textContent = 'جارٍ التوليد بالذكاء الاصطناعي...';
 
-  // Hide previous extracted preview
+  iesHide('ies-sizes-container');
   var prevExtracted = document.getElementById('ies-extracted-preview');
   if (prevExtracted) prevExtracted.style.display = 'none';
 
   try {
-    // Why these two keys changed: the .NET API binds JSON with the default camelCase policy, so
-    // the Node-era snake_case names `raw_data` and `event_type` never bound to
-    // GenerateIconEventDesignRequest.RawData/.EventType — they silently arrived as null. In raw
-    // mode that tripped the "raw data or headline required" validator on every single attempt,
-    // which is the 400 behind "تعذر توليد التصاميم: Validation failed".
-    var body = { size: size, department: department, hashtag: hashtag, date: date, time: time, location: location };
+    // Why these keys are camelCase: the .NET API binds JSON with the default camelCase policy, so
+    // the Node-era snake_case names `raw_data` and `event_type` silently arrived as null and tripped
+    // the "raw data or headline required" validator on every attempt.
+    var body = {
+      department: brief.department, hashtag: brief.hashtag,
+      date: brief.date, time: brief.time, location: brief.location
+    };
     if (iesCurrentMode === 'raw') {
-      body.rawData = rawData;
+      body.rawData = brief.rawData;
     } else {
-      body.headline = headline;
-      body.subtitle = subtitle;
-      body.eventType = eventType;
+      body.headline = brief.headline;
+      body.subtitle = brief.subtitle;
+      body.eventType = brief.eventType;
     }
     var res = await apiFetch(apiUrl('/designs/icon-event/generate'), {
       method: 'POST',
@@ -15484,10 +15484,12 @@ async function iesGenerate() {
     var data = await res.json();
     // Why the errors dictionary is read first: a 400 from FluentValidation puts the per-field
     // Arabic messages in `errors`, while `title` is the generic untranslated "Validation failed".
-    // Reading only detail/title/error surfaced that useless title with no reason attached.
     if (!res.ok || !data.variants) throw new Error(apiErrorText(data) || 'فشل التوليد');
     iesVariants = data.variants;
-    iesRenderVariants(size, data.warning, data.extracted);
+    iesChosenIndex = -1;
+    iesBrief = brief;
+    iesBrief.extracted = data.extracted || {};
+    iesRenderVariants(data.warning, data.extracted);
   } catch (err) {
     alert('تعذر توليد التصاميم: ' + err.message);
   } finally {
@@ -15497,138 +15499,259 @@ async function iesGenerate() {
   }
 }
 
-function iesRenderVariants(size, warning, extracted) {
+function iesHide(id) {
+  var el = document.getElementById(id);
+  if (el) el.style.display = 'none';
+}
+
+function iesRenderExtracted(extracted) {
+  var preview = document.getElementById('ies-extracted-preview');
+  if (!preview || !extracted) return;
+  var parts = [];
+  if (extracted.headline) parts.push('<div><strong>العنوان:</strong> ' + escapeHtml(extracted.headline) + '</div>');
+  if (extracted.subtitle) parts.push('<div><strong>العنوان الفرعي:</strong> ' + escapeHtml(extracted.subtitle) + '</div>');
+  if (extracted.department) parts.push('<div><strong>الإدارة:</strong> ' + escapeHtml(extracted.department) + '</div>');
+  if (extracted.hashtag) parts.push('<div><strong>الهاشتاغ:</strong> ' + escapeHtml(extracted.hashtag) + '</div>');
+  if (Array.isArray(extracted.stats) && extracted.stats.length) {
+    var statsHtml = extracted.stats.map(function (s) {
+      return '<span style="display:inline-block;background:#fff;border:1px solid #B8D9E8;padding:4px 10px;border-radius:6px;margin:2px 4px 2px 0;">'
+        + escapeHtml(String(s.value || '')) + ' — ' + escapeHtml(String(s.label || '')) + '</span>';
+    }).join('');
+    parts.push('<div style="margin-top:6px;"><strong>الإحصائيات:</strong><br>' + statsHtml + '</div>');
+  }
+  preview.innerHTML = '<div style="font-weight:800;margin-bottom:6px;color:#0069A7;">🤖 ما استخرجه الذكاء الاصطناعي:</div>' + parts.join('');
+  preview.style.display = 'block';
+}
+
+function iesRenderVariants(warning, extracted) {
   const container = document.getElementById('ies-variants-container');
   const grid = document.getElementById('ies-variants-grid');
   container.style.display = 'block';
+  iesRenderExtracted(extracted);
 
-  // Show what AI extracted (helpful when raw mode is used)
-  var preview = document.getElementById('ies-extracted-preview');
-  if (preview && extracted) {
-    var parts = [];
-    if (extracted.headline) parts.push('<div><strong>العنوان:</strong> ' + escapeHtml(extracted.headline) + '</div>');
-    if (extracted.subtitle) parts.push('<div><strong>العنوان الفرعي:</strong> ' + escapeHtml(extracted.subtitle) + '</div>');
-    if (extracted.department) parts.push('<div><strong>الإدارة:</strong> ' + escapeHtml(extracted.department) + '</div>');
-    if (extracted.hashtag) parts.push('<div><strong>الهاشتاغ:</strong> ' + escapeHtml(extracted.hashtag) + '</div>');
-    if (Array.isArray(extracted.stats) && extracted.stats.length) {
-      var statsHtml = extracted.stats.map(function(s){
-        return '<span style="display:inline-block;background:#fff;border:1px solid #B8D9E8;padding:4px 10px;border-radius:6px;margin:2px 4px 2px 0;">' + escapeHtml(String(s.value || '')) + ' — ' + escapeHtml(String(s.label || '')) + '</span>';
-      }).join('');
-      parts.push('<div style="margin-top:6px;"><strong>الإحصائيات:</strong><br>' + statsHtml + '</div>');
-    }
-    preview.innerHTML = '<div style="font-weight:800;margin-bottom:6px;color:#0069A7;">🤖 ما استخرجه الذكاء الاصطناعي:</div>' + parts.join('');
-    preview.style.display = 'block';
-  }
-
-  // Adjust grid for size
-  const aspectRatio = size === 'square' ? '1/1' : size === 'story' ? '9/16' : '16/9';
-  const layoutLabels = { 'stats-hero': 'بطل + إحصائيات', hero: 'بطل (Hero)', grid: 'شبكة (Grid)', split: 'تقسيم (Split)' };
+  const layoutLabels = {
+    'stats-hero': 'بطل + إحصائيات', hero: 'بطل (Hero)', grid: 'شبكة (Grid)',
+    split: 'تقسيم (Split)', typography: 'طباعي (Typography)'
+  };
 
   let html = '';
   if (warning) {
-    html += '<div style="grid-column:1/-1;background:#FFF3CD;border:1px solid #FFE082;color:#7D5A00;padding:12px;border-radius:10px;margin-bottom:8px;font-size:13px;">⚠️ ' + warning + '</div>';
+    html += '<div style="grid-column:1/-1;background:#FFF3CD;border:1px solid #FFE082;color:#7D5A00;padding:12px;border-radius:10px;margin-bottom:8px;font-size:13px;">⚠️ ' + escapeHtml(warning) + '</div>';
   }
   iesVariants.forEach((v, idx) => {
-    const previewId = 'ies-preview-' + idx;
-    html += '<div class="card" style="padding:16px;">';
-    html += '  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">';
-    html += '    <h3 style="margin:0;color:#003C5A;font-size:16px;">تنويعة ' + (idx+1) + ' — ' + (layoutLabels[v.layout] || v.layout) + '</h3>';
-    html += '    <span style="background:#E8F7FA;color:#003C5A;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;">' + v.color_scheme + '</span>';
+    const chosen = idx === iesChosenIndex;
+    html += '<div class="card ies-style-card" data-idx="' + idx + '" style="padding:16px;border:2px solid ' + (chosen ? '#0069A7' : 'transparent') + ';">';
+    html += '  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:8px;">';
+    html += '    <h3 style="margin:0;color:#003C5A;font-size:16px;">نمط ' + (idx + 1) + ' — ' + escapeHtml(layoutLabels[v.layout] || v.layout) + '</h3>';
     html += '  </div>';
-    html += '  <div id="' + previewId + '" style="aspect-ratio:' + aspectRatio + ';overflow:hidden;border:1px solid #DCDDDE;border-radius:10px;background:#f8f8f8;position:relative;">';
-    // iframe to isolate styles
+    html += '  <div id="ies-preview-' + idx + '" style="aspect-ratio:' + IES_PREVIEW.ratio + ';overflow:hidden;border:1px solid #DCDDDE;border-radius:10px;background:#f8f8f8;position:relative;">';
     html += '    <iframe srcdoc="' + v.html.replace(/"/g, '&quot;') + '" style="width:100%;height:100%;border:0;transform-origin:top right;" sandbox="allow-same-origin"></iframe>';
     html += '  </div>';
     if (v.rationale) {
       html += '  <p style="margin:10px 0 0;color:#76777A;font-size:12px;line-height:1.5;">💡 ' + escapeHtml(v.rationale) + '</p>';
     }
     html += '  <div style="margin-top:12px;display:flex;gap:8px;">';
-    html += '    <button onclick="iesDownloadPNG(' + idx + ',\'' + size + '\')" style="flex:1;background:#0069A7;color:#fff;border:none;padding:10px;border-radius:8px;font-weight:700;cursor:pointer;font-size:13px;">⬇ تنزيل PNG</button>';
+    html += '    <button onclick="iesChooseStyle(' + idx + ')" style="flex:1;background:' + (chosen ? '#0B7A3B' : '#0069A7') + ';color:#fff;border:none;padding:10px;border-radius:8px;font-weight:700;cursor:pointer;font-size:13px;">' + (chosen ? '✓ النمط المختار' : 'اختر هذا النمط') + '</button>';
     html += '    <button onclick="iesPreviewFullscreen(' + idx + ')" style="background:#fff;color:#0069A7;border:2px solid #0069A7;padding:10px 14px;border-radius:8px;font-weight:700;cursor:pointer;font-size:13px;">معاينة</button>';
     html += '  </div>';
     html += '</div>';
   });
   grid.innerHTML = html;
+  iesScalePreviews();
+  container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
 
-  // Scale iframes to fit
+function iesScalePreviews() {
   setTimeout(() => {
     iesVariants.forEach((v, idx) => {
       const previewEl = document.getElementById('ies-preview-' + idx);
       if (!previewEl) return;
       const iframe = previewEl.querySelector('iframe');
       if (!iframe) return;
-      const containerWidth = previewEl.offsetWidth;
-      const designWidth = size === 'landscape' ? 1920 : 1080;
-      const scale = containerWidth / designWidth;
-      const designHeight = size === 'square' ? 1080 : size === 'story' ? 1920 : 1080;
-      iframe.style.width = designWidth + 'px';
-      iframe.style.height = designHeight + 'px';
+      const scale = previewEl.offsetWidth / IES_PREVIEW.w;
+      iframe.style.width = IES_PREVIEW.w + 'px';
+      iframe.style.height = IES_PREVIEW.h + 'px';
       iframe.style.transform = 'scale(' + scale + ')';
       iframe.style.transformOrigin = 'top right';
     });
   }, 100);
+}
 
-  // Scroll to results
+function iesChooseStyle(idx) {
+  if (!iesVariants[idx]) return;
+  iesChosenIndex = idx;
+  iesRenderVariants(null, null);
+  iesRenderSizePicker();
+  const container = document.getElementById('ies-sizes-container');
+  container.style.display = 'block';
   container.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-async function iesDownloadPNG(idx, size) {
-  const v = iesVariants[idx];
-  if (!v) return;
-  const btn = event.target;
-  const originalText = btn.textContent;
+function iesBackToStyles() {
+  iesHide('ies-sizes-container');
+  const container = document.getElementById('ies-variants-container');
+  if (container) container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function iesRenderSizePicker() {
+  const v = iesVariants[iesChosenIndex];
+  const note = document.getElementById('ies-chosen-style');
+  if (note && v) note.textContent = 'النمط المختار: نمط ' + (iesChosenIndex + 1) + ' — ' + v.layout;
+
+  const grid = document.getElementById('ies-sizes-grid');
+  if (!grid) return;
+  grid.innerHTML = IES_SIZES.map(function (s) {
+    return '<label class="ies-size-check" style="display:flex;gap:10px;align-items:flex-start;cursor:pointer;border:2px solid #DCDDDE;background:#fff;border-radius:12px;padding:14px;">'
+      + '<input type="checkbox" name="ies-out-size" value="' + s.key + '"' + (s.on ? ' checked' : '') + ' style="margin-top:3px;width:18px;height:18px;accent-color:#0069A7;flex:none;" />'
+      + '<span style="flex:1;">'
+      + '<span style="display:block;font-weight:800;color:#003C5A;">' + s.label + '</span>'
+      + '<span dir="ltr" style="display:block;font-size:12px;color:#76777A;">' + s.w + '×' + s.h + ' — ' + s.ratio + '</span>'
+      + '<span style="display:block;font-size:11px;color:#9A9B9E;margin-top:2px;">' + s.note + '</span>'
+      + '</span></label>';
+  }).join('');
+  iesSyncSizeCards();
+}
+
+function iesSyncSizeCards() {
+  document.querySelectorAll('.ies-size-check').forEach(function (card) {
+    const box = card.querySelector('input[type=checkbox]');
+    const on = box && box.checked;
+    card.style.borderColor = on ? '#46BCCD' : '#DCDDDE';
+    card.style.background = on ? '#E8F7FA' : '#fff';
+  });
+}
+
+document.addEventListener('change', function (e) {
+  if (e.target && e.target.name === 'ies-out-size') iesSyncSizeCards();
+});
+
+function iesBuildStudioBody(sizes) {
+  const v = iesVariants[iesChosenIndex];
+  const ex = iesBrief.extracted || {};
+  return {
+    headline: v.headline,
+    subtitle: v.subtitle,
+    department: v.department || iesBrief.department,
+    hashtag: v.hashtag || iesBrief.hashtag,
+    contactEmail: ex.contactEmail || '',
+    contactPhone: ex.contactPhone || '',
+    date: iesBrief.date,
+    time: iesBrief.time,
+    location: iesBrief.location,
+    mainIcon: v.mainIcon,
+    supportingIcons: v.supportingIcons || [],
+    stats: v.stats || [],
+    layout: v.layout,
+    sizes: sizes
+  };
+}
+
+async function iesGenerateSizes() {
+  const v = iesVariants[iesChosenIndex];
+  if (!v) { alert('اختر نمطاً أولاً'); return; }
+
+  const sizes = Array.prototype.slice
+    .call(document.querySelectorAll('input[name=ies-out-size]:checked'))
+    .map(function (b) { return b.value; });
+  if (!sizes.length) { alert('اختر مقاساً واحداً على الأقل'); return; }
+
+  const btn = document.getElementById('ies-sizes-btn');
+  const original = btn.textContent;
   btn.disabled = true;
-  btn.textContent = '... جارٍ التصدير';
+  btn.style.opacity = '0.7';
+  btn.textContent = 'جارٍ توليد ' + sizes.length + ' مقاس...';
+
   try {
-    // وضع التنزيل المباشر: الخادم يرجع PNG في الاستجابة مع Content-Disposition
-    // بدل حفظه في object storage ثم تنزيله في خطوة ثانية (يتجنب مشاكل iOS Safari)
-    const res = await apiFetch(apiUrl('/designs/icon-event/render?download=1'), {
+    const res = await apiFetch(apiUrl('/designs/icon-event/studio'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ html: v.html, size: size, quality: 'hd' })
+      body: JSON.stringify(iesBuildStudioBody(sizes))
     });
-
-    if (!res.ok) {
-      let msg = 'فشل التصدير (' + res.status + ')';
-      try { const j = await res.json(); if (j) msg = j.detail || j.title || j.error || msg; } catch(_) {}
-      throw new Error(msg);
-    }
-
-    btn.textContent = '... جارٍ التنزيل';
-    const blob = await res.blob();
-
-    // التحقق: يجب أن تكون صورة PNG
-    if (blob.type && blob.type.indexOf('image/') !== 0 && blob.type !== 'application/octet-stream') {
-      throw new Error('الاستجابة ليست صورة (' + blob.type + ')');
-    }
-
-    // إنشاء رابط تنزيل محلي بواسطة object URL
-    const pngBlob = blob.type ? blob : new Blob([blob], { type: 'image/png' });
-    const blobUrl = URL.createObjectURL(pngBlob);
-    const a = document.createElement('a');
-    a.href = blobUrl;
-    a.download = 'gac-design-' + (idx+1) + '-' + size + '.png';
-    a.rel = 'noopener';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(function() { URL.revokeObjectURL(blobUrl); }, 2000);
+    const data = await res.json();
+    if (!res.ok || !data.variants) throw new Error(apiErrorText(data) || 'فشل توليد المقاسات');
+    iesOutputs = data.variants;
+    iesRenderOutputs();
   } catch (err) {
-    alert('تعذر تصدير PNG: ' + err.message);
+    alert('تعذر توليد المقاسات: ' + err.message);
   } finally {
     btn.disabled = false;
-    btn.textContent = originalText;
+    btn.style.opacity = '1';
+    btn.textContent = original;
   }
+}
+
+function iesRenderOutputs() {
+  const wrap = document.getElementById('ies-outputs');
+  if (!wrap) return;
+  let html = '<h3 style="color:#003C5A;margin:0 0 14px;">النتائج (' + iesOutputs.length + ')</h3>';
+  html += '<div class="ies-outputs-grid">';
+  iesOutputs.forEach(function (o, i) {
+    html += '<div class="card" style="padding:14px;">';
+    html += '  <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px;">';
+    html += '    <strong style="color:#003C5A;font-size:14px;">' + escapeHtml(o.label) + '</strong>';
+    html += '    <span dir="ltr" style="background:#E8F7FA;color:#003C5A;padding:3px 9px;border-radius:6px;font-size:11px;font-weight:700;">' + o.width + '×' + o.height + '</span>';
+    html += '  </div>';
+    html += '  <div id="ies-out-' + i + '" style="aspect-ratio:' + o.width + '/' + o.height + ';overflow:hidden;border:1px solid #DCDDDE;border-radius:10px;background:#f8f8f8;">';
+    html += '    <iframe srcdoc="' + o.html.replace(/"/g, '&quot;') + '" style="width:100%;height:100%;border:0;transform-origin:top right;" sandbox="allow-same-origin"></iframe>';
+    html += '  </div>';
+    html += '  <div style="margin-top:10px;display:flex;gap:8px;">';
+    html += '    <button onclick="iesDownloadSize(' + i + ')" style="flex:1;background:#0069A7;color:#fff;border:none;padding:9px;border-radius:8px;font-weight:700;cursor:pointer;font-size:13px;">⬇ تنزيل</button>';
+    html += '    <button onclick="iesOpenSize(' + i + ')" style="background:#fff;color:#0069A7;border:2px solid #0069A7;padding:9px 12px;border-radius:8px;font-weight:700;cursor:pointer;font-size:13px;">فتح</button>';
+    html += '  </div>';
+    html += '</div>';
+  });
+  html += '</div>';
+  wrap.innerHTML = html;
+
+  setTimeout(function () {
+    iesOutputs.forEach(function (o, i) {
+      const el = document.getElementById('ies-out-' + i);
+      if (!el) return;
+      const iframe = el.querySelector('iframe');
+      if (!iframe) return;
+      const scale = el.offsetWidth / o.width;
+      iframe.style.width = o.width + 'px';
+      iframe.style.height = o.height + 'px';
+      iframe.style.transform = 'scale(' + scale + ')';
+      iframe.style.transformOrigin = 'top right';
+    });
+  }, 120);
+
+  wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function iesDownloadSize(i) {
+  const o = iesOutputs[i];
+  if (!o) return;
+  const blob = new Blob([o.html], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'gac-design-' + o.size + '-' + o.width + 'x' + o.height + '.html';
+  a.rel = 'noopener';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
+}
+
+function iesOpenSize(i) {
+  const o = iesOutputs[i];
+  if (!o) return;
+  const w = window.open('', '_blank');
+  if (!w) return;
+  w.document.write(o.html);
+  w.document.close();
 }
 
 function iesPreviewFullscreen(idx) {
   const v = iesVariants[idx];
   if (!v) return;
   const w = window.open('', '_blank');
+  if (!w) return;
   w.document.write(v.html);
   w.document.close();
 }
-
 
 
 

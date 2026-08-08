@@ -10,7 +10,7 @@ namespace Icbank.Platform.Api.Controllers;
 /// <param name="Time">The event time.</param>
 /// <param name="Location">The event location.</param>
 /// <param name="EventType">The event type, used for the local-fallback icon choice.</param>
-/// <param name="Size">The target size preset.</param>
+/// <param name="Size">The preset the three style previews are drawn at; optional, defaults to <c>desktop-hd</c>.</param>
 /// <param name="MainIconOverride">The user's explicit icon choice.</param>
 public sealed record GenerateIconEventDesignRequest(
     string? RawData,
@@ -22,5 +22,5 @@ public sealed record GenerateIconEventDesignRequest(
     string? Time,
     string? Location,
     string? EventType,
-    string Size,
+    string? Size,
     string? MainIconOverride);

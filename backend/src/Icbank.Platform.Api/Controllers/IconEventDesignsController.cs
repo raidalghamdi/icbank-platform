@@ -70,7 +70,7 @@ public sealed class IconEventDesignsController : ControllerBase
         return result.IsSuccess ? Ok(result.Value) : Problem(result.Error, statusCode: StatusCodes.Status429TooManyRequests);
     }
 
-    /// <summary>Generates deterministic, no-AI HTML for one or more size presets from explicit fields.</summary>
+    /// <summary>Renders the design the caller already chose at each requested output size. Deterministic, no AI call.</summary>
     /// <param name="request">The studio parameters.</param>
     /// <param name="cancellationToken">A token used to observe cancellation requests.</param>
     /// <returns>200 OK with the rendered HTML per size.</returns>
@@ -79,8 +79,22 @@ public sealed class IconEventDesignsController : ControllerBase
     public async Task<ActionResult<GenerateIconEventStudioResultDto>> StudioAsync(
         [FromBody] GenerateIconEventStudioRequest request, CancellationToken cancellationToken)
     {
-        var command = new GenerateIconEventStudioCommand(
-            request.Headline, request.Subtitle, request.Department, request.MainIcon, request.Sizes, request.Layout, request.LogoUrl);
+        var content = new IconEventStudioContentDto(
+            request.Headline,
+            request.Subtitle,
+            request.Department,
+            request.Hashtag,
+            request.ContactEmail,
+            request.ContactPhone,
+            request.Date,
+            request.Time,
+            request.Location,
+            request.MainIcon,
+            request.SupportingIcons,
+            request.Stats,
+            request.Layout,
+            request.LogoUrl);
+        var command = new GenerateIconEventStudioCommand(content, request.Sizes);
         Result<GenerateIconEventStudioResultDto> result = await _sender.Send(command, cancellationToken);
         return result.IsSuccess ? Ok(result.Value) : Problem(result.Error, statusCode: StatusCodes.Status400BadRequest);
     }

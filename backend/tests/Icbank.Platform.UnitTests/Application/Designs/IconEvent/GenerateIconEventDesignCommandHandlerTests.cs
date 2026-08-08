@@ -201,7 +201,7 @@ public sealed class GenerateIconEventDesignCommandHandlerTests
         string? mainIconOverride = null,
         string? eventType = null,
         string? headline = null) =>
-        new(ActorUserId, rawData, headline, Subtitle: null, Department: null, Hashtag: null, Date: null, Time: null, Location: null, eventType, "landscape", mainIconOverride);
+        new(ActorUserId, rawData, headline, Subtitle: null, Department: null, Hashtag: null, Date: null, Time: null, Location: null, eventType, "desktop-hd", mainIconOverride);
 
     private static IconEventExtractionResultDto BuildExtraction(
         IReadOnlyList<IconEventStatDto>? stats = null,

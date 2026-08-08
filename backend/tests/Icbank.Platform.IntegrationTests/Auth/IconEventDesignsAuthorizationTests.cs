@@ -48,7 +48,7 @@ public sealed class IconEventDesignsAuthorizationTests : IDisposable
         using HttpClient client = _factory.CreateClient();
 
         HttpResponseMessage response = await client.PostAsJsonAsync(
-            new Uri("/api/v1/designs/icon-event/generate", UriKind.Relative), new { headline = "عنوان تجريبي", size = "landscape" });
+            new Uri("/api/v1/designs/icon-event/generate", UriKind.Relative), new { headline = "عنوان تجريبي", size = "desktop-hd" });
 
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized, "closes SEC-02: this route was requireAuth-only (no policy) in the Node source and is also an external-cost abuse vector");
     }
@@ -59,7 +59,7 @@ public sealed class IconEventDesignsAuthorizationTests : IDisposable
         HttpClient client = await ArrangeAuthenticatedClientAsync(useViewer: true);
 
         HttpResponseMessage response = await client.PostAsJsonAsync(
-            new Uri("/api/v1/designs/icon-event/generate", UriKind.Relative), new { headline = "عنوان تجريبي", size = "landscape" });
+            new Uri("/api/v1/designs/icon-event/generate", UriKind.Relative), new { headline = "عنوان تجريبي", size = "desktop-hd" });
 
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
@@ -70,7 +70,7 @@ public sealed class IconEventDesignsAuthorizationTests : IDisposable
         HttpClient client = await ArrangeAuthenticatedClientAsync(useSuperAdmin: true);
 
         HttpResponseMessage response = await client.PostAsJsonAsync(
-            new Uri("/api/v1/designs/icon-event/generate", UriKind.Relative), new { headline = "ورشة عمل عن الابتكار", size = "landscape" });
+            new Uri("/api/v1/designs/icon-event/generate", UriKind.Relative), new { headline = "ورشة عمل عن الابتكار", size = "desktop-hd" });
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         GenerateResponsePayload? payload = await response.Content.ReadFromJsonAsync<GenerateResponsePayload>();
@@ -116,7 +116,7 @@ public sealed class IconEventDesignsAuthorizationTests : IDisposable
         using HttpClient client = _factory.CreateClient();
 
         HttpResponseMessage response = await client.PostAsJsonAsync(
-            new Uri("/api/v1/designs/icon-event/render", UriKind.Relative), new { html = "<html></html>", size = "landscape" });
+            new Uri("/api/v1/designs/icon-event/render", UriKind.Relative), new { html = "<html></html>", size = "desktop-hd" });
 
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized, "closes SEC-12's authz half: the Node source allowed any requireAuth user; this port requires an explicit policy grant");
     }
@@ -127,7 +127,7 @@ public sealed class IconEventDesignsAuthorizationTests : IDisposable
         HttpClient client = await ArrangeAuthenticatedClientAsync(useSuperAdmin: true);
 
         HttpResponseMessage response = await client.PostAsJsonAsync(
-            new Uri("/api/v1/designs/icon-event/render", UriKind.Relative), new { html = "<html><body>test</body></html>", size = "landscape" });
+            new Uri("/api/v1/designs/icon-event/render", UriKind.Relative), new { html = "<html><body>test</body></html>", size = "desktop-hd" });
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }

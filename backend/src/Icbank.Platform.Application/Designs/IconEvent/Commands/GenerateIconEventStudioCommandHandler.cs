@@ -4,17 +4,11 @@ using MediatR;
 
 namespace Icbank.Platform.Application.Designs.IconEvent.Commands;
 
-/// <summary>Handles <see cref="GenerateIconEventStudioCommand"/>. Deterministic, no AI call (BUSINESS-RULES.md §7.4 endpoint table).</summary>
+/// <summary>Handles <see cref="GenerateIconEventStudioCommand"/>.</summary>
 public sealed class GenerateIconEventStudioCommandHandler : IRequestHandler<GenerateIconEventStudioCommand, Result<GenerateIconEventStudioResultDto>>
 {
-    private static readonly Dictionary<string, IconEventLayoutType> LayoutsByKey = new(StringComparer.OrdinalIgnoreCase)
-    {
-        ["stats-hero"] = IconEventLayoutType.StatsHero,
-        ["hero"] = IconEventLayoutType.Hero,
-        ["grid"] = IconEventLayoutType.Grid,
-        ["split"] = IconEventLayoutType.Split,
-        ["typography"] = IconEventLayoutType.Typography,
-    };
+    private const IconEventSizePreset DefaultSize = IconEventSizePreset.DesktopHd;
+    private const int MaxSupportingIcons = 3;
 
     private readonly IIconEventHtmlRenderer _htmlRenderer;
 
@@ -28,40 +22,56 @@ public sealed class GenerateIconEventStudioCommandHandler : IRequestHandler<Gene
     /// <inheritdoc />
     public Task<Result<GenerateIconEventStudioResultDto>> Handle(GenerateIconEventStudioCommand request, CancellationToken cancellationToken)
     {
-        IconEventLayoutType layout = request.Layout is not null && LayoutsByKey.TryGetValue(request.Layout, out IconEventLayoutType parsedLayout) ? parsedLayout : IconEventLayoutType.Hero;
-        var mainIcon = string.IsNullOrWhiteSpace(request.MainIcon) ? "star" : request.MainIcon;
-        List<IconEventSizePreset> sizes = ResolveSizes(request.Sizes);
+        IconEventStudioContentDto content = request.Content;
+        IReadOnlyList<IconEventSizePreset> sizes = ResolveSizes(request.Sizes);
 
-        var variants = sizes.Select(size =>
-        {
-            (var width, var height) = IconEventSizeCatalog.Resolve(size);
-            var input = new IconEventInput
-            {
-                Headline = request.Headline.Trim(),
-                Subtitle = request.Subtitle?.Trim(),
-                Department = request.Department?.Trim(),
-                MainIcon = mainIcon,
-                Layout = layout,
-                Size = size,
-                LogoUrl = request.LogoUrl,
-            };
-            return new IconEventStudioVariantDto(size.ToString().ToLowerInvariant(), width, height, _htmlRenderer.Render(input));
-        }).ToList();
-
+        var variants = sizes.Select(size => RenderSize(content, size)).ToList();
         return Task.FromResult(Result<GenerateIconEventStudioResultDto>.Success(new GenerateIconEventStudioResultDto(variants)));
     }
 
-    private static List<IconEventSizePreset> ResolveSizes(IReadOnlyList<string>? requestedSizes)
+    private static IReadOnlyList<IconEventSizePreset> ResolveSizes(IReadOnlyList<string>? requestedSizes)
     {
-        if (requestedSizes is null || requestedSizes.Count == 0)
+        if (requestedSizes is null)
         {
-            return new List<IconEventSizePreset> { IconEventSizePreset.Landscape };
+            return new[] { DefaultSize };
         }
 
-        var resolved = requestedSizes
-            .Where(s => Enum.TryParse<IconEventSizePreset>(s, ignoreCase: true, out _))
-            .Select(s => Enum.Parse<IconEventSizePreset>(s, ignoreCase: true))
-            .ToList();
-        return resolved.Count == 0 ? new List<IconEventSizePreset> { IconEventSizePreset.Landscape } : resolved;
+        var resolved = new List<IconEventSizePreset>();
+        foreach (var candidate in requestedSizes)
+        {
+            if (IconEventSizeCatalog.TryParse(candidate, out IconEventSizePreset preset) && !resolved.Contains(preset))
+            {
+                resolved.Add(preset);
+            }
+        }
+
+        return resolved.Count == 0 ? new[] { DefaultSize } : resolved;
+    }
+
+    private static IconEventInput BuildInput(IconEventStudioContentDto content, IconEventSizePreset size) => new()
+    {
+        Headline = content.Headline.Trim(),
+        Subtitle = content.Subtitle?.Trim(),
+        Department = content.Department?.Trim(),
+        Hashtag = content.Hashtag?.Trim(),
+        ContactEmail = content.ContactEmail?.Trim(),
+        ContactPhone = content.ContactPhone?.Trim(),
+        Date = content.Date?.Trim(),
+        Time = content.Time?.Trim(),
+        Location = content.Location?.Trim(),
+        MainIcon = string.IsNullOrWhiteSpace(content.MainIcon) ? "sparkles" : content.MainIcon.Trim(),
+        SupportingIcons = (content.SupportingIcons ?? Array.Empty<string>()).Take(MaxSupportingIcons).ToList(),
+        Stats = (content.Stats ?? Array.Empty<IconEventStatDto>()).Select(s => new IconEventStat(s.Icon, s.Value, s.Label)).ToList(),
+        Layout = IconEventLayoutNormalizer.ToLayout(content.Layout),
+        Size = size,
+        LogoUrl = content.LogoUrl,
+    };
+
+    private IconEventStudioVariantDto RenderSize(IconEventStudioContentDto content, IconEventSizePreset size)
+    {
+        IconEventSizeSpec spec = IconEventSizeCatalog.Resolve(size);
+        IconEventInput input = BuildInput(content, size);
+        return new IconEventStudioVariantDto(
+            spec.WireValue, spec.Width, spec.Height, spec.AspectLabel, spec.ArabicLabel, _htmlRenderer.Render(input));
     }
 }

@@ -89,5 +89,5 @@ public sealed class RenderIconEventDesignCommandValidatorTests
         result.IsValid.Should().BeFalse();
     }
 
-    private static RenderIconEventDesignCommand Build(string html) => new(1, html, "landscape", "hd");
+    private static RenderIconEventDesignCommand Build(string html) => new(1, html, "desktop-hd", "hd");
 }

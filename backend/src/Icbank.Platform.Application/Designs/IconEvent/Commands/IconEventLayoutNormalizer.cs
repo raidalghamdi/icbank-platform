@@ -52,6 +52,12 @@ public static class IconEventLayoutNormalizer
         return layouts;
     }
 
+    /// <summary>Resolves a single wire-format layout key, falling back to <c>hero</c>.</summary>
+    /// <param name="key">The kebab-case layout key; may be null or unknown.</param>
+    /// <returns>The matching layout type, or <see cref="IconEventLayoutType.Hero"/>.</returns>
+    public static IconEventLayoutType ToLayout(string? key) =>
+        key is not null && LayoutsByKey.TryGetValue(key, out IconEventLayoutType layout) ? layout : IconEventLayoutType.Hero;
+
     /// <summary>Converts a layout type back to its wire-format kebab-case key.</summary>
     /// <param name="layout">The layout type.</param>
     /// <returns>The kebab-case key, e.g. <c>stats-hero</c>.</returns>

@@ -1,0 +1,33 @@
+namespace Icbank.Platform.Infrastructure.Designs;
+
+/// <summary>Scaled placement values for the statistics hero reference composition.</summary>
+internal sealed record IconEventStatsHeroMetrics(
+    int LogoTop,
+    int LogoRight,
+    int LogoWidth,
+    int DepartmentTop,
+    int DepartmentLeft,
+    int DepartmentPaddingV,
+    int DepartmentPaddingH,
+    int DepartmentFont,
+    int TitleTop,
+    int TitleSize,
+    int TitleMaxWidth,
+    int SubtitleTop,
+    int SubtitleSize,
+    int SubtitleMaxWidth,
+    int StatsTop,
+    int StatsWidth,
+    int StatPadding,
+    int IconSize,
+    int IconMarginBottom,
+    int LineWidth,
+    int LineMarginBottom,
+    int ValueSize,
+    int ValueMarginBottom,
+    int LabelSize,
+    int DividerTop,
+    int DividerHeight,
+    int HashtagBottom,
+    int HashtagLeft,
+    int HashtagSize);
