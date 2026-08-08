@@ -49,13 +49,13 @@ internal static class IconEventStatsHeroLayout
 
     private static string RenderStats(IReadOnlyList<IconEventStat> stats, IconEventStatsHeroMetrics metrics)
     {
-        IEnumerable<string> items = stats.Select((stat, index) => RenderStat(stat, index, metrics));
-        return $"<div style=\"position:absolute;top:{metrics.StatsTop}px;left:50%;transform:translateX(-50%);display:grid;grid-template-columns:1fr 1fr 1fr;width:{metrics.StatsWidth}px;align-items:start;justify-items:center;\">{string.Concat(items)}</div>";
+        IEnumerable<string> items = stats.Select((stat, index) => RenderStat(stat, index < stats.Count - 1, metrics));
+        return $"<div style=\"position:absolute;top:{metrics.StatsTop}px;left:50%;transform:translateX(-50%);display:grid;grid-template-columns:repeat({stats.Count}, 1fr);width:{metrics.StatsWidth}px;align-items:start;justify-items:center;\">{string.Concat(items)}</div>";
     }
 
-    private static string RenderStat(IconEventStat stat, int index, IconEventStatsHeroMetrics metrics)
+    private static string RenderStat(IconEventStat stat, bool dividesFromNext, IconEventStatsHeroMetrics metrics)
     {
-        var divider = index < 2 ? $"<div style=\"position:absolute;left:0;top:{metrics.DividerTop}px;height:{metrics.DividerHeight}px;width:1.5px;background:rgba(255,255,255,0.35);\"></div>" : string.Empty;
+        var divider = dividesFromNext ? $"<div style=\"position:absolute;left:0;top:{metrics.DividerTop}px;height:{metrics.DividerHeight}px;width:1.5px;background:rgba(255,255,255,0.35);\"></div>" : string.Empty;
         var label = string.IsNullOrEmpty(stat.Label) ? string.Empty : $"<div style=\"color:{White};font-weight:500;font-size:{metrics.LabelSize}px;line-height:1.4;text-align:center;max-width:260px;\">{EncodeLabel(stat.Label)}</div>";
         var icon = IconEventIconLibrary.Render(stat.Icon, metrics.IconSize, Accent);
         return $"<div style=\"display:flex;flex-direction:column;align-items:center;position:relative;width:100%;padding:0 {metrics.StatPadding}px;\">{divider}<div style=\"width:{metrics.IconSize}px;height:{metrics.IconSize}px;color:{Accent};display:flex;align-items:center;justify-content:center;margin-bottom:{metrics.IconMarginBottom}px;\">{icon}</div><div style=\"width:{metrics.LineWidth}px;height:2.5px;background:{Accent};margin-bottom:{metrics.LineMarginBottom}px;border-radius:2px;\"></div><div style=\"color:{White};font-weight:900;font-size:{metrics.ValueSize}px;line-height:1;margin-bottom:{metrics.ValueMarginBottom}px;direction:ltr;font-variant-numeric:tabular-nums;letter-spacing:-3px;\">{IconEventRenderContext.Encode(stat.Value)}</div>{label}</div>";
@@ -77,16 +77,9 @@ internal static class IconEventStatsHeroLayout
 
     private static List<IconEventStat> ResolveStats(IReadOnlyList<IconEventStat> inputStats)
     {
-        List<IconEventStat> stats = inputStats.Count > 0 ? inputStats.Take(3).ToList() : CreateDefaultStats();
-        List<IconEventStat> padding = CreateDefaultStats();
-        while (stats.Count < 3)
-        {
-            // Padding entries reuse the neutral defaults so an unfilled column still reads as a
-            // placeholder for a real figure instead of a decorative star.
-            stats.Add(padding[stats.Count]);
-        }
-
-        return stats;
+        // Smaller canvases budget fewer figures. Padding the row back to three printed an em-dash
+        // column that read as a missing number rather than as a narrower row.
+        return inputStats.Count > 0 ? inputStats.Take(3).ToList() : CreateDefaultStats();
     }
 
     private static List<IconEventStat> CreateDefaultStats()
