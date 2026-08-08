@@ -29,7 +29,16 @@ public static partial class DependencyInjection
 {
     private const int MaxRetryAttempts = 3; // R-BE-095 — named, not a bare "3".
     private const double CircuitBreakerFailureRatio = 0.5;
+
+    // Azure SQL closes idle connections and moves databases between nodes, so a request that
+    // happens to land on a stale pooled connection fails once and succeeds immediately on a
+    // retry. Without this the failure surfaces as a bare 500: two consecutive deploys had the
+    // smoke test's login return 500 while the same call by hand returned 200/401 correctly.
+    // That is a user-facing defect, not just a CI flake.
+    private const int SqlMaxRetryAttempts = 5;
+
     private static readonly TimeSpan AttemptTimeout = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan SqlMaxRetryDelay = TimeSpan.FromSeconds(10);
 
     /// <summary>Registers persistence, identity, and outbound-HTTP infrastructure services.</summary>
     /// <param name="services">The DI service collection.</param>
@@ -466,7 +475,10 @@ public static partial class DependencyInjection
             ?? throw new InvalidOperationException("Connection string 'Default' is not configured.");
 
         services.AddDbContext<AppDbContext>((serviceProvider, options) => options
-            .UseSqlServer(connectionString)
+            .UseSqlServer(connectionString, sql => sql.EnableRetryOnFailure(
+                maxRetryCount: SqlMaxRetryAttempts,
+                maxRetryDelay: SqlMaxRetryDelay,
+                errorNumbersToAdd: null))
             .AddInterceptors(serviceProvider.GetRequiredService<AuditInterceptor>()));
 
         // Why: Application depends only on the narrow IApplicationDbContext port (R-BE-002);
