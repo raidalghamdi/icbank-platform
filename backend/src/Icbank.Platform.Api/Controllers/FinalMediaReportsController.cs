@@ -28,12 +28,15 @@ namespace Icbank.Platform.Api.Controllers;
 public sealed class FinalMediaReportsController : ControllerBase
 {
     private readonly ISender _sender;
+    private readonly IHostApplicationLifetime _lifetime;
 
     /// <summary>Initializes a new instance of the <see cref="FinalMediaReportsController"/> class.</summary>
     /// <param name="sender">The MediatR sender used to dispatch final-media-report commands/queries.</param>
-    public FinalMediaReportsController(ISender sender)
+    /// <param name="lifetime">The host lifetime, used to keep generation running when a client disconnects.</param>
+    public FinalMediaReportsController(ISender sender, IHostApplicationLifetime lifetime)
     {
         _sender = sender;
+        _lifetime = lifetime;
     }
 
     /// <summary>Lists final media reports, optionally filtered by type/year. Intentionally public (Node source file header).</summary>
@@ -69,12 +72,11 @@ public sealed class FinalMediaReportsController : ControllerBase
 
     /// <summary>Generates the canonical 8-section report draft from cached feed data. Closes SEC-02 (was unauthenticated AI-cost).</summary>
     /// <param name="request">The generation parameters.</param>
-    /// <param name="cancellationToken">A token used to observe cancellation requests.</param>
-    /// <returns>200 OK with the generated draft, or the <c>NO_SOURCE_DATA</c> diagnostic if the range has no source data.</returns>
+    /// <returns>200 OK with the generated draft and the saved report, or the <c>NO_SOURCE_DATA</c> diagnostic if the range has no source data.</returns>
     [HttpPost("final-media-reports/generate")]
     [Authorize(Policy = "media_monitoring:create")]
     public async Task<ActionResult<GenerateFinalMediaReportResultDto>> GenerateAsync(
-        [FromBody] GenerateFinalMediaReportRequest request, CancellationToken cancellationToken)
+        [FromBody] GenerateFinalMediaReportRequest request)
     {
         var actorUserId = CurrentUserId.TryRead(User) ?? throw new InvalidOperationException("Authenticated request missing subject claim.");
         var command = new GenerateFinalMediaReportCommand(
@@ -85,15 +87,28 @@ public sealed class FinalMediaReportsController : ControllerBase
             request.DateTo,
             request.FocusTopics,
             request.Sources);
-        Result<GenerateFinalMediaReportResultDto> result = await _sender.Send(command, cancellationToken);
+
+        // Generation is a single Gemini Pro call and takes ~100 seconds. The framework's
+        // cancellationToken here is HttpContext.RequestAborted, so when a phone on mobile data
+        // gave up on the idle connection the generation was cancelled with it: the user saw
+        // "Load failed", and a hundred seconds of paid AI work was discarded with nothing
+        // written down. Tie the work to the application lifetime instead of the client socket
+        // so a dropped connection costs the response and nothing else.
+        using var work = CancellationTokenSource.CreateLinkedTokenSource(_lifetime.ApplicationStopping);
+        Result<GenerateFinalMediaReportResultDto> result = await _sender.Send(command, work.Token);
         if (!result.IsSuccess)
         {
             return Problem(result.Error, statusCode: StatusCodes.Status400BadRequest);
         }
 
-        return result.Value!.NoSourceData is not null
-            ? UnprocessableEntity(result.Value!.NoSourceData)
-            : Ok(new { draft = result.Value.Draft, saved = (object?)null });
+        if (result.Value!.NoSourceData is not null)
+        {
+            return UnprocessableEntity(result.Value!.NoSourceData);
+        }
+
+        FinalReportDraftDto draft = result.Value.Draft!;
+        FinalMediaReportDto? saved = await SaveGeneratedAsync(actorUserId, request, draft, work.Token);
+        return Ok(new { draft, saved });
     }
 
     /// <summary>Manually saves and permanently locks a final report. Closes SEC-02 (Node required <c>requireAdmin</c>; this port requires the equivalent create policy).</summary>
@@ -275,4 +290,43 @@ public sealed class FinalMediaReportsController : ControllerBase
             detail.Methodology,
             detail.Sources,
         };
+
+    /// <summary>Builds the stored title for an auto-saved generated report.</summary>
+    /// <param name="periodLabel">The report's period label.</param>
+    /// <returns>The Arabic report title.</returns>
+    private static string BuildTitle(string periodLabel) =>
+        string.IsNullOrWhiteSpace(periodLabel)
+            ? "التقرير الإعلامي"
+            : $"التقرير الإعلامي — {periodLabel}";
+
+    /// <summary>
+    /// Persists a freshly generated report. The generate endpoint used to return
+    /// <c>saved = null</c> unconditionally with no code path that could set it, so the
+    /// frontend's "saved" branch was dead, every report stayed a draft with no id, and PDF
+    /// export, email and exec-summary all built <c>/final-media-reports/undefined/...</c> and
+    /// came back 404. Saving here also lets a client whose connection dropped mid-generation
+    /// recover the report from the list afterwards.
+    /// </summary>
+    /// <param name="actorUserId">The authenticated caller.</param>
+    /// <param name="request">The originating generation parameters.</param>
+    /// <param name="draft">The generated draft to persist.</param>
+    /// <param name="cancellationToken">A token used to observe cancellation requests.</param>
+    /// <returns>The saved report, or null when the save failed -- the draft is still returned either way.</returns>
+    private async Task<FinalMediaReportDto?> SaveGeneratedAsync(
+        int actorUserId,
+        GenerateFinalMediaReportRequest request,
+        FinalReportDraftDto draft,
+        CancellationToken cancellationToken)
+    {
+        var save = new CreateFinalMediaReportCommand(
+            actorUserId,
+            BuildTitle(request.PeriodLabel),
+            request.Audience,
+            request.PeriodLabel,
+            request.DateFrom,
+            request.DateTo,
+            draft);
+        Result<FinalMediaReportDto> saved = await _sender.Send(save, cancellationToken);
+        return saved.IsSuccess ? saved.Value : null;
+    }
 }

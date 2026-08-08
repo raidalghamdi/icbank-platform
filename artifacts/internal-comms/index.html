@@ -14544,15 +14544,6 @@ window.MM = (function(){
       }
       var data = await res.json();
       state.draft = data.draft;
-      // The .NET generate endpoint returns {draft, saved:null} unconditionally -- it hardcodes
-      // saved to null and has no autoSave input, so the Node-era "saved" branch below could never
-      // fire. Every generated report therefore stayed an unsaved draft with no server id, and the
-      // modal's PDF / email / summary buttons built /final-media-reports/undefined/... which the
-      // {reportId:int} routes rejected as a 404. Persisting the draft here is what the Node API
-      // used to do for an admin, and it is what makes those three actions work at all.
-      if (!data.saved && data.draft) {
-        data.saved = await saveDraft(data.draft, period);
-      }
 
       if (data.saved) {
         // Saved as final → reload list + open
@@ -14572,33 +14563,54 @@ window.MM = (function(){
         showDraftPreview(data.draft);
       }
     } catch(e) {
-      alert('تعذّر التوليد:\n\n' + (e.message || e));
+      // Generation runs for roughly a hundred seconds, and a phone on mobile data regularly
+      // drops the idle connection before it answers -- that is the bare "Load failed" this
+      // used to surface. The server no longer throws the work away when that happens: it
+      // finishes and saves the report regardless. So before reporting a failure, wait for
+      // the report to land and open it.
+      var recovered = await recoverGeneratedReport(period);
+      if (recovered) {
+        await load();
+        hideWizard();
+        viewReport(recovered.id);
+      } else {
+        alert('تعذّر التوليد:\n\n' + (e.message || e));
+      }
     } finally {
       nextBtn.disabled = false; nextBtn.textContent = orig;
     }
   }
-  // Persists a freshly generated draft and returns the saved report, or null when the account
-  // lacks the create permission -- in which case the caller falls back to the read-only preview.
-  async function saveDraft(draft, period){
-    try {
-      var res = await apiFetch(apiUrl('/final-media-reports'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: draft.title || ('التقرير الإعلامي — ' + (period.periodLabel || '')),
-          reportType: state.wizAnswers.reportType || null,
-          periodLabel: draft.periodLabel || period.periodLabel,
-          dateFrom: period.dateFrom,
-          dateTo: period.dateTo,
-          draft: draft
-        })
-      });
-      if (!res.ok) { return null; }
-      var body = await res.json();
-      return body.item || null;
-    } catch (_) {
-      return null;
+
+  // Polls the saved-report list for a report matching the period we just asked for. Used only
+  // after the generate request itself failed at the network level, where the server may still
+  // be finishing the job. Returns the report, or null if none appears within the window.
+  async function recoverGeneratedReport(period){
+    // periodFields() runs before the request, but the throw may have come from earlier than
+    // that. With no period to match against there is nothing safe to recover.
+    if (!period || !period.periodLabel) { return null; }
+    var startedAt = Date.now();
+    var deadlineMs = 180000;
+    var pollMs = 6000;
+    if (nextBtn) { nextBtn.textContent = 'انقطع الاتصال — جارٍ استرجاع التقرير…'; }
+    while (Date.now() - startedAt < deadlineMs) {
+      await new Promise(function(r){ setTimeout(r, pollMs); });
+      try {
+        var res = await apiFetch(apiUrl('/final-media-reports?page=1&pageSize=5'));
+        if (!res.ok) { continue; }
+        var body = await res.json();
+        var items = body.items || [];
+        for (var i = 0; i < items.length; i++) {
+          var it = items[i];
+          if (it.periodLabel !== period.periodLabel) { continue; }
+          // Only accept a report created since this attempt began, so an older report for the
+          // same period is never mistaken for the one still being generated.
+          if (Date.parse(it.createdAt) >= startedAt - 120000) { return it; }
+        }
+      } catch (_) {
+        // Still offline or still cycling -- keep waiting until the deadline.
+      }
     }
+    return null;
   }
 
   function showDraftPreview(d){
