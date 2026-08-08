@@ -13,7 +13,7 @@ public static class IconEventSizeCatalog
 {
     private static readonly Dictionary<IconEventSizePreset, IconEventSizeSpec> Specs = new()
     {
-        [IconEventSizePreset.Uhd4k] = new("uhd-4k", 3840, 2160, "16:9 UHD", "4K UHD", "٤K فائق الدقة"),
+        [IconEventSizePreset.Uhd4k] = new("uhd-4k", 3840, 2160, "16:9 UHD", "4K UHD", "4K فائق الدقة"),
         [IconEventSizePreset.DesktopHd] = new("desktop-hd", 1440, 864, "5:3", "Desktop HD", "سطح المكتب HD"),
         [IconEventSizePreset.WebStandard] = new("web-standard", 1067, 712, "3:2", "Web / Email", "ويب / بريد إلكتروني"),
         [IconEventSizePreset.WebSmall] = new("web-small", 799, 479, "5:3", "Small", "صغير"),

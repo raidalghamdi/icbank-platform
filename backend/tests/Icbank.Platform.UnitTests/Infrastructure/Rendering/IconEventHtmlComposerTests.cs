@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.RegularExpressions;
 using FluentAssertions;
 using Icbank.Platform.Domain.Designs;
 using Icbank.Platform.Infrastructure.Designs;
@@ -78,6 +79,21 @@ public sealed class IconEventHtmlComposerTests
 
         large.Should().Contain(Tile(864));
         small.Should().Contain(Tile(479));
+    }
+
+    [Fact]
+    public void SizeCatalog_ArabicLabels_UseLatinDigits()
+    {
+        // The size labels are rendered straight into the designer UI, which is held to the same
+        // Latin-digit rule as the rest of the shipped frontend.
+        var arabicIndicDigits = new Regex("[\u0660-\u0669]", RegexOptions.None, TimeSpan.FromSeconds(1));
+
+        IEnumerable<string> offenders = Enum.GetValues<IconEventSizePreset>()
+            .Select(IconEventSizeCatalog.Resolve)
+            .Select(preset => preset.ArabicLabel)
+            .Where(label => arabicIndicDigits.IsMatch(label));
+
+        offenders.Should().BeEmpty();
     }
 
     private static string Tile(int canvasHeight)
