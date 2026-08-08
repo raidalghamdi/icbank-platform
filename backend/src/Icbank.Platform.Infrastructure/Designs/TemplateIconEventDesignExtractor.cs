@@ -30,9 +30,9 @@ public sealed class TemplateIconEventDesignExtractor : IIconEventDesignExtractor
 
         var variants = new List<IconEventVariantProposalDto>
         {
-            new("stats-hero", "sparkles", PlaceholderSupportingIcons, "نموذج مؤقت بانتظار ربط المزوّد"),
-            new("hero", "sparkles", PlaceholderSupportingIcons, "نموذج مؤقت بانتظار ربط المزوّد"),
-            new("split", "sparkles", PlaceholderSupportingIcons, "نموذج مؤقت بانتظار ربط المزوّد"),
+            new("stats-hero", string.Empty, PlaceholderSupportingIcons, "نموذج مؤقت بانتظار ربط المزوّد"),
+            new("hero", string.Empty, PlaceholderSupportingIcons, "نموذج مؤقت بانتظار ربط المزوّد"),
+            new("split", string.Empty, PlaceholderSupportingIcons, "نموذج مؤقت بانتظار ربط المزوّد"),
         };
 
         return Task.FromResult(new IconEventExtractionResultDto(extracted, variants));

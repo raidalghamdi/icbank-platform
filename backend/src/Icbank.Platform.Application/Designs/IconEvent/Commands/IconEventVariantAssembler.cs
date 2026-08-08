@@ -161,7 +161,7 @@ public static class IconEventVariantAssembler
         return aiStats
             .Where(s => !string.IsNullOrWhiteSpace(s.Value) && s.Value.Trim() != "—")
             .Take(MaxStats)
-            .Select(s => new IconEventStat(IconLibrary.ValidNames.Contains(s.Icon) ? s.Icon : "sparkles", s.Value.Trim(), (s.Label ?? string.Empty).Trim()))
+            .Select(s => new IconEventStat(IconLibrary.ValidNames.Contains(s.Icon) ? s.Icon : string.Empty, s.Value.Trim(), (s.Label ?? string.Empty).Trim()))
             .ToList();
     }
 
@@ -229,7 +229,10 @@ public static class IconEventVariantAssembler
             return mainIconOverride;
         }
 
-        return IconLibrary.ValidNames.Contains(aiMainIcon) ? aiMainIcon : "sparkles";
+        // An empty string is passed through deliberately rather than a placeholder glyph: the
+        // content planner picks an icon from the copy, and a placeholder here would look like a
+        // deliberate choice and suppress that.
+        return IconLibrary.ValidNames.Contains(aiMainIcon) ? aiMainIcon : string.Empty;
     }
 
     private static string ResolveFallbackIcon(string? mainIconOverride, string? eventType)
@@ -245,7 +248,7 @@ public static class IconEventVariantAssembler
             "meeting" => "users",
             "launch" => "rocket",
             "social" => "party-popper",
-            _ => "sparkles",
+            _ => string.Empty,
         };
     }
 }

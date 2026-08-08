@@ -59,7 +59,7 @@ public sealed class GenerateIconEventStudioCommandHandler : IRequestHandler<Gene
         Date = content.Date?.Trim(),
         Time = content.Time?.Trim(),
         Location = content.Location?.Trim(),
-        MainIcon = string.IsNullOrWhiteSpace(content.MainIcon) ? "sparkles" : content.MainIcon.Trim(),
+        MainIcon = (content.MainIcon ?? string.Empty).Trim(),
         SupportingIcons = (content.SupportingIcons ?? Array.Empty<string>()).Take(MaxSupportingIcons).ToList(),
         Stats = (content.Stats ?? Array.Empty<IconEventStatDto>()).Select(s => new IconEventStat(s.Icon, s.Value, s.Label)).ToList(),
         Layout = IconEventLayoutNormalizer.ToLayout(content.Layout),

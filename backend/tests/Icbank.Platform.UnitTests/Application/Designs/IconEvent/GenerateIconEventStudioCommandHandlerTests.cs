@@ -74,13 +74,15 @@ public sealed class GenerateIconEventStudioCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_BlankMainIcon_FallsBackToTheLibraryDefault()
+    public async Task Handle_BlankMainIcon_LeavesTheChoiceToTheContentPlanner()
     {
         IconEventStudioContentDto content = Content() with { MainIcon = "  " };
 
         await _handler.Handle(new GenerateIconEventStudioCommand(content, null), CancellationToken.None);
 
-        _htmlRenderer.Received(1).Render(Arg.Is<IconEventInput>(input => input.MainIcon == "sparkles"));
+        // Substituting a placeholder here would read downstream as a deliberate choice and stop the
+        // planner from picking a glyph that actually matches the copy.
+        _htmlRenderer.Received(1).Render(Arg.Is<IconEventInput>(input => input.MainIcon.Length == 0));
     }
 
     private static IconEventStudioContentDto Content() => new(
