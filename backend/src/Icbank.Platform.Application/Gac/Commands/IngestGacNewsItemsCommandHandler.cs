@@ -1,5 +1,6 @@
 using Icbank.Platform.Application.Common.Interfaces;
 using Icbank.Platform.Application.Common.Models;
+using Icbank.Platform.Application.Gac.News;
 using Icbank.Platform.Domain.Gac;
 using MediatR;
 
@@ -76,9 +77,16 @@ public sealed class IngestGacNewsItemsCommandHandler
     private static void ApplyUpdate(GacNewsItem existing, IngestGacNewsItem item)
     {
         existing.TitleAr = item.TitleAr.Trim();
-        if (!string.IsNullOrWhiteSpace(item.BodyAr))
+        var incomingBody = NewsBodySanitizer.Sanitize(item.TitleAr, item.BodyAr, item.SourceName);
+        if (incomingBody is not null)
         {
-            existing.BodyAr = item.BodyAr.Trim();
+            existing.BodyAr = incomingBody;
+        }
+        else if (NewsBodySanitizer.Sanitize(existing.TitleAr, existing.BodyAr, existing.ExternalRef) is null)
+        {
+            // The stored body only restates its own headline, so clearing it loses nothing. This
+            // is what retires the echoed summaries written before this rule existed.
+            existing.BodyAr = null;
         }
 
         existing.PublishedAt = item.PublishedAt ?? existing.PublishedAt;
@@ -99,7 +107,7 @@ public sealed class IngestGacNewsItemsCommandHandler
     {
         Kind = ParseKind(item.Kind),
         TitleAr = item.TitleAr.Trim(),
-        BodyAr = string.IsNullOrWhiteSpace(item.BodyAr) ? null : item.BodyAr.Trim(),
+        BodyAr = NewsBodySanitizer.Sanitize(item.TitleAr, item.BodyAr, item.SourceName),
         Category = ParseCategory(item.Category),
         SourceUrl = url,
         PublishedAt = item.PublishedAt,
