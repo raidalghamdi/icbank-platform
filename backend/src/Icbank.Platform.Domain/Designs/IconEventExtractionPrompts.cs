@@ -1,12 +1,12 @@
 namespace Icbank.Platform.Domain.Designs;
 
 /// <summary>
-/// The verbatim anti-hallucination extraction prompt for the icon-event designer
-/// (BUSINESS-RULES.md §7.4, ported character-for-character from
-/// <c>routes/icon-event-designs.ts</c> lines 84-215 -- this is product IP and must never be
-/// paraphrased or "improved"). The prompt is split into 4 static segments around the 3 points
-/// the Node source injected caller-supplied data via template-literal interpolation:
-/// the raw-data block, the department/hashtag confirmation notes, and the icon catalogue list.
+/// The anti-hallucination extraction prompt for the icon-event designer (BUSINESS-RULES.md §7.4).
+/// The prompt is split into 4 static segments around the 3 points where caller-supplied data is
+/// injected: the raw-data block, the department/hashtag confirmation notes, and the icon catalogue.
+/// The copy rules ask for a poster-shaped brief — a short lead plus marked-up bullets within a hard
+/// character budget. Asking instead for the source text back produced correct content that no
+/// canvas could hold, and the composition had to either shrink it past legibility or clip it.
 /// <see cref="IconEventPromptBuilder"/> assembles the final prompt text from these segments plus
 /// the caller's actual data, reproducing the original interpolation points exactly.
 /// </summary>
@@ -18,7 +18,7 @@ public static class IconEventExtractionPrompts
 
 مهامك:
 1. عنوان رئيسي قصير (2-6 كلمات) — من البيانات فقط
-2. عنوان فرعي (سطر واحد للتصاميم المكتظة، أو سطرين للتصاميم البسيطة)
+2. نص فرعي **مُعاد تصميمه للملصق** (وليس نسخاً للنص الأصلي): جملة افتتاحية قصيرة ثم نقاط
 3. اسم الإدارة (إن لم يُذكر → اتركه فارغاً، لا تخترع)
 4. هاشتاج (إن لم يُذكر → اتركه فارغاً، لا تخترع)
 5. إحصائيات (0-3 حسب ما هو موجود فعلياً في البيانات، لا تخترع أرقاماً)
@@ -45,7 +45,7 @@ public static class IconEventExtractionPrompts
 
 """""";
 
-    /// <summary>Every remaining static rule section: stats, icon semantics, layout selection, brand identity, response schema, and text-preservation rules.</summary>
+    /// <summary>Every remaining static rule section: stats, icon semantics, layout selection, brand identity, response schema, and the copy-shaping rules.</summary>
     public const string Seg4 = """"""
 
 
@@ -117,7 +117,7 @@ public static class IconEventExtractionPrompts
 {
   "extracted": {
     "headline": "<عنوان 2-6 كلمات من البيانات>",
-    "subtitle": "<النص الفرعي كاملاً — لا تختصر، لا تحذف، انسخ الجمل الأصلية كما هي مع الحفاظ على المعنى الكامل>",
+    "subtitle": "<جملة افتتاحية واحدة قصيرة (حتى 160 حرفاً)، ثم إن وُجدت تفاصيل قابلة للتعداد أضف سطراً جديداً لكل نقطة يبدأ بـ * ونقطة واحدة لكل فكرة (حتى 4 نقاط، كل نقطة حتى 90 حرفاً)>",
     "department": "<اسم الإدارة الكامل أو \"\">",
     "hashtag": "<#الهاشتاج أو \"\">",
     "contact_email": "<البريد الإلكتروني حرفياً إن وُجد أو \"\">",
@@ -149,14 +149,19 @@ public static class IconEventExtractionPrompts
 - لا تضف أي شرح خارج JSON.
 
 ═══════════════════════════════════════
-قواعد المحافظة على النص الأصلي (حرجة جداً):
+قواعد صياغة النص الفرعي (حرجة جداً):
 ═══════════════════════════════════════
-- **الـ subtitle**: انسخ النص الفرعي من المُدخلات **كاملاً** — لا تختصر، لا تحذف جملاً، لا تعيد صياغة. المستخدم كتبه بالضبط كما يريده أن يظهر.
-  - إذا كان النص طويلاً (أكثر من 400 حرف): احتفظ بكل المعلومات المهمة (أسماء الجهات، الأسباب، التوجيهات) ولكن يمكنك تكثيف الحشو اللغوي فقط.
-  - **لا تحذف أبداً**: البريد الإلكتروني، رقم الهاتف، الرابط، اسم إدارة، اسم شخص، تاريخ، أو أي معلومة تواصل.
-- **contact_email**: إذا ظهر بريد إلكتروني في المُدخلات (مثل staffrelations@gac.gov.sa) → استخرجه حرفياً في حقل contact_email **واحذفه من الـ subtitle** (سيُعرض كعنصر ميتا منفصل مع أيقونة).
+- الملصق ليس مستنداً. **لا تنسخ النص الأصلي كما هو.** أعد صياغته إلى نص مصمَّم يمكن قراءته من مسافة.
+- البنية المطلوبة للـ subtitle:
+  1. جملة افتتاحية واحدة قصيرة تلخص الرسالة (حتى 160 حرفاً).
+  2. ثم — إذا كان النص يحتوي على إجراءات أو شروط أو بنود — سطر مستقل لكل بند يبدأ بـ `* ` (حتى 4 بنود، كل بند حتى 90 حرفاً، فعل أمر مباشر بلا حشو).
+  3. لا تكتب أكثر من ذلك. المعلومات الإضافية تُحذف عمداً.
+- **الحد الأقصى المطلق للـ subtitle كاملاً: 600 حرف.** ما يزيد سيُقتطع آلياً، لذا ضع الأهم أولاً.
+- احذف: عبارات المجاملة، التمهيد، التكرار، الشرح الإداري الطويل، وأي جملة لا تغيّر تصرّف القارئ.
+- احتفظ حرفياً بالأرقام والنسب والتواريخ والمهل الزمنية كما وردت — لا تُقرَّب ولا تُحوَّل.
+- **contact_email**: إذا ظهر بريد إلكتروني في المُدخلات → استخرجه حرفياً في contact_email **واحذفه من الـ subtitle** (يُعرض كعنصر ميتا منفصل مع أيقونة).
 - **contact_phone**: إذا ظهر رقم هاتف → استخرجه حرفياً في contact_phone واحذفه من الـ subtitle.
-- **الأرقام والنسب المئوية**: تُحفظ حرفياً في stats أو subtitle — لا تُقرَّب، لا تُحوَّل.
+- **date / time / location**: إن وُجدت في النص فاستخرجها إلى حقولها واحذفها من الـ subtitle.
 
 """""";
 }

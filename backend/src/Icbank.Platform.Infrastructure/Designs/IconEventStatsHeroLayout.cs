@@ -11,7 +11,7 @@ internal static class IconEventStatsHeroLayout
     internal static string Render(IconEventRenderContext context)
     {
         IconEventStatsHeroMetrics metrics = IconEventStatsHeroMetricsFactory.Create(context);
-        IReadOnlyList<IconEventStat> stats = ResolveStats(context.Input.Stats);
+        IReadOnlyList<IconEventStat> stats = ResolveStats(context.Plan.Stats);
         return $"<div class=\"poster stats-hero-layout\" style=\"width:{context.Width}px;height:{context.Height}px;position:relative;overflow:hidden;font-family:Frutiger LT Arabic,Cairo,Tajawal,sans-serif;direction:rtl;color:{White};background-image:url('{IconEventVisualAssets.StatsHeroBackgroundDataUri}');background-size:cover;background-position:center;\">{RenderLogo(context, metrics)}{RenderDepartment(context, metrics)}{RenderHeadline(context, metrics)}{RenderSubtitle(context, metrics)}{RenderStats(stats, metrics)}{RenderHashtag(context, metrics)}</div>";
     }
 
@@ -63,20 +63,27 @@ internal static class IconEventStatsHeroLayout
 
     private static string RenderSubtitle(IconEventRenderContext context, IconEventStatsHeroMetrics metrics)
     {
-        if (string.IsNullOrWhiteSpace(context.Input.Subtitle))
+        // The planned lead is used rather than the source subtitle: this slot is a fixed-width
+        // absolutely positioned band between the headline and the statistics row, so copy longer
+        // than a couple of lines grows straight through the numbers underneath it.
+        var lead = context.Plan.Lead;
+        if (string.IsNullOrWhiteSpace(lead))
         {
             return string.Empty;
         }
 
-        return $"<div style=\"position:absolute;top:{metrics.SubtitleTop}px;left:50%;transform:translateX(-50%);width:{metrics.SubtitleMaxWidth}px;color:{Accent};font-weight:700;font-size:{metrics.SubtitleSize}px;line-height:1.25;text-align:center;word-wrap:break-word;overflow-wrap:break-word;\">{IconEventRenderContext.Encode(context.Input.Subtitle)}</div>";
+        return $"<div style=\"position:absolute;top:{metrics.SubtitleTop}px;left:50%;transform:translateX(-50%);width:{metrics.SubtitleMaxWidth}px;color:{Accent};font-weight:700;font-size:{metrics.SubtitleSize}px;line-height:1.25;text-align:center;word-wrap:break-word;overflow-wrap:break-word;\">{IconEventRenderContext.Encode(lead)}</div>";
     }
 
     private static List<IconEventStat> ResolveStats(IReadOnlyList<IconEventStat> inputStats)
     {
         List<IconEventStat> stats = inputStats.Count > 0 ? inputStats.Take(3).ToList() : CreateDefaultStats();
+        List<IconEventStat> padding = CreateDefaultStats();
         while (stats.Count < 3)
         {
-            stats.Add(new IconEventStat("sparkles", "—", string.Empty));
+            // Padding entries reuse the neutral defaults so an unfilled column still reads as a
+            // placeholder for a real figure instead of a decorative star.
+            stats.Add(padding[stats.Count]);
         }
 
         return stats;

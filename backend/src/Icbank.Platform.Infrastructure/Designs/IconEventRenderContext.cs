@@ -14,10 +14,14 @@ internal sealed class IconEventRenderContext
         Height = size.Height;
         Tokens = IconEventSizeTokens.Resolve(input.Size);
         Palette = IconEventColorMap.Resolve(input.ColorScheme);
-        Headline = Encode(input.Headline);
+        Plan = IconEventContentPlanner.Plan(input);
+        Headline = Encode(Plan.Headline);
     }
 
     internal IconEventInput Input { get; }
+
+    /// <summary>Gets the copy this canvas will render, already cut to what it can hold.</summary>
+    internal IconEventContentPlan Plan { get; }
 
     internal int Height { get; }
 
