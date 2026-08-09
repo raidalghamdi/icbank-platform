@@ -35,6 +35,6 @@ public sealed class IconEventContentPlan
     /// <summary>Gets the resolved supporting icon names.</summary>
     public IReadOnlyList<string> SupportingIcons { get; init; } = Array.Empty<string>();
 
-    /// <summary>Gets a value indicating whether any body copy survived the budget.</summary>
+    /// <summary>Gets a value indicating whether there is any body copy to render.</summary>
     public bool HasBody => !string.IsNullOrWhiteSpace(Lead) || Bullets.Count > 0 || !string.IsNullOrWhiteSpace(ClosingNote);
 }

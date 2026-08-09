@@ -3,114 +3,49 @@ namespace Icbank.Platform.Domain.Designs;
 /// <summary>Turns a resolved input into the copy one specific canvas will actually render.</summary>
 public static class IconEventContentPlanner
 {
-    private const int MaxSectionBullets = 3;
-
     /// <summary>Plans the copy for a poster.</summary>
     /// <param name="input">The resolved input, after extraction.</param>
-    /// <returns>The budgeted plan for <see cref="IconEventInput.Size"/>.</returns>
+    /// <returns>The plan for <see cref="IconEventInput.Size"/>.</returns>
     public static IconEventContentPlan Plan(IconEventInput input)
     {
         ArgumentNullException.ThrowIfNull(input);
-        var budget = IconEventContentBudget.Resolve(input.Size);
         IconEventTextStructure structure = IconEventTextStructureParser.Parse(input.Subtitle);
 
-        IReadOnlyList<string> bulletTexts = CollectBullets(structure, budget);
+        IReadOnlyList<string> bulletTexts = CollectBullets(structure);
         var mainIcon = IconEventIconResolver.Resolve(input.MainIcon, IconTopic(input, structure));
         var used = new HashSet<string>(StringComparer.Ordinal) { mainIcon };
 
         return new IconEventContentPlan
         {
-            Headline = IconEventTextTrimmer.Trim(input.Headline, budget.HeadlineChars) ?? string.Empty,
-            Lead = BuildLead(structure, input.Subtitle, budget, bulletTexts.Count),
+            Headline = IconEventTextTrimmer.Collapse(input.Headline ?? string.Empty),
+            Lead = BuildLead(structure, input.Subtitle),
             Bullets = BuildBullets(bulletTexts),
-            Stats = TakeStats(input.Stats, budget),
-            ClosingNote = budget.ShowsClosingNote ? IconEventTextTrimmer.Trim(structure.ClosingNote, budget.BulletChars) : null,
-            MetaChips = BuildMetaChips(input, budget, bulletTexts.Count),
+            Stats = ResolveStats(input.Stats),
+            ClosingNote = structure.ClosingNote,
+            MetaChips = BuildMetaChips(input),
             MainIcon = mainIcon,
             SupportingIcons = IconEventIconResolver.ResolveMany(input.SupportingIcons, bulletTexts, 3, used),
         };
     }
 
-    private static string? BuildLead(IconEventTextStructure structure, string? subtitle, IconEventContentBudget budget, int bulletCount)
+    // The author's wording is the deliverable. Earlier revisions cut the copy to a per-canvas
+    // character budget, so the same message said different things on a phone and on a wall; the
+    // fitting pass now sizes the type instead, and every word survives at every size.
+    private static string? BuildLead(IconEventTextStructure structure, string? subtitle) =>
+        structure.IsStructured ? structure.Lead : subtitle;
+
+    private static IReadOnlyList<string> CollectBullets(IconEventTextStructure structure)
     {
-        var allowance = budget.LeadCharsBeside(bulletCount);
-        // Structured copy already separated its opening paragraph; unstructured copy has to be cut
-        // down from the whole body, and leading with its first sentences reads best.
-        var source = structure.IsStructured ? DropQuestions(structure.Lead) : FirstSentences(DropQuestions(subtitle), allowance);
-        return IconEventTextTrimmer.Trim(source, allowance);
-    }
-
-    /// <summary>Removes rhetorical questions, which set up copy the poster has no room to answer.</summary>
-    /// <param name="text">The copy to clean.</param>
-    /// <returns>The copy without its question sentences, or <see langword="null"/> when none remain.</returns>
-    private static string? DropQuestions(string? text)
-    {
-        if (string.IsNullOrWhiteSpace(text))
-        {
-            return text;
-        }
-
-        IEnumerable<string> kept = IconEventTextStructureParser.SplitSentences(text)
-            .Where(sentence => !sentence.EndsWith('؟') && !sentence.EndsWith('?'));
-        var joined = string.Join(' ', kept).Trim();
-        return joined.Length == 0 ? text : joined;
-    }
-
-    private static string? FirstSentences(string? subtitle, int budgetChars)
-    {
-        if (string.IsNullOrWhiteSpace(subtitle))
-        {
-            return null;
-        }
-
-        IReadOnlyList<string> sentences = IconEventTextStructureParser.SplitSentences(subtitle);
-        if (sentences.Count == 0)
-        {
-            return subtitle;
-        }
-
-        var taken = new List<string>();
-        var length = 0;
-        foreach (var sentence in sentences)
-        {
-            if (taken.Count > 0 && length + sentence.Length > budgetChars)
-            {
-                break;
-            }
-
-            taken.Add(sentence);
-            length += sentence.Length + 1;
-        }
-
-        return string.Join(' ', taken);
-    }
-
-    private static IReadOnlyList<string> CollectBullets(IconEventTextStructure structure, IconEventContentBudget budget)
-    {
-        if (budget.MaxBullets == 0)
-        {
-            return Array.Empty<string>();
-        }
-
         var items = new List<string>(structure.Bullets);
 
         // A labelled section is list-shaped content that simply was not marked up as a list, so it
-        // fills any remaining slots rather than being dropped or run back into the paragraph.
-        foreach (IconEventTextSection section in structure.Sections.Take(MaxSectionBullets))
+        // joins the list rather than being dropped or run back into the paragraph.
+        foreach (IconEventTextSection section in structure.Sections)
         {
-            if (items.Count >= budget.MaxBullets)
-            {
-                break;
-            }
-
             items.Add(section.Body.Length > 0 ? $"{section.Label}: {section.Body}" : section.Label);
         }
 
-        return items
-            .Take(budget.MaxBullets)
-            .Select(item => IconEventTextTrimmer.Trim(DropQuestions(item), budget.BulletChars))
-            .OfType<string>()
-            .ToList();
+        return items;
     }
 
     private static IReadOnlyList<IconEventBullet> BuildBullets(IReadOnlyList<string> texts)
@@ -131,14 +66,12 @@ public static class IconEventContentPlanner
         return bullets;
     }
 
-    private static IReadOnlyList<IconEventStat> TakeStats(IEnumerable<IconEventStat>? stats, IconEventContentBudget budget) =>
+    private static IReadOnlyList<IconEventStat> ResolveStats(IEnumerable<IconEventStat>? stats) =>
         stats is null
             ? Array.Empty<IconEventStat>()
-            : stats.Take(budget.MaxStats)
-                .Select(stat => stat with { Icon = IconEventIconResolver.Resolve(stat.Icon, stat.Label) })
-                .ToList();
+            : stats.Select(stat => stat with { Icon = IconEventIconResolver.Resolve(stat.Icon, stat.Label) }).ToList();
 
-    private static IReadOnlyList<IconEventMetaChip> BuildMetaChips(IconEventInput input, IconEventContentBudget budget, int bulletCount)
+    private static IReadOnlyList<IconEventMetaChip> BuildMetaChips(IconEventInput input)
     {
         var candidates = new (string Icon, string? Value)[]
         {
@@ -151,7 +84,6 @@ public static class IconEventContentPlanner
 
         return candidates
             .Where(candidate => !string.IsNullOrWhiteSpace(candidate.Value))
-            .Take(budget.MaxMetaChipsBeside(bulletCount))
             .Select(candidate => new IconEventMetaChip(candidate.Icon, IconEventTextTrimmer.Collapse(candidate.Value!)))
             .ToList();
     }

@@ -6,9 +6,9 @@
 // The helpers are declared at file scope so each stays small enough to read; the page is a
 // single-purpose generated document, so there is nothing for these names to collide with.
 var FIT_TOLERANCE = 1.5;
-var FIT_MIN_SCALE = 0.55;
+var FIT_MIN_SCALE = 0.22;
 var FIT_MAX_SCALE = 2.4;
-var FIT_STEPS = 14;
+var FIT_STEPS = 16;
 
 function fitEscapes(box, rect){
   if(rect.width === 0 && rect.height === 0) return false;

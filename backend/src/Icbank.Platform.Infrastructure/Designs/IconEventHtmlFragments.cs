@@ -26,7 +26,7 @@ internal static partial class IconEventHtmlFragments
     {
         var safeText = IconEventRenderContext.Encode(text);
         var svg = IconEventIconLibrary.Render(icon, fontSize + 4, colors.Accent);
-        return $"<div style=\"display:inline-flex;align-items:center;gap:12px;background:rgba(255,255,255,0.14);padding:14px 26px;border-radius:50px;border:1.5px solid rgba(255,255,255,0.22);direction:ltr;\"><span style=\"color:{colors.Accent};display:inline-flex;\">{svg}</span><span style=\"font-size:{fontSize}px;font-weight:700;color:#fff;\">{safeText}</span></div>";
+        return $"<div style=\"display:inline-flex;flex:0 0 auto;white-space:nowrap;align-items:center;gap:12px;background:rgba(255,255,255,0.14);padding:14px 26px;border-radius:50px;border:1.5px solid rgba(255,255,255,0.22);direction:ltr;\"><span style=\"color:{colors.Accent};display:inline-flex;\">{svg}</span><span style=\"font-size:{fontSize}px;font-weight:700;color:#fff;\">{safeText}</span></div>";
     }
 
     internal static string RenderDepartment(string? department, IconEventRenderContext context, int? top = null, int? left = null, int zIndex = 10)
@@ -54,7 +54,7 @@ internal static partial class IconEventHtmlFragments
     {
         var safeText = IconEventRenderContext.Encode(text);
         var svg = IconEventIconLibrary.Render(icon, fontSize + 4, colors.Accent);
-        return $"<div style=\"display:inline-flex;align-items:center;gap:12px;background:rgba(255,255,255,0.14);padding:14px 26px;border-radius:50px;border:1.5px solid rgba(255,255,255,0.22);\"><span style=\"color:{colors.Accent};display:inline-flex;\">{svg}</span><span style=\"font-size:{fontSize}px;font-weight:700;color:#fff;\">{safeText}</span></div>";
+        return $"<div style=\"display:inline-flex;flex:0 0 auto;white-space:nowrap;align-items:center;gap:12px;background:rgba(255,255,255,0.14);padding:14px 26px;border-radius:50px;border:1.5px solid rgba(255,255,255,0.22);\"><span style=\"color:{colors.Accent};display:inline-flex;\">{svg}</span><span style=\"font-size:{fontSize}px;font-weight:700;color:#fff;\">{safeText}</span></div>";
     }
 
     internal static string RenderParagraphFlow(IconEventParagraphFlow flow, string paragraphStyle, IconEventPalette colors, int metaFont, string align = "center", int? subHeadSize = null, int? bulletSize = null)

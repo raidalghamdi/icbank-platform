@@ -73,32 +73,29 @@ public sealed class IconEventContentPlannerTests
     [InlineData(IconEventSizePreset.WebStandard)]
     [InlineData(IconEventSizePreset.WebSmall)]
     [InlineData(IconEventSizePreset.WebMini)]
-    public void EverySize_StaysInsideItsOwnBudget(IconEventSizePreset size)
+    public void EverySize_CarriesTheSameWords(IconEventSizePreset size)
     {
+        // A poster that says less on a small canvas is a different message, not a smaller one.
+        IconEventContentPlan reference = IconEventContentPlanner.Plan(Input(IconEventSizePreset.Uhd4k));
         IconEventContentPlan plan = IconEventContentPlanner.Plan(Input(size));
-        var budget = IconEventContentBudget.Resolve(size);
 
-        plan.Headline.Length.Should().BeLessThanOrEqualTo(budget.HeadlineChars);
-        (plan.Lead?.Length ?? 0).Should().BeLessThanOrEqualTo(budget.LeadChars);
-        plan.Bullets.Should().HaveCountLessThanOrEqualTo(budget.MaxBullets);
-        plan.Bullets.Where(bullet => bullet.Text.Length > budget.BulletChars).Should().BeEmpty();
-        plan.MetaChips.Should().HaveCountLessThanOrEqualTo(budget.MaxMetaChips);
+        plan.Headline.Should().Be(reference.Headline);
+        plan.Lead.Should().Be(reference.Lead);
+        plan.Bullets.Select(bullet => bullet.Text).Should().Equal(reference.Bullets.Select(bullet => bullet.Text));
+        plan.MetaChips.Should().HaveCount(reference.MetaChips.Count);
     }
 
     [Fact]
-    public void TheMiniCanvas_DropsTheList()
+    public void NoWordIsDroppedFromTheBody()
     {
-        IconEventContentPlanner.Plan(Input(IconEventSizePreset.WebMini)).Bullets.Should().BeEmpty();
-        IconEventContentPlanner.Plan(Input(IconEventSizePreset.Uhd4k)).Bullets.Should().NotBeEmpty();
-    }
+        IconEventInput input = Input(IconEventSizePreset.WebMini);
+        input.Subtitle = "افتتاحية طويلة جداً تشرح السياق بالكامل دون اختصار.\n* البند الأول كاملاً بلا اقتضاب.\n* البند الثاني كاملاً.\n* البند الثالث كاملاً.\n* البند الرابع كاملاً.\n* البند الخامس كاملاً.";
 
-    [Fact]
-    public void Trimming_NeverCutsAWordInHalf()
-    {
-        var trimmed = IconEventTextTrimmer.Trim("كلمة أخرى وكلمة ثالثة ورابعة", 14);
+        IconEventContentPlan plan = IconEventContentPlanner.Plan(input);
 
-        trimmed.Should().NotBeNull();
-        trimmed!.TrimEnd('…').Split(' ').Should().OnlyContain(word => "كلمة أخرى وكلمة ثالثة ورابعة".Contains(word, StringComparison.Ordinal));
+        plan.Lead.Should().Be("افتتاحية طويلة جداً تشرح السياق بالكامل دون اختصار.");
+        plan.Bullets.Should().HaveCount(5);
+        plan.Bullets.Where(bullet => bullet.Text.EndsWith('…')).Should().BeEmpty();
     }
 
     [Fact]
@@ -138,38 +135,15 @@ public sealed class IconEventContentPlannerTests
         IconEventIconResolver.Resolve("shield", "أي نص").Should().Be("shield");
 
     [Fact]
-    public void AnOpeningParagraph_YieldsSpaceToTheListBesideIt()
+    public void AQuestionInTheSourceText_StaysOnThePoster()
     {
-        // A paragraph written to fill the canvas on its own leaves a list nothing but the bottom
-        // third, where it renders at a size nobody reads.
-        var budget = IconEventContentBudget.Resolve(IconEventSizePreset.Uhd4k);
-
-        budget.LeadCharsBeside(0).Should().Be(budget.LeadChars);
-        budget.LeadCharsBeside(4).Should().BeLessThan(budget.LeadChars);
-        budget.LeadCharsBeside(4).Should().BeGreaterThanOrEqualTo(80);
-    }
-
-    [Fact]
-    public void TheMetaRow_ShrinksSoItStaysOnOneLine()
-    {
-        // Chips wrap rather than shrink, so a full row under a list silently steals two more lines.
-        var budget = IconEventContentBudget.Resolve(IconEventSizePreset.Uhd4k);
-
-        budget.MaxMetaChipsBeside(0).Should().Be(budget.MaxMetaChips);
-        budget.MaxMetaChipsBeside(4).Should().Be(2);
-    }
-
-    [Fact]
-    public void RhetoricalQuestions_AreLeftOutOfThePoster()
-    {
-        // A poster has no room to answer a question it asks, so the question is dead weight.
+        // Dropping the author's questions rewrote their message; the canvas resizes instead.
         IconEventInput input = Input(IconEventSizePreset.DesktopHd);
-        input.Subtitle = "متى قد تحدث المشكلة؟ راجع سجل الحضور يومياً. كيف تكتشفها؟";
+        input.Subtitle = "متى قد تحدث المشكلة؟ راجع سجل الحضور يومياً.";
 
         IconEventContentPlan plan = IconEventContentPlanner.Plan(input);
 
-        (plan.Lead ?? string.Empty).Should().NotContain("؟");
-        plan.Bullets.Where(bullet => bullet.Text.Contains('؟', StringComparison.Ordinal)).Should().BeEmpty();
+        (plan.Lead ?? string.Empty).Should().Be("متى قد تحدث المشكلة؟ راجع سجل الحضور يومياً.");
     }
 
     private static IconEventInput Input(IconEventSizePreset size) => new()

@@ -63,7 +63,7 @@ internal static class IconEventHeroLayout
     private static string RenderText(IconEventRenderContext context, IconEventHeroMetrics metrics, string titleAlign, string paragraphAlign)
     {
         var body = IconEventPlanFragments.RenderBody(context, paragraphAlign);
-        return $"<div class=\"hero-text\" style=\"width:{ColumnWidth(context)}%;max-width:100%;display:flex;flex-direction:column;align-items:center;min-height:0;\"><h1 class=\"hero-title\" style=\"font-size:{metrics.TitleSize}px;font-weight:900;margin:0 0 {metrics.TitleGap}px;line-height:1.15;letter-spacing:-1px;text-align:{titleAlign};\">{context.Headline}</h1>{body}</div>";
+        return $"<div class=\"hero-text\" style=\"width:{ColumnWidth(context)}%;max-width:100%;flex:0 0 auto;display:flex;flex-direction:column;align-items:center;\"><h1 class=\"hero-title\" style=\"font-size:{metrics.TitleSize}px;font-weight:900;margin:0 0 {metrics.TitleGap}px;line-height:1.15;letter-spacing:-1px;text-align:{titleAlign};\">{context.Headline}</h1>{body}</div>";
     }
 
     /// <summary>Renders the meta row beneath the copy.</summary>

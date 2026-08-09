@@ -45,18 +45,32 @@ internal static class IconEventGridLayout
 
     private static string RenderGrid(IconEventRenderContext context)
     {
-        // The plan already resolved three distinct supporting icons against the copy, so the grid
-        // never has to pad itself with a decorative placeholder.
-        List<string> icons = context.Plan.Bullets.Count > 0
-            ? context.Plan.Bullets.Select(bullet => bullet.Icon).Take(4).ToList()
-            : context.Plan.SupportingIcons.Prepend(context.Plan.MainIcon).Take(4).ToList();
+        IReadOnlyList<IconEventBullet> bullets = context.Plan.Bullets;
+        var cells = bullets.Count > 0
+            ? string.Concat(bullets.Select(bullet => RenderCard(context, bullet.Icon, bullet.Text)))
+            : string.Concat(context.Plan.SupportingIcons.Prepend(context.Plan.MainIcon).Take(4).Select(icon => RenderCard(context, icon, null)));
+        var columns = bullets.Count == 1 ? 1 : 2;
+        var track = bullets.Count > 0 ? "1fr" : "1em";
 
-        return $"<div class=\"grid-plates\" style=\"flex:0 0 auto;display:flex;align-items:center;justify-content:center;padding:{context.Px(24)}px 0;margin:auto 0;\"><div style=\"display:grid;font-size:{context.Px(200)}px;grid-template-columns:repeat(2,1em);gap:0.16em;\">{string.Concat(icons.Select(icon => RenderGridIcon(context, icon)))}</div></div>";
+        return $"<div class=\"grid-plates\" style=\"flex:0 0 auto;width:{(bullets.Count > 0 ? "92%" : "auto")};display:flex;align-items:center;justify-content:center;padding:{context.Px(24)}px 0;margin:auto 0;\"><div style=\"width:100%;display:grid;font-size:{context.Px(200)}px;grid-template-columns:repeat({columns},{track});gap:0.16em;\">{cells}</div></div>";
     }
 
-    private static string RenderGridIcon(IconEventRenderContext context, string icon)
+    /// <summary>Renders one tile of the grid.</summary>
+    /// <param name="context">The resolved render context.</param>
+    /// <param name="icon">The glyph for the tile.</param>
+    /// <param name="text">The item copy, or <see langword="null"/> for a decorative tile.</param>
+    /// <returns>The tile markup.</returns>
+    /// <remarks>
+    /// The tiles used to show glyphs alone while the list they stood for was suppressed, so the
+    /// author's wording never reached the poster. A glyph is a label for a line, not a substitute.
+    /// </remarks>
+    private static string RenderCard(IconEventRenderContext context, string icon, string? text)
     {
-        var svg = IconEventIconLibrary.Render(icon, context.Px(110), context.Palette.Accent);
-        return $"<div style=\"width:1em;height:1em;background:rgba(255,255,255,0.12);border:{context.Px(2)}px solid rgba(255,255,255,0.25);border-radius:0.14em;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(10px);\"><div style=\"color:{context.Palette.Accent};\">{svg}</div></div>";
+        var svg = IconEventIconLibrary.Render(icon, context.Px(text is null ? 110 : 76), context.Palette.Accent);
+        var box = text is null ? "width:1em;height:1em;justify-content:center;" : $"min-height:0.7em;padding:0.09em 0.11em;gap:0.07em;text-align:right;";
+        var caption = text is null
+            ? string.Empty
+            : $"<div style=\"font-size:{context.Tokens.MetaFont + context.Px(4)}px;line-height:1.45;font-weight:500;color:rgba(255,255,255,0.94);\">{IconEventRenderContext.Encode(text)}</div>";
+        return $"<div style=\"{box}background:rgba(255,255,255,0.12);border:{context.Px(2)}px solid rgba(255,255,255,0.25);border-radius:0.14em;display:flex;align-items:center;backdrop-filter:blur(10px);\"><div style=\"flex:none;color:{context.Palette.Accent};display:flex;\">{svg}</div>{caption}</div>";
     }
 }

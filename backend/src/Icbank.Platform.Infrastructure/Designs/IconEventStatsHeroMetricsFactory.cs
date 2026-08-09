@@ -34,7 +34,6 @@ internal static class IconEventStatsHeroMetricsFactory
             Scale(28, scale),
             Scale(26, scale),
             Scale(8, scale),
-            Scale(380, scale),
             Scale(105, scale),
             Scale(110, scale),
             Scale(38, scale));

@@ -27,7 +27,6 @@ internal sealed record IconEventStatsHeroMetrics(
     int ValueMarginBottom,
     int LabelSize,
     int DividerTop,
-    int DividerHeight,
     int HashtagBottom,
     int HashtagLeft,
     int HashtagSize);
