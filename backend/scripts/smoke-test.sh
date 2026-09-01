@@ -86,11 +86,11 @@ fi
 # Local/CI mode keeps a single attempt: there the API is a child process of this script, so
 # a refused connection means it crashed and retrying would only delay the report.
 if [[ "$DEPLOYED_MODE" -eq 1 ]]; then
-  TRANSIENT_ATTEMPTS="${SMOKE_TRANSIENT_ATTEMPTS:-4}"
+  TRANSIENT_ATTEMPTS="${SMOKE_TRANSIENT_ATTEMPTS:-8}"
 else
   TRANSIENT_ATTEMPTS=1
 fi
-TRANSIENT_BACKOFF_SECONDS="${SMOKE_TRANSIENT_BACKOFF_SECONDS:-8}"
+TRANSIENT_BACKOFF_SECONDS="${SMOKE_TRANSIENT_BACKOFF_SECONDS:-12}"
 
 retry() { printf '  \033[33mRETRY\033[0m %s\n' "$*"; }
 
