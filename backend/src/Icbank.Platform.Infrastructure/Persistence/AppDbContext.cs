@@ -6,6 +6,7 @@ using Icbank.Platform.Domain.Gac;
 using Icbank.Platform.Domain.Identity;
 using Icbank.Platform.Domain.InternationalDays;
 using Icbank.Platform.Domain.MediaMonitoring;
+using Icbank.Platform.Domain.Projects;
 using Icbank.Platform.Domain.Reports;
 using Icbank.Platform.Domain.Shorfah;
 using Icbank.Platform.Domain.Weekend;
@@ -182,6 +183,14 @@ public sealed class AppDbContext : DbContext, IApplicationDbContext
     /// <summary>Gets the AI-generated week-start message drafts.</summary>
     public DbSet<GeneratedOutput> GeneratedOutputs => Set<GeneratedOutput>();
 
+    // ── Projects ────────────────────────────────────────────────────────────
+
+    /// <summary>Gets the department's tracked project portfolio.</summary>
+    public DbSet<PortfolioProject> PortfolioProjects => Set<PortfolioProject>();
+
+    /// <summary>Gets the delivery checkpoints behind each tracked project.</summary>
+    public DbSet<ProjectMilestone> ProjectMilestones => Set<ProjectMilestone>();
+
     // ── Weekend ─────────────────────────────────────────────────────────────
 
     /// <summary>Gets the curated library of weekend venues/places.</summary>
@@ -230,6 +239,12 @@ public sealed class AppDbContext : DbContext, IApplicationDbContext
 
     /// <inheritdoc cref="IApplicationDbContext.DailyReports" />
     IQueryable<DailyReport> IApplicationDbContext.DailyReports => DailyReports;
+
+    /// <inheritdoc cref="IApplicationDbContext.PortfolioProjects" />
+    IQueryable<PortfolioProject> IApplicationDbContext.PortfolioProjects => PortfolioProjects;
+
+    /// <inheritdoc cref="IApplicationDbContext.ProjectMilestones" />
+    IQueryable<ProjectMilestone> IApplicationDbContext.ProjectMilestones => ProjectMilestones;
 
     /// <inheritdoc cref="IApplicationDbContext.WeekendPlaces" />
     IQueryable<WeekendPlace> IApplicationDbContext.WeekendPlaces => WeekendPlaces;

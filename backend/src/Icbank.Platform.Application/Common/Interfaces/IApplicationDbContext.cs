@@ -4,6 +4,7 @@ using Icbank.Platform.Domain.Gac;
 using Icbank.Platform.Domain.Identity;
 using Icbank.Platform.Domain.InternationalDays;
 using Icbank.Platform.Domain.MediaMonitoring;
+using Icbank.Platform.Domain.Projects;
 using Icbank.Platform.Domain.Reports;
 using Icbank.Platform.Domain.Shorfah;
 using Icbank.Platform.Domain.Weekend;
@@ -58,6 +59,12 @@ public interface IApplicationDbContext
 
     /// <summary>Gets a queryable over ingested daily-report payloads (Wave 1: Daily Report).</summary>
     IQueryable<DailyReport> DailyReports { get; }
+
+    /// <summary>Gets a queryable over the department's tracked project portfolio.</summary>
+    IQueryable<PortfolioProject> PortfolioProjects { get; }
+
+    /// <summary>Gets a queryable over the delivery checkpoints behind each tracked project.</summary>
+    IQueryable<ProjectMilestone> ProjectMilestones { get; }
 
     /// <summary>Gets a queryable over the curated library of weekend venues/places (Wave 1: Weekend Places).</summary>
     IQueryable<WeekendPlace> WeekendPlaces { get; }

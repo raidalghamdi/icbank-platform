@@ -1698,6 +1698,127 @@ button.home-row:hover { border-color:var(--primary-100); background:var(--primar
 .rpt-rec-num  { font-size: 13px; font-weight: 700; color: var(--primary); flex-shrink: 0; font-family: var(--mono); }
 .rpt-rec-text { font-size: 12.5px; color: var(--text-2); line-height: 1.6; }
 
+/* ══════════════════════════════════
+   PROJECT TRACKER — تتبع المشاريع
+   Paints from its own endpoint, independently of the pushed executive report, so the page is
+   useful the moment it opens instead of after an automation run lands.
+══════════════════════════════════ */
+.pf-track { display: flex; flex-direction: column; gap: 14px; }
+.pf-band {
+  background: var(--surface); border: 1px solid var(--border);
+  padding: 18px 20px; display: flex; flex-direction: column; gap: 14px;
+}
+.pf-band-hd { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.pf-band-title { font-size: 14px; font-weight: 700; color: var(--text); }
+.pf-band-sub { font-size: 11.5px; color: var(--text-4); }
+.pf-band-stamp { margin-right: auto; font-size: 11px; color: var(--text-4); direction: ltr; font-family: var(--mono); }
+
+.pf-kpis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+.pf-kpi {
+  border: 1px solid var(--border); background: var(--bg);
+  padding: 12px 14px; display: flex; flex-direction: column; gap: 4px;
+  border-top: 3px solid var(--border-strong);
+}
+.pf-kpi.is-primary { border-top-color: var(--primary); background: var(--primary-50); border-color: var(--primary-100); }
+.pf-kpi.is-good    { border-top-color: var(--success); }
+.pf-kpi.is-warn    { border-top-color: var(--warning); }
+.pf-kpi.is-bad     { border-top-color: var(--danger); }
+.pf-kpi-val { font-size: 26px; font-weight: 700; line-height: 1; color: var(--text); font-family: var(--mono); }
+.pf-kpi.is-primary .pf-kpi-val { color: var(--primary); }
+.pf-kpi.is-good .pf-kpi-val { color: var(--success); }
+.pf-kpi.is-warn .pf-kpi-val { color: var(--warning); }
+.pf-kpi.is-bad  .pf-kpi-val { color: var(--danger); }
+.pf-kpi-label { font-size: 11.5px; font-weight: 600; color: var(--text-3); }
+
+.pf-filters { display: flex; gap: 8px; flex-wrap: wrap; }
+.pf-chip {
+  border: 1px solid var(--border-strong); background: var(--surface);
+  color: var(--text-2); font: inherit; font-size: 12px; font-weight: 600;
+  padding: 7px 14px; cursor: pointer; display: inline-flex; align-items: center; gap: 7px;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+.pf-chip:hover { border-color: var(--primary); color: var(--primary); }
+.pf-chip.is-on { background: var(--primary); border-color: var(--primary); color: #fff; }
+.pf-chip-count { font-family: var(--mono); font-size: 11px; opacity: 0.8; }
+
+.pf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 14px; }
+.pf-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-top: 3px solid var(--primary);
+  padding: 16px 18px; display: flex; flex-direction: column; gap: 12px;
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+.pf-card:hover { box-shadow: var(--shadow-md); }
+.pf-card.hp-at_risk  { border-top-color: var(--warning); }
+.pf-card.hp-delayed  { border-top-color: var(--danger); }
+.pf-card.hp-completed{ border-top-color: var(--success); }
+
+.pf-card-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.pf-code { font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--text-3); direction: ltr; }
+.pf-tag {
+  font-size: 10.5px; font-weight: 700; padding: 3px 9px;
+  background: var(--surface-2); color: var(--text-2);
+}
+.pf-tag.cat-strategic   { background: #FAF5FF; color: var(--purple); }
+.pf-tag.cat-operational { background: var(--info-bg); color: var(--info); }
+.pf-health {
+  margin-right: auto; font-size: 10.5px; font-weight: 700; padding: 3px 9px;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.pf-health::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.pf-health.hp-on_track { background: var(--success-bg); color: var(--success); }
+.pf-health.hp-at_risk  { background: var(--warning-bg); color: var(--warning); }
+.pf-health.hp-delayed  { background: var(--danger-bg);  color: var(--danger); }
+.pf-health.hp-completed{ background: var(--primary-50); color: var(--primary); }
+
+.pf-name { font-size: 14px; font-weight: 700; color: var(--text); line-height: 1.5; }
+.pf-desc { font-size: 12px; color: var(--text-3); line-height: 1.7; }
+
+.pf-prog-hd { display: flex; align-items: baseline; gap: 8px; }
+.pf-prog-val { font-size: 20px; font-weight: 700; color: var(--text); font-family: var(--mono); line-height: 1; }
+.pf-prog-plan { font-size: 11px; color: var(--text-4); margin-right: auto; }
+.pf-prog-track { position: relative; height: 8px; background: var(--surface-2); overflow: hidden; }
+.pf-prog-fill { height: 100%; background: var(--primary); width: 0; transition: width 0.55s cubic-bezier(.4,0,.2,1); }
+.pf-card.hp-at_risk  .pf-prog-fill { background: var(--warning); }
+.pf-card.hp-delayed  .pf-prog-fill { background: var(--danger); }
+.pf-card.hp-completed .pf-prog-fill { background: var(--success); }
+.pf-prog-marker { position: absolute; top: -3px; width: 2px; height: 14px; background: var(--text-2); opacity: 0.55; }
+
+.pf-meta { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 11.5px; color: var(--text-3); }
+.pf-meta b { color: var(--text-2); font-weight: 700; }
+.pf-meta .pf-num { font-family: var(--mono); direction: ltr; display: inline-block; }
+.pf-days.is-late { color: var(--danger); font-weight: 700; }
+
+.pf-ms { border-top: 1px solid var(--border-subtle); padding-top: 10px; display: flex; flex-direction: column; gap: 7px; }
+.pf-ms-hd { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 700; color: var(--text-3); }
+.pf-ms-pips { margin-right: auto; display: flex; gap: 3px; }
+.pf-ms-pip { width: 18px; height: 4px; background: var(--border-strong); }
+.pf-ms-pip.is-done { background: var(--primary); }
+.pf-ms-list { list-style: none; display: flex; flex-direction: column; gap: 5px; }
+.pf-ms-item { display: flex; align-items: center; gap: 8px; font-size: 11.5px; color: var(--text-3); }
+.pf-ms-item.is-done { color: var(--text-4); }
+.pf-ms-mark { width: 14px; height: 14px; border: 1px solid var(--border-strong); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 9px; color: #fff; }
+.pf-ms-item.is-done .pf-ms-mark { background: var(--primary); border-color: var(--primary); }
+.pf-ms-date { margin-right: auto; font-size: 10.5px; color: var(--text-4); white-space: nowrap; }
+
+.pf-skel { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 14px; }
+.pf-skel-card { height: 190px; background: var(--surface); border: 1px solid var(--border); position: relative; overflow: hidden; }
+.pf-skel-card::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(148,163,184,0.14), transparent);
+  animation: pfShimmer 1.1s linear infinite;
+}
+@keyframes pfShimmer { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+
+@media (max-width: 1023.98px) {
+  .pf-kpis { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 767.98px) {
+  .pf-kpis { grid-template-columns: repeat(2, 1fr); }
+  .pf-grid, .pf-skel { grid-template-columns: 1fr; }
+  .pf-band { padding: 14px; }
+}
+
 /* Loading / empty states */
 .loading-wrap { display: flex; flex-direction: column; align-items: center; padding: 60px 40px; gap: 14px; }
 .spinner {
@@ -3435,11 +3556,35 @@ button.home-row:hover { border-color:var(--primary-100); background:var(--primar
           <span class="ico"><svg><use href="#i-download"/></svg></span>
           <span>تصدير</span>
         </button>
-        <button class="btn btn-primary" onclick="reportLoaded=false; loadDailyReport()">
+        <button class="btn btn-primary" onclick="reportLoaded=false; pfCache=null; loadProjectPortfolio(); loadDailyReport()">
           <span class="ico"><svg><use href="#i-refresh"/></svg></span>
           <span>تحديث</span>
         </button>
       </div>
+    </div>
+
+    <!-- Project tracker. Loads from its own endpoint and paints before (and independently of)
+         the pushed executive report below it. -->
+    <div id="pf-skeleton" class="pf-skel" aria-hidden="true">
+      <div class="pf-skel-card"></div><div class="pf-skel-card"></div><div class="pf-skel-card"></div>
+    </div>
+
+    <div id="pf-track" class="pf-track" style="display:none;">
+      <div class="pf-band">
+        <div class="pf-band-hd">
+          <div class="pf-band-title">محفظة المشاريع</div>
+          <div class="pf-band-sub">مؤشرات فورية محتسبة من جدول كل مشروع</div>
+          <div class="pf-band-stamp" id="pf-stamp">—</div>
+        </div>
+        <div class="pf-kpis" id="pf-kpis"></div>
+        <div class="pf-filters" id="pf-filters"></div>
+      </div>
+      <div class="pf-grid" id="pf-grid"></div>
+    </div>
+
+    <div id="pf-error" class="empty-state" style="display:none;">
+      <div class="empty-title">تعذر تحميل محفظة المشاريع</div>
+      <div class="empty-sub">حاول التحديث مرة أخرى</div>
     </div>
 
     <div id="report-loading" class="loading-wrap">
@@ -9651,6 +9796,158 @@ async function loadDailyReport() {
   }
 }
 
+// ════════════════════════════════════════
+// PROJECT PORTFOLIO TRACKER
+// Kept independent of the daily report below it so the tracker is on screen even when no
+// executive report has been pushed. The payload is cached and the category filter runs
+// against that cache, so switching filters never waits on the network.
+// ════════════════════════════════════════
+let pfCache = null;
+let pfFilter = 'all';
+let pfInFlight = null;
+
+async function loadProjectPortfolio() {
+  if (pfCache) { pfRender(); return; }
+  if (pfInFlight) return pfInFlight;
+
+  const skel  = document.getElementById('pf-skeleton');
+  const track = document.getElementById('pf-track');
+  const errEl = document.getElementById('pf-error');
+  if (errEl) errEl.style.display = 'none';
+  if (skel && (!track || track.style.display === 'none')) skel.style.display = 'grid';
+
+  pfInFlight = (async () => {
+    try {
+      const res = await apiFetch(apiUrl('/projects/portfolio'));
+      if (!res.ok) throw new Error('server error');
+      pfCache = await res.json();
+      pfRender();
+    } catch (e) {
+      if (skel)  skel.style.display  = 'none';
+      if (track) track.style.display = 'none';
+      if (errEl) errEl.style.display = 'block';
+    } finally {
+      pfInFlight = null;
+    }
+  })();
+  return pfInFlight;
+}
+
+function pfSetFilter(value) {
+  pfFilter = value;
+  pfRender();
+}
+
+function pfRender() {
+  if (!pfCache) return;
+  const skel  = document.getElementById('pf-skeleton');
+  const track = document.getElementById('pf-track');
+  const kpis  = document.getElementById('pf-kpis');
+  const chips = document.getElementById('pf-filters');
+  const grid  = document.getElementById('pf-grid');
+  const stamp = document.getElementById('pf-stamp');
+  if (skel)  skel.style.display  = 'none';
+  if (track) track.style.display = 'flex';
+
+  const k = pfCache.kpis || {};
+  const all = pfCache.projects || [];
+
+  if (stamp && pfCache.generatedAt) {
+    const dt = new Date(pfCache.generatedAt);
+    stamp.textContent = 'آخر تحديث ' + dt.toLocaleTimeString('ar-SA-u-ca-gregory-nu-latn', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  if (kpis) {
+    kpis.innerHTML = [
+      pfKpi(k.total, 'إجمالي المشاريع', 'is-primary'),
+      pfKpi((k.averageProgressPercent || 0) + '%', 'متوسط الإنجاز', 'is-primary'),
+      pfKpi(k.onTrack, 'على المسار', 'is-good'),
+      pfKpi(k.atRisk, 'تحتاج متابعة', 'is-warn'),
+      pfKpi(k.delayed, 'متأخرة', 'is-bad')
+    ].join('');
+  }
+
+  if (chips) {
+    const opsCount = k.operational !== undefined ? k.operational : all.filter(p => p.category === 'operational').length;
+    const strCount = k.strategic   !== undefined ? k.strategic   : all.filter(p => p.category === 'strategic').length;
+    const defs = [['all', 'الكل', all.length], ['operational', 'تشغيلي', opsCount], ['strategic', 'استراتيجي', strCount]];
+    chips.innerHTML = defs.map(d =>
+      '<button type="button" class="pf-chip' + (pfFilter === d[0] ? ' is-on' : '') + '" onclick="pfSetFilter(\'' + d[0] + '\')">'
+      + '<span>' + esc(d[1]) + '</span><span class="pf-chip-count">' + d[2] + '</span></button>'
+    ).join('');
+  }
+
+  const shown = pfFilter === 'all' ? all : all.filter(p => p.category === pfFilter);
+  if (grid) {
+    grid.innerHTML = shown.length
+      ? shown.map(pfCardHTML).join('')
+      : '<div class="empty-text">لا توجد مشاريع في هذا التصنيف</div>';
+    // Fill widths start at zero in CSS so the bars animate once the nodes are in the document.
+    requestAnimationFrame(() => {
+      grid.querySelectorAll('.pf-prog-fill[data-pct]').forEach(el => { el.style.width = el.dataset.pct + '%'; });
+    });
+  }
+}
+
+function pfKpi(value, label, tone) {
+  const shown = (value === undefined || value === null) ? '—' : value;
+  return '<div class="pf-kpi ' + tone + '"><div class="pf-kpi-val">' + shown
+    + '</div><div class="pf-kpi-label">' + esc(label) + '</div></div>';
+}
+
+function pfDate(value) {
+  if (!value) return '—';
+  const dt = new Date(value);
+  return dt.toLocaleDateString('ar-SA-u-ca-gregory-nu-latn', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+function pfCardHTML(p) {
+  const pct  = Math.max(0, Math.min(100, p.progressPercent || 0));
+  const plan = Math.max(0, Math.min(100, p.expectedProgressPercent || 0));
+  const done = p.milestonesCompleted || 0;
+  const tot  = p.milestonesTotal || 0;
+  const days = p.daysRemaining;
+  const late = typeof days === 'number' && days < 0;
+  const daysText = typeof days !== 'number' ? '—'
+    : (late ? 'تأخر ' + Math.abs(days) + ' يوم' : 'يتبقى ' + days + ' يوم');
+
+  const pips = Array.from({ length: tot }, (_, i) =>
+    '<span class="pf-ms-pip' + (i < done ? ' is-done' : '') + '"></span>').join('');
+
+  const items = (p.milestones || []).map(m =>
+    '<li class="pf-ms-item' + (m.isCompleted ? ' is-done' : '') + '">'
+    + '<span class="pf-ms-mark">' + (m.isCompleted ? '✓' : '') + '</span>'
+    + '<span>' + esc(m.title) + '</span>'
+    + '<span class="pf-ms-date">' + pfDate(m.dueDate) + '</span></li>').join('');
+
+  return '<article class="pf-card hp-' + esc(p.health) + '">'
+    + '<div class="pf-card-top">'
+      + '<span class="pf-code">' + esc(p.code) + '</span>'
+      + '<span class="pf-tag cat-' + esc(p.category) + '">' + esc(p.categoryLabel) + '</span>'
+      + '<span class="pf-health hp-' + esc(p.health) + '">' + esc(p.healthLabel) + '</span>'
+    + '</div>'
+    + '<div class="pf-name">' + esc(p.name) + '</div>'
+    + '<div class="pf-desc">' + esc(p.description) + '</div>'
+    + '<div>'
+      + '<div class="pf-prog-hd"><span class="pf-prog-val">' + pct + '%</span>'
+        + '<span class="pf-band-sub">' + esc(p.stageLabel) + '</span>'
+        + '<span class="pf-prog-plan">المخطط ' + plan + '%</span></div>'
+      + '<div class="pf-prog-track"><div class="pf-prog-fill" data-pct="' + pct + '"></div>'
+        + '<span class="pf-prog-marker" style="right:' + plan + '%"></span></div>'
+    + '</div>'
+    + '<div class="pf-meta">'
+      + '<span>المسؤول <b>' + esc(p.owner) + '</b></span>'
+      + '<span>الإدارة <b>' + esc(p.department) + '</b></span>'
+      + '<span>الفريق <b class="pf-num">' + (p.teamSize || 0) + '</b></span>'
+      + '<span>الانتهاء <b>' + pfDate(p.dueDate) + '</b></span>'
+      + '<span class="pf-days' + (late ? ' is-late' : '') + '">' + esc(daysText) + '</span>'
+    + '</div>'
+    + (tot ? '<div class="pf-ms"><div class="pf-ms-hd"><span>المراحل ' + done + ' من ' + tot + '</span>'
+        + '<span class="pf-ms-pips">' + pips + '</span></div>'
+        + '<ul class="pf-ms-list">' + items + '</ul></div>' : '')
+    + '</article>';
+}
+
 function renderReportHTML(d) {
   const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   let sn = 0;
@@ -10158,7 +10455,7 @@ function wsExport(model) {
 const _origShowSection = showSection;
 window.showSection = function(name) {
   _origShowSection(name);
-  if (name === 'reports') loadDailyReport();
+  if (name === 'reports') { loadProjectPortfolio(); loadDailyReport(); }
   if (name === 'weekstart') wsLoadArchive();
   if (name === 'intldays') idInit();
 };

@@ -61,6 +61,7 @@ public sealed partial class DatabaseSeeder
         await SeedPermissionsAsync(cancellationToken);
         await SeedDefaultRolePermissionsAsync(cancellationToken);
         await SeedInternationalDaysAsync(cancellationToken);
+        await SeedPortfolioProjectsAsync(cancellationToken);
         return await SeedInitialSuperAdminAsync(cancellationToken);
     }
 
@@ -106,6 +107,76 @@ public sealed partial class DatabaseSeeder
             await _dbContext.SaveChangesAsync(cancellationToken);
             LogInternationalDaysSeeded(_logger, added);
         }
+    }
+
+    // Why: the projects page had no store of its own and could only show whatever an external
+    // automation run had pushed, so it rendered an empty state on a fresh environment. Seeding a
+    // starter portfolio gives the page something to track from the first deployment.
+    //
+    // Matched on the project code, the only stable natural key these rows have. Existing rows are
+    // never overwritten: once someone edits progress or a checkpoint, a restart must not undo it.
+    // Dates are stored relative to the seed instant so the schedule reads sensibly whenever an
+    // environment is first brought up.
+    private async Task SeedPortfolioProjectsAsync(CancellationToken cancellationToken)
+    {
+        List<string> existing = await _dbContext.PortfolioProjects.Select(p => p.Code).ToListAsync(cancellationToken);
+        var known = new HashSet<string>(existing, StringComparer.Ordinal);
+        DateTime seededAt = DateTime.UtcNow;
+
+        var added = 0;
+        foreach (PortfolioProjectSeedRow row in PortfolioProjectSeedCatalog.Rows)
+        {
+            if (!known.Add(row.Code))
+            {
+                continue;
+            }
+
+            _dbContext.PortfolioProjects.Add(BuildProject(row, seededAt));
+            added++;
+        }
+
+        if (added > 0)
+        {
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            LogPortfolioProjectsSeeded(_logger, added);
+        }
+    }
+
+    private static Domain.Projects.PortfolioProject BuildProject(PortfolioProjectSeedRow row, DateTime seededAt)
+    {
+        var project = new Domain.Projects.PortfolioProject
+        {
+            Code = row.Code,
+            Name = row.Name,
+            Description = row.Description,
+            Category = row.Category,
+            Stage = row.Stage,
+            Owner = row.Owner,
+            Department = row.Department,
+            ProgressPercent = row.ProgressPercent,
+            TeamSize = row.TeamSize,
+            StartDate = seededAt.AddDays(row.StartOffsetDays).Date,
+            DueDate = seededAt.AddDays(row.DueOffsetDays).Date,
+            LatestUpdate = row.LatestUpdate,
+            SortOrder = row.SortOrder,
+            IsActive = true,
+            CreatedBy = "seeder",
+        };
+
+        var order = 1;
+        foreach (PortfolioMilestoneSeedRow milestone in row.Milestones)
+        {
+            project.Milestones.Add(new Domain.Projects.ProjectMilestone
+            {
+                Title = milestone.Title,
+                DueDate = seededAt.AddDays(milestone.DueOffsetDays).Date,
+                IsCompleted = milestone.IsCompleted,
+                SortOrder = order++,
+                CreatedBy = "seeder",
+            });
+        }
+
+        return project;
     }
 
     private async Task SeedRolesAsync(CancellationToken cancellationToken)
@@ -268,6 +339,9 @@ public sealed partial class DatabaseSeeder
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Seeded {Count} international day(s) into an empty or partial catalogue.")]
     private static partial void LogInternationalDaysSeeded(ILogger logger, int count);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Seeded {Count} portfolio project(s) into an empty or partial portfolio.")]
+    private static partial void LogPortfolioProjectsSeeded(ILogger logger, int count);
 
     private static string RoleMachineName(RoleName roleName) => roleName switch
     {
