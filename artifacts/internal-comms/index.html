@@ -15168,7 +15168,10 @@ window.MM = (function(){
     if (r.regionalComparison && Array.isArray(r.regionalComparison) && r.regionalComparison.length){
       html += '<h3 style="color:#1a6e7a;margin-top:24px;border-bottom:2px solid #cce4e6;padding-bottom:6px;">7) مقارنة إقليمية</h3>';
       var cols = Object.keys(r.regionalComparison[0]||{});
-      html += '<table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:8px;"><thead><tr style="background:#1a6e7a;color:white;">' + cols.map(function(c){return '<th style="padding:6px;">'+escHtml(c)+'</th>';}).join('') + '</tr></thead><tbody>';
+      // The API returns this table as free-form key/value rows, so map the known keys to Arabic
+      // headers instead of printing the raw English property names inside an Arabic report.
+      var colLabels = {authority:'الجهة',country:'الدولة',mentions:'الإشارات',tone:'النبرة',highlights:'أبرز الملاحظات',topic:'الموضوع',notes:'ملاحظات',count:'العدد',outlet:'المنفذ',region:'المنطقة'};
+      html += '<table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:8px;"><thead><tr style="background:#1a6e7a;color:white;">' + cols.map(function(c){return '<th style="padding:6px;">'+escHtml(colLabels[c]||c)+'</th>';}).join('') + '</tr></thead><tbody>';
       r.regionalComparison.forEach(function(row,i){
         html += '<tr style="background:'+(i%2?'#f9fafb':'white')+';">' + cols.map(function(c){return '<td style="padding:6px;border-bottom:1px solid #e5e7eb;">'+escHtml(String(row[c]||''))+'</td>';}).join('') + '</tr>';
       });
