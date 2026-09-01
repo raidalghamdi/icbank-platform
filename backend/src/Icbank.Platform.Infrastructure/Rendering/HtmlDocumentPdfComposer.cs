@@ -21,6 +21,10 @@ namespace Icbank.Platform.Infrastructure.Rendering;
 /// </summary>
 public static class HtmlDocumentPdfComposer
 {
+    private const string Teal = "#1a6e7a";
+    private const string Navy = "#0e3b4a";
+    private const string Mint = "#cce4e6";
+    private const string Mustard = "#b8924a";
     private const int TitleFontSize = 20;
     private const int HeadingFontSize = 15;
     private const int BodyFontSize = 11;
@@ -30,7 +34,17 @@ public static class HtmlDocumentPdfComposer
     /// <summary>Composes and renders the given HTML document to PDF bytes.</summary>
     /// <param name="html">The fully HTML-encoded source document.</param>
     /// <returns>The rendered PDF byte stream (always begins with the <c>%PDF-</c> magic number).</returns>
-    public static byte[] Compose(string html)
+    public static byte[] Compose(string html) => Compose(html, null);
+
+    /// <summary>Composes and renders the given HTML document to PDF bytes with a running footer.</summary>
+    /// <param name="html">The fully HTML-encoded source document.</param>
+    /// <param name="footerLabel">The label to print beside the page number, or null for no footer.</param>
+    /// <returns>The rendered PDF byte stream (always begins with the <c>%PDF-</c> magic number).</returns>
+    /// <remarks>
+    /// A multi-page official report with no page numbering cannot be referred to in a meeting, and
+    /// a printed page carried nothing identifying which report it belonged to.
+    /// </remarks>
+    public static byte[] Compose(string html, string? footerLabel)
     {
         EmbeddedArabicFontProvider.EnsureRegistered();
 
@@ -48,6 +62,11 @@ public static class HtmlDocumentPdfComposer
                 page.ContentFromRightToLeft();
                 page.DefaultTextStyle(style => style.FontFamily(EmbeddedArabicFontProvider.FontFamily).FontSize(BodyFontSize).DirectionFromRightToLeft());
 
+                if (!string.IsNullOrWhiteSpace(footerLabel))
+                {
+                    ComposeFooter(page, footerLabel!);
+                }
+
                 page.Content().Column(column =>
                 {
                     column.Spacing(6);
@@ -60,15 +79,30 @@ public static class HtmlDocumentPdfComposer
         }).GeneratePdf();
     }
 
+    private static void ComposeFooter(PageDescriptor page, string label)
+    {
+        page.Footer().PaddingTop(8).BorderTop(1).BorderColor(Mint).PaddingTop(6).Row(row =>
+        {
+            row.RelativeItem().Text(label).FontSize(MetaFontSize - 1).FontColor(Teal);
+            row.ConstantItem(90).AlignLeft().Text(text =>
+            {
+                text.DefaultTextStyle(style => style.FontSize(MetaFontSize - 1).FontColor(Teal));
+                text.CurrentPageNumber();
+                text.Span(" / ");
+                text.TotalPages();
+            });
+        });
+    }
+
     private static void RenderBlock(ColumnDescriptor column, HtmlNode node)
     {
         switch (node.Name)
         {
             case "h1":
-                column.Item().Text(TextOf(node)).FontSize(TitleFontSize).Bold().FontColor(Colors.Blue.Darken3);
+                RenderTitle(column, node);
                 break;
             case "h2":
-                column.Item().PaddingTop(6).Text(TextOf(node)).FontSize(HeadingFontSize).Bold().FontColor(Colors.Blue.Darken2);
+                RenderHeading(column, node);
                 break;
             case "p":
                 RenderParagraph(column, node);
@@ -90,6 +124,23 @@ public static class HtmlDocumentPdfComposer
                 RenderChildren(column, node);
                 break;
         }
+    }
+
+    private static void RenderTitle(ColumnDescriptor column, HtmlNode node)
+    {
+        column.Item().Text(TextOf(node)).FontSize(TitleFontSize).Bold().FontColor(Navy);
+        column.Item().PaddingTop(4).LineHorizontal(2).LineColor(Teal);
+    }
+
+    // The section rule is drawn on the leading edge rather than set as a text colour alone: on a
+    // dense report the eye needs the sections to be findable while flicking through printed pages.
+    private static void RenderHeading(ColumnDescriptor column, HtmlNode node)
+    {
+        column.Item().PaddingTop(10).Row(row =>
+        {
+            row.ConstantItem(4).Background(Mustard);
+            row.RelativeItem().PaddingRight(8).Text(TextOf(node)).FontSize(HeadingFontSize).Bold().FontColor(Teal);
+        });
     }
 
     private static void RenderChildren(ColumnDescriptor column, HtmlNode node)
@@ -132,10 +183,20 @@ public static class HtmlDocumentPdfComposer
             return;
         }
 
-        IContainer container = classAttribute.Contains("meta", StringComparison.Ordinal)
-            ? column.Item().Background(Colors.Grey.Lighten3).Padding(8)
-            : column.Item();
-        container.Text(text).FontSize(classAttribute.Contains("meta", StringComparison.Ordinal) ? MetaFontSize : BodyFontSize);
+        if (classAttribute.Contains("meta", StringComparison.Ordinal))
+        {
+            column.Item().Background(Mint).Padding(8).Text(text).FontSize(MetaFontSize).FontColor(Navy);
+            return;
+        }
+
+        if (classAttribute.Contains("quote", StringComparison.Ordinal))
+        {
+            column.Item().BorderRight(4).BorderColor(Mustard).PaddingRight(10).PaddingVertical(4)
+                .Text(text).FontSize(BodyFontSize).Italic().FontColor(Navy);
+            return;
+        }
+
+        column.Item().Text(text).FontSize(BodyFontSize);
     }
 
     private static void RenderList(ColumnDescriptor column, HtmlNode node)
@@ -164,21 +225,53 @@ public static class HtmlDocumentPdfComposer
             return;
         }
 
+        var widths = ColumnWidths(node, columnCount);
+        HtmlNode? headerRow = rows[0].SelectNodes("./th") is { Count: > 0 } ? rows[0] : null;
         column.Item().Table(table =>
         {
             table.ColumnsDefinition(columns =>
             {
-                for (var i = 0; i < columnCount; i++)
+                foreach (var width in widths)
                 {
-                    columns.RelativeColumn();
+                    columns.RelativeColumn(width);
                 }
             });
 
-            foreach (HtmlNode row in rows)
+            RenderTableHeader(table, headerRow);
+            foreach (HtmlNode row in rows.Skip(headerRow is null ? 0 : 1))
             {
                 RenderTableRow(table, row);
             }
         });
+    }
+
+    // A table that runs past the page break left the next page's rows with no column labels, so
+    // the header row is handed to QuestPDF as a repeating header rather than as an ordinary row.
+    private static void RenderTableHeader(TableDescriptor table, HtmlNode? headerRow)
+    {
+        if (headerRow is null)
+        {
+            return;
+        }
+
+        table.Header(header =>
+        {
+            foreach (HtmlNode cell in headerRow.SelectNodes("./th|./td") ?? Enumerable.Empty<HtmlNode>())
+            {
+                RenderCell(header.Cell(), cell, true);
+            }
+        });
+    }
+
+    // Equal columns forced a headline into a four-line sliver beside a date column that needed a
+    // fraction of the width it was given, so each table declares the share every column needs.
+    private static float[] ColumnWidths(HtmlNode node, int columnCount)
+    {
+        var declared = node.GetAttributeValue("data-widths", string.Empty)
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(part => float.TryParse(part, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var value) && value > 0 ? value : 1f)
+            .ToArray();
+        return declared.Length == columnCount ? declared : Enumerable.Repeat(1f, columnCount).ToArray();
     }
 
     private static void RenderTableRow(TableDescriptor table, HtmlNode row)
@@ -186,16 +279,16 @@ public static class HtmlDocumentPdfComposer
         var isHeaderRow = row.SelectNodes("./th") is { Count: > 0 };
         foreach (HtmlNode cell in row.SelectNodes("./th|./td") ?? Enumerable.Empty<HtmlNode>())
         {
-            RenderTableCell(table, cell, isHeaderRow);
+            RenderCell(table.Cell(), cell, isHeaderRow);
         }
     }
 
-    private static void RenderTableCell(TableDescriptor table, HtmlNode cell, bool isHeaderRow)
+    private static void RenderCell(IContainer cell, HtmlNode node, bool isHeaderRow)
     {
-        var cellText = TextOf(cell);
+        var cellText = TextOf(node);
         IContainer styledCell = isHeaderRow
-            ? table.Cell().Background(Colors.Blue.Darken2).Padding(5)
-            : table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5);
+            ? cell.Background(Teal).Padding(5)
+            : cell.BorderBottom(1).BorderColor(Mint).Padding(5);
         QuestPDF.Fluent.TextSpanDescriptor cellSpan = styledCell.Text(cellText);
         if (isHeaderRow)
         {

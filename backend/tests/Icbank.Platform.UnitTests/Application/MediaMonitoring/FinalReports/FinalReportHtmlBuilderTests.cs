@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using FluentAssertions;
 using Icbank.Platform.Application.MediaMonitoring;
 using Icbank.Platform.Domain.MediaMonitoring;
@@ -59,5 +60,58 @@ public sealed class FinalReportHtmlBuilderTests
         var html = FinalReportHtmlBuilder.Build(detail);
 
         html.Should().NotContain("null");
+    }
+
+    /// <summary>
+    /// A reader who opens the exported report should not have to go back to the screen to see the
+    /// timeline, the tone breakdown, the analysis, the alerts, the quotes or the sources.
+    /// </summary>
+    [Fact]
+    public void Build_FullReport_CarriesEverySectionTheReportHolds()
+    {
+        FinalMediaReport report = FinalMediaReportTestData.BuildEntity(1);
+        FinalMediaReportDetailDto detail = FinalMediaReportMapper.ToDetailDto(report);
+
+        var html = FinalReportHtmlBuilder.Build(detail);
+
+        var expectedSections = new[]
+        {
+            "مؤشرات الفترة", "الملخص التنفيذي", "أبرز الأخبار", "الخط الزمني للتغطية", "الحضور الرقمي",
+            "الوسوم الأكثر استخداماً", "توزيع النبرة التحريرية", "تصنيف التغطية", "النبرة حسب المصدر",
+            "الكلمات المفتاحية", "تصريح بارز", "المقارنة الإقليمية", "التوصيات",
+            "التنبيهات والموقف المقترح", "ملحق التصريحات", "المنهجية", "المصادر",
+        };
+        expectedSections.Where(section => !html.Contains(section, StringComparison.Ordinal)).Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Build_FullReport_CarriesTheValuesOfEverySection()
+    {
+        FinalMediaReport report = FinalMediaReportTestData.BuildEntity(1);
+        FinalMediaReportDetailDto detail = FinalMediaReportMapper.ToDetailDto(report);
+
+        var html = FinalReportHtmlBuilder.Build(detail);
+
+        var expectedValues = new[] { "حدث", "#تجربة", "المنافسة", "اقتباس", "تنبيه", "موقف", "منهجية", "https://example.com" };
+        expectedValues.Where(value => !html.Contains(value, StringComparison.Ordinal)).Should().BeEmpty();
+    }
+
+    /// <summary>
+    /// Equal column shares squeezed a headline into a sliver beside a date column that needed a
+    /// fraction of the width it was given, so every table declares the share each column needs.
+    /// </summary>
+    [Fact]
+    public void Build_EveryTable_DeclaresAColumnWidthPerColumn()
+    {
+        FinalMediaReport report = FinalMediaReportTestData.BuildEntity(1);
+        FinalMediaReportDetailDto detail = FinalMediaReportMapper.ToDetailDto(report);
+
+        var html = FinalReportHtmlBuilder.Build(detail);
+
+        MatchCollection tables = Regex.Matches(html, "<table data-widths=\"([^\"]+)\"><tr>(.+?)</tr>", RegexOptions.Singleline);
+        tables.Should().NotBeEmpty();
+        tables.Where(table =>
+            table.Groups[1].Value.Split(',').Length != Regex.Matches(table.Groups[2].Value, "<th>").Count)
+            .Should().BeEmpty();
     }
 }

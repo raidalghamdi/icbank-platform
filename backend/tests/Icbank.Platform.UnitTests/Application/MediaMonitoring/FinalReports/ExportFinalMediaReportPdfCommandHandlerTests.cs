@@ -30,13 +30,13 @@ public sealed class ExportFinalMediaReportPdfCommandHandlerTests
         FinalMediaReport report = FinalMediaReportTestData.BuildEntity(1);
         _dbContext.FinalMediaReports.Returns(new[] { report }.AsQueryable());
         var expectedBytes = Encoding.UTF8.GetBytes("%PDF-fake");
-        _pdfRenderer.RenderAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(expectedBytes);
+        _pdfRenderer.RenderAsync(Arg.Any<string>(), Arg.Any<string?>(), Arg.Any<CancellationToken>()).Returns(expectedBytes);
 
         Result<byte[]> result = await _handler.Handle(new ExportFinalMediaReportPdfCommand(1), CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeEquivalentTo(expectedBytes);
-        await _pdfRenderer.Received(1).RenderAsync(Arg.Is<string>(html => html.Contains(report.Title)), Arg.Any<CancellationToken>());
+        await _pdfRenderer.Received(1).RenderAsync(Arg.Is<string>(html => html.Contains(report.Title)), Arg.Any<string?>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -47,6 +47,6 @@ public sealed class ExportFinalMediaReportPdfCommandHandlerTests
         Result<byte[]> result = await _handler.Handle(new ExportFinalMediaReportPdfCommand(404), CancellationToken.None);
 
         result.IsSuccess.Should().BeFalse();
-        await _pdfRenderer.DidNotReceive().RenderAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await _pdfRenderer.DidNotReceive().RenderAsync(Arg.Any<string>(), Arg.Any<string?>(), Arg.Any<CancellationToken>());
     }
 }

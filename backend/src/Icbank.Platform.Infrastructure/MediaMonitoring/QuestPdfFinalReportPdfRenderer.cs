@@ -15,10 +15,10 @@ namespace Icbank.Platform.Infrastructure.MediaMonitoring;
 public sealed class QuestPdfFinalReportPdfRenderer : IFinalReportPdfRenderer
 {
     /// <inheritdoc />
-    public async Task<byte[]> RenderAsync(string html, CancellationToken cancellationToken)
+    public async Task<byte[]> RenderAsync(string html, string? footerLabel, CancellationToken cancellationToken)
     {
         RenderingGuard.EnsureWithinLimit(System.Text.Encoding.UTF8.GetByteCount(html), "Final report HTML input");
-        var pdfBytes = await RenderingGuard.RunWithTimeoutAsync(() => HtmlDocumentPdfComposer.Compose(html), cancellationToken);
+        var pdfBytes = await RenderingGuard.RunWithTimeoutAsync(() => HtmlDocumentPdfComposer.Compose(html, footerLabel), cancellationToken);
         RenderingGuard.EnsureWithinLimit(pdfBytes.LongLength, "Rendered final report PDF");
         return pdfBytes;
     }

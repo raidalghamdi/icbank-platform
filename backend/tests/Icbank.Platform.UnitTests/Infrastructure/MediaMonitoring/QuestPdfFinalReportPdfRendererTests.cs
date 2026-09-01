@@ -15,7 +15,7 @@ public sealed class QuestPdfFinalReportPdfRendererTests
     {
         var html = "<html><body><h1>تقرير الرصد الإعلامي</h1><p>ملخص الفترة</p></body></html>";
 
-        var pdfBytes = await _renderer.RenderAsync(html, CancellationToken.None);
+        var pdfBytes = await _renderer.RenderAsync(html, "GAC-MEDIA-1/2026", CancellationToken.None);
 
         pdfBytes.Should().NotBeEmpty();
         System.Text.Encoding.ASCII.GetString(pdfBytes, 0, 5).Should().Be("%PDF-");
@@ -26,7 +26,7 @@ public sealed class QuestPdfFinalReportPdfRendererTests
     {
         var oversizedHtml = new string('س', 30 * 1024 * 1024);
 
-        Func<Task> act = async () => await _renderer.RenderAsync(oversizedHtml, CancellationToken.None);
+        Func<Task> act = async () => await _renderer.RenderAsync(oversizedHtml, null, CancellationToken.None);
 
         await act.Should().ThrowAsync<RenderingValidationException>();
     }
