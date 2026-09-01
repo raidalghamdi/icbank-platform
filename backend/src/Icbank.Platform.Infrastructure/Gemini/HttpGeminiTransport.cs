@@ -48,7 +48,7 @@ public sealed class HttpGeminiTransport : IGeminiTransport
         return ParseResponse(body, request.Model);
     }
 
-    private static Dictionary<string, object> BuildBody(GeminiGenerationRequest request)
+    private static Dictionary<string, object> BuildGenerationConfig(GeminiGenerationRequest request)
     {
         var generationConfig = new Dictionary<string, object>
         {
@@ -60,11 +60,26 @@ public sealed class HttpGeminiTransport : IGeminiTransport
             generationConfig["responseMimeType"] = request.ResponseMimeType;
         }
 
+        if (request.ThinkingBudget is int thinkingBudget)
+        {
+            // Reasoning tokens are billed against maxOutputTokens on the 2.5 models, so an
+            // uncapped budget on a long structured answer is not just slow -- it is the reason a
+            // flash fallback would burn 7,400 tokens thinking and then emit a JSON fragment that
+            // could not be parsed, sending the whole model chain round again.
+            generationConfig["thinkingConfig"] = new Dictionary<string, object> { ["thinkingBudget"] = thinkingBudget };
+        }
+
         if (request.Model.Contains("image", StringComparison.OrdinalIgnoreCase))
         {
             generationConfig["responseModalities"] = new[] { "IMAGE", "TEXT" };
         }
 
+        return generationConfig;
+    }
+
+    private static Dictionary<string, object> BuildBody(GeminiGenerationRequest request)
+    {
+        Dictionary<string, object> generationConfig = BuildGenerationConfig(request);
         var body = new Dictionary<string, object>
         {
             ["contents"] = new[] { new { role = "user", parts = new[] { new { text = request.UserPrompt } } } },

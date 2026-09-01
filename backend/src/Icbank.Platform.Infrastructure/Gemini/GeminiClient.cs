@@ -99,7 +99,7 @@ public sealed class GeminiClient : IGeminiClient
     public async Task<GeminiGenerationResult> GenerateImageAsync(string prompt, GeminiCallOptions options, CancellationToken cancellationToken)
     {
         var request = new GeminiGenerationRequest(
-            options.Model, options.SystemInstruction, prompt, options.MaxOutputTokens, options.Temperature, UseGoogleSearchTool: false, ResponseMimeType: null);
+            options.Model, options.SystemInstruction, prompt, options.MaxOutputTokens, options.Temperature, UseGoogleSearchTool: false, ResponseMimeType: null, options.ThinkingBudget);
 
         (GeminiGenerationResult? Result, Exception? Error) outcome = await TryModelAsync(request, cancellationToken).ConfigureAwait(false);
         if (outcome.Result is null)
@@ -147,7 +147,7 @@ public sealed class GeminiClient : IGeminiClient
         {
             var model = chain[modelIndex];
             var request = new GeminiGenerationRequest(
-                model, options.SystemInstruction, prompt, options.MaxOutputTokens, options.Temperature, options.UseGoogleSearchTool, ResponseMimeType: null);
+                model, options.SystemInstruction, prompt, options.MaxOutputTokens, options.Temperature, options.UseGoogleSearchTool, ResponseMimeType: null, options.ThinkingBudget);
 
             (GeminiGenerationResult? Result, Exception? Error) outcome = await TryModelAsync(request, cancellationToken).ConfigureAwait(false);
             if (outcome.Result is not null)

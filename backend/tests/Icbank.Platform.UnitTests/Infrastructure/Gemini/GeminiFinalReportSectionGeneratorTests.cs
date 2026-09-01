@@ -44,6 +44,21 @@ public sealed class GeminiFinalReportSectionGeneratorTests
     }
 
     [Fact]
+    public async Task GenerateAsync_CapsThinkingBudget_SoReasoningTokensCannotStarveTheJsonAnswer()
+    {
+        _client
+            .GenerateJsonAsync(Arg.Any<string>(), Arg.Any<GeminiCallOptions>(), Arg.Any<CancellationToken>())
+            .Returns(GeminiTestResults.Text("{}"));
+
+        await _sut.GenerateAsync("١-٧ يناير", "manager", null, "بيانات", CancellationToken.None);
+
+        await _client.Received(1).GenerateJsonAsync(
+            Arg.Any<string>(),
+            Arg.Is<GeminiCallOptions>(o => o.ThinkingBudget == 512),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
     public async Task GenerateAsync_BuildsVerbatimPrompt_WithPeriodAudienceAndFeedInterpolated()
     {
         _client

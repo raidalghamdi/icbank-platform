@@ -15,6 +15,9 @@ namespace Icbank.Platform.Infrastructure.MediaMonitoring;
 /// </summary>
 public sealed class GeminiFinalReportSectionGenerator : IFinalReportSectionGenerator
 {
+    /// <summary>The reasoning-token cap applied to the report call. See the comment at the call site for the measurements behind the number.</summary>
+    private const int ReportThinkingBudget = 512;
+
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
     private readonly IGeminiClient _client;
@@ -34,7 +37,15 @@ public sealed class GeminiFinalReportSectionGenerator : IFinalReportSectionGener
         string periodLabel, string audience, string? focusTopics, string formattedFeed, CancellationToken cancellationToken)
     {
         var prompt = FinalReportPromptTemplate.Build(periodLabel, audience, focusTopics, formattedFeed);
-        var callOptions = new GeminiCallOptions(_options.ProModel, MaxOutputTokens: 8192);
+
+        // Measured against the live prompt on 2026-09-01: gemini-2.5-pro with its dynamic
+        // reasoning budget took 66 s and the endpoint 75-85 s end to end, which reads as a hung
+        // button. Capping the budget cut the same call to 35 s with all thirteen sections intact,
+        // and it fixed a worse failure on the fallback leg: uncapped gemini-2.5-flash spent 7,403
+        // of the 8,192 allowed tokens thinking, returned truncated JSON, failed to parse, and sent
+        // GenerateJsonAsync round the whole four-model chain again -- minutes of waiting ending in
+        // an error. Capped, that same fallback answers in 18 s and parses.
+        var callOptions = new GeminiCallOptions(_options.ProModel, MaxOutputTokens: 8192, ThinkingBudget: ReportThinkingBudget);
         GeminiGenerationResult result = await _client.GenerateJsonAsync(prompt, callOptions, cancellationToken).ConfigureAwait(false);
 
         FinalReportSectionsJsonDto dto = JsonSerializer.Deserialize<FinalReportSectionsJsonDto>(result.Text, JsonOptions)

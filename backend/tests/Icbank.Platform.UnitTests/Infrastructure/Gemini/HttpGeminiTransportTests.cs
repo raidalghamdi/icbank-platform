@@ -185,6 +185,30 @@ public sealed class HttpGeminiTransportTests
             .Which.Message.Should().Contain("503").And.Contain("overloaded");
     }
 
+    [Fact]
+    public async Task GenerateContentAsync_ThinkingBudgetSet_SendsThinkingConfigInGenerationConfig()
+    {
+        var handler = new StubHttpMessageHandler(SimpleTextBody("ok"));
+        HttpGeminiTransport transport = BuildTransport(handler);
+        var request = new GeminiGenerationRequest(
+            "gemini-2.5-pro", SystemInstruction: null, "prompt", 8192, 0.7, UseGoogleSearchTool: false, ResponseMimeType: null, ThinkingBudget: 512);
+
+        await transport.GenerateContentAsync(ApiKey, request, CancellationToken.None);
+
+        handler.LastRequestBody.Should().Contain("\"thinkingConfig\"").And.Contain("\"thinkingBudget\":512");
+    }
+
+    [Fact]
+    public async Task GenerateContentAsync_NoThinkingBudget_OmitsThinkingConfigEntirely()
+    {
+        var handler = new StubHttpMessageHandler(SimpleTextBody("ok"));
+        HttpGeminiTransport transport = BuildTransport(handler);
+
+        await transport.GenerateContentAsync(ApiKey, PlainRequest, CancellationToken.None);
+
+        handler.LastRequestBody.Should().NotContain("thinkingConfig");
+    }
+
     private static string SimpleTextBody(string text) =>
         $$"""{ "candidates": [ { "content": { "parts": [ { "text": "{{text}}" } ] } } ] }""";
 

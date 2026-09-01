@@ -8,6 +8,7 @@ namespace Icbank.Platform.Infrastructure.Gemini;
 /// <param name="Temperature">Maps to <c>generationConfig.temperature</c>. Node default: 0.7.</param>
 /// <param name="UseGoogleSearchTool">When <c>true</c>, includes the <c>google_search</c> tool so Gemini may ground its answer in a live web search.</param>
 /// <param name="ResponseMimeType">Optional <c>generationConfig.responseMimeType</c> (e.g. <c>application/json</c>), or <c>null</c> for plain text.</param>
+/// <param name="ThinkingBudget">Optional <c>generationConfig.thinkingConfig.thinkingBudget</c>; <c>null</c> omits the node entirely and leaves the model's dynamic default in place.</param>
 public sealed record GeminiGenerationRequest(
     string Model,
     string? SystemInstruction,
@@ -15,4 +16,5 @@ public sealed record GeminiGenerationRequest(
     int MaxOutputTokens,
     double Temperature,
     bool UseGoogleSearchTool,
-    string? ResponseMimeType);
+    string? ResponseMimeType,
+    int? ThinkingBudget = null);
