@@ -1,4 +1,5 @@
 using Icbank.Platform.Domain.AiYear;
+using Icbank.Platform.Domain.Campaigns;
 using Icbank.Platform.Domain.Designs;
 using Icbank.Platform.Domain.Gac;
 using Icbank.Platform.Domain.Identity;
@@ -59,6 +60,15 @@ public interface IApplicationDbContext
 
     /// <summary>Gets a queryable over ingested daily-report payloads (Wave 1: Daily Report).</summary>
     IQueryable<DailyReport> DailyReports { get; }
+
+    /// <summary>Gets a queryable over the department's tracked internal and external campaigns.</summary>
+    IQueryable<Campaign> Campaigns { get; }
+
+    /// <summary>Gets a queryable over the headline outputs behind each tracked campaign.</summary>
+    IQueryable<CampaignDeliverable> CampaignDeliverables { get; }
+
+    /// <summary>Gets a queryable over the channels each tracked campaign publishes through.</summary>
+    IQueryable<CampaignChannel> CampaignChannels { get; }
 
     /// <summary>Gets a queryable over the department's tracked project portfolio.</summary>
     IQueryable<PortfolioProject> PortfolioProjects { get; }

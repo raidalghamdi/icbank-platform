@@ -287,16 +287,26 @@ jobs:
           curl -sS -H 'Cookie: has_session=1' "$BASE/" -o shell.html
           FAILED=0
 
-          # Collapsible nav groups: eight real buttons carrying persistence keys
-          # (نظرة عامة، الرصد والمشهد الإعلامي، التقويم الاتصالي، الإصدارات الداخلية،
+          # Collapsible nav groups: nine real buttons carrying persistence keys
+          # (نظرة عامة، الرصد والمشهد الإعلامي، التقويم الاتصالي، الإصدارات الداخلية، الحملات،
           #  أجندة الشهر، التواصل الداخلي، المحتوى والتصاميم، الإدارة).
           COUNT=$(grep -o 'data-group-key=' shell.html | wc -l)
-          if [ "$COUNT" -ne 8 ]; then
-            echo "::error::expected 8 collapsible nav groups, served shell has $COUNT"
+          if [ "$COUNT" -ne 9 ]; then
+            echo "::error::expected 9 collapsible nav groups, served shell has $COUNT"
             FAILED=1
           else
-            echo "OK   8 collapsible nav groups"
+            echo "OK   9 collapsible nav groups"
           fi
+
+          # قسم الحملات: صفحتان + لوحة المتابعة التنفيذية على الصفحة الرئيسية.
+          for TOKEN in 'section-internal_campaigns' 'section-external_campaigns' 'xb-meters' 'CMP.goto('; do
+            if ! grep -qF "$TOKEN" shell.html; then
+              echo "::error::served shell is missing required token: $TOKEN"
+              FAILED=1
+            else
+              echo "OK   found $TOKEN"
+            fi
+          done
 
           # The off-canvas drawer must be parked with a transform, not a negative offset:
           # a negative offset enlarges the scroll area and widens the mobile layout viewport.

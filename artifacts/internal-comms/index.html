@@ -1880,6 +1880,136 @@ button.home-row:hover { border-color:var(--primary-100); background:var(--primar
   .pf-band { padding: 14px; }
 }
 
+/* ══════════════════════════════════
+   CAMPAIGNS — الحملات الداخلية والخارجية
+   Two pages share one module, so every rule is audience-agnostic. The board furniture (band,
+   KPIs, filter chips, grid, skeleton) is reused from the project tracker above rather than
+   duplicated, and only the parts unique to a campaign are defined here.
+══════════════════════════════════ */
+.cmp-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-top: 3px solid var(--primary);
+  padding: 16px 18px; display: flex; flex-direction: column; gap: 12px;
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+.cmp-card:hover { box-shadow: var(--shadow-md); }
+.cmp-card.st-upcoming     { border-top-color: var(--info); }
+.cmp-card.st-under_review { border-top-color: var(--warning); }
+.cmp-card.st-completed    { border-top-color: var(--success); }
+
+.cmp-status {
+  margin-right: auto; font-size: 10.5px; font-weight: 700; padding: 3px 9px;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.cmp-status::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.cmp-status.st-running      { background: var(--success-bg);  color: var(--success); }
+.cmp-status.st-upcoming     { background: var(--info-bg);     color: var(--info); }
+.cmp-status.st-under_review { background: var(--warning-bg);  color: var(--warning); }
+.cmp-status.st-completed    { background: var(--primary-50);  color: var(--primary); }
+
+.cmp-card.st-upcoming     .pf-prog-fill { background: var(--info); }
+.cmp-card.st-under_review .pf-prog-fill { background: var(--warning); }
+.cmp-card.st-completed    .pf-prog-fill { background: var(--success); }
+
+.cmp-ana { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; border-top: 1px solid var(--border-subtle); padding-top: 11px; }
+.cmp-ana-cell { display: flex; flex-direction: column; gap: 2px; }
+.cmp-ana-val { font-size: 15px; font-weight: 700; color: var(--text); font-family: var(--mono); direction: ltr; }
+.cmp-ana-lbl { font-size: 10.5px; color: var(--text-4); font-weight: 600; }
+
+.cmp-chans { display: flex; flex-wrap: wrap; gap: 6px; }
+.cmp-chan { font-size: 10.5px; font-weight: 700; padding: 3px 9px; background: var(--surface-2); color: var(--text-2); }
+.cmp-chan b { font-family: var(--mono); color: var(--primary); font-weight: 700; }
+
+.cmp-card-foot { display: flex; align-items: center; gap: 8px; border-top: 1px solid var(--border-subtle); padding-top: 11px; }
+.cmp-card-foot .cmp-latest { font-size: 11.5px; color: var(--text-3); line-height: 1.6; }
+
+/* تفاصيل الحملة — يحل محل الشبكة داخل الصفحة نفسها بدل صفحة منفصلة، فتُورَث الصلاحية كما هي. */
+.cmp-detail { display: flex; flex-direction: column; gap: 14px; }
+.cmp-back { align-self: flex-start; }
+.cmp-dt-head {
+  background: var(--surface); border: 1px solid var(--border); border-top: 3px solid var(--primary);
+  padding: 18px 20px; display: flex; flex-direction: column; gap: 12px;
+}
+.cmp-dt-head.st-upcoming     { border-top-color: var(--info); }
+.cmp-dt-head.st-under_review { border-top-color: var(--warning); }
+.cmp-dt-head.st-completed    { border-top-color: var(--success); }
+.cmp-dt-title { font-size: 18px; font-weight: 700; color: var(--text); line-height: 1.5; }
+.cmp-dt-obj { font-size: 12.5px; color: var(--text-2); line-height: 1.8; }
+.cmp-panel { background: var(--surface); border: 1px solid var(--border); padding: 18px 20px; display: flex; flex-direction: column; gap: 12px; }
+.cmp-panel-title { font-size: 13.5px; font-weight: 700; color: var(--text); }
+.cmp-two { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
+.cmp-chan-row { display: grid; grid-template-columns: 1fr 52px; gap: 6px 10px; align-items: center; }
+.cmp-chan-name { font-size: 12.5px; color: var(--text-2); font-weight: 600; }
+.cmp-chan-share { font-size: 12px; font-family: var(--mono); color: var(--primary); font-weight: 700; text-align: left; direction: ltr; unicode-bidi: isolate; }
+.cmp-chan-bar { display: block; grid-column: 1 / -1; height: 6px; background: var(--surface-2); overflow: hidden; }
+.cmp-chan-fill { display: block; height: 100%; background: var(--primary); width: 0; transition: width 0.55s cubic-bezier(.4,0,.2,1); }
+.cmp-chan-meta { grid-column: 1 / -1; font-size: 11px; color: var(--text-4); }
+.cmp-chan-list { display: flex; flex-direction: column; gap: 14px; }
+
+@media (max-width: 767.98px) {
+  .cmp-ana { grid-template-columns: repeat(2, 1fr); }
+  .cmp-two { grid-template-columns: 1fr; }
+}
+
+/* ══════════════════════════════════
+   EXECUTIVE BOARD — لوحة المتابعة التنفيذية على الصفحة الرئيسية
+   Answers three questions above the fold: ما نعمل عليه الآن، نسبة الإنجاز، وما القادم.
+   Every tile is a real button that routes to the page that owns the record.
+══════════════════════════════════ */
+/* Visible to screen readers only — the board's heading is announced without competing with the
+   masthead visually. */
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}
+.xb { display: flex; flex-direction: column; gap: 14px; margin: 0 0 26px; }
+.xb-meters { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.xb-meter {
+  background: var(--surface); border: 1px solid var(--border); border-top: 3px solid var(--primary);
+  padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; text-align: right;
+  font: inherit; cursor: pointer; transition: box-shadow 0.15s, border-color 0.15s;
+}
+.xb-meter:hover { box-shadow: var(--shadow-md); border-color: var(--border-strong); }
+.xb-meter-hd { display: flex; align-items: center; gap: 8px; }
+.xb-meter-lbl { font-size: 12px; font-weight: 700; color: var(--text-3); }
+.xb-meter-go { margin-right: auto; font-size: 11px; color: var(--primary); font-weight: 700; }
+.xb-meter-val { font-size: 30px; font-weight: 700; color: var(--text); font-family: var(--mono); line-height: 1; direction: ltr; }
+.xb-meter-sub { font-size: 11.5px; color: var(--text-4); line-height: 1.6; }
+/* Both the track and its fill are spans (a <button> may not contain a <div>), so each is
+   explicitly blockified — an inline element ignores width and height. */
+.xb-bar { display: block; height: 8px; background: var(--surface-2); overflow: hidden; }
+.xb-bar-fill { display: block; height: 100%; background: var(--primary); width: 0; transition: width 0.6s cubic-bezier(.4,0,.2,1); }
+
+.xb-cols { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; align-items: start; }
+.xb-panel { background: var(--surface); border: 1px solid var(--border); padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; }
+.xb-panel-hd { display: flex; align-items: baseline; gap: 8px; }
+.xb-panel-title { font-size: 13.5px; font-weight: 700; color: var(--text); }
+.xb-panel-note { margin-right: auto; font-size: 11px; color: var(--text-4); }
+.xb-list { display: flex; flex-direction: column; gap: 8px; }
+.xb-row {
+  display: grid; grid-template-columns: 46px 1fr auto; gap: 10px; align-items: center;
+  background: var(--bg); border: 1px solid var(--border-subtle); padding: 10px 12px;
+  font: inherit; text-align: right; cursor: pointer; transition: border-color 0.12s, background 0.12s;
+}
+.xb-row:hover { border-color: var(--primary); background: var(--primary-50); }
+.xb-row-pct { font-size: 13px; font-weight: 700; color: var(--primary); background: var(--primary-100); padding: 5px 0; text-align: center; font-family: var(--mono); direction: ltr; }
+.xb-row-day { font-size: 12px; font-weight: 700; color: var(--text-2); background: var(--surface-2); padding: 5px 0; text-align: center; line-height: 1.25; }
+.xb-row-day small { display: block; font-size: 9.5px; font-weight: 600; color: var(--text-4); }
+.xb-row-body { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.xb-row-title { font-size: 12.5px; font-weight: 700; color: var(--text); line-height: 1.55; }
+.xb-row-meta { font-size: 11px; color: var(--text-4); }
+.xb-row-tail { font-size: 10.5px; font-weight: 700; padding: 3px 9px; background: var(--surface-2); color: var(--text-2); white-space: nowrap; }
+.xb-row-tail.st-running      { background: var(--success-bg); color: var(--success); }
+.xb-row-tail.st-upcoming     { background: var(--info-bg);    color: var(--info); }
+.xb-row-tail.st-under_review { background: var(--warning-bg); color: var(--warning); }
+.xb-row-tail.st-completed    { background: var(--primary-50); color: var(--primary); }
+.xb-empty { font-size: 12px; color: var(--text-4); padding: 6px 0; }
+
+@media (max-width: 1023.98px) {
+  .xb-meters { grid-template-columns: 1fr; }
+  .xb-cols { grid-template-columns: 1fr; }
+}
+
 /* Loading / empty states */
 .loading-wrap { display: flex; flex-direction: column; align-items: center; padding: 60px 40px; gap: 14px; }
 .spinner {
@@ -3656,6 +3786,17 @@ button.home-row:hover { border-color:var(--primary-100); background:var(--primar
       </div>
     </div>
 
+    <div class="sidebar-section is-collapsed" data-nav-group data-group-key="campaigns">
+      <button type="button" class="sidebar-section-title" aria-expanded="false" aria-controls="navgrp-campaigns" onclick="navToggleGroup(this)">
+        <span class="sidebar-section-label">الحملات</span>
+        <span class="sidebar-section-chevron ico" aria-hidden="true"><svg><use href="#i-chevron-down"/></svg></span>
+      </button>
+      <div class="sidebar-nav" id="navgrp-campaigns" role="group" aria-label="الحملات">
+        <a class="nav-item" data-page="internal_campaigns" onclick="showSection('internal_campaigns')"><span class="ico"><svg><use href="#i-message"/></svg></span><span>الحملات الداخلية</span><span class="nav-item-count" id="cmp-internal-nav-count">—</span></a>
+        <a class="nav-item" data-page="external_campaigns" onclick="showSection('external_campaigns')"><span class="ico"><svg><use href="#i-megaphone"/></svg></span><span>الحملات الخارجية</span><span class="nav-item-count" id="cmp-external-nav-count">—</span></a>
+      </div>
+    </div>
+
     <div class="sidebar-section is-collapsed" data-nav-group data-group-key="agenda">
       <button type="button" class="sidebar-section-title" aria-expanded="false" aria-controls="navgrp-agenda" onclick="navToggleGroup(this)">
         <span class="sidebar-section-label">أجندة الشهر</span>
@@ -3772,6 +3913,99 @@ button.home-row:hover { border-color:var(--primary-100); background:var(--primar
   <main class="main">
   <div class="main-inner">
 
+
+  <!-- ══════════════════════════════════
+       CAMPAIGNS PAGE — الحملات الداخلية
+       List and detail live in the same page-section so the detail view inherits the page's
+       permission check instead of needing a slug of its own in PAGE_PERM_MAP.
+  ══════════════════════════════════ -->
+  <div class="page-section" id="section-internal_campaigns">
+
+    <div class="page-head">
+      <div>
+        <h1 class="page-title">الحملات الداخلية</h1>
+        <p class="page-sub">الحملات الموجّهة لموظفي الهيئة — الحالة، نسبة الإنجاز، المدة، المسؤول، أبرز المخرجات، القنوات، والتحليلات.</p>
+      </div>
+      <div class="page-actions">
+        <button class="btn btn-primary" onclick="CMP.reload('internal')">
+          <span class="ico"><svg><use href="#i-refresh"/></svg></span>
+          <span>تحديث</span>
+        </button>
+      </div>
+    </div>
+
+    <div id="cmp-internal-skeleton" class="pf-skel" aria-hidden="true">
+      <div class="pf-skel-card"></div><div class="pf-skel-card"></div><div class="pf-skel-card"></div>
+    </div>
+
+    <div id="cmp-internal-error" class="empty-state" style="display:none;">
+      <div class="empty-icon" aria-hidden="true">⚠</div>
+      <div class="empty-title">تعذر تحميل الحملات</div>
+      <div class="empty-sub">تحقق من الاتصال ثم اضغط «تحديث».</div>
+    </div>
+
+    <div id="cmp-internal-board" class="pf-track" style="display:none;">
+      <div class="pf-band">
+        <div class="pf-band-hd">
+          <div class="pf-band-title">لوحة الحملات الداخلية</div>
+          <div class="pf-band-sub">مؤشرات محتسبة من بيانات كل حملة ومخرجاتها وقنواتها</div>
+          <div class="pf-band-stamp" id="cmp-internal-stamp">—</div>
+        </div>
+        <div class="pf-kpis" id="cmp-internal-kpis"></div>
+        <div class="pf-filters filter-tabs-row" id="cmp-internal-filters"></div>
+      </div>
+      <div class="pf-grid" id="cmp-internal-grid"></div>
+    </div>
+
+    <div id="cmp-internal-detail" class="cmp-detail" style="display:none;"></div>
+  </div>
+
+  <!-- ══════════════════════════════════
+       CAMPAIGNS PAGE — الحملات الخارجية
+       List and detail live in the same page-section so the detail view inherits the page's
+       permission check instead of needing a slug of its own in PAGE_PERM_MAP.
+  ══════════════════════════════════ -->
+  <div class="page-section" id="section-external_campaigns">
+
+    <div class="page-head">
+      <div>
+        <h1 class="page-title">الحملات الخارجية</h1>
+        <p class="page-sub">الحملات الموجّهة للجمهور والقطاع — الحالة، نسبة الإنجاز، المدة، المسؤول، أبرز المخرجات، القنوات، والتحليلات.</p>
+      </div>
+      <div class="page-actions">
+        <button class="btn btn-primary" onclick="CMP.reload('external')">
+          <span class="ico"><svg><use href="#i-refresh"/></svg></span>
+          <span>تحديث</span>
+        </button>
+      </div>
+    </div>
+
+    <div id="cmp-external-skeleton" class="pf-skel" aria-hidden="true">
+      <div class="pf-skel-card"></div><div class="pf-skel-card"></div><div class="pf-skel-card"></div>
+    </div>
+
+    <div id="cmp-external-error" class="empty-state" style="display:none;">
+      <div class="empty-icon" aria-hidden="true">⚠</div>
+      <div class="empty-title">تعذر تحميل الحملات</div>
+      <div class="empty-sub">تحقق من الاتصال ثم اضغط «تحديث».</div>
+    </div>
+
+    <div id="cmp-external-board" class="pf-track" style="display:none;">
+      <div class="pf-band">
+        <div class="pf-band-hd">
+          <div class="pf-band-title">لوحة الحملات الخارجية</div>
+          <div class="pf-band-sub">مؤشرات محتسبة من بيانات كل حملة ومخرجاتها وقنواتها</div>
+          <div class="pf-band-stamp" id="cmp-external-stamp">—</div>
+        </div>
+        <div class="pf-kpis" id="cmp-external-kpis"></div>
+        <div class="pf-filters filter-tabs-row" id="cmp-external-filters"></div>
+      </div>
+      <div class="pf-grid" id="cmp-external-grid"></div>
+    </div>
+
+    <div id="cmp-external-detail" class="cmp-detail" style="display:none;"></div>
+  </div>
+
   <!-- ══════════════════════════════════
        REPORTS PAGE — الأداء التنفيذي
   ══════════════════════════════════ -->
@@ -3881,6 +4115,52 @@ button.home-row:hover { border-color:var(--primary-100); background:var(--primar
         <h1 class="hl-name" id="hl-name"></h1>
         <p class="hl-affil" id="hl-affil" hidden></p>
       </header>
+
+      <!-- ══════════════════════════════════
+           لوحة المتابعة التنفيذية — ما الذي نعمل عليه الآن؟ ما نسبة الإنجاز؟ وما القادم؟
+           Everything here is a button that routes to the page that owns the record, so the board
+           is an entry point rather than a read-only summary. Values come from the same endpoints
+           the owning pages use; nothing is sample data.
+      ══════════════════════════════════ -->
+      <section class="xb" id="xb-board" aria-labelledby="xb-title">
+        <h2 id="xb-title" class="sr-only">لوحة المتابعة التنفيذية</h2>
+
+        <div class="xb-meters" id="xb-meters"></div>
+
+        <div class="xb-cols">
+          <div class="xb-panel">
+            <div class="xb-panel-hd">
+              <span class="xb-panel-title">أهم المشاريع القائمة</span>
+              <span class="xb-panel-note" id="xb-projects-note">—</span>
+            </div>
+            <div class="xb-list" id="xb-projects"></div>
+          </div>
+          <div class="xb-panel">
+            <div class="xb-panel-hd">
+              <span class="xb-panel-title">أهم الحملات القائمة</span>
+              <span class="xb-panel-note" id="xb-campaigns-note">داخلية وخارجية</span>
+            </div>
+            <div class="xb-list" id="xb-campaigns"></div>
+          </div>
+        </div>
+
+        <div class="xb-cols">
+          <div class="xb-panel">
+            <div class="xb-panel-hd">
+              <span class="xb-panel-title">الأيام والمناسبات المهمة القادمة</span>
+              <span class="xb-panel-note">وطنية ورسمية وعالمية</span>
+            </div>
+            <div class="xb-list" id="xb-occasions"></div>
+          </div>
+          <div class="xb-panel">
+            <div class="xb-panel-hd">
+              <span class="xb-panel-title">الفعاليات القادمة</span>
+              <span class="xb-panel-note">داخلية وخارجية</span>
+            </div>
+            <div class="xb-list" id="xb-events"></div>
+          </div>
+        </div>
+      </section>
 
       <!-- مهامي المسندة إليّ: real شُرفة section assignments for this user, never sample data. -->
       <section class="hl-section" aria-labelledby="hl-tasks-title">
@@ -8097,8 +8377,10 @@ const PAGE_LABELS = {
   prompts_lib:'مكتبة الأوامر',
   places:'مكتبة الأماكن المقترحة',
   icon_event_studio:'التصميم السريع بالأيقونات',
-  // Labels for internal_requests, external_requests, internal_campaigns,
-  // change_campaigns, external_campaigns, social_platforms, press_releases,
+  internal_campaigns:'الحملات الداخلية',
+  external_campaigns:'الحملات الخارجية',
+  // Labels for internal_requests, external_requests,
+  // change_campaigns, social_platforms, press_releases,
   // media_coverage, performance_reports and initiatives were removed: those
   // page-sections no longer exist in this file, so the entries were unreachable.
 };
@@ -8192,6 +8474,8 @@ function showSection(name) {
   if (name === 'shorfah') shorfahInit();
   if (name === 'media_monitoring') MM.load();
   if (name === 'prompts_lib') PL.load();
+  if (name === 'internal_campaigns') CMP.load('internal');
+  if (name === 'external_campaigns') CMP.load('external');
   navUpdateBackBtn();
   navRevealActiveGroup();
 }
@@ -8934,12 +9218,216 @@ async function homeFillSealIssue() {
   } catch (e) { /* the seal simply stays without an issue line */ }
 }
 
+// ════════════════════════════════════════
+// EXECUTIVE BOARD — لوحة المتابعة التنفيذية على الصفحة الرئيسية
+// Answers three questions in one screen: ما الذي نعمل عليه الآن، ما نسبة الإنجاز، وما القادم.
+// Each block loads independently so one slow or forbidden endpoint never blanks the others, and
+// every row routes into the page that owns the record instead of restating it here.
+// ════════════════════════════════════════
+var XB_MAX_ROWS = 4;
+
+function xbEmpty(text) {
+  return '<div class="xb-empty">' + homeEsc(text) + '</div>';
+}
+
+function xbFill(id, html) {
+  var host = document.getElementById(id);
+  if (!host) return;
+  host.innerHTML = html;
+  requestAnimationFrame(function() {
+    host.querySelectorAll('[data-pct]').forEach(function(node) { node.style.width = node.dataset.pct + '%'; });
+  });
+}
+
+/// A meter tile: one headline percentage plus the bar and a line of context.
+function xbMeter(label, pct, sub, onclick) {
+  var value = (pct === null || pct === undefined) ? '—' : pct + '%';
+  var width = (pct === null || pct === undefined) ? 0 : Math.max(0, Math.min(100, pct));
+  return '<button type="button" class="xb-meter" onclick="' + onclick + '">'
+    + '<span class="xb-meter-hd"><span class="xb-meter-lbl">' + homeEsc(label) + '</span>'
+      + '<span class="xb-meter-go">فتح</span></span>'
+    + '<span class="xb-meter-val">' + value + '</span>'
+    + '<span class="xb-bar"><span class="xb-bar-fill" data-pct="' + width + '"></span></span>'
+    + '<span class="xb-meter-sub">' + homeEsc(sub) + '</span>'
+    + '</button>';
+}
+
+function xbRow(lead, title, meta, tail, tailClass, onclick) {
+  return '<button type="button" class="xb-row" onclick="' + onclick + '">'
+    + lead
+    + '<span class="xb-row-body"><span class="xb-row-title">' + homeEsc(title) + '</span>'
+      + '<span class="xb-row-meta">' + homeEsc(meta) + '</span></span>'
+    + '<span class="xb-row-tail' + (tailClass ? ' ' + tailClass : '') + '">' + homeEsc(tail) + '</span>'
+    + '</button>';
+}
+
+function xbPctLead(pct) {
+  return '<span class="xb-row-pct">' + Math.max(0, Math.min(100, pct || 0)) + '%</span>';
+}
+
+function xbDayLead(row) {
+  if (row.left === null) return '<span class="xb-row-day">دوري<small>' + homeEsc(row.recurrence || 'متكرر') + '</small></span>';
+  return '<span class="xb-row-day">' + row.day + '<small>' + homeEsc(row.month) + '</small></span>';
+}
+
+function xbLeftText(row) {
+  if (row.left === null) return row.recurrence || 'يُحدَّد لاحقاً';
+  if (row.left === 0) return 'اليوم';
+  if (row.left === 1) return 'غداً';
+  return 'باقي ' + row.left + ' يوم';
+}
+
+/// نشرة شُرفة — نسبة إنجاز الإصدار الحالي، محتسبة من حالة أقسام العدد نفسه.
+async function xbShorfahMeter() {
+  try {
+    var issues = homeItems(await homeApiJson('/shorfah/issues'));
+    if (!issues.length) return xbMeter('نشرة شُرفة — الإصدار الحالي', null, 'لا توجد أعداد بعد', "homeGo('shorfah')");
+    // The current issue is the newest unpublished one; if every issue is out, the latest is shown.
+    var open = issues.filter(function(i) { return String(i.status || '') !== 'published'; });
+    var current = (open.length ? open : issues).slice().sort(function(a, b) {
+      return (b.year - a.year) || (b.month - a.month) || (b.issueNo - a.issueNo);
+    })[0];
+    var detail = await homeApiJson('/shorfah/issues/' + encodeURIComponent(current.id));
+    var sections = homeItems(detail && (detail.sections || detail.items));
+    var pct = 0;
+    if (sections.length) {
+      var done = sections.filter(function(s) { return String(s.workflowStatus || '') === 'approved'; }).length;
+      pct = Math.round((done / sections.length) * 100);
+      var sub = 'العدد ' + homeNumber(current.issueNo || current.id) + ' · '
+        + homeNumber(done) + ' من ' + homeNumber(sections.length) + ' قسماً معتمداً';
+      return xbMeter('نشرة شُرفة — الإصدار الحالي', pct, sub, "homeGo('shorfah')");
+    }
+    return xbMeter('نشرة شُرفة — الإصدار الحالي', 0, 'العدد ' + homeNumber(current.issueNo || current.id) + ' · لم تُضف أقسام بعد', "homeGo('shorfah')");
+  } catch (e) {
+    return xbMeter('نشرة شُرفة — الإصدار الحالي', null, 'تعذر تحميل بيانات النشرة', "homeGo('shorfah')");
+  }
+}
+
+/// المشاريع والمبادرات — متوسط الإنجاز + أهم المشاريع القائمة.
+async function xbProjects() {
+  try {
+    var data = await homeApiJson('/projects/portfolio');
+    var k = (data && data.kpis) || {};
+    var projects = (data && data.projects) || [];
+    var meter = xbMeter('المشاريع والمبادرات', k.averageProgressPercent === undefined ? null : k.averageProgressPercent,
+      homeNumber(k.total || projects.length) + ' مشروعاً · ' + homeNumber(k.onTrack || 0) + ' على المسار · '
+        + homeNumber(k.delayed || 0) + ' متأخر', "homeGo('reports')");
+    // "أهم" = still open, ordered by the nearest deadline, so the board leads with what is due.
+    var live = projects.filter(function(p) { return String(p.health || '') !== 'completed'; });
+    var top = (live.length ? live : projects).slice().sort(function(a, b) {
+      var av = typeof a.daysRemaining === 'number' ? a.daysRemaining : 9999;
+      var bv = typeof b.daysRemaining === 'number' ? b.daysRemaining : 9999;
+      return av - bv;
+    }).slice(0, XB_MAX_ROWS);
+    var note = document.getElementById('xb-projects-note');
+    if (note) note.textContent = homeNumber(live.length) + ' مشروعاً قائماً';
+    xbFill('xb-projects', top.length ? top.map(function(p) {
+      var days = typeof p.daysRemaining === 'number'
+        ? (p.daysRemaining < 0 ? 'تأخر ' + Math.abs(p.daysRemaining) + ' يوم' : 'يتبقى ' + p.daysRemaining + ' يوم')
+        : '—';
+      return xbRow(xbPctLead(p.progressPercent), p.name, p.owner + ' · ' + p.stageLabel + ' · ' + days,
+        p.healthLabel || '', '', "homeGo('reports')");
+    }).join('') : xbEmpty('لا توجد مشاريع قائمة حالياً.'));
+    return meter;
+  } catch (e) {
+    xbFill('xb-projects', xbEmpty('تعذر تحميل المشاريع.'));
+    return xbMeter('المشاريع والمبادرات', null, 'تعذر تحميل المحفظة', "homeGo('reports')");
+  }
+}
+
+/// الحملات — أهم القائمة داخلياً وخارجياً، مع الحالة ونسبة الإنجاز.
+async function xbCampaigns() {
+  var boards = await Promise.all(['internal', 'external'].map(async function(aud) {
+    try {
+      var res = await apiFetch(apiUrl('/campaigns/' + aud));
+      if (!res.ok) throw new Error('campaigns');
+      var data = await res.json();
+      return { aud: aud, data: data };
+    } catch (e) { return { aud: aud, data: null }; }
+  }));
+
+  var rows = [];
+  var totals = { total: 0, running: 0, sum: 0, count: 0 };
+  boards.forEach(function(b) {
+    if (!b.data) return;
+    var k = b.data.kpis || {};
+    totals.total += k.total || 0;
+    totals.running += k.running || 0;
+    if (k.averageProgressPercent !== undefined) { totals.sum += k.averageProgressPercent; totals.count += 1; }
+    // Two rows per audience so both books are always represented, running campaigns first.
+    var pool = (b.data.campaigns || []);
+    var live = pool.filter(function(c) { return c.status === 'running'; });
+    var pick = (live.length ? live : pool.filter(function(c) { return c.status !== 'completed'; }));
+    if (!pick.length) pick = pool;
+    pick.slice().sort(function(a, b2) { return (b2.progressPercent || 0) - (a.progressPercent || 0); })
+      .slice(0, 2).forEach(function(c) { rows.push({ aud: b.aud, c: c }); });
+  });
+
+  if (!totals.count && !rows.length) {
+    xbFill('xb-campaigns', xbEmpty('تعذر تحميل الحملات أو لا توجد صلاحية لعرضها.'));
+    return xbMeter('الحملات الداخلية والخارجية', null, 'تعذر تحميل لوحة الحملات', "homeGo('internal_campaigns')");
+  }
+
+  var note = document.getElementById('xb-campaigns-note');
+  if (note) note.textContent = homeNumber(totals.running) + ' حملة قائمة من ' + homeNumber(totals.total);
+
+  xbFill('xb-campaigns', rows.length ? rows.map(function(r) {
+    var c = r.c;
+    var days = typeof c.daysRemaining === 'number'
+      ? (c.daysRemaining < 0 ? 'انتهت' : 'يتبقى ' + c.daysRemaining + ' يوم')
+      : '—';
+    return xbRow(xbPctLead(c.progressPercent), c.name,
+      c.audienceLabel + ' · ' + c.owner + ' · ' + days,
+      c.statusLabel, 'st-' + c.status, "CMP.goto('" + r.aud + "'," + c.id + ')');
+  }).join('') : xbEmpty('لا توجد حملات قائمة حالياً.'));
+
+  var avg = totals.count ? Math.round(totals.sum / totals.count) : null;
+  return xbMeter('الحملات الداخلية والخارجية', avg,
+    homeNumber(totals.total) + ' حملة · ' + homeNumber(totals.running) + ' قائمة الآن',
+    "homeGo('internal_campaigns')");
+}
+
+/// المناسبات والفعاليات القادمة — تُقرأ من رزنامة المنصة نفسها لا من مصدر ثانٍ.
+async function xbUpcoming() {
+  try {
+    if (typeof CAL !== 'undefined' && CAL.ensureIntlDays) await CAL.ensureIntlDays();
+  } catch (e) { /* تبقى البيانات المحلية */ }
+  if (typeof CAL === 'undefined' || !CAL.upcoming) {
+    xbFill('xb-occasions', xbEmpty('تعذر تحميل المناسبات.'));
+    xbFill('xb-events', xbEmpty('تعذر تحميل الفعاليات.'));
+    return;
+  }
+  var occasions = CAL.upcoming(['national', 'official', 'intl', 'key'], XB_MAX_ROWS);
+  xbFill('xb-occasions', occasions.length ? occasions.map(function(r) {
+    return xbRow(xbDayLead(r), r.title, r.kindLabel, xbLeftText(r), '', "homeGo('" + r.page + "')");
+  }).join('') : xbEmpty('لا توجد مناسبات قادمة مسجلة.'));
+
+  var events = CAL.upcoming(['event'], XB_MAX_ROWS);
+  xbFill('xb-events', events.length ? events.map(function(r) {
+    return xbRow(xbDayLead(r), r.title, r.scope + ' · ' + xbLeftText(r), r.scope, '', "homeGo('" + r.page + "')");
+  }).join('') : xbEmpty('لا توجد فعاليات قادمة مسجلة.'));
+}
+
+/// Paints the whole board. The three meters resolve in parallel and are written in a fixed order
+/// so the row never reshuffles between loads.
+async function xbInit() {
+  var host = document.getElementById('xb-meters');
+  if (!host) return;
+  xbUpcoming();
+  var meters = await Promise.all([xbShorfahMeter(), xbProjects(), xbCampaigns()]);
+  host.innerHTML = meters.join('');
+  requestAnimationFrame(function() {
+    host.querySelectorAll('[data-pct]').forEach(function(node) { node.style.width = node.dataset.pct + '%'; });
+  });
+}
+
 async function homeDashboardInit() {
   homeFillMasthead();
   homeRenderActions();
   homeFillSealIssue();
   homeLoadAttention();
   homeRenderWidgets();
+  xbInit();
 }
 
 function dashLoadUpcomingEvents() {
@@ -10307,6 +10795,335 @@ function pfStamp(value) {
     + ' · ' + dt.toLocaleTimeString('ar-SA-u-ca-gregory-nu-latn', { hour: '2-digit', minute: '2-digit' });
 }
 
+// ════════════════════════════════════════
+// CAMPAIGNS — الحملات الداخلية والخارجية
+// One module drives both pages. The whole board for an audience is fetched once and cached, and
+// the status filter runs against that cache, so switching between الكل/قائمة/قادمة/تحت المراجعة/
+// مكتملة is instant instead of a round trip. Detail is fetched per campaign and also cached.
+// ════════════════════════════════════════
+var CMP = (function() {
+  var STATUSES = [
+    ['all', 'الكل'],
+    ['running', 'قائمة'],
+    ['upcoming', 'قادمة'],
+    ['under_review', 'تحت المراجعة'],
+    ['completed', 'مكتملة']
+  ];
+
+  // State is keyed by audience so the two pages never overwrite each other's board or filter.
+  var state = {
+    internal: { cache: null, filter: 'all', inFlight: null, detail: null, details: {} },
+    external: { cache: null, filter: 'all', inFlight: null, detail: null, details: {} }
+  };
+
+  function st(aud) { return state[aud] || state.internal; }
+  function el(aud, part) { return document.getElementById('cmp-' + aud + '-' + part); }
+
+  function fmtNum(value) {
+    var n = Number(value || 0);
+    return n.toLocaleString('en-US');
+  }
+
+  function fmtDate(value) {
+    if (!value) return '—';
+    var dt = new Date(value);
+    if (isNaN(dt.getTime())) return '—';
+    return dt.toLocaleDateString('ar-SA-u-ca-gregory-nu-latn', { year: 'numeric', month: 'short', day: 'numeric' });
+  }
+
+  function daysText(days) {
+    if (typeof days !== 'number') return '—';
+    if (days < 0) return 'انتهت قبل ' + Math.abs(days) + ' يوم';
+    if (days === 0) return 'تنتهي اليوم';
+    return 'يتبقى ' + days + ' يوم';
+  }
+
+  async function load(aud) {
+    var s = st(aud);
+    if (s.cache) { render(aud); return; }
+    if (s.inFlight) return s.inFlight;
+
+    var skel = el(aud, 'skeleton'), board = el(aud, 'board'), errEl = el(aud, 'error');
+    if (errEl) errEl.style.display = 'none';
+    if (skel && (!board || board.style.display === 'none')) skel.style.display = 'grid';
+
+    s.inFlight = (async function() {
+      try {
+        var res = await apiFetch(apiUrl('/campaigns/' + aud));
+        if (!res.ok) throw new Error('server error');
+        s.cache = await res.json();
+        render(aud);
+      } catch (e) {
+        if (skel) skel.style.display = 'none';
+        if (board) board.style.display = 'none';
+        if (errEl) errEl.style.display = 'block';
+      } finally {
+        s.inFlight = null;
+      }
+    })();
+    return s.inFlight;
+  }
+
+  /// Drops every cache for the audience so «تحديث» really refetches instead of repainting.
+  function reload(aud) {
+    var s = st(aud);
+    s.cache = null;
+    s.detail = null;
+    s.details = {};
+    return load(aud);
+  }
+
+  function setFilter(aud, value) {
+    st(aud).filter = value;
+    st(aud).detail = null;
+    render(aud);
+  }
+
+  function render(aud) {
+    var s = st(aud);
+    if (!s.cache) return;
+    var skel = el(aud, 'skeleton'), board = el(aud, 'board'), detailEl = el(aud, 'detail');
+    if (skel) skel.style.display = 'none';
+
+    if (s.detail) {
+      if (board) board.style.display = 'none';
+      if (detailEl) { detailEl.style.display = 'flex'; detailEl.innerHTML = detailHTML(aud, s.detail); }
+      animate(detailEl);
+      return;
+    }
+    if (detailEl) { detailEl.style.display = 'none'; detailEl.innerHTML = ''; }
+    if (board) board.style.display = 'flex';
+
+    var k = s.cache.kpis || {};
+    var all = s.cache.campaigns || [];
+    var counts = s.cache.statusCounts || {};
+
+    var navCount = document.getElementById('cmp-' + aud + '-nav-count');
+    if (navCount) navCount.textContent = all.length;
+
+    var stamp = el(aud, 'stamp');
+    if (stamp && s.cache.generatedAt) {
+      var dt = new Date(s.cache.generatedAt);
+      stamp.textContent = 'آخر تحديث ' + dt.toLocaleTimeString('ar-SA-u-ca-gregory-nu-latn', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    var kpis = el(aud, 'kpis');
+    if (kpis) {
+      kpis.innerHTML = [
+        kpi(k.total, 'إجمالي الحملات', 'is-primary'),
+        kpi((k.averageProgressPercent || 0) + '%', 'متوسط الإنجاز', 'is-primary'),
+        kpi(k.running, 'قائمة', 'is-good'),
+        kpi(k.underReview, 'تحت المراجعة', 'is-warn'),
+        kpi(fmtNum(k.totalReach), 'إجمالي الوصول', '')
+      ].join('');
+    }
+
+    var chips = el(aud, 'filters');
+    if (chips) {
+      chips.innerHTML = STATUSES.map(function(d) {
+        var c = d[0] === 'all' ? (counts.all !== undefined ? counts.all : all.length) : (counts[d[0]] || 0);
+        return '<button type="button" class="pf-chip' + (s.filter === d[0] ? ' is-on' : '') + '"'
+          + ' onclick="CMP.setFilter(\'' + aud + '\',\'' + d[0] + '\')">'
+          + '<span>' + esc(d[1]) + '</span><span class="pf-chip-count">' + c + '</span></button>';
+      }).join('');
+    }
+
+    var shown = s.filter === 'all' ? all : all.filter(function(c) { return c.status === s.filter; });
+    var grid = el(aud, 'grid');
+    if (grid) {
+      grid.innerHTML = shown.length
+        ? shown.map(function(c) { return cardHTML(aud, c); }).join('')
+        : '<div class="empty-text">لا توجد حملات بهذه الحالة</div>';
+      animate(grid);
+    }
+  }
+
+  /// Bars start at zero width in CSS so they grow once the nodes are in the document.
+  function animate(root) {
+    if (!root) return;
+    requestAnimationFrame(function() {
+      root.querySelectorAll('[data-pct]').forEach(function(node) { node.style.width = node.dataset.pct + '%'; });
+    });
+  }
+
+  function kpi(value, label, tone) {
+    var shown = (value === undefined || value === null) ? '—' : value;
+    return '<div class="pf-kpi ' + tone + '"><div class="pf-kpi-val">' + esc(String(shown))
+      + '</div><div class="pf-kpi-label">' + esc(label) + '</div></div>';
+  }
+
+  function progressHTML(c, extra) {
+    var pct = Math.max(0, Math.min(100, c.progressPercent || 0));
+    return '<div>'
+      + '<div class="pf-prog-hd"><span class="pf-prog-val">' + pct + '%</span>'
+        + '<span class="pf-band-sub">نسبة الإنجاز</span>'
+        + '<span class="pf-prog-plan">' + esc(extra || '') + '</span></div>'
+      + '<div class="pf-prog-track"><div class="pf-prog-fill" data-pct="' + pct + '"></div></div>'
+      + '</div>';
+  }
+
+  function analyticsHTML(c) {
+    var a = c.analytics || {};
+    return '<div class="cmp-ana">'
+      + anaCell(fmtNum(a.reachCount), 'الوصول')
+      + anaCell(fmtNum(a.impressionsCount), 'مرات الظهور')
+      + anaCell(fmtNum(a.engagementCount), 'التفاعلات')
+      + anaCell(((a.engagementRatePerMille || 0) / 10).toFixed(1) + '%', 'معدل التفاعل')
+      + '</div>';
+  }
+
+  function anaCell(value, label) {
+    return '<div class="cmp-ana-cell"><span class="cmp-ana-val">' + esc(value)
+      + '</span><span class="cmp-ana-lbl">' + esc(label) + '</span></div>';
+  }
+
+  function cardHTML(aud, c) {
+    var done = c.deliverablesCompleted || 0;
+    var tot = c.deliverablesTotal || 0;
+    var pips = Array.from({ length: tot }, function(_, i) {
+      return '<span class="pf-ms-pip' + (i < done ? ' is-done' : '') + '"></span>';
+    }).join('');
+    // Only the three nearest deliverables are listed on the card; the rest live on the detail
+    // view, so a long campaign never pushes the analytics strip off the fold.
+    var items = (c.deliverables || []).slice(0, 3).map(function(d) {
+      return '<li class="pf-ms-item' + (d.isCompleted ? ' is-done' : '') + '">'
+        + '<span class="pf-ms-mark">' + (d.isCompleted ? '✓' : '') + '</span>'
+        + '<span>' + esc(d.title) + '</span>'
+        + '<span class="pf-ms-date">' + fmtDate(d.dueDate) + '</span></li>';
+    }).join('');
+    var chans = (c.channels || []).map(function(ch) {
+      // Why: the percentage is bidi-isolated so the '%' sign stays to the right of the digits
+      // inside the RTL chip label instead of flipping to the left.
+      return '<span class="cmp-chan">' + esc(ch.name)
+        + ' <b dir="ltr" style="unicode-bidi:isolate">' + (ch.sharePercent || 0) + '%</b></span>';
+    }).join('');
+
+    return '<article class="cmp-card st-' + esc(c.status) + '">'
+      + '<div class="pf-card-top">'
+        + '<span class="pf-code">' + esc(c.code) + '</span>'
+        + '<span class="pf-tag">' + esc(c.audienceLabel) + '</span>'
+        + '<span class="cmp-status st-' + esc(c.status) + '">' + esc(c.statusLabel) + '</span>'
+      + '</div>'
+      + '<div class="pf-name">' + esc(c.name) + '</div>'
+      + '<div class="pf-desc">' + esc(c.description) + '</div>'
+      + progressHTML(c, 'المخرجات ' + done + ' من ' + tot)
+      + '<div class="pf-meta">'
+        + '<span>المسؤول <b>' + esc(c.owner) + '</b></span>'
+        + '<span>الإدارة <b>' + esc(c.department) + '</b></span>'
+        + '<span>المدة <b class="pf-num">' + (c.durationDays || 0) + '</b> يوم</span>'
+        + '<span>' + esc(fmtDate(c.startDate)) + ' — ' + esc(fmtDate(c.endDate)) + '</span>'
+        + '<span class="pf-days' + (c.daysRemaining < 0 ? ' is-late' : '') + '">' + esc(daysText(c.daysRemaining)) + '</span>'
+      + '</div>'
+      + (tot ? '<div class="pf-ms"><div class="pf-ms-hd"><span>أبرز المخرجات ' + done + ' من ' + tot + '</span>'
+          + '<span class="pf-ms-pips">' + pips + '</span></div>'
+          + '<ul class="pf-ms-list">' + items + '</ul></div>' : '')
+      + (chans ? '<div class="cmp-chans">' + chans + '</div>' : '')
+      + analyticsHTML(c)
+      + '<div class="cmp-card-foot">'
+        + '<span class="cmp-latest">' + esc(c.latestUpdate || 'لا يوجد تحديث مسجل') + '</span>'
+        + '<button type="button" class="btn btn-secondary btn-sm" style="margin-right:auto;" onclick="CMP.open(\'' + aud + '\',' + c.id + ')">'
+          + '<span>تفاصيل الحملة</span><span class="ico"><svg><use href="#i-chevron-left"/></svg></span></button>'
+      + '</div>'
+      + '</article>';
+  }
+
+  /// Opens one campaign. The board payload already carries the full record, so the cached row is
+  /// painted immediately and the detail endpoint is called only to refresh it — the view never
+  /// shows a spinner for data the page already holds.
+  async function open(aud, id) {
+    var s = st(aud);
+    var fromBoard = (s.cache && s.cache.campaigns || []).filter(function(c) { return c.id === id; })[0];
+    s.detail = s.details[id] || fromBoard || null;
+    if (s.detail) render(aud);
+    try {
+      var res = await apiFetch(apiUrl('/campaigns/' + aud + '/' + id));
+      if (!res.ok) throw new Error('detail');
+      var fresh = await res.json();
+      s.details[id] = fresh;
+      if (s.detail && s.detail.id === id) { s.detail = fresh; render(aud); }
+    } catch (e) { /* البطاقة المخزنة تبقى معروضة */ }
+  }
+
+  function back(aud) {
+    st(aud).detail = null;
+    render(aud);
+  }
+
+  function detailHTML(aud, c) {
+    var a = c.analytics || {};
+    var done = c.deliverablesCompleted || 0;
+    var tot = c.deliverablesTotal || 0;
+    var items = (c.deliverables || []).map(function(d) {
+      return '<li class="pf-ms-item' + (d.isCompleted ? ' is-done' : '') + '">'
+        + '<span class="pf-ms-mark">' + (d.isCompleted ? '✓' : '') + '</span>'
+        + '<span>' + esc(d.title) + '</span>'
+        + '<span class="pf-ms-date">' + fmtDate(d.dueDate) + '</span></li>';
+    }).join('');
+    var chans = (c.channels || []).map(function(ch) {
+      var share = Math.max(0, Math.min(100, ch.sharePercent || 0));
+      return '<div class="cmp-chan-row">'
+        + '<span class="cmp-chan-name">' + esc(ch.name) + '</span>'
+        + '<span class="cmp-chan-share">' + share + '%</span>'
+        + '<span class="cmp-chan-bar"><span class="cmp-chan-fill" data-pct="' + share + '"></span></span>'
+        + '<span class="cmp-chan-meta">' + fmtNum(ch.reachCount) + ' وصول · ' + fmtNum(ch.engagementCount)
+          + ' تفاعل · ' + fmtNum(ch.publishedItems) + ' مادة منشورة</span>'
+        + '</div>';
+    }).join('');
+
+    return '<button type="button" class="btn btn-ghost cmp-back" onclick="CMP.back(\'' + aud + '\')">'
+        + '<span class="ico"><svg><use href="#i-arrow-left"/></svg></span><span>رجوع إلى قائمة الحملات</span></button>'
+      + '<div class="cmp-dt-head st-' + esc(c.status) + '">'
+        + '<div class="pf-card-top">'
+          + '<span class="pf-code">' + esc(c.code) + '</span>'
+          + '<span class="pf-tag">' + esc(c.audienceLabel) + '</span>'
+          + '<span class="cmp-status st-' + esc(c.status) + '">' + esc(c.statusLabel) + '</span>'
+        + '</div>'
+        + '<div class="cmp-dt-title">' + esc(c.name) + '</div>'
+        + '<div class="cmp-dt-obj">' + esc(c.objective || c.description) + '</div>'
+        + progressHTML(c, 'المخرجات ' + done + ' من ' + tot)
+        + '<div class="pf-meta">'
+          + '<span>المسؤول <b>' + esc(c.owner) + '</b></span>'
+          + '<span>الإدارة <b>' + esc(c.department) + '</b></span>'
+          + '<span>المدة <b class="pf-num">' + (c.durationDays || 0) + '</b> يوم</span>'
+          + '<span>البداية <b>' + esc(fmtDate(c.startDate)) + '</b></span>'
+          + '<span>النهاية <b>' + esc(fmtDate(c.endDate)) + '</b></span>'
+          + '<span class="pf-days' + (c.daysRemaining < 0 ? ' is-late' : '') + '">' + esc(daysText(c.daysRemaining)) + '</span>'
+        + '</div>'
+      + '</div>'
+      + '<div class="cmp-panel">'
+        + '<div class="cmp-panel-title">تحليلات الحملة</div>'
+        + '<div class="pf-kpis">'
+          + kpi(fmtNum(a.reachCount), 'الوصول', 'is-primary')
+          + kpi(fmtNum(a.impressionsCount), 'مرات الظهور', '')
+          + kpi(fmtNum(a.engagementCount), 'التفاعلات', 'is-good')
+          + kpi(fmtNum(a.publishedItems), 'المواد المنشورة', '')
+          + kpi(((a.engagementRatePerMille || 0) / 10).toFixed(1) + '%', 'معدل التفاعل', 'is-primary')
+        + '</div>'
+        + '<div class="pf-band-sub">آخر تحديث مسجل: ' + esc(c.latestUpdate || 'لا يوجد') + '</div>'
+      + '</div>'
+      + '<div class="cmp-two">'
+        + '<div class="cmp-panel">'
+          + '<div class="cmp-panel-title">أبرز المخرجات ' + done + ' من ' + tot + '</div>'
+          + (items ? '<ul class="pf-ms-list">' + items + '</ul>' : '<div class="empty-text">لا توجد مخرجات مسجلة</div>')
+        + '</div>'
+        + '<div class="cmp-panel">'
+          + '<div class="cmp-panel-title">القنوات المستخدمة</div>'
+          + (chans ? '<div class="cmp-chan-list">' + chans + '</div>' : '<div class="empty-text">لا توجد قنوات مسجلة</div>')
+        + '</div>'
+      + '</div>';
+  }
+
+  /// Entry point for the executive board on the home page: routes to the audience page and opens
+  /// the campaign in one step, loading the board first when the page has never been visited.
+  async function goto(aud, id) {
+    showSection(aud + '_campaigns');
+    if (!st(aud).cache) await load(aud);
+    open(aud, id);
+  }
+
+  return { load: load, reload: reload, setFilter: setFilter, open: open, back: back, goto: goto, statuses: STATUSES };
+})();
+
 // ── تسجيل تقدم المشروع ──────────────────────────────────────────────────────
 // A manager can log progress on the same project as many times as they like; each entry keeps
 // its own note and timestamp, and the card's percentage is whatever the newest entry reported.
@@ -11262,7 +12079,50 @@ var CAL = (function() {
     renderPage(page);
   }
 
-  return { init: init, setFilter: setFilter, agendaShift: agendaShift, renderAgenda: renderAgenda };
+  /* ── ما القادم؟ — ما تقرأه لوحة المتابعة في الصفحة الرئيسية ──
+     The occasion and event catalogues live in this module, not behind an endpoint, so the home
+     board reads them through here instead of keeping a second copy that could drift. Rows are
+     projected onto their next Gregorian occurrence and sorted by how soon they fall; recurring
+     and Hijri rows carry no fixed date, so they are appended last rather than given a fake one. */
+  var UPCOMING_PAGES = { national: 'national_events', official: 'official_events',
+    event: 'events_conferences', key: 'key_dates', intl: 'intldays' };
+
+  /// True when a conference row describes an internal activity rather than an external one.
+  function isInternalRow(row) {
+    return (row.tags || []).some(function(t) { return String(t).indexOf('داخلي') !== -1; });
+  }
+
+  /**
+   * Upcoming occasions across the requested catalogues.
+   * @param {string[]} kinds Any of national, official, event, key, intl.
+   * @param {number} limit Maximum rows returned.
+   * @returns {object[]} Rows as { kind, kindLabel, page, title, desc, tags, left, day, month, scope }.
+   */
+  function upcoming(kinds, limit) {
+    var wanted = kinds && kinds.length ? kinds : Object.keys(UPCOMING_PAGES);
+    var rows = agendaSources().filter(function(e) { return wanted.indexOf(e.kind) !== -1; });
+    var mapped = rows.map(function(e) {
+      var left = daysUntil(e.row);
+      return { kind: e.kind, kindLabel: e.label, page: UPCOMING_PAGES[e.kind] || 'monthly_agenda',
+        title: e.row.title, desc: e.row.desc || '', tags: e.row.tags || [],
+        left: left, day: e.row.d || 0, month: e.row.m ? MONTHS[e.row.m - 1] : '',
+        recurrence: e.row.recurrence || '', scope: isInternalRow(e.row) ? 'داخلي' : 'خارجي' };
+    });
+    var dated = mapped.filter(function(r) { return r.left !== null; })
+      .sort(function(a, b) { return a.left - b.left; });
+    var undated = mapped.filter(function(r) { return r.left === null; });
+    return dated.concat(undated).slice(0, limit || 5);
+  }
+
+  /// Fetches the international-days archive once so upcoming() can see it. Safe to call repeatedly.
+  function ensureIntlDays() {
+    if (typeof idArchiveData === 'undefined' || idArchiveData.length) return Promise.resolve();
+    if (typeof idLoadArchive !== 'function') return Promise.resolve();
+    return Promise.resolve(idLoadArchive()).catch(function() { /* تبقى البيانات المحلية */ });
+  }
+
+  return { init: init, setFilter: setFilter, agendaShift: agendaShift, renderAgenda: renderAgenda,
+    upcoming: upcoming, ensureIntlDays: ensureIntlDays };
 })();
 
 /* ══════════════════════════════════════════════════════════════════════

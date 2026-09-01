@@ -1,5 +1,6 @@
 using Icbank.Platform.Application.Common.Interfaces;
 using Icbank.Platform.Domain.AiYear;
+using Icbank.Platform.Domain.Campaigns;
 using Icbank.Platform.Domain.Common;
 using Icbank.Platform.Domain.Designs;
 using Icbank.Platform.Domain.Gac;
@@ -183,6 +184,17 @@ public sealed class AppDbContext : DbContext, IApplicationDbContext
     /// <summary>Gets the AI-generated week-start message drafts.</summary>
     public DbSet<GeneratedOutput> GeneratedOutputs => Set<GeneratedOutput>();
 
+    // ── Campaigns ───────────────────────────────────────────────────────────
+
+    /// <summary>Gets the department's tracked internal and external campaigns.</summary>
+    public DbSet<Campaign> Campaigns => Set<Campaign>();
+
+    /// <summary>Gets the headline outputs behind each tracked campaign.</summary>
+    public DbSet<CampaignDeliverable> CampaignDeliverables => Set<CampaignDeliverable>();
+
+    /// <summary>Gets the channels each tracked campaign publishes through.</summary>
+    public DbSet<CampaignChannel> CampaignChannels => Set<CampaignChannel>();
+
     // ── Projects ────────────────────────────────────────────────────────────
 
     /// <summary>Gets the department's tracked project portfolio.</summary>
@@ -242,6 +254,15 @@ public sealed class AppDbContext : DbContext, IApplicationDbContext
 
     /// <inheritdoc cref="IApplicationDbContext.DailyReports" />
     IQueryable<DailyReport> IApplicationDbContext.DailyReports => DailyReports;
+
+    /// <inheritdoc cref="IApplicationDbContext.Campaigns" />
+    IQueryable<Campaign> IApplicationDbContext.Campaigns => Campaigns;
+
+    /// <inheritdoc cref="IApplicationDbContext.CampaignDeliverables" />
+    IQueryable<CampaignDeliverable> IApplicationDbContext.CampaignDeliverables => CampaignDeliverables;
+
+    /// <inheritdoc cref="IApplicationDbContext.CampaignChannels" />
+    IQueryable<CampaignChannel> IApplicationDbContext.CampaignChannels => CampaignChannels;
 
     /// <inheritdoc cref="IApplicationDbContext.PortfolioProjects" />
     IQueryable<PortfolioProject> IApplicationDbContext.PortfolioProjects => PortfolioProjects;

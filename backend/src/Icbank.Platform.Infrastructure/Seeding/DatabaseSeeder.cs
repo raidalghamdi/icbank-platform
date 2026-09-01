@@ -62,6 +62,7 @@ public sealed partial class DatabaseSeeder
         await SeedDefaultRolePermissionsAsync(cancellationToken);
         await SeedInternationalDaysAsync(cancellationToken);
         await SeedPortfolioProjectsAsync(cancellationToken);
+        await SeedCampaignsAsync(cancellationToken);
         await ReconcileShorfahSectionsAsync(cancellationToken);
         return await SeedInitialSuperAdminAsync(cancellationToken);
     }
@@ -141,6 +142,35 @@ public sealed partial class DatabaseSeeder
 
         await _dbContext.SaveChangesAsync(cancellationToken);
         LogPortfolioProjectsReconciled(_logger, plan.Added.Count, plan.Updated.Count, plan.Removed.Count);
+    }
+
+    // Why: the campaigns pages and the executive dashboard both read this table, and nothing has
+    // ever populated it, so both would render an empty state on a fresh environment. Reconciled in
+    // both directions against the catalogue for the same reason the portfolio is: inserting only
+    // the missing codes leaves retired campaigns visible for ever and lets renamed campaigns keep
+    // their old titles. Idempotent: a second run finds the same rows and writes nothing new.
+    private async Task SeedCampaignsAsync(CancellationToken cancellationToken)
+    {
+        List<Domain.Campaigns.Campaign> tracked = await _dbContext.Campaigns
+            .Include(campaign => campaign.Deliverables)
+            .Include(campaign => campaign.Channels)
+            .ToListAsync(cancellationToken);
+
+        CampaignReconciliation plan = CampaignReconciler.Reconcile(tracked, DateTime.UtcNow);
+        if (!plan.HasChanges)
+        {
+            return;
+        }
+
+        // Children go first so the delete order stays valid even where the cascade is enforced by
+        // the application rather than the database (e.g. an in-memory provider in tests).
+        _dbContext.CampaignDeliverables.RemoveRange(plan.RemovedDeliverables);
+        _dbContext.CampaignChannels.RemoveRange(plan.RemovedChannels);
+        _dbContext.Campaigns.RemoveRange(plan.Removed);
+        _dbContext.Campaigns.AddRange(plan.Added);
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        LogCampaignsReconciled(_logger, plan.Added.Count, plan.Updated.Count, plan.Removed.Count);
     }
 
     // Why: ShorfahSectionSeeder only runs when an issue is created, so every issue that already
@@ -360,6 +390,9 @@ public sealed partial class DatabaseSeeder
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Reconciled the tracked portfolio against the seed catalogue: {Added} added, {Updated} refreshed, {Removed} removed.")]
     private static partial void LogPortfolioProjectsReconciled(ILogger logger, int added, int updated, int removed);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Reconciled the tracked campaign book against the seed catalogue: {Added} added, {Updated} refreshed, {Removed} removed.")]
+    private static partial void LogCampaignsReconciled(ILogger logger, int added, int updated, int removed);
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Reconciled unpublished Shorfah issues against the canonical paragraph catalogue: {Inserted} inserted, {Updated} refreshed, {Removed} removed.")]
     private static partial void LogShorfahSectionsReconciled(ILogger logger, int inserted, int updated, int removed);
