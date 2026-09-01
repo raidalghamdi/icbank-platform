@@ -76,10 +76,13 @@ public sealed class FinalReportHtmlBuilderTests
 
         var expectedSections = new[]
         {
-            "مؤشرات الفترة", "الملخص التنفيذي", "أبرز الأخبار", "الخط الزمني للتغطية", "الحضور الرقمي",
-            "الوسوم الأكثر استخداماً", "توزيع النبرة التحريرية", "تصنيف التغطية", "النبرة حسب المصدر",
-            "الكلمات المفتاحية", "تصريح بارز", "المقارنة الإقليمية", "التوصيات",
-            "التنبيهات والموقف المقترح", "ملحق التصريحات", "المنهجية", "المصادر",
+            "الملخص التنفيذي", "المؤشرات الإعلامية الرئيسية", "أبرز الأخبار خلال الفترة",
+            "الخط الزمني للتغطية", "تحليل التوجه الإعلامي", "الحضور الرقمي", "الوسوم الأكثر استخداماً",
+            "توزع نبرة التغطية الإعلامية", "التصنيف الموضوعي للأخبار", "توزع التغطية حسب المصدر",
+            "تحليل عميق ومؤشرات قطاعية", "أبرز الكلمات المفتاحية في التغطية", "اقتباس بارز من التغطية",
+            "قراءة استراتيجية للحضور الإعلامي", "المقارنة الإقليمية", "التوصيات والإجراءات المقترحة",
+            "تنبيهات تستوجب المتابعة", "المنهجية والمصادر", "منهجية الرصد", "ملحق التصريحات",
+            "المصادر الرئيسية المعتمدة",
         };
         expectedSections.Where(section => !html.Contains(section, StringComparison.Ordinal)).Should().BeEmpty();
     }
@@ -111,7 +114,61 @@ public sealed class FinalReportHtmlBuilderTests
         MatchCollection tables = Regex.Matches(html, "<table data-widths=\"([^\"]+)\"><tr>(.+?)</tr>", RegexOptions.Singleline);
         tables.Should().NotBeEmpty();
         tables.Where(table =>
-            table.Groups[1].Value.Split(',').Length != Regex.Matches(table.Groups[2].Value, "<th>").Count)
+            table.Groups[1].Value.Split(',').Length != Regex.Matches(table.Groups[2].Value, "<th").Count)
             .Should().BeEmpty();
+    }
+
+    /// <summary>
+    /// The exported report has to be recognisable as the authority's own document: a cover sheet
+    /// carrying the authority's identity and the report's identification, then the six numbered
+    /// sections of the approved media-monitoring layout.
+    /// </summary>
+    [Fact]
+    public void Build_Always_OpensWithTheAuthorityCoverSheet()
+    {
+        FinalMediaReport report = FinalMediaReportTestData.BuildEntity(1, "GAC-MEDIA-7/2026");
+        FinalMediaReportDetailDto detail = FinalMediaReportMapper.ToDetailDto(report);
+
+        var html = FinalReportHtmlBuilder.Build(detail);
+
+        html.Should().Contain("<div class=\"cover\"");
+        html.Should().Contain("data-org=\"الهيئة العامة للمنافسة\"");
+        html.Should().Contain("General Authority for Competition");
+        html.Should().Contain("data-report-number=\"GAC-MEDIA-7/2026\"");
+        html.Should().Contain("سري — للاستخدام الداخلي");
+        html.Should().Contain("الجهة المعدة");
+    }
+
+    [Fact]
+    public void Build_Always_NumbersTheSixSectionsOfTheApprovedLayout()
+    {
+        FinalMediaReport report = FinalMediaReportTestData.BuildEntity(1);
+        FinalMediaReportDetailDto detail = FinalMediaReportMapper.ToDetailDto(report);
+
+        var html = FinalReportHtmlBuilder.Build(detail);
+
+        Enumerable.Range(1, 6)
+            .Where(number => !html.Contains(
+                "<h2 data-number=\"" + number.ToString(System.Globalization.CultureInfo.InvariantCulture) + "\">",
+                StringComparison.Ordinal))
+            .Should().BeEmpty();
+    }
+
+    /// <summary>
+    /// The period's news are the body of the report, not four columns of a table: each entry keeps
+    /// its headline, its date and tone, its detail lines and its source.
+    /// </summary>
+    [Fact]
+    public void Build_TopNews_RendersEachItemAsAnEntryWithItsOwnSourceLine()
+    {
+        FinalMediaReport report = FinalMediaReportTestData.BuildEntity(1);
+        FinalMediaReportDetailDto detail = FinalMediaReportMapper.ToDetailDto(report);
+
+        var html = FinalReportHtmlBuilder.Build(detail);
+
+        html.Should().Contain("<div class=\"news-item\" data-index=\"1\">");
+        html.Should().Contain("class=\"news-headline\"");
+        html.Should().Contain("class=\"news-source\"");
+        html.Should().Contain("class=\"kpi-grid\"");
     }
 }

@@ -12,19 +12,20 @@ namespace Icbank.Platform.Infrastructure.Rendering;
 /// a real PDF using QuestPDF's fluent API. QuestPDF has no built-in HTML parser (confirmed: the
 /// maintainers explicitly scope that out -- https://github.com/QuestPDF/QuestPDF/issues/961), so
 /// this composer walks the small, fixed set of tags those two builders actually emit
-/// (h1/h2/p/table/tr/td/th/ul/li/div/span/strong/em/a) via HtmlAgilityPack (MIT) and maps each to
-/// the corresponding QuestPDF element, applying <see cref="EmbeddedArabicFontProvider.FontFamily"/>
+/// (h1/h2/h3/p/table/tr/td/th/ul/li/div/span/strong/em/a) via HtmlAgilityPack (MIT) and maps each
+/// to the corresponding QuestPDF element, applying <see cref="EmbeddedArabicFontProvider.FontFamily"/>
 /// and right-to-left content direction throughout. This is not a general HTML-to-PDF engine --
 /// unsupported tags are rendered as their text content only, never dropped silently and never
 /// executed/interpreted (no script/style evaluation, no external resource fetches), which keeps
 /// the render path safe even though the source HTML already went through server-side encoding.
 /// </summary>
+/// <remarks>
+/// A document that opens with a <c>div.cover</c> is laid out as the authority's approved report:
+/// a cover sheet, then content pages carrying the running header and footer that identify the
+/// report on every printed sheet. Documents without one keep the plain single-flow layout.
+/// </remarks>
 public static class HtmlDocumentPdfComposer
 {
-    private const string Teal = "#1a6e7a";
-    private const string Navy = "#0e3b4a";
-    private const string Mint = "#cce4e6";
-    private const string Mustard = "#b8924a";
     private const int TitleFontSize = 20;
     private const int HeadingFontSize = 15;
     private const int BodyFontSize = 11;
@@ -50,43 +51,99 @@ public static class HtmlDocumentPdfComposer
 
         var htmlDocument = new HtmlDocument();
         htmlDocument.LoadHtml(html);
-        HtmlNode? body = htmlDocument.DocumentNode.SelectSingleNode("//body") ?? htmlDocument.DocumentNode;
+        HtmlNode body = htmlDocument.DocumentNode.SelectSingleNode("//body") ?? htmlDocument.DocumentNode;
+        HtmlNode? cover = body.SelectSingleNode(".//div[@class='cover']");
 
         return Document.Create(container =>
         {
-            container.Page(page =>
+            if (cover is not null)
             {
-                page.Size(PageSizes.A4);
-                page.Margin(PageMarginCentimetres, Unit.Centimetre);
-                page.PageColor(Colors.White);
-                page.ContentFromRightToLeft();
-                page.DefaultTextStyle(style => style.FontFamily(EmbeddedArabicFontProvider.FontFamily).FontSize(BodyFontSize).DirectionFromRightToLeft());
+                container.Page(page => PdfCoverPageComposer.Compose(page, cover));
+            }
 
-                if (!string.IsNullOrWhiteSpace(footerLabel))
-                {
-                    ComposeFooter(page, footerLabel!);
-                }
-
-                page.Content().Column(column =>
-                {
-                    column.Spacing(6);
-                    foreach (HtmlNode node in body.ChildNodes)
-                    {
-                        RenderBlock(column, node);
-                    }
-                });
-            });
+            container.Page(page => ComposeContentPage(page, body, cover, footerLabel));
         }).GeneratePdf();
+    }
+
+    private static void ComposeContentPage(PageDescriptor page, HtmlNode body, HtmlNode? cover, string? footerLabel)
+    {
+        page.Size(PageSizes.A4);
+        page.Margin(PageMarginCentimetres, Unit.Centimetre);
+        page.PageColor(Colors.White);
+        page.ContentFromRightToLeft();
+        page.DefaultTextStyle(style => style
+            .FontFamily(EmbeddedArabicFontProvider.FontFamily)
+            .FontSize(BodyFontSize)
+            .FontColor(PdfReportPalette.Navy)
+            .DirectionFromRightToLeft());
+
+        if (cover is not null)
+        {
+            ComposeHeader(page, cover);
+            ComposeReportFooter(page, cover, footerLabel);
+        }
+        else if (!string.IsNullOrWhiteSpace(footerLabel))
+        {
+            ComposeFooter(page, footerLabel!);
+        }
+
+        page.Content().Column(column =>
+        {
+            column.Spacing(6);
+            foreach (HtmlNode node in body.ChildNodes)
+            {
+                if (node != cover)
+                {
+                    RenderBlock(column, node);
+                }
+            }
+        });
+    }
+
+    private static void ComposeHeader(PageDescriptor page, HtmlNode cover)
+    {
+        page.Header().PaddingBottom(8).Column(header =>
+        {
+            header.Item().Row(row =>
+            {
+                row.RelativeItem().Column(brand =>
+                {
+                    brand.Item().Text(Attribute(cover, "data-org")).FontSize(10).Bold().FontColor(PdfReportPalette.Teal);
+                    brand.Item().PaddingTop(2).AlignRight().Width(80).Height(2).Background(PdfReportPalette.Mustard);
+                });
+                row.ConstantItem(140).AlignLeft()
+                    .Text(Attribute(cover, "data-report-number")).FontSize(9).FontColor(PdfReportPalette.Muted)
+                    .DirectionFromLeftToRight();
+            });
+
+            header.Item().PaddingTop(7).LineHorizontal(0.8f).LineColor(PdfReportPalette.Line);
+        });
+    }
+
+    private static void ComposeReportFooter(PageDescriptor page, HtmlNode cover, string? footerLabel)
+    {
+        page.Footer().PaddingTop(8).BorderTop(0.8f).BorderColor(PdfReportPalette.Line).PaddingTop(6).Row(row =>
+        {
+            row.RelativeItem().Text(Attribute(cover, "data-confidentiality"))
+                .FontSize(8.5f).FontColor(PdfReportPalette.Muted);
+            row.RelativeItem().AlignCenter().Text(footerLabel ?? string.Empty)
+                .FontSize(8.5f).FontColor(PdfReportPalette.Muted);
+            row.RelativeItem().AlignLeft().Text(text =>
+            {
+                text.DefaultTextStyle(style => style.FontSize(8.5f).FontColor(PdfReportPalette.Muted));
+                text.CurrentPageNumber();
+            });
+        });
     }
 
     private static void ComposeFooter(PageDescriptor page, string label)
     {
-        page.Footer().PaddingTop(8).BorderTop(1).BorderColor(Mint).PaddingTop(6).Row(row =>
+        page.Footer().PaddingTop(8).BorderTop(1).BorderColor(PdfReportPalette.Mint).PaddingTop(6).Row(row =>
         {
-            row.RelativeItem().Text(label).FontSize(MetaFontSize - 1).FontColor(Teal);
+            row.RelativeItem().Text(label).FontSize(MetaFontSize - 1).FontColor(PdfReportPalette.Teal);
             row.ConstantItem(90).AlignLeft().Text(text =>
             {
-                text.DefaultTextStyle(style => style.FontSize(MetaFontSize - 1).FontColor(Teal));
+                text.DefaultTextStyle(style => style.FontSize(MetaFontSize - 1).FontColor(PdfReportPalette.Teal));
                 text.CurrentPageNumber();
                 text.Span(" / ");
                 text.TotalPages();
@@ -103,6 +160,9 @@ public static class HtmlDocumentPdfComposer
                 break;
             case "h2":
                 RenderHeading(column, node);
+                break;
+            case "h3":
+                RenderSubHeading(column, node);
                 break;
             case "p":
                 RenderParagraph(column, node);
@@ -128,19 +188,41 @@ public static class HtmlDocumentPdfComposer
 
     private static void RenderTitle(ColumnDescriptor column, HtmlNode node)
     {
-        column.Item().Text(TextOf(node)).FontSize(TitleFontSize).Bold().FontColor(Navy);
-        column.Item().PaddingTop(4).LineHorizontal(2).LineColor(Teal);
+        column.Item().Text(TextOf(node)).FontSize(TitleFontSize).Bold().FontColor(PdfReportPalette.Navy);
+        column.Item().PaddingTop(4).LineHorizontal(2).LineColor(PdfReportPalette.Teal);
     }
 
-    // The section rule is drawn on the leading edge rather than set as a text colour alone: on a
-    // dense report the eye needs the sections to be findable while flicking through printed pages.
+    // A numbered heading is drawn the way the approved report draws it -- a filled badge carrying
+    // the section number, a mustard sliver, then the title on a tinted band -- because that shape
+    // is how a reader finds a section while flicking through printed pages. Headings with no
+    // number keep the lighter leading-edge rule used by the other documents this composer serves.
     private static void RenderHeading(ColumnDescriptor column, HtmlNode node)
     {
-        column.Item().PaddingTop(10).Row(row =>
+        var number = node.GetAttributeValue("data-number", string.Empty);
+        if (string.IsNullOrWhiteSpace(number))
         {
-            row.ConstantItem(4).Background(Mustard);
-            row.RelativeItem().PaddingRight(8).Text(TextOf(node)).FontSize(HeadingFontSize).Bold().FontColor(Teal);
+            column.Item().PaddingTop(10).Row(row =>
+            {
+                row.ConstantItem(4).Background(PdfReportPalette.Mustard);
+                row.RelativeItem().PaddingRight(8).Text(TextOf(node))
+                    .FontSize(HeadingFontSize).Bold().FontColor(PdfReportPalette.Teal);
+            });
+            return;
+        }
+
+        column.Item().PaddingTop(16).Height(32).Row(row =>
+        {
+            row.RelativeItem().Background(PdfReportPalette.SectionBand).PaddingRight(14).AlignMiddle()
+                .Text(TextOf(node)).FontSize(HeadingFontSize).Bold().FontColor(PdfReportPalette.Navy);
+            row.ConstantItem(5).Background(PdfReportPalette.Mustard);
+            row.ConstantItem(34).Background(PdfReportPalette.Band).AlignCenter().AlignMiddle()
+                .Text(number).FontSize(13).Bold().FontColor(Colors.White);
         });
+    }
+
+    private static void RenderSubHeading(ColumnDescriptor column, HtmlNode node)
+    {
+        column.Item().PaddingTop(14).Text(TextOf(node)).FontSize(13).Bold().FontColor(PdfReportPalette.Teal);
     }
 
     private static void RenderChildren(ColumnDescriptor column, HtmlNode node)
@@ -161,7 +243,7 @@ public static class HtmlDocumentPdfComposer
 
         var isItalic = node.SelectSingleNode(".//i | .//em") is not null;
         var isBold = node.SelectSingleNode(".//strong | .//b") is not null;
-        QuestPDF.Fluent.TextSpanDescriptor span = column.Item().Text(text);
+        QuestPDF.Fluent.TextSpanDescriptor span = column.Item().PaddingTop(4).Text(text).LineHeight(1.45f);
         if (isItalic)
         {
             span = span.Italic();
@@ -176,6 +258,19 @@ public static class HtmlDocumentPdfComposer
     private static void RenderDiv(ColumnDescriptor column, HtmlNode node)
     {
         var classAttribute = node.GetAttributeValue("class", string.Empty);
+        switch (classAttribute)
+        {
+            case "kpi-grid":
+                PdfReportBlocks.RenderKpiGrid(column, node);
+                return;
+            case "news-item":
+                PdfReportBlocks.RenderNewsItem(column, node);
+                return;
+            case "source-item":
+                PdfReportBlocks.RenderSourceItem(column, node);
+                return;
+        }
+
         var text = TextOf(node);
         if (string.IsNullOrWhiteSpace(text))
         {
@@ -183,20 +278,31 @@ public static class HtmlDocumentPdfComposer
             return;
         }
 
-        if (classAttribute.Contains("meta", StringComparison.Ordinal))
-        {
-            column.Item().Background(Mint).Padding(8).Text(text).FontSize(MetaFontSize).FontColor(Navy);
-            return;
-        }
+        RenderTextDiv(column, node, classAttribute, text);
+    }
 
-        if (classAttribute.Contains("quote", StringComparison.Ordinal))
+    private static void RenderTextDiv(ColumnDescriptor column, HtmlNode node, string classAttribute, string text)
+    {
+        switch (classAttribute)
         {
-            column.Item().BorderRight(4).BorderColor(Mustard).PaddingRight(10).PaddingVertical(4)
-                .Text(text).FontSize(BodyFontSize).Italic().FontColor(Navy);
-            return;
+            case "quote":
+                PdfReportBlocks.RenderQuote(column, node);
+                return;
+            case "quote-by":
+                column.Item().PaddingTop(5).Text(text).FontSize(9.5f).FontColor(PdfReportPalette.Muted);
+                return;
+            case "note":
+                column.Item().PaddingTop(8).Background(PdfReportPalette.Tint).Padding(11)
+                    .Text(text).FontSize(9.5f).FontColor(PdfReportPalette.Muted).LineHeight(1.45f);
+                return;
+            case "meta":
+                column.Item().Background(PdfReportPalette.Mint).Padding(8)
+                    .Text(text).FontSize(MetaFontSize).FontColor(PdfReportPalette.Navy);
+                return;
+            default:
+                column.Item().Text(text).FontSize(BodyFontSize);
+                return;
         }
-
-        column.Item().Text(text).FontSize(BodyFontSize);
     }
 
     private static void RenderList(ColumnDescriptor column, HtmlNode node)
@@ -206,7 +312,12 @@ public static class HtmlDocumentPdfComposer
             var text = TextOf(item);
             if (!string.IsNullOrWhiteSpace(text))
             {
-                column.Item().Text($"• {text}");
+                column.Item().PaddingTop(3).Row(row =>
+                {
+                    row.ConstantItem(14).PaddingTop(4).AlignCenter()
+                        .Width(4).Height(4).Background(PdfReportPalette.Mustard);
+                    row.RelativeItem().Text(text).LineHeight(1.4f);
+                });
             }
         }
     }
@@ -227,7 +338,7 @@ public static class HtmlDocumentPdfComposer
 
         var widths = ColumnWidths(node, columnCount);
         HtmlNode? headerRow = rows[0].SelectNodes("./th") is { Count: > 0 } ? rows[0] : null;
-        column.Item().Table(table =>
+        column.Item().PaddingTop(10).Table(table =>
         {
             table.ColumnsDefinition(columns =>
             {
@@ -238,9 +349,10 @@ public static class HtmlDocumentPdfComposer
             });
 
             RenderTableHeader(table, headerRow);
+            var index = 0;
             foreach (HtmlNode row in rows.Skip(headerRow is null ? 0 : 1))
             {
-                RenderTableRow(table, row);
+                RenderTableRow(table, row, index++);
             }
         });
     }
@@ -258,7 +370,7 @@ public static class HtmlDocumentPdfComposer
         {
             foreach (HtmlNode cell in headerRow.SelectNodes("./th|./td") ?? Enumerable.Empty<HtmlNode>())
             {
-                RenderCell(header.Cell(), cell, true);
+                RenderCell(header.Cell(), cell, true, 0);
             }
         });
     }
@@ -274,22 +386,27 @@ public static class HtmlDocumentPdfComposer
         return declared.Length == columnCount ? declared : Enumerable.Repeat(1f, columnCount).ToArray();
     }
 
-    private static void RenderTableRow(TableDescriptor table, HtmlNode row)
+    private static void RenderTableRow(TableDescriptor table, HtmlNode row, int index)
     {
         var isHeaderRow = row.SelectNodes("./th") is { Count: > 0 };
         foreach (HtmlNode cell in row.SelectNodes("./th|./td") ?? Enumerable.Empty<HtmlNode>())
         {
-            RenderCell(table.Cell(), cell, isHeaderRow);
+            RenderCell(table.Cell(), cell, isHeaderRow, index);
         }
     }
 
-    private static void RenderCell(IContainer cell, HtmlNode node, bool isHeaderRow)
+    // Rows of unbroken white ran together on the long tables, so every other row carries a tint --
+    // the same banding the approved report uses to keep a row readable across its full width.
+    private static void RenderCell(IContainer cell, HtmlNode node, bool isHeaderRow, int index)
     {
         var cellText = TextOf(node);
         IContainer styledCell = isHeaderRow
-            ? cell.Background(Teal).Padding(5)
-            : cell.BorderBottom(1).BorderColor(Mint).Padding(5);
-        QuestPDF.Fluent.TextSpanDescriptor cellSpan = styledCell.Text(cellText);
+            ? cell.Background(PdfReportPalette.Accent(node.GetAttributeValue("data-tone", string.Empty)))
+                .PaddingVertical(7).PaddingHorizontal(9)
+            : cell.Background(index % 2 == 1 ? PdfReportPalette.Tint : Colors.White)
+                .BorderBottom(0.8f).BorderColor(PdfReportPalette.Line)
+                .PaddingVertical(6).PaddingHorizontal(9);
+        QuestPDF.Fluent.TextSpanDescriptor cellSpan = styledCell.Text(cellText).FontSize(10.5f).LineHeight(1.35f);
         if (isHeaderRow)
         {
             cellSpan.FontColor(Colors.White).Bold();
@@ -297,4 +414,7 @@ public static class HtmlDocumentPdfComposer
     }
 
     private static string TextOf(HtmlNode node) => System.Net.WebUtility.HtmlDecode(node.InnerText).Trim();
+
+    private static string Attribute(HtmlNode node, string name) =>
+        System.Net.WebUtility.HtmlDecode(node.GetAttributeValue(name, string.Empty)).Trim();
 }

@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net;
 using System.Text;
 
@@ -15,22 +16,48 @@ namespace Icbank.Platform.Application.MediaMonitoring;
 /// BG #f5f8f9 -- distinct from the main app's DGA-derived palette used elsewhere.
 /// </summary>
 /// <remarks>
-/// The document carries every section the report holds. Exporting only the summary, the news
-/// table and the recommendations meant a reader who opened the PDF was missing the timeline,
-/// the tone breakdown, the analysis, the alerts, the quotes and the sources the report was
-/// assembled from, and had to return to the screen to see them.
+/// The document follows the authority's approved media-monitoring layout: a cover sheet, then six
+/// numbered sections (executive summary and indicators, the period's news, editorial-direction
+/// analysis, deep analysis, recommendations and alerts, methodology and sources). A report that
+/// carried the same content in a different shape was not recognisable as the authority's own
+/// document and could not be circulated as one.
 /// </remarks>
 public static class FinalReportHtmlBuilder
 {
+    private const string OrganisationArabic = "الهيئة العامة للمنافسة";
+    private const string OrganisationEnglish = "General Authority for Competition";
+    private const string Confidentiality = "سري — للاستخدام الداخلي";
+    private const string PreparedBy = "الإدارة التنفيذية للتواصل المؤسسي";
+    private const string PreparedFor = "الإدارة العليا للهيئة";
+    private const int HighlightCount = 5;
+
     private const string Styles = "<style>" +
-        "body{font-family:'Frutiger LT Arabic',sans-serif;direction:rtl;margin:40px;color:#0e3b4a;background:#f5f8f9;}" +
-        "h1{color:#1a6e7a;border-bottom:2px solid #1a6e7a;padding-bottom:8px;}" +
-        "h2{color:#1a6e7a;margin-top:24px;font-size:16px;border-right:4px solid #b8924a;padding-right:10px;}" +
-        ".meta{background:#cce4e6;padding:12px 16px;border-radius:8px;margin:16px 0;font-size:14px;}" +
-        ".quote{border-right:4px solid #b8924a;padding:8px 12px;font-style:italic;}" +
+        "body{font-family:'Frutiger LT Arabic',sans-serif;direction:rtl;margin:40px;color:#0e3b4a;background:#ffffff;}" +
+        "h1{color:#0e3b4a;font-size:30px;margin:16px 0 0;}" +
+        "h2{color:#0e3b4a;margin-top:28px;font-size:17px;background:#eef2f3;padding:10px 14px;border-left:5px solid #b8924a;}" +
+        "h3{color:#1a6e7a;margin-top:20px;font-size:14px;}" +
+        ".cover{border-bottom:5px solid #b8924a;padding-bottom:24px;margin-bottom:24px;}" +
+        ".cover-subtitle{color:#1a6e7a;font-size:15px;margin-top:8px;}" +
+        ".cover-meta{margin-top:24px;}" +
+        ".cover-meta td:first-child{background:#eef2f3;font-weight:bold;width:28%;}" +
+        ".kpi-grid{display:flex;flex-wrap:wrap;gap:9px;margin-top:12px;}" +
+        ".kpi-grid>div{flex:1 1 30%;background:#f7f9fa;border-top:3px solid #1a6e7a;padding:12px;text-align:center;}" +
+        ".kpi-value{display:block;font-size:22px;font-weight:bold;color:#1a6e7a;}" +
+        ".kpi-label{display:block;font-weight:bold;margin-top:4px;}" +
+        ".kpi-sub{display:block;font-size:11px;color:#6b7b80;margin-top:2px;}" +
+        ".news-item{margin-top:14px;}" +
+        ".news-headline{color:#1a6e7a;font-weight:bold;font-size:14px;}" +
+        ".news-meta{color:#6b7b80;font-size:12px;margin-top:4px;}" +
+        ".news-source{color:#b8924a;font-weight:bold;font-size:12px;margin-top:5px;}" +
+        ".quote{background:#f7f9fa;border-right:4px solid #b8924a;padding:13px;font-style:italic;}" +
+        ".quote-by{color:#6b7b80;font-size:13px;margin-top:5px;}" +
+        ".note{background:#f7f9fa;padding:11px;color:#6b7b80;font-size:13px;margin-top:12px;}" +
+        ".source-item{margin-top:7px;}" +
+        ".source-url{color:#1a6e7a;font-size:12px;direction:ltr;text-align:left;}" +
+        ".meta{background:#cce4e6;padding:12px 16px;margin:16px 0;font-size:14px;}" +
         "table{width:100%;border-collapse:collapse;margin-top:12px;font-size:13px;}" +
         "th{background:#1a6e7a;color:white;padding:8px 10px;text-align:right;}" +
-        "td{padding:7px 10px;border-bottom:1px solid #cce4e6;}" +
+        "td{padding:7px 10px;border-bottom:1px solid #dfe6e8;}" +
         "</style>";
 
     /// <summary>Builds the full report HTML document.</summary>
@@ -41,98 +68,134 @@ public static class FinalReportHtmlBuilder
         ArgumentNullException.ThrowIfNull(detail);
         var builder = new StringBuilder();
         builder.Append("<!DOCTYPE html><html dir=\"rtl\" lang=\"ar\"><head><meta charset=\"UTF-8\">").Append(Styles).Append("</head><body>");
-        AppendHeader(builder, detail.Summary);
-        AppendExecutiveSummary(builder, detail.Summary);
-        AppendTopNews(builder, detail.TopNews);
-        AppendTimeline(builder, detail.Timeline);
-        AppendDigitalPresence(builder, detail.DigitalPresence);
-        AppendEditorialTone(builder, detail.EditorialTone);
-        AppendDeepAnalysis(builder, detail.DeepAnalysis);
-        AppendRegionalComparison(builder, detail.RegionalComparison);
-        AppendRecommendations(builder, detail.Recommendations);
-        AppendAlerts(builder, detail.Alerts);
-        AppendQuotes(builder, detail.QuotesAppendix);
-        AppendMethodology(builder, detail.Methodology);
-        AppendSources(builder, detail.Sources);
+        AppendCover(builder, detail.Summary);
+        AppendSectionOne(builder, detail);
+        AppendSectionTwo(builder, detail);
+        AppendSectionThree(builder, detail);
+        AppendSectionFour(builder, detail);
+        AppendSectionFive(builder, detail);
+        AppendSectionSix(builder, detail);
         builder.Append("</body></html>");
         return builder.ToString();
     }
 
-    private static void AppendHeader(StringBuilder builder, FinalMediaReportDto summary)
+    private static void AppendCover(StringBuilder builder, FinalMediaReportDto summary)
     {
-        builder.Append("<h1>").Append(Encode(summary.Title)).Append("</h1><div class=\"meta\">");
-        builder.Append("<span>الرقم: <strong>").Append(Encode(summary.ReportNumber)).Append("</strong></span> ");
-        builder.Append("<span>الفترة: <strong>").Append(Encode(summary.PeriodLabel)).Append("</strong></span>");
-        builder.Append("</div>");
-        AppendKpis(builder, summary.Kpis);
+        builder.Append("<div class=\"cover\" data-org=\"").Append(Encode(OrganisationArabic))
+            .Append("\" data-org-en=\"").Append(Encode(OrganisationEnglish))
+            .Append("\" data-kicker=\"").Append(Encode("تقرير داخلي — للاستخدام المؤسسي"))
+            .Append("\" data-confidentiality=\"").Append(Encode(Confidentiality))
+            .Append("\" data-report-number=\"").Append(Encode(summary.ReportNumber)).Append("\">");
+        builder.Append("<h1>").Append(Encode(summary.Title)).Append("</h1>");
+        builder.Append("<div class=\"cover-subtitle\">").Append(Encode("تحليل التغطية الإعلامية للهيئة العامة للمنافسة")).Append("</div>");
+        builder.Append("<table class=\"cover-meta\">");
+        AppendCoverRow(builder, "الفترة الزمنية", PeriodOf(summary));
+        AppendCoverRow(builder, "الجهة المعدة", PreparedBy);
+        AppendCoverRow(builder, "الجهة المستفيدة", PreparedFor);
+        AppendCoverRow(builder, "الرقم المرجعي", summary.ReportNumber);
+        AppendCoverRow(builder, "تاريخ الإصدار", Date(summary.CreatedAt));
+        builder.Append("</table></div>");
     }
 
-    private static void AppendKpis(StringBuilder builder, ReportKpisDto kpis)
+    private static void AppendCoverRow(StringBuilder builder, string label, string value) =>
+        builder.Append("<tr><td>").Append(Encode(label)).Append("</td><td>").Append(Encode(value)).Append("</td></tr>");
+
+    private static string PeriodOf(FinalMediaReportDto summary) =>
+        string.IsNullOrWhiteSpace(summary.PeriodLabel)
+            ? Date(summary.DateFrom) + " — " + Date(summary.DateTo)
+            : summary.PeriodLabel;
+
+    private static void AppendSectionOne(StringBuilder builder, FinalMediaReportDetailDto detail)
     {
-        var rows = new List<(string Label, string Value)>();
-        AddKpi(rows, "إجمالي الأخبار", kpis.TotalNews);
-        AddKpi(rows, "نسبة الإيجابية", kpis.PositivePercent, "%");
-        AddKpi(rows, "المنافذ الإعلامية", kpis.MediaOutlets);
-        AddKpi(rows, "المواضيع الرئيسية", kpis.KeyTopics);
-        AddKpi(rows, "عدد التنبيهات", kpis.AlertsCount);
-        if (!string.IsNullOrWhiteSpace(kpis.Reach))
+        AppendSection(builder, 1, "الملخص التنفيذي");
+        if (!string.IsNullOrWhiteSpace(detail.Summary.ExecutiveSummary))
         {
-            rows.Add(("مدى الوصول", kpis.Reach!));
+            builder.Append("<p>").Append(Encode(detail.Summary.ExecutiveSummary)).Append("</p>");
         }
 
-        if (rows.Count == 0)
+        var highlights = detail.TopNews.Take(HighlightCount).Select(item => item.Headline).ToList();
+        if (highlights.Count > 0)
+        {
+            AppendSubHeading(builder, "أبرز المحاور خلال الفترة");
+            AppendBulletList(builder, highlights);
+        }
+
+        AppendKpiGrid(builder, detail.Summary.Kpis);
+    }
+
+    private static void AppendKpiGrid(StringBuilder builder, ReportKpisDto kpis)
+    {
+        var cards = new List<(string Value, string Label, string Sub, string Accent)>();
+        AddCard(cards, kpis.TotalNews, string.Empty, "خبر منشور", "إجمالي الأخبار المرصودة", "teal");
+        AddCard(cards, kpis.PositivePercent, "٪", "تغطية إيجابية", "من إجمالي التغطية", "green");
+        AddCard(cards, kpis.MediaOutlets, string.Empty, "وسيلة إعلامية", "منافذ نشرت عن الهيئة", "mustard");
+        AddCard(cards, kpis.KeyTopics, string.Empty, "موضوعات رئيسية", "محاور التغطية الأبرز", "teal");
+        if (!string.IsNullOrWhiteSpace(kpis.Reach))
+        {
+            cards.Add((kpis.Reach!, "وصول جماهيري", "مدى الوصول التقديري", "green"));
+        }
+
+        AddCard(cards, kpis.AlertsCount, string.Empty, "تنبيهات للمتابعة", "بنود تستوجب المتابعة", "magenta");
+        if (cards.Count == 0)
         {
             return;
         }
 
-        AppendHeading(builder, "مؤشرات الفترة", rows.Count);
-        builder.Append("<table data-widths=\"2,1\"><tr><th>المؤشر</th><th>القيمة</th></tr>");
-        foreach ((var label, var value) in rows)
+        AppendSubHeading(builder, "المؤشرات الإعلامية الرئيسية");
+        builder.Append("<div class=\"kpi-grid\">");
+        foreach ((var value, var label, var sub, var accent) in cards)
         {
-            builder.Append("<tr><td>").Append(Encode(label)).Append("</td><td>").Append(Encode(value)).Append("</td></tr>");
+            builder.Append("<div data-accent=\"").Append(accent).Append("\">")
+                .Append("<div class=\"kpi-value\">").Append(Encode(value)).Append("</div>")
+                .Append("<div class=\"kpi-label\">").Append(Encode(label)).Append("</div>")
+                .Append("<div class=\"kpi-sub\">").Append(Encode(sub)).Append("</div></div>");
         }
 
-        builder.Append("</table>");
+        builder.Append("</div>");
     }
 
-    private static void AddKpi(List<(string Label, string Value)> rows, string label, int? value, string suffix = "")
+    private static void AddCard(
+        List<(string Value, string Label, string Sub, string Accent)> cards,
+        int? value,
+        string suffix,
+        string label,
+        string sub,
+        string accent)
     {
         if (value.HasValue)
         {
-            rows.Add((label, value.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) + suffix));
+            cards.Add((Number(value.Value) + suffix, label, sub, accent));
         }
     }
 
-    private static void AppendExecutiveSummary(StringBuilder builder, FinalMediaReportDto summary)
+    private static void AppendSectionTwo(StringBuilder builder, FinalMediaReportDetailDto detail)
     {
-        if (string.IsNullOrWhiteSpace(summary.ExecutiveSummary))
+        AppendSection(builder, 2, "أبرز الأخبار خلال الفترة");
+        if (detail.TopNews.Count == 0)
         {
-            return;
+            builder.Append("<p>").Append(Encode("لا توجد أخبار مسجلة.")).Append("</p>");
         }
 
-        builder.Append("<h2>الملخص التنفيذي</h2><p>").Append(Encode(summary.ExecutiveSummary)).Append("</p>");
+        var index = 1;
+        foreach (TopNewsItemDto item in detail.TopNews)
+        {
+            AppendNewsItem(builder, item, index++);
+        }
+
+        AppendTimeline(builder, detail.Timeline);
     }
 
-    private static void AppendTopNews(StringBuilder builder, IReadOnlyList<TopNewsItemDto> topNews)
+    private static void AppendNewsItem(StringBuilder builder, TopNewsItemDto item, int index)
     {
-        if (topNews.Count == 0)
+        builder.Append("<div class=\"news-item\" data-index=\"").Append(Number(index)).Append("\">");
+        builder.Append("<div class=\"news-headline\">").Append(Encode(item.Headline)).Append("</div>");
+        builder.Append("<div class=\"news-meta\">").Append(Encode("التاريخ: " + item.Date + " — النبرة: " + item.Tone)).Append("</div>");
+        foreach (var paragraph in item.Details)
         {
-            builder.Append("<h2>أبرز الأخبار</h2><p>لا توجد أخبار مسجلة.</p>");
-            return;
+            builder.Append("<p>").Append(Encode(paragraph)).Append("</p>");
         }
 
-        AppendHeading(builder, "أبرز الأخبار", topNews.Count);
-        builder.Append("<table data-widths=\"2,4.4,1,1.8\"><tr><th>التاريخ</th><th>العنوان</th><th>النبرة</th><th>المصدر</th></tr>");
-        foreach (TopNewsItemDto item in topNews)
-        {
-            var headline = item.Details.Count == 0
-                ? item.Headline
-                : item.Headline + " — " + string.Join(" ", item.Details);
-            builder.Append("<tr><td>").Append(Encode(item.Date)).Append("</td><td>").Append(Encode(headline))
-                .Append("</td><td>").Append(Encode(item.Tone)).Append("</td><td>").Append(Encode(item.Source)).Append("</td></tr>");
-        }
-
-        builder.Append("</table>");
+        builder.Append("<div class=\"news-source\">").Append(Encode("المصدر: " + item.Source)).Append("</div></div>");
     }
 
     private static void AppendTimeline(StringBuilder builder, IReadOnlyList<TimelineEventDto> timeline)
@@ -142,8 +205,8 @@ public static class FinalReportHtmlBuilder
             return;
         }
 
-        AppendHeading(builder, "الخط الزمني للتغطية", timeline.Count);
-        builder.Append("<table data-widths=\"2,4,1.8,1,0.8\"><tr><th>التاريخ</th><th>الحدث</th><th>المنفذ</th><th>النبرة</th><th>العدد</th></tr>");
+        AppendSubHeading(builder, "الخط الزمني للتغطية");
+        builder.Append("<table data-widths=\"1.6,4,1.8,1,0.8\"><tr><th>التاريخ</th><th>الحدث</th><th>الوسيلة</th><th>النبرة</th><th>العدد</th></tr>");
         foreach (TimelineEventDto item in timeline)
         {
             builder.Append("<tr><td>").Append(Encode(item.Date)).Append("</td><td>").Append(Encode(item.Event))
@@ -154,11 +217,39 @@ public static class FinalReportHtmlBuilder
         builder.Append("</table>");
     }
 
+    private static void AppendSectionThree(StringBuilder builder, FinalMediaReportDetailDto detail)
+    {
+        AppendSection(builder, 3, "تحليل التوجه الإعلامي");
+        AppendToneBuckets(builder, "توزع نبرة التغطية الإعلامية", detail.EditorialTone.Distribution);
+        AppendToneBuckets(builder, "التصنيف الموضوعي للأخبار", detail.EditorialTone.Classification);
+        AppendToneBuckets(builder, "توزع التغطية حسب المصدر", detail.EditorialTone.Sources);
+        AppendDigitalPresence(builder, detail.DigitalPresence);
+    }
+
+    private static void AppendToneBuckets(StringBuilder builder, string title, IReadOnlyList<EditorialToneBucketDto> buckets)
+    {
+        if (buckets.Count == 0)
+        {
+            return;
+        }
+
+        AppendSubHeading(builder, title);
+        builder.Append("<table data-widths=\"3,1,1\"><tr><th>البند</th><th>عدد الأخبار</th><th>النسبة</th></tr>");
+        foreach (EditorialToneBucketDto bucket in buckets)
+        {
+            builder.Append("<tr><td>").Append(Encode(bucket.Label)).Append("</td><td>").Append(Number(bucket.Count))
+                .Append("</td><td>").Append(Encode(bucket.Percent.ToString("0.#", CultureInfo.InvariantCulture) + "٪"))
+                .Append("</td></tr>");
+        }
+
+        builder.Append("</table>");
+    }
+
     private static void AppendDigitalPresence(StringBuilder builder, DigitalPresenceDto presence)
     {
         if (presence.Platforms.Count > 0)
         {
-            AppendHeading(builder, "الحضور الرقمي", presence.Platforms.Count);
+            AppendSubHeading(builder, "الحضور الرقمي");
             builder.Append("<table data-widths=\"2,1,1,1.2,1.4\"><tr><th>المنصة</th><th>الإشارات</th><th>إعادة النشر</th><th>التفاعل</th><th>الوصول</th></tr>");
             foreach (DigitalPresencePlatformDto platform in presence.Platforms)
             {
@@ -175,7 +266,7 @@ public static class FinalReportHtmlBuilder
             return;
         }
 
-        AppendHeading(builder, "الوسوم الأكثر استخداماً", presence.Hashtags.Count);
+        AppendSubHeading(builder, "الوسوم الأكثر استخداماً");
         builder.Append("<table data-widths=\"3,1,1.4\"><tr><th>الوسم</th><th>الاستخدامات</th><th>الاتجاه</th></tr>");
         foreach (DigitalPresenceHashtagDto hashtag in presence.Hashtags)
         {
@@ -186,72 +277,63 @@ public static class FinalReportHtmlBuilder
         builder.Append("</table>");
     }
 
-    private static void AppendEditorialTone(StringBuilder builder, EditorialToneDto tone)
+    private static void AppendSectionFour(StringBuilder builder, FinalMediaReportDetailDto detail)
     {
-        AppendToneBuckets(builder, "توزيع النبرة التحريرية", tone.Distribution);
-        AppendToneBuckets(builder, "تصنيف التغطية", tone.Classification);
-        AppendToneBuckets(builder, "النبرة حسب المصدر", tone.Sources);
+        AppendSection(builder, 4, "تحليل عميق ومؤشرات قطاعية");
+        AppendKeywords(builder, detail.DeepAnalysis.Keywords);
+        AppendQuote(builder, detail.DeepAnalysis.Quote);
+        AppendStrategicReading(builder, detail.DeepAnalysis.Strengths, detail.DeepAnalysis.Weaknesses);
+        AppendRegionalComparison(builder, detail.RegionalComparison);
     }
 
-    private static void AppendToneBuckets(StringBuilder builder, string title, IReadOnlyList<EditorialToneBucketDto> buckets)
+    private static void AppendKeywords(StringBuilder builder, IReadOnlyList<DeepAnalysisKeywordDto> keywords)
     {
-        if (buckets.Count == 0)
+        if (keywords.Count == 0)
         {
             return;
         }
 
-        AppendHeading(builder, title, buckets.Count);
-        builder.Append("<table data-widths=\"3,1,1\"><tr><th>البند</th><th>النسبة</th><th>العدد</th></tr>");
-        foreach (EditorialToneBucketDto bucket in buckets)
+        AppendSubHeading(builder, "أبرز الكلمات المفتاحية في التغطية");
+        builder.Append("<table data-widths=\"1.6,0.8,4\"><tr><th>الكلمة المفتاحية</th><th>التكرار</th><th>السياق الغالب</th></tr>");
+        foreach (DeepAnalysisKeywordDto keyword in keywords)
         {
-            builder.Append("<tr><td>").Append(Encode(bucket.Label)).Append("</td><td>")
-                .Append(Encode(bucket.Percent.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture) + "%"))
-                .Append("</td><td>").Append(Number(bucket.Count)).Append("</td></tr>");
+            builder.Append("<tr><td>").Append(Encode(keyword.Keyword)).Append("</td><td>").Append(Number(keyword.Frequency))
+                .Append("</td><td>").Append(Encode(keyword.Context)).Append("</td></tr>");
         }
 
         builder.Append("</table>");
     }
 
-    private static void AppendDeepAnalysis(StringBuilder builder, DeepAnalysisDto analysis)
+    private static void AppendQuote(StringBuilder builder, DeepAnalysisQuoteDto? quote)
     {
-        if (analysis.Keywords.Count > 0)
-        {
-            AppendHeading(builder, "الكلمات المفتاحية", analysis.Keywords.Count);
-            builder.Append("<table data-widths=\"1.6,0.8,4\"><tr><th>الكلمة</th><th>التكرار</th><th>السياق</th></tr>");
-            foreach (DeepAnalysisKeywordDto keyword in analysis.Keywords)
-            {
-                builder.Append("<tr><td>").Append(Encode(keyword.Keyword)).Append("</td><td>").Append(Number(keyword.Frequency))
-                    .Append("</td><td>").Append(Encode(keyword.Context)).Append("</td></tr>");
-            }
-
-            builder.Append("</table>");
-        }
-
-        if (analysis.Quote is not null)
-        {
-            builder.Append("<h2>تصريح بارز</h2><div class=\"quote\">").Append(Encode(analysis.Quote.Text))
-                .Append(" — ").Append(Encode(analysis.Quote.Source)).Append(" (").Append(Encode(analysis.Quote.Date)).Append(")</div>");
-        }
-
-        AppendBulletList(builder, "عناصر القوة", analysis.Strengths);
-        AppendBulletList(builder, "نقاط تحتاج معالجة", analysis.Weaknesses);
-    }
-
-    private static void AppendBulletList(StringBuilder builder, string title, IReadOnlyList<string> items)
-    {
-        if (items.Count == 0)
+        if (quote is null)
         {
             return;
         }
 
-        AppendHeading(builder, title, items.Count);
-        builder.Append("<ul>");
-        foreach (var item in items)
+        AppendSubHeading(builder, "اقتباس بارز من التغطية");
+        builder.Append("<div class=\"quote\">").Append(Encode(quote.Text)).Append("</div>");
+        builder.Append("<div class=\"quote-by\">").Append(Encode("— " + quote.Source + "، " + quote.Date)).Append("</div>");
+    }
+
+    private static void AppendStrategicReading(StringBuilder builder, IReadOnlyList<string> strengths, IReadOnlyList<string> weaknesses)
+    {
+        if (strengths.Count == 0 && weaknesses.Count == 0)
         {
-            builder.Append("<li>").Append(Encode(item)).Append("</li>");
+            return;
         }
 
-        builder.Append("</ul>");
+        AppendSubHeading(builder, "قراءة استراتيجية للحضور الإعلامي");
+        builder.Append("<table data-widths=\"1,1\"><tr><th data-tone=\"green\">نقاط القوة الإعلامية</th>")
+            .Append("<th data-tone=\"magenta\">نقاط تتطلب الانتباه</th></tr>");
+        for (var index = 0; index < Math.Max(strengths.Count, weaknesses.Count); index++)
+        {
+            builder.Append("<tr><td>").Append(Encode(index < strengths.Count ? strengths[index] : string.Empty))
+                .Append("</td><td>").Append(Encode(index < weaknesses.Count ? weaknesses[index] : string.Empty))
+                .Append("</td></tr>");
+        }
+
+        builder.Append("</table>");
     }
 
     private static void AppendRegionalComparison(StringBuilder builder, IReadOnlyList<RegionalComparisonDto> comparison)
@@ -261,7 +343,7 @@ public static class FinalReportHtmlBuilder
             return;
         }
 
-        AppendHeading(builder, "المقارنة الإقليمية", comparison.Count);
+        AppendSubHeading(builder, "المقارنة الإقليمية");
         builder.Append("<table data-widths=\"2,1.2,1,1,3.4\"><tr><th>الجهة</th><th>الدولة</th><th>الإشارات</th><th>النبرة</th><th>أبرز ما ورد</th></tr>");
         foreach (RegionalComparisonDto item in comparison)
         {
@@ -273,6 +355,13 @@ public static class FinalReportHtmlBuilder
         builder.Append("</table>");
     }
 
+    private static void AppendSectionFive(StringBuilder builder, FinalMediaReportDetailDto detail)
+    {
+        AppendSection(builder, 5, "التوصيات والإجراءات المقترحة");
+        AppendRecommendations(builder, detail.Recommendations);
+        AppendAlerts(builder, detail.Alerts);
+    }
+
     private static void AppendRecommendations(StringBuilder builder, IReadOnlyList<RecommendationDto> recommendations)
     {
         if (recommendations.Count == 0)
@@ -280,27 +369,38 @@ public static class FinalReportHtmlBuilder
             return;
         }
 
-        AppendHeading(builder, "التوصيات", recommendations.Count);
+        builder.Append("<p>").Append(Encode("بناء على تحليل التغطية الإعلامية خلال الفترة، نوصي بالإجراءات التالية لتعزيز الحضور المؤسسي للهيئة ومعالجة الفجوات المرصودة:")).Append("</p>");
+        builder.Append("<table data-widths=\"0.5,5,1.7,1\"><tr><th></th><th>التوصية</th><th>الجهة المعنية</th><th>الأولوية</th></tr>");
+        var index = 1;
         foreach (RecommendationDto recommendation in recommendations)
         {
-            builder.Append("<p><strong>").Append(Encode(recommendation.Title)).Append("</strong>: ")
-                .Append(Encode(recommendation.Description)).Append("</p>");
-            AppendRecommendationDetails(builder, recommendation);
+            builder.Append("<tr><td>").Append(Number(index++)).Append("</td><td>")
+                .Append(Encode(RecommendationText(recommendation))).Append("</td><td>")
+                .Append(Encode(recommendation.Responsible)).Append("</td><td>")
+                .Append(Encode(recommendation.Priority)).Append("</td></tr>");
         }
+
+        builder.Append("</table>");
     }
 
-    private static void AppendRecommendationDetails(StringBuilder builder, RecommendationDto recommendation)
+    private static string RecommendationText(RecommendationDto recommendation)
     {
+        var text = new StringBuilder(recommendation.Title);
+        if (!string.IsNullOrWhiteSpace(recommendation.Description))
+        {
+            text.Append(" — ").Append(recommendation.Description);
+        }
+
         var parts = new List<string>();
-        AddPart(parts, "الأولوية", recommendation.Priority);
-        AddPart(parts, "المسؤول", recommendation.Responsible);
         AddPart(parts, "المؤشر", recommendation.Kpi);
         AddPart(parts, "الموعد", recommendation.Deadline);
         AddPart(parts, "المتطلبات", recommendation.Dependencies);
         if (parts.Count > 0)
         {
-            builder.Append("<div class=\"meta\">").Append(Encode(string.Join(" · ", parts))).Append("</div>");
+            text.Append(" (").Append(string.Join(" · ", parts)).Append(')');
         }
+
+        return text.ToString();
     }
 
     private static void AddPart(List<string> parts, string label, string? value)
@@ -318,8 +418,9 @@ public static class FinalReportHtmlBuilder
             return;
         }
 
-        AppendHeading(builder, "التنبيهات والموقف المقترح", alerts.Count);
-        builder.Append("<table data-widths=\"1,1\"><tr><th>التنبيه</th><th>الموقف المقترح</th></tr>");
+        AppendSubHeading(builder, "تنبيهات تستوجب المتابعة في الفترة القادمة");
+        builder.Append("<table data-widths=\"1,1\"><tr><th data-tone=\"mustard\">التنبيه</th>")
+            .Append("<th data-tone=\"mustard\">الموقف المقترح</th></tr>");
         foreach (AlertItemDto alert in alerts)
         {
             builder.Append("<tr><td>").Append(Encode(alert.Alert)).Append("</td><td>")
@@ -329,14 +430,30 @@ public static class FinalReportHtmlBuilder
         builder.Append("</table>");
     }
 
-    private static void AppendQuotes(StringBuilder builder, IReadOnlyList<QuoteAppendixItemDto> quotes)
+    private static void AppendSectionSix(StringBuilder builder, FinalMediaReportDetailDto detail)
+    {
+        AppendSection(builder, 6, "المنهجية والمصادر");
+        if (!string.IsNullOrWhiteSpace(detail.Methodology))
+        {
+            AppendSubHeading(builder, "منهجية الرصد");
+            builder.Append("<p>").Append(Encode(detail.Methodology)).Append("</p>");
+        }
+
+        AppendQuotesAppendix(builder, detail.QuotesAppendix);
+        AppendSources(builder, detail.Sources);
+        builder.Append("<div class=\"note\">")
+            .Append(Encode("تم إعداد هذا التقرير وفقا للممارسات المعتمدة في الإدارة التنفيذية للتواصل المؤسسي، ويعكس قراءة تحليلية لتغطية الفترة المحددة. الأرقام والنسب الواردة في المؤشرات مبنية على عينة الأخبار المرصودة وقد تختلف عن الأرقام الفعلية لحركة وسائل الإعلام."))
+            .Append("</div>");
+    }
+
+    private static void AppendQuotesAppendix(StringBuilder builder, IReadOnlyList<QuoteAppendixItemDto> quotes)
     {
         if (quotes.Count == 0)
         {
             return;
         }
 
-        AppendHeading(builder, "ملحق التصريحات", quotes.Count);
+        AppendSubHeading(builder, "ملحق التصريحات");
         builder.Append("<table data-widths=\"4.5,1.6,1.5,1.6\"><tr><th>التصريح</th><th>المصدر</th><th>التاريخ</th><th>الموضوع</th></tr>");
         foreach (QuoteAppendixItemDto quote in quotes)
         {
@@ -347,16 +464,6 @@ public static class FinalReportHtmlBuilder
         builder.Append("</table>");
     }
 
-    private static void AppendMethodology(StringBuilder builder, string? methodology)
-    {
-        if (string.IsNullOrWhiteSpace(methodology))
-        {
-            return;
-        }
-
-        builder.Append("<h2>المنهجية</h2><p>").Append(Encode(methodology)).Append("</p>");
-    }
-
     private static void AppendSources(StringBuilder builder, IReadOnlyList<SourceRefDto> sources)
     {
         if (sources.Count == 0)
@@ -364,31 +471,46 @@ public static class FinalReportHtmlBuilder
             return;
         }
 
-        AppendHeading(builder, "المصادر", sources.Count);
-        builder.Append("<ul>");
+        AppendSubHeading(builder, "المصادر الرئيسية المعتمدة");
+        var index = 1;
         foreach (SourceRefDto source in sources)
         {
-            builder.Append("<li>").Append(Encode(source.Name));
+            var name = Number(index++) + ". " + source.Name;
             if (!string.IsNullOrWhiteSpace(source.Description))
             {
-                builder.Append(" — ").Append(Encode(source.Description));
+                name += " — " + source.Description;
             }
 
+            builder.Append("<div class=\"source-item\"><div class=\"source-name\">").Append(Encode(name)).Append("</div>");
             if (!string.IsNullOrWhiteSpace(source.Url))
             {
-                builder.Append(" (").Append(Encode(source.Url)).Append(')');
+                builder.Append("<div class=\"source-url\">").Append(Encode(source.Url)).Append("</div>");
             }
 
-            builder.Append("</li>");
+            builder.Append("</div>");
+        }
+    }
+
+    private static void AppendBulletList(StringBuilder builder, IReadOnlyList<string> items)
+    {
+        builder.Append("<ul>");
+        foreach (var item in items)
+        {
+            builder.Append("<li>").Append(Encode(item)).Append("</li>");
         }
 
         builder.Append("</ul>");
     }
 
-    private static void AppendHeading(StringBuilder builder, string title, int count) =>
-        builder.Append("<h2>").Append(Encode(title)).Append(" (").Append(Number(count)).Append(")</h2>");
+    private static void AppendSection(StringBuilder builder, int number, string title) =>
+        builder.Append("<h2 data-number=\"").Append(Number(number)).Append("\">").Append(Encode(title)).Append("</h2>");
 
-    private static string Number(int value) => value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+    private static void AppendSubHeading(StringBuilder builder, string title) =>
+        builder.Append("<h3>").Append(Encode(title)).Append("</h3>");
+
+    private static string Date(DateTimeOffset value) => value.ToString("yyyy/MM/dd", CultureInfo.InvariantCulture);
+
+    private static string Number(int value) => value.ToString(CultureInfo.InvariantCulture);
 
     private static string Encode(string? value) => WebUtility.HtmlEncode(value ?? string.Empty);
 }
