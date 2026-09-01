@@ -307,7 +307,18 @@ jobs:
             echo "OK   drawer parked with a transform"
           fi
 
-          for needle in 'icbank.nav.groups.v2' 'max-width: 1023.98px' 'tbl-cards'; do
+          # This release renamed the platform and retired two design tabs. Both are one-line
+          # reverts, so they are asserted rather than trusted.
+          for gone in '>IC<' 'تواصُلنا' "desSwitchTab('templates')" "desSwitchTab('editor')"; do
+            if grep -qF "$gone" shell.html; then
+              echo "::error::served shell still carries the retired string: $gone"
+              FAILED=1
+            else
+              echo "OK   retired: $gone"
+            fi
+          done
+
+          for needle in 'icbank.nav.groups.v2' 'max-width: 1023.98px' 'tbl-cards' '>CC<' 'منصة تواصل' 'filter-tabs-row'; do
             if grep -qF "$needle" shell.html; then
               echo "OK   found $needle"
             else
