@@ -1,3 +1,5 @@
+using Icbank.Platform.Application.MediaMonitoring.Appearance;
+
 namespace Icbank.Platform.Application.MediaMonitoring;
 
 /// <summary>Full read model for a single final media report, including every one of the 8 report sections.</summary>
@@ -13,6 +15,7 @@ namespace Icbank.Platform.Application.MediaMonitoring;
 /// <param name="QuotesAppendix">The quotes appendix.</param>
 /// <param name="Methodology">The methodology notes.</param>
 /// <param name="Sources">The source list.</param>
+/// <param name="Appearance">The measured media-appearance analysis for the report period, counted from the monitored archive.</param>
 public sealed record FinalMediaReportDetailDto(
     FinalMediaReportDto Summary,
     IReadOnlyList<TopNewsItemDto> TopNews,
@@ -25,4 +28,5 @@ public sealed record FinalMediaReportDetailDto(
     IReadOnlyList<AlertItemDto> Alerts,
     IReadOnlyList<QuoteAppendixItemDto> QuotesAppendix,
     string? Methodology,
-    IReadOnlyList<SourceRefDto> Sources);
+    IReadOnlyList<SourceRefDto> Sources,
+    MediaAppearanceAnalysisDto Appearance);

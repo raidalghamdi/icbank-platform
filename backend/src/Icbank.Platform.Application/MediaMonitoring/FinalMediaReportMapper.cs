@@ -1,3 +1,4 @@
+using Icbank.Platform.Application.MediaMonitoring.Appearance;
 using Icbank.Platform.Domain.MediaMonitoring;
 
 namespace Icbank.Platform.Application.MediaMonitoring;
@@ -25,8 +26,9 @@ public static class FinalMediaReportMapper
 
     /// <summary>Maps a <see cref="FinalMediaReport"/> entity to its full detail DTO, including every report section.</summary>
     /// <param name="report">The entity to map.</param>
+    /// <param name="appearance">The measured appearance analysis for the report period; the empty analysis when it was not measured.</param>
     /// <returns>The mapped <see cref="FinalMediaReportDetailDto"/>.</returns>
-    public static FinalMediaReportDetailDto ToDetailDto(FinalMediaReport report) => new(
+    public static FinalMediaReportDetailDto ToDetailDto(FinalMediaReport report, MediaAppearanceAnalysisDto? appearance = null) => new(
         ToSummaryDto(report),
         report.TopNews.Select(n => new TopNewsItemDto(n.Date, n.Tone, n.Headline, n.Details, n.Source)).ToList(),
         report.Timeline.Select(t => new TimelineEventDto(t.Date, t.Event, t.Outlet, t.Tone, t.Count)).ToList(),
@@ -38,7 +40,8 @@ public static class FinalMediaReportMapper
         report.Alerts.Select(a => new AlertItemDto(a.Alert, a.SuggestedPosition)).ToList(),
         report.QuotesAppendix.Select(q => new QuoteAppendixItemDto(q.Quote, q.Source, q.Date, q.Topic)).ToList(),
         report.Methodology,
-        report.Sources.Select(s => new SourceRefDto(s.Name, s.Url, s.Description)).ToList());
+        report.Sources.Select(s => new SourceRefDto(s.Name, s.Url, s.Description)).ToList(),
+        appearance ?? MediaAppearanceAnalysisDto.Empty);
 
     private static ReportKpisDto ToKpisDto(ReportKpis kpis) =>
         new(kpis.TotalNews, kpis.PositivePercent, kpis.MediaOutlets, kpis.KeyTopics, kpis.Reach, kpis.AlertsCount);

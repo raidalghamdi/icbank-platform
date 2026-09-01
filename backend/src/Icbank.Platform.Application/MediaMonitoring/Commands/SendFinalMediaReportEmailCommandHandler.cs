@@ -1,5 +1,6 @@
 using Icbank.Platform.Application.Common.Interfaces;
 using Icbank.Platform.Application.Common.Models;
+using Icbank.Platform.Application.MediaMonitoring.Appearance;
 using Icbank.Platform.Domain.MediaMonitoring;
 using MediatR;
 
@@ -37,7 +38,9 @@ public sealed class SendFinalMediaReportEmailCommandHandler : IRequestHandler<Se
             return Result<SendFinalMediaReportEmailResultDto>.Failure("التقرير غير موجود");
         }
 
-        var html = FinalReportHtmlBuilder.Build(FinalMediaReportMapper.ToDetailDto(report));
+        MediaAppearanceAnalysisDto appearance = await MediaAppearanceLoader.LoadAsync(
+            _dbContext, _queryExecutor, report.DateFrom, report.DateTo, cancellationToken);
+        var html = FinalReportHtmlBuilder.Build(FinalMediaReportMapper.ToDetailDto(report, appearance));
         var subject = request.Subject ?? report.Title;
         ReportEmailResult emailResult = await _emailSender.SendAsync(request.Recipients, subject, html, cancellationToken);
 

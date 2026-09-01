@@ -1,5 +1,6 @@
 using Icbank.Platform.Application.Common.Interfaces;
 using Icbank.Platform.Application.Common.Models;
+using Icbank.Platform.Application.MediaMonitoring.Appearance;
 using Icbank.Platform.Domain.MediaMonitoring;
 using MediatR;
 
@@ -33,7 +34,9 @@ public sealed class ExportFinalMediaReportPdfCommandHandler : IRequestHandler<Ex
             return Result<byte[]>.Failure("التقرير غير موجود");
         }
 
-        FinalMediaReportDetailDto detail = FinalMediaReportMapper.ToDetailDto(report);
+        MediaAppearanceAnalysisDto appearance = await MediaAppearanceLoader.LoadAsync(
+            _dbContext, _queryExecutor, report.DateFrom, report.DateTo, cancellationToken);
+        FinalMediaReportDetailDto detail = FinalMediaReportMapper.ToDetailDto(report, appearance);
         var html = FinalReportHtmlBuilder.Build(detail);
         var footerLabel = detail.Summary.ReportNumber + " · " + detail.Summary.PeriodLabel;
         var pdfBytes = await _pdfRenderer.RenderAsync(html, footerLabel, cancellationToken);

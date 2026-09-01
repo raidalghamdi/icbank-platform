@@ -14625,8 +14625,9 @@ window.MM = (function(){
     var el = document.getElementById('mm-stats-cards');
     if (!el) return;
     var total = state.reports.length;
-    var weekly = state.reports.filter(function(r){return r.reportType==='weekly';}).length;
-    var monthly = state.reports.filter(function(r){return r.reportType==='monthly';}).length;
+    function typeIs(r, t){ return String(r.reportType||'').toLowerCase() === t; }
+    var weekly = state.reports.filter(function(r){return typeIs(r,'weekly');}).length;
+    var monthly = state.reports.filter(function(r){return typeIs(r,'monthly');}).length;
     var totalViews = state.reports.reduce(function(s,r){return s+(r.viewCount||0);},0);
     var latest = state.reports[0];
     var latestNum = latest ? latest.reportNumber : '—';
@@ -14955,8 +14956,9 @@ window.MM = (function(){
     }
   }
 
-  function audienceLabel(a){ return ({executive:'🎯 تنفيذي',manager:'📊 إداري',analyst:'🔍 تحليلي'})[a] || '📊 إداري'; }
-  function typeLabel(t){ return ({weekly:'أسبوعي',monthly:'شهري',custom:'مخصص'})[t] || 'أسبوعي'; }
+  // The .NET API serialises these enums in PascalCase ("Weekly", "Executive"), so match case-insensitively.
+  function audienceLabel(a){ return ({executive:'🎯 تنفيذي',manager:'📊 إداري',analyst:'🔍 تحليلي'})[String(a||'').toLowerCase()] || '📊 إداري'; }
+  function typeLabel(t){ return ({weekly:'أسبوعي',monthly:'شهري',custom:'مخصص'})[String(t||'').toLowerCase()] || 'أسبوعي'; }
 
   // Builds the period fields POST /final-media-reports/generate actually requires.
   // Why this exists: the .NET request contract is
@@ -14995,7 +14997,7 @@ window.MM = (function(){
         var date = r.createdAt ? new Date(r.createdAt).toLocaleDateString('ar-SA-u-ca-gregory-nu-latn') : '';
         var sum = r.executiveSummary || '';
         var kpis = r.kpis || {};
-        var posts = kpis.totalPosts || kpis.posts_published || 0;
+        var posts = kpis.totalNews || 0;
         return '<div onclick="MM.viewReport(\''+r.id+'\')" style="background:white;border:1px solid var(--border);border-radius:12px;padding:16px;cursor:pointer;transition:.18s;position:relative;" onmouseenter="this.style.borderColor=\'#1a6e7a\';this.style.boxShadow=\'0 4px 16px rgba(26,110,122,.12)\'" onmouseleave="this.style.borderColor=\'var(--border)\';this.style.boxShadow=\'none\'">' +
           '<div style="position:absolute;top:10px;left:10px;font-size:9px;background:#0e3b4a;color:white;padding:2px 7px;border-radius:8px;font-weight:700;" title="تقرير نهائي محفوظ">🔒 نهائي</div>' +
           '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;margin-top:14px;">' +
@@ -15014,6 +15016,61 @@ window.MM = (function(){
   }
 
   // ─── عرض التقرير بـ 8 أقسام ───
+  // ─── تحليل الظهور الإعلامي ───
+  // كل رقم هنا محسوب من الأرشيف المرصود للفترة نفسها، وليس من مخرجات النموذج،
+  // لأن النموذج ممنوع من تقدير الأرقام فكان يعيد أصفاراً في كل مؤشر تفاعل.
+  function mmAppearanceTile(value, label, sub, color){
+    return '<div style="background:white;border:1px solid #e5e7eb;border-top:3px solid '+color+';padding:12px;border-radius:8px;text-align:center;">' +
+      '<div style="font-size:22px;font-weight:800;color:'+color+';">'+escHtml(String(value))+'</div>' +
+      '<div style="font-size:11px;color:var(--text-2);margin-top:4px;font-weight:600;">'+escHtml(label)+'</div>' +
+      (sub ? '<div style="font-size:10px;color:var(--text-4);margin-top:2px;">'+escHtml(sub)+'</div>' : '') +
+    '</div>';
+  }
+  function mmBarRows(rows, color){
+    var max = rows.reduce(function(m,x){ return Math.max(m, x.value); }, 0) || 1;
+    return '<div style="display:grid;gap:6px;margin-top:8px;">' + rows.map(function(x){
+      var pct = Math.round((x.value/max)*100);
+      return '<div style="display:grid;grid-template-columns:minmax(90px,150px) 1fr auto;align-items:center;gap:8px;font-size:11px;">' +
+        '<div style="color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="'+escHtml(x.label)+'">'+escHtml(x.label)+'</div>' +
+        '<div style="background:#eef2f4;border-radius:6px;height:10px;overflow:hidden;"><div style="width:'+pct+'%;height:100%;background:'+color+';"></div></div>' +
+        '<div style="color:var(--text-3);font-weight:700;min-width:52px;text-align:left;">'+escHtml(x.note)+'</div>' +
+      '</div>';
+    }).join('') + '</div>';
+  }
+  function renderAppearance(ap){
+    if (!ap) return '';
+    var html = '<h3 style="color:#1a6e7a;margin-top:24px;border-bottom:2px solid #cce4e6;padding-bottom:6px;">4) تحليل الظهور الإعلامي</h3>';
+    if (!ap.totalAppearances){
+      return html + '<div style="background:#fffbeb;border:1px solid #fde68a;color:#92400e;padding:12px 14px;border-radius:8px;font-size:12px;margin-top:8px;">لا توجد تغطية مرصودة محفوظة داخل فترة هذا التقرير، لذلك لا تُعرض مؤشرات ظهور.</div>';
+    }
+    var avg = (Math.round((ap.averagePerDay||0)*10)/10).toString();
+    html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:12px;">' +
+      mmAppearanceTile(ap.totalAppearances, 'مرة ظهور', 'مرصودة خلال الفترة', '#1a6e7a') +
+      mmAppearanceTile(ap.distinctOutlets, 'منفذ إعلامي', 'نشر عن الهيئة', '#0e3b4a') +
+      mmAppearanceTile(ap.activeDays, 'يوم تغطية', 'أيام حملت نشراً', '#b8924a') +
+      mmAppearanceTile(avg, 'متوسط يومي', 'ظهور لكل يوم نشط', '#10b981') +
+      mmAppearanceTile(ap.peakDayAppearances||0, 'أعلى يوم', ap.peakDay || '', '#6366f1') +
+    '</div>';
+    if (ap.topOutlets && ap.topOutlets.length){
+      html += '<div style="font-weight:600;margin:16px 0 0;color:#0e3b4a;">المنافذ الأكثر نشراً:</div>';
+      html += mmBarRows(ap.topOutlets.map(function(o){ return {label:o.name||'', value:o.appearances||0, note:(o.appearances||0)+' · '+(o.sharePercent||0)+'٪'}; }), '#1a6e7a');
+    }
+    if (ap.dailyTrend && ap.dailyTrend.length){
+      var maxDay = ap.dailyTrend.reduce(function(m,d){ return Math.max(m, d.appearances||0); }, 0) || 1;
+      html += '<div style="font-weight:600;margin:16px 0 0;color:#0e3b4a;">المنحنى اليومي للظهور:</div>';
+      html += '<div style="display:flex;align-items:flex-end;gap:3px;height:90px;margin-top:8px;padding:6px;background:#f7fafb;border-radius:8px;overflow-x:auto;">' +
+        ap.dailyTrend.map(function(d){
+          var h = Math.max(4, Math.round(((d.appearances||0)/maxDay)*70));
+          return '<div title="'+escHtml(d.date+' — '+(d.appearances||0))+'" style="flex:1 0 8px;min-width:8px;height:'+h+'px;background:#1a6e7a;border-radius:3px 3px 0 0;"></div>';
+        }).join('') + '</div>';
+      html += '<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-4);margin-top:4px;"><span>'+escHtml(ap.dailyTrend[0].date)+'</span><span>'+escHtml(ap.dailyTrend[ap.dailyTrend.length-1].date)+'</span></div>';
+    }
+    if (!ap.hasSocialData){
+      html += '<div style="background:#f3f4f6;border:1px dashed #cbd5e1;color:var(--text-3);padding:10px 12px;border-radius:8px;font-size:11px;margin-top:12px;">منصات التواصل: لا يوجد مصدر رصد مرتبط حالياً، ولن تُعرض أرقام تقديرية. المؤشرات أعلاه تعكس التغطية الصحفية المرصودة فعلياً.</div>';
+    }
+    return html;
+  }
+
   function renderEightSections(r){
     var html = '';
     // 2. أبرز الأخبار
@@ -15039,39 +15096,47 @@ window.MM = (function(){
     // 3. الجدول الزمني
     if (r.timeline && Array.isArray(r.timeline) && r.timeline.length){
       html += '<h3 style="color:#1a6e7a;margin-top:24px;border-bottom:2px solid #cce4e6;padding-bottom:6px;">3) الجدول الزمني التفصيلي</h3>';
-      html += '<table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:8px;"><thead><tr style="background:#0e3b4a;color:white;"><th style="padding:8px;text-align:right;">التاريخ</th><th style="padding:8px;text-align:right;">الحدث</th><th style="padding:8px;text-align:right;">الأهمية</th></tr></thead><tbody>';
+      html += '<table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:8px;"><thead><tr style="background:#0e3b4a;color:white;"><th style="padding:8px;text-align:right;">التاريخ</th><th style="padding:8px;text-align:right;">الحدث</th><th style="padding:8px;text-align:right;">المنفذ</th><th style="padding:8px;">النبرة</th><th style="padding:8px;">عدد التغطيات</th></tr></thead><tbody>';
       r.timeline.forEach(function(t,i){
-        html += '<tr style="background:'+(i%2?'#f9fafb':'white')+';"><td style="padding:8px;border-bottom:1px solid #e5e7eb;">'+escHtml(t.date||'')+'</td><td style="padding:8px;border-bottom:1px solid #e5e7eb;">'+escHtml(t.event||'')+'</td><td style="padding:8px;border-bottom:1px solid #e5e7eb;">'+escHtml(t.importance||'')+'</td></tr>';
+        html += '<tr style="background:'+(i%2?'#f9fafb':'white')+';"><td style="padding:8px;border-bottom:1px solid #e5e7eb;">'+escHtml(t.date||'')+'</td><td style="padding:8px;border-bottom:1px solid #e5e7eb;">'+escHtml(t.event||'')+'</td><td style="padding:8px;border-bottom:1px solid #e5e7eb;">'+escHtml(t.outlet||'')+'</td><td style="padding:8px;border-bottom:1px solid #e5e7eb;text-align:center;">'+escHtml(t.tone||'')+'</td><td style="padding:8px;border-bottom:1px solid #e5e7eb;text-align:center;">'+escHtml(t.count?String(t.count):'—')+'</td></tr>';
       });
       html += '</tbody></table>';
     }
-    // 4. الحضور الرقمي
+    // 4. تحليل الظهور الإعلامي (محسوب من الأرشيف المرصود)
+    html += renderAppearance(r.appearance);
+    // 4ب. الحضور الرقمي — تُعرض المنصات فقط عندما توجد أرقام فعلية
     if (r.digitalPresence){
-      html += '<h3 style="color:#1a6e7a;margin-top:24px;border-bottom:2px solid #cce4e6;padding-bottom:6px;">4) تحليل الحضور الرقمي</h3>';
       var dp = r.digitalPresence;
-      if (dp.platforms && dp.platforms.length){
-        html += '<div style="font-weight:600;margin:10px 0 6px;color:#0e3b4a;">المنصات:</div>';
-        html += '<table style="width:100%;border-collapse:collapse;font-size:12px;"><thead><tr style="background:#1a6e7a;color:white;"><th style="padding:6px;text-align:right;">المنصة</th><th style="padding:6px;">منشورات</th><th style="padding:6px;">تفاعل</th><th style="padding:6px;">وصول</th></tr></thead><tbody>';
-        dp.platforms.forEach(function(p,i){ html += '<tr style="background:'+(i%2?'#f9fafb':'white')+';"><td style="padding:6px;border-bottom:1px solid #e5e7eb;">'+escHtml(p.name||'')+'</td><td style="padding:6px;border-bottom:1px solid #e5e7eb;text-align:center;">'+escHtml(String(p.posts||0))+'</td><td style="padding:6px;border-bottom:1px solid #e5e7eb;text-align:center;">'+escHtml(String(p.engagement||0))+'</td><td style="padding:6px;border-bottom:1px solid #e5e7eb;text-align:center;">'+escHtml(String(p.reach||0))+'</td></tr>'; });
+      var dpPlatforms = (dp.platforms||[]).filter(function(p){ return (p.mentions||0)>0 || (p.reposts||0)>0 || (p.engagement||0)>0; });
+      var dpTags = (dp.hashtags||[]).filter(function(h){ return (h.uses||0)>0; });
+      if (dpPlatforms.length || dpTags.length){
+        html += '<h3 style="color:#1a6e7a;margin-top:24px;border-bottom:2px solid #cce4e6;padding-bottom:6px;">الحضور على منصات التواصل</h3>';
+      }
+      if (dpPlatforms.length){
+        html += '<table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:8px;"><thead><tr style="background:#1a6e7a;color:white;"><th style="padding:6px;text-align:right;">المنصة</th><th style="padding:6px;">الإشارات</th><th style="padding:6px;">إعادة النشر</th><th style="padding:6px;">التفاعل</th><th style="padding:6px;">الوصول</th></tr></thead><tbody>';
+        dpPlatforms.forEach(function(p,i){ html += '<tr style="background:'+(i%2?'#f9fafb':'white')+';"><td style="padding:6px;border-bottom:1px solid #e5e7eb;">'+escHtml(p.name||'')+'</td><td style="padding:6px;border-bottom:1px solid #e5e7eb;text-align:center;">'+escHtml(String(p.mentions||0))+'</td><td style="padding:6px;border-bottom:1px solid #e5e7eb;text-align:center;">'+escHtml(String(p.reposts||0))+'</td><td style="padding:6px;border-bottom:1px solid #e5e7eb;text-align:center;">'+escHtml(String(p.engagement||0))+'</td><td style="padding:6px;border-bottom:1px solid #e5e7eb;text-align:center;">'+escHtml(String(p.reach||'—'))+'</td></tr>'; });
         html += '</tbody></table>';
       }
-      if (dp.hashtags && dp.hashtags.length){
-        html += '<div style="font-weight:600;margin:14px 0 6px;color:#0e3b4a;">الهاشتاقات:</div>';
-        html += '<div>' + dp.hashtags.map(function(h){ return '<span style="display:inline-block;background:#cce4e6;color:#0e3b4a;padding:4px 10px;border-radius:12px;font-size:11px;margin:2px;">'+escHtml(typeof h==='string'?h:(h.tag||''))+(h.count?' ('+h.count+')':'')+'</span>'; }).join('') + '</div>';
+      if (dpTags.length){
+        html += '<div style="font-weight:600;margin:14px 0 6px;color:#0e3b4a;">الوسوم الأكثر استخداماً:</div>';
+        html += '<div>' + dpTags.map(function(h){ return '<span style="display:inline-block;background:#cce4e6;color:#0e3b4a;padding:4px 10px;border-radius:12px;font-size:11px;margin:2px;">'+escHtml(h.tag||'')+' ('+escHtml(String(h.uses))+')</span>'; }).join('') + '</div>';
       }
     }
     // 5. التوجه الإعلامي
     if (r.editorialTone){
       html += '<h3 style="color:#1a6e7a;margin-top:24px;border-bottom:2px solid #cce4e6;padding-bottom:6px;">5) تحليل التوجه الإعلامي</h3>';
       var et = r.editorialTone;
-      ['toneDistribution','topicCategories','sourceDistribution'].forEach(function(k){
+      ['distribution','classification','sources'].forEach(function(k){
         var arr = et[k];
         if (!Array.isArray(arr) || !arr.length) return;
-        var titles = {toneDistribution:'توزيع النبرة',topicCategories:'التصنيف الموضوعي',sourceDistribution:'توزيع المصادر'};
+        var titles = {distribution:'توزيع نبرة التغطية',classification:'التصنيف الموضوعي',sources:'توزيع التغطية حسب المصدر'};
         html += '<div style="font-weight:600;margin:10px 0 6px;color:#0e3b4a;">'+titles[k]+':</div>';
         html += '<table style="width:100%;border-collapse:collapse;font-size:12px;"><tbody>';
         arr.forEach(function(row,i){
-          html += '<tr style="background:'+(i%2?'#f9fafb':'white')+';"><td style="padding:6px;border-bottom:1px solid #e5e7eb;">'+escHtml(row.label||row.name||'')+'</td><td style="padding:6px;border-bottom:1px solid #e5e7eb;text-align:left;">'+escHtml(String(row.value||row.count||row.percentage||''))+'</td></tr>';
+          var pct = (row.percent===0||row.percent) ? String(row.percent)+'٪' : '';
+          var cnt = (row.count===0||row.count) ? String(row.count) : '';
+          var val = pct && cnt ? (cnt + ' · ' + pct) : (pct || cnt || '');
+          html += '<tr style="background:'+(i%2?'#f9fafb':'white')+';"><td style="padding:6px;border-bottom:1px solid #e5e7eb;">'+escHtml(row.label||'')+'</td><td style="padding:6px;border-bottom:1px solid #e5e7eb;text-align:left;">'+escHtml(val)+'</td></tr>';
         });
         html += '</tbody></table>';
       });
@@ -15082,10 +15147,13 @@ window.MM = (function(){
       var da = r.deepAnalysis;
       if (da.keywords && da.keywords.length){
         html += '<div style="font-weight:600;margin:10px 0 6px;color:#0e3b4a;">الكلمات المفتاحية:</div>';
-        html += '<div>' + da.keywords.map(function(k){ return '<span style="display:inline-block;background:#fef3c7;color:#92400e;padding:4px 10px;border-radius:12px;font-size:11px;margin:2px;">'+escHtml(typeof k==='string'?k:(k.word||''))+(k.count?' ('+k.count+')':'')+'</span>'; }).join('') + '</div>';
+        html += '<div>' + da.keywords.map(function(k){ return '<span style="display:inline-block;background:#fef3c7;color:#92400e;padding:4px 10px;border-radius:12px;font-size:11px;margin:2px;" title="'+escHtml(k.context||'')+'">'+escHtml(typeof k==='string'?k:(k.keyword||''))+(k.frequency?' ('+k.frequency+')':'')+'</span>'; }).join('') + '</div>';
       }
-      if (da.keyQuote){
-        html += '<div style="background:#0e3b4a;color:white;padding:14px 18px;border-radius:8px;margin-top:12px;font-style:italic;">«'+escHtml(da.keyQuote)+'»</div>';
+      var daQuote = da.quote && (da.quote.text||'');
+      if (daQuote){
+        html += '<div style="background:#0e3b4a;color:white;padding:14px 18px;border-radius:8px;margin-top:12px;font-style:italic;">«'+escHtml(daQuote)+'»';
+        if (da.quote.source) html += '<div style="font-size:11px;font-style:normal;opacity:.8;margin-top:6px;">— '+escHtml(da.quote.source)+(da.quote.date?' · '+escHtml(da.quote.date):'')+'</div>';
+        html += '</div>';
       }
       if (da.strengths && da.strengths.length){
         html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;">';
@@ -15109,18 +15177,20 @@ window.MM = (function(){
     // 8. التوصيات
     if (r.recommendations && Array.isArray(r.recommendations) && r.recommendations.length){
       html += '<h3 style="color:#1a6e7a;margin-top:24px;border-bottom:2px solid #cce4e6;padding-bottom:6px;">8) التوصيات وخطة العمل</h3>';
-      html += '<table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:8px;"><thead><tr style="background:#b8924a;color:white;"><th style="padding:6px;">التوصية</th><th style="padding:6px;">المسؤول</th><th style="padding:6px;">الأولوية</th><th style="padding:6px;">الإطار الزمني</th></tr></thead><tbody>';
+      html += '<table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:8px;"><thead><tr style="background:#b8924a;color:white;"><th style="padding:6px;text-align:right;">التوصية</th><th style="padding:6px;">المسؤول</th><th style="padding:6px;">الأولوية</th><th style="padding:6px;">المؤشر</th><th style="padding:6px;">الموعد</th></tr></thead><tbody>';
       r.recommendations.forEach(function(rec,i){
-        html += '<tr style="background:'+(i%2?'#f9fafb':'white')+';"><td style="padding:6px;border-bottom:1px solid #e5e7eb;">'+escHtml(rec.recommendation||rec.title||'')+'</td><td style="padding:6px;border-bottom:1px solid #e5e7eb;text-align:center;">'+escHtml(rec.owner||'')+'</td><td style="padding:6px;border-bottom:1px solid #e5e7eb;text-align:center;">'+escHtml(rec.priority||'')+'</td><td style="padding:6px;border-bottom:1px solid #e5e7eb;text-align:center;">'+escHtml(rec.timeframe||rec.timeline||'')+'</td></tr>';
+        var body = '<div style="font-weight:700;color:#0e3b4a;">'+escHtml(rec.title||'')+'</div>';
+        if (rec.description) body += '<div style="font-size:11px;color:var(--text-3);margin-top:3px;">'+escHtml(rec.description)+'</div>';
+        html += '<tr style="background:'+(i%2?'#f9fafb':'white')+';"><td style="padding:6px;border-bottom:1px solid #e5e7eb;">'+body+'</td><td style="padding:6px;border-bottom:1px solid #e5e7eb;text-align:center;">'+escHtml(rec.responsible||'')+'</td><td style="padding:6px;border-bottom:1px solid #e5e7eb;text-align:center;">'+escHtml(rec.priority||'')+'</td><td style="padding:6px;border-bottom:1px solid #e5e7eb;text-align:center;">'+escHtml(rec.kpi||'')+'</td><td style="padding:6px;border-bottom:1px solid #e5e7eb;text-align:center;">'+escHtml(rec.deadline||'')+'</td></tr>';
       });
       html += '</tbody></table>';
     }
     // التنبيهات
     if (r.alerts && Array.isArray(r.alerts) && r.alerts.length){
       html += '<h3 style="color:#ef4444;margin-top:24px;border-bottom:2px solid #fecaca;padding-bottom:6px;">⚠️ تنبيهات تستوجب المتابعة</h3>';
-      html += '<table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:8px;"><thead><tr style="background:#ef4444;color:white;"><th style="padding:6px;">التنبيه</th><th style="padding:6px;">الشدة</th><th style="padding:6px;">الإجراء المقترح</th></tr></thead><tbody>';
+      html += '<table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:8px;"><thead><tr style="background:#ef4444;color:white;"><th style="padding:6px;text-align:right;">التنبيه</th><th style="padding:6px;text-align:right;">الموقف المقترح</th></tr></thead><tbody>';
       r.alerts.forEach(function(a,i){
-        html += '<tr style="background:'+(i%2?'#fef2f2':'white')+';"><td style="padding:6px;border-bottom:1px solid #fecaca;">'+escHtml(a.alert||a.title||'')+'</td><td style="padding:6px;border-bottom:1px solid #fecaca;text-align:center;">'+escHtml(a.severity||'')+'</td><td style="padding:6px;border-bottom:1px solid #fecaca;">'+escHtml(a.action||a.suggestedAction||'')+'</td></tr>';
+        html += '<tr style="background:'+(i%2?'#fef2f2':'white')+';"><td style="padding:6px;border-bottom:1px solid #fecaca;">'+escHtml(a.alert||'')+'</td><td style="padding:6px;border-bottom:1px solid #fecaca;">'+escHtml(a.suggestedPosition||'')+'</td></tr>';
       });
       html += '</tbody></table>';
     }
@@ -15129,8 +15199,8 @@ window.MM = (function(){
       html += '<h3 style="color:#1a6e7a;margin-top:24px;border-bottom:2px solid #cce4e6;padding-bottom:6px;">9) ملحق: أبرز الاقتباسات</h3>';
       r.quotesAppendix.forEach(function(q){
         html += '<div style="background:#f0f7f8;border-right:3px solid #b8924a;padding:10px 14px;margin-top:8px;border-radius:6px;">';
-        html += '<div style="font-style:italic;color:#0e3b4a;">«'+escHtml(q.quote||q.text||'')+'»</div>';
-        html += '<div style="font-size:11px;color:var(--text-3);margin-top:6px;">— '+escHtml(q.author||'')+(q.source?' · '+escHtml(q.source):'')+'</div>';
+        html += '<div style="font-style:italic;color:#0e3b4a;">«'+escHtml(q.quote||'')+'»</div>';
+        html += '<div style="font-size:11px;color:var(--text-3);margin-top:6px;">— '+escHtml(q.source||'')+(q.date?' · '+escHtml(q.date):'')+(q.topic?' · '+escHtml(q.topic):'')+'</div>';
         html += '</div>';
       });
     }
@@ -15146,20 +15216,23 @@ window.MM = (function(){
   }
 
   // ─── KPI Cards (Section 1) ───
-  function renderKpiCards(kpis){
+  function renderKpiCards(kpis, ap){
     if (!kpis) return '';
+    var measured = ap && ap.totalAppearances > 0;
+    var total = measured ? ap.totalAppearances : (kpis.totalNews||0);
+    var outlets = measured ? ap.distinctOutlets : (kpis.mediaOutlets||0);
     var cards = [
-      {label:'خبر منشور', value: kpis.totalPosts||kpis.posts_published||0, color:'#1a6e7a'},
-      {label:'تغطية إيجابية', value: (kpis.positiveCoverage||kpis.positive_pct||0)+'%', color:'#10b981'},
-      {label:'وسيلة إعلامية', value: kpis.mediaOutlets||kpis.outlets||0, color:'#0e3b4a'},
-      {label:'موضوعات رئيسية', value: kpis.mainTopics||kpis.topics||0, color:'#b8924a'},
-      {label:'وصول جماهيري', value: kpis.audienceReach||kpis.reach||0, color:'#6366f1'},
-      {label:'تنبيهات', value: kpis.alerts||0, color:'#ef4444'}
+      {label:'خبر مرصود', value: total, color:'#1a6e7a'},
+      {label:'تغطية إيجابية', value: (kpis.positivePercent||0)+'٪', color:'#10b981'},
+      {label:'وسيلة إعلامية', value: outlets, color:'#0e3b4a'},
+      {label:'موضوعات رئيسية', value: kpis.keyTopics||0, color:'#b8924a'},
+      {label:'وصول جماهيري', value: kpis.reach||'—', color:'#6366f1'},
+      {label:'تنبيهات', value: kpis.alertsCount||0, color:'#ef4444'}
     ];
     return '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:14px;">' +
       cards.map(function(c){
         return '<div style="background:white;border:1px solid #e5e7eb;border-top:3px solid '+c.color+';padding:14px;border-radius:8px;text-align:center;">' +
-          '<div style="font-size:24px;font-weight:800;color:'+c.color+';">'+escHtml(String(c.value))+'</div>' +
+          '<div style="font-size:22px;font-weight:800;color:'+c.color+';">'+escHtml(String(c.value))+'</div>' +
           '<div style="font-size:11px;color:var(--text-3);margin-top:4px;">'+c.label+'</div>' +
         '</div>';
       }).join('') + '</div>';
@@ -15188,7 +15261,7 @@ window.MM = (function(){
       if (sumEl){
         sumEl.innerHTML = '<h3 style="color:#1a6e7a;border-bottom:2px solid #cce4e6;padding-bottom:6px;">1) الملخص التنفيذي</h3>' +
           '<div style="font-size:13px;line-height:1.85;color:var(--text-2);">' + mmRenderMarkdown(r.executiveSummary||'') + '</div>' +
-          renderKpiCards(r.kpis);
+          renderKpiCards(r.kpis, r.appearance);
       }
       // Sections 2-10
       var contEl = document.getElementById('mm-view-content');

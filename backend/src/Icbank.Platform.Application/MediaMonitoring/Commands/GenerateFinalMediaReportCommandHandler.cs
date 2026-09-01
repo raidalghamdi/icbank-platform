@@ -1,5 +1,6 @@
 using Icbank.Platform.Application.Common.Interfaces;
 using Icbank.Platform.Application.Common.Models;
+using Icbank.Platform.Application.MediaMonitoring.Appearance;
 using Icbank.Platform.Domain.Gac;
 using MediatR;
 
@@ -54,13 +55,23 @@ public sealed class GenerateFinalMediaReportCommandHandler : IRequestHandler<Gen
         await _auditLogService.RecordAsync(
             request.ActorUserId, "final_media_report.generate", "FinalMediaReport", request.PeriodLabel, before: null, after: null, cancellationToken);
 
-        return Result<GenerateFinalMediaReportResultDto>.Success(new GenerateFinalMediaReportResultDto(ToDraftDto(request.PeriodLabel, sections), null));
+        MediaAppearanceAnalysisDto appearance = MediaAppearanceAnalyzer.Analyze(news, posts);
+        return Result<GenerateFinalMediaReportResultDto>.Success(
+            new GenerateFinalMediaReportResultDto(ToDraftDto(request.PeriodLabel, sections, appearance), null));
     }
 
-    private static FinalReportDraftDto ToDraftDto(string periodLabel, FinalReportSections sections) => new(
+    /// <summary>
+    /// Builds the draft, replacing the two indicators the model only estimates with the counts
+    /// taken from the very rows the report was generated from.
+    /// </summary>
+    /// <param name="periodLabel">The report's period label.</param>
+    /// <param name="sections">The generated sections.</param>
+    /// <param name="appearance">The measured appearance analysis for the same rows.</param>
+    /// <returns>The draft read model.</returns>
+    private static FinalReportDraftDto ToDraftDto(string periodLabel, FinalReportSections sections, MediaAppearanceAnalysisDto appearance) => new(
         periodLabel,
         sections.ExecutiveSummary,
-        new ReportKpisDto(sections.Kpis.TotalNews, sections.Kpis.PositivePercent, sections.Kpis.MediaOutlets, sections.Kpis.KeyTopics, sections.Kpis.Reach, sections.Kpis.AlertsCount),
+        new ReportKpisDto(appearance.TotalAppearances, sections.Kpis.PositivePercent, appearance.DistinctOutlets, sections.Kpis.KeyTopics, sections.Kpis.Reach, sections.Kpis.AlertsCount),
         sections.TopNews.Select(n => new TopNewsItemDto(n.Date, n.Tone, n.Headline, n.Details, n.Source)).ToList(),
         sections.Timeline.Select(t => new TimelineEventDto(t.Date, t.Event, t.Outlet, t.Tone, t.Count)).ToList(),
         new DigitalPresenceDto(

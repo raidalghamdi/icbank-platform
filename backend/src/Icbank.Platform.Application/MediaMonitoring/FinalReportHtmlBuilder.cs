@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Net;
 using System.Text;
+using Icbank.Platform.Application.MediaMonitoring.Appearance;
 
 namespace Icbank.Platform.Application.MediaMonitoring;
 
@@ -120,22 +121,19 @@ public static class FinalReportHtmlBuilder
             AppendBulletList(builder, highlights);
         }
 
-        AppendKpiGrid(builder, detail.Summary.Kpis);
+        AppendKpiGrid(builder, detail.Summary.Kpis, detail.Appearance);
     }
 
-    private static void AppendKpiGrid(StringBuilder builder, ReportKpisDto kpis)
+    /// <summary>
+    /// Prints the indicator cards, preferring the counted archive figures over the model's own
+    /// count for the two indicators we can measure exactly.
+    /// </summary>
+    /// <param name="builder">The document builder.</param>
+    /// <param name="kpis">The stored indicators.</param>
+    /// <param name="appearance">The measured appearance analysis.</param>
+    private static void AppendKpiGrid(StringBuilder builder, ReportKpisDto kpis, MediaAppearanceAnalysisDto appearance)
     {
-        var cards = new List<(string Value, string Label, string Sub, string Accent)>();
-        AddCard(cards, kpis.TotalNews, string.Empty, "خبر منشور", "إجمالي الأخبار المرصودة", "teal");
-        AddCard(cards, kpis.PositivePercent, "٪", "تغطية إيجابية", "من إجمالي التغطية", "green");
-        AddCard(cards, kpis.MediaOutlets, string.Empty, "وسيلة إعلامية", "منافذ نشرت عن الهيئة", "mustard");
-        AddCard(cards, kpis.KeyTopics, string.Empty, "موضوعات رئيسية", "محاور التغطية الأبرز", "teal");
-        if (!string.IsNullOrWhiteSpace(kpis.Reach))
-        {
-            cards.Add((kpis.Reach!, "وصول جماهيري", "مدى الوصول التقديري", "green"));
-        }
-
-        AddCard(cards, kpis.AlertsCount, string.Empty, "تنبيهات للمتابعة", "بنود تستوجب المتابعة", "magenta");
+        List<(string Value, string Label, string Sub, string Accent)> cards = BuildKpiCards(kpis, appearance);
         if (cards.Count == 0)
         {
             return;
@@ -152,6 +150,25 @@ public static class FinalReportHtmlBuilder
         }
 
         builder.Append("</div>");
+    }
+
+    private static List<(string Value, string Label, string Sub, string Accent)> BuildKpiCards(
+        ReportKpisDto kpis,
+        MediaAppearanceAnalysisDto appearance)
+    {
+        var measured = appearance.TotalAppearances > 0;
+        var cards = new List<(string Value, string Label, string Sub, string Accent)>();
+        AddCard(cards, measured ? appearance.TotalAppearances : kpis.TotalNews, string.Empty, "خبر منشور", "إجمالي الأخبار المرصودة", "teal");
+        AddCard(cards, kpis.PositivePercent, "٪", "تغطية إيجابية", "من إجمالي التغطية", "green");
+        AddCard(cards, measured ? appearance.DistinctOutlets : kpis.MediaOutlets, string.Empty, "وسيلة إعلامية", "منافذ نشرت عن الهيئة", "mustard");
+        AddCard(cards, kpis.KeyTopics, string.Empty, "موضوعات رئيسية", "محاور التغطية الأبرز", "teal");
+        if (!string.IsNullOrWhiteSpace(kpis.Reach))
+        {
+            cards.Add((kpis.Reach!, "وصول جماهيري", "مدى الوصول التقديري", "green"));
+        }
+
+        AddCard(cards, kpis.AlertsCount, string.Empty, "تنبيهات للمتابعة", "بنود تستوجب المتابعة", "magenta");
+        return cards;
     }
 
     private static void AddCard(
@@ -223,6 +240,8 @@ public static class FinalReportHtmlBuilder
         AppendToneBuckets(builder, "توزع نبرة التغطية الإعلامية", detail.EditorialTone.Distribution);
         AppendToneBuckets(builder, "التصنيف الموضوعي للأخبار", detail.EditorialTone.Classification);
         AppendToneBuckets(builder, "توزع التغطية حسب المصدر", detail.EditorialTone.Sources);
+        AppendMeasuredAppearance(builder, detail.Appearance);
+        AppendTopOutlets(builder, detail.Appearance);
         AppendDigitalPresence(builder, detail.DigitalPresence);
     }
 
@@ -245,13 +264,67 @@ public static class FinalReportHtmlBuilder
         builder.Append("</table>");
     }
 
+    /// <summary>
+    /// Prints the figures counted from the monitored archive. These replace the model-authored
+    /// engagement numbers as the section's factual core: the prompt is not allowed to invent
+    /// statistics, so without a social listening feed it returned zeros for every platform metric.
+    /// </summary>
+    /// <param name="builder">The document builder.</param>
+    /// <param name="appearance">The measured appearance analysis.</param>
+    private static void AppendMeasuredAppearance(StringBuilder builder, MediaAppearanceAnalysisDto appearance)
+    {
+        if (appearance.TotalAppearances == 0)
+        {
+            return;
+        }
+
+        AppendSubHeading(builder, "قياس الظهور الإعلامي خلال الفترة");
+        builder.Append("<table data-widths=\"2,1\"><tr><th>المؤشر</th><th>القيمة</th></tr>");
+        AppendCoverRow(builder, "إجمالي مرات الظهور المرصودة", Number(appearance.TotalAppearances));
+        AppendCoverRow(builder, "الظهور في المنافذ الصحفية", Number(appearance.PressAppearances));
+        AppendCoverRow(builder, "عدد المنافذ التي نشرت عن الهيئة", Number(appearance.DistinctOutlets));
+        AppendCoverRow(builder, "أيام حملت تغطية", Number(appearance.ActiveDays));
+        AppendCoverRow(builder, "متوسط الظهور في اليوم", appearance.AveragePerDay.ToString("0.#", CultureInfo.InvariantCulture));
+        if (appearance.PeakDay is not null)
+        {
+            AppendCoverRow(builder, "أعلى يوم تغطية", appearance.PeakDay + " (" + Number(appearance.PeakDayAppearances) + ")");
+        }
+
+        AppendCoverRow(
+            builder,
+            "الظهور على منصات التواصل",
+            appearance.HasSocialData ? Number(appearance.SocialAppearances) : "لا يوجد مصدر رصد مرتبط");
+        builder.Append("</table>");
+    }
+
+    private static void AppendTopOutlets(StringBuilder builder, MediaAppearanceAnalysisDto appearance)
+    {
+        if (appearance.TopOutlets.Count == 0)
+        {
+            return;
+        }
+
+        AppendSubHeading(builder, "المنافذ الأكثر نشراً عن الهيئة");
+        builder.Append("<table data-widths=\"3,1,1\"><tr><th>المنفذ</th><th>مرات الظهور</th><th>النسبة</th></tr>");
+        foreach (MediaAppearanceOutletDto outlet in appearance.TopOutlets)
+        {
+            builder.Append("<tr><td>").Append(Encode(outlet.Name)).Append("</td><td>").Append(Number(outlet.Appearances))
+                .Append("</td><td>").Append(Encode(Number(outlet.SharePercent) + "٪")).Append("</td></tr>");
+        }
+
+        builder.Append("</table>");
+    }
+
     private static void AppendDigitalPresence(StringBuilder builder, DigitalPresenceDto presence)
     {
-        if (presence.Platforms.Count > 0)
+        var platforms = presence.Platforms
+            .Where(p => p.Mentions > 0 || p.Reposts > 0 || p.Engagement > 0)
+            .ToList();
+        if (platforms.Count > 0)
         {
             AppendSubHeading(builder, "الحضور الرقمي");
             builder.Append("<table data-widths=\"2,1,1,1.2,1.4\"><tr><th>المنصة</th><th>الإشارات</th><th>إعادة النشر</th><th>التفاعل</th><th>الوصول</th></tr>");
-            foreach (DigitalPresencePlatformDto platform in presence.Platforms)
+            foreach (DigitalPresencePlatformDto platform in platforms)
             {
                 builder.Append("<tr><td>").Append(Encode(platform.Name)).Append("</td><td>").Append(Number(platform.Mentions))
                     .Append("</td><td>").Append(Number(platform.Reposts)).Append("</td><td>").Append(Number(platform.Engagement))
@@ -261,14 +334,15 @@ public static class FinalReportHtmlBuilder
             builder.Append("</table>");
         }
 
-        if (presence.Hashtags.Count == 0)
+        var hashtags = presence.Hashtags.Where(h => h.Uses > 0).ToList();
+        if (hashtags.Count == 0)
         {
             return;
         }
 
         AppendSubHeading(builder, "الوسوم الأكثر استخداماً");
         builder.Append("<table data-widths=\"3,1,1.4\"><tr><th>الوسم</th><th>الاستخدامات</th><th>الاتجاه</th></tr>");
-        foreach (DigitalPresenceHashtagDto hashtag in presence.Hashtags)
+        foreach (DigitalPresenceHashtagDto hashtag in hashtags)
         {
             builder.Append("<tr><td>").Append(Encode(hashtag.Tag)).Append("</td><td>").Append(Number(hashtag.Uses))
                 .Append("</td><td>").Append(Encode(hashtag.Trend)).Append("</td></tr>");

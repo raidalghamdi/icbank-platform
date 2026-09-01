@@ -289,6 +289,7 @@ public sealed class FinalMediaReportsController : ControllerBase
             detail.QuotesAppendix,
             detail.Methodology,
             detail.Sources,
+            detail.Appearance,
         };
 
     /// <summary>Builds the stored title for an auto-saved generated report.</summary>
