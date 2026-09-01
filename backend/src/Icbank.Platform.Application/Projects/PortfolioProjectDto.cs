@@ -27,6 +27,7 @@ namespace Icbank.Platform.Application.Projects;
 /// <param name="MilestonesCompleted">How many checkpoints are delivered.</param>
 /// <param name="MilestonesTotal">How many checkpoints the project has.</param>
 /// <param name="Milestones">The checkpoints themselves, in display order.</param>
+/// <param name="ProgressUpdates">The most recent progress reports, newest first.</param>
 public sealed record PortfolioProjectDto(
     int Id,
     string Code,
@@ -49,4 +50,5 @@ public sealed record PortfolioProjectDto(
     string LatestUpdate,
     int MilestonesCompleted,
     int MilestonesTotal,
-    IReadOnlyList<ProjectMilestoneDto> Milestones);
+    IReadOnlyList<ProjectMilestoneDto> Milestones,
+    IReadOnlyList<ProjectProgressUpdateDto> ProgressUpdates);

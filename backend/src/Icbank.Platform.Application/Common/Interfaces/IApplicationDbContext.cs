@@ -66,6 +66,9 @@ public interface IApplicationDbContext
     /// <summary>Gets a queryable over the delivery checkpoints behind each tracked project.</summary>
     IQueryable<ProjectMilestone> ProjectMilestones { get; }
 
+    /// <summary>Gets a queryable over the progress reports logged against each tracked project.</summary>
+    IQueryable<ProjectProgressUpdate> ProjectProgressUpdates { get; }
+
     /// <summary>Gets a queryable over the curated library of weekend venues/places (Wave 1: Weekend Places).</summary>
     IQueryable<WeekendPlace> WeekendPlaces { get; }
 

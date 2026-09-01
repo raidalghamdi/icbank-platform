@@ -47,41 +47,21 @@ public sealed class GetProjectPortfolioQueryHandler : IRequestHandler<GetProject
             _dbContext.ProjectMilestones.OrderBy(m => m.ProjectId).ThenBy(m => m.SortOrder).ThenBy(m => m.Id),
             cancellationToken);
 
+        List<ProjectProgressUpdate> progressUpdates = await _queryExecutor.ToListAsync(
+            _dbContext.ProjectProgressUpdates.OrderByDescending(u => u.ReportedAt).ThenByDescending(u => u.Id),
+            cancellationToken);
+
         ILookup<int, ProjectMilestone> byProject = milestones.ToLookup(m => m.ProjectId);
+        ILookup<int, ProjectProgressUpdate> updatesByProject = progressUpdates.ToLookup(u => u.ProjectId);
         var cards = projects
-            .Select(project => ToDto(project, byProject[project.Id].ToList(), now))
+            .Select(project => ProjectPortfolioMapper.ToDto(
+                project,
+                byProject[project.Id].ToList(),
+                updatesByProject[project.Id].ToList(),
+                now))
             .ToList();
 
         return Result<ProjectPortfolioDto>.Success(new ProjectPortfolioDto(BuildKpis(cards), cards, now));
-    }
-
-    private static PortfolioProjectDto ToDto(PortfolioProject project, List<ProjectMilestone> milestones, DateTime now)
-    {
-        ProjectHealth health = ProjectScheduleHealth.Evaluate(project.Stage, project.ProgressPercent, project.StartDate, project.DueDate, now);
-
-        return new PortfolioProjectDto(
-            project.Id,
-            project.Code,
-            project.Name,
-            project.Description,
-            ProjectPortfolioLabels.CategoryKey(project.Category),
-            ProjectPortfolioLabels.CategoryLabel(project.Category),
-            ProjectPortfolioLabels.StageKey(project.Stage),
-            ProjectPortfolioLabels.StageLabel(project.Stage),
-            ProjectPortfolioLabels.HealthKey(health),
-            ProjectPortfolioLabels.HealthLabel(health),
-            project.Owner,
-            project.Department,
-            project.ProgressPercent,
-            ProjectScheduleHealth.ExpectedProgressPercent(project.StartDate, project.DueDate, now),
-            project.TeamSize,
-            project.StartDate,
-            project.DueDate,
-            (int)Math.Ceiling((project.DueDate - now).TotalDays),
-            project.LatestUpdate,
-            milestones.Count(m => m.IsCompleted),
-            milestones.Count,
-            milestones.Select(m => new ProjectMilestoneDto(m.Id, m.Title, m.DueDate, m.IsCompleted)).ToList());
     }
 
     private static ProjectPortfolioKpisDto BuildKpis(List<PortfolioProjectDto> cards)

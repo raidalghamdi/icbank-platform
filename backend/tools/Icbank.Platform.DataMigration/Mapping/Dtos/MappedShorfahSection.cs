@@ -4,7 +4,7 @@ namespace Icbank.Platform.DataMigration.Mapping.Dtos;
 /// <param name="SourceId">The source Postgres <c>shorfah_sections.id</c>.</param>
 /// <param name="IssueSourceId">The source <c>shorfah_issues.id</c> this section belongs to.</param>
 /// <param name="ParentSectionSourceId">The source parent section id, if this is a sub-section.</param>
-/// <param name="SectionType">One of the 13 canonical section types.</param>
+/// <param name="SectionType">One of the canonical section types.</param>
 /// <param name="TitleAr">The Arabic title.</param>
 /// <param name="DescriptionAr">The optional Arabic description.</param>
 /// <param name="DisplayOrder">The sort order within the issue.</param>

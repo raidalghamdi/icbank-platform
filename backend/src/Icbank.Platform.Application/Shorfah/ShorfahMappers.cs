@@ -51,7 +51,8 @@ public static class ShorfahMappers
         section.RejectionReason,
         section.SlaDays,
         section.SlaStartsAt,
-        section.SlaDeadline);
+        section.SlaDeadline,
+        ShorfahCanonicalSections.IconKeyFor(section.SectionType));
 
     /// <summary>Maps a <see cref="ShorfahAssignment"/> to its response DTO.</summary>
     /// <param name="assignment">The assignment to map.</param>

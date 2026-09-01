@@ -100,7 +100,7 @@ public sealed class ShorfahIssuesController : ControllerBase
             : NotFound(new { error = result.Error });
     }
 
-    /// <summary>Creates a new issue and auto-seeds the 13 canonical sections.</summary>
+    /// <summary>Creates a new issue and auto-seeds the 18 canonical paragraphs.</summary>
     /// <param name="request">The issue metadata.</param>
     /// <param name="cancellationToken">A token used to observe cancellation requests.</param>
     /// <returns>201 Created with <c>{issue}</c>.</returns>
@@ -196,7 +196,7 @@ public sealed class ShorfahIssuesController : ControllerBase
         return result.IsSuccess ? Ok(new { issue = result.Value }) : Problem(result.Error, statusCode: StatusCodes.Status400BadRequest);
     }
 
-    /// <summary>Backfills the 13 canonical sections for an issue that has none.</summary>
+    /// <summary>Backfills the 18 canonical paragraphs for an issue that has none.</summary>
     /// <param name="issueId">The issue to backfill sections for.</param>
     /// <param name="cancellationToken">A token used to observe cancellation requests.</param>
     /// <returns>200 OK with <c>{ok, sections}</c>, or 400/404.</returns>

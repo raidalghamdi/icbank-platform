@@ -65,7 +65,7 @@ public static class ProjectPortfolioLabels
     /// <returns>The Arabic label.</returns>
     public static string HealthLabel(ProjectHealth health) => health switch
     {
-        ProjectHealth.AtRisk => "يحتاج متابعة",
+        ProjectHealth.AtRisk => "بحاجة إلى المتابعة",
         ProjectHealth.Delayed => "متأخر",
         ProjectHealth.Completed => "مكتمل",
         _ => "على المسار",

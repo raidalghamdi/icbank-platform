@@ -191,6 +191,9 @@ public sealed class AppDbContext : DbContext, IApplicationDbContext
     /// <summary>Gets the delivery checkpoints behind each tracked project.</summary>
     public DbSet<ProjectMilestone> ProjectMilestones => Set<ProjectMilestone>();
 
+    /// <summary>Gets the progress reports logged against each tracked project.</summary>
+    public DbSet<ProjectProgressUpdate> ProjectProgressUpdates => Set<ProjectProgressUpdate>();
+
     // ── Weekend ─────────────────────────────────────────────────────────────
 
     /// <summary>Gets the curated library of weekend venues/places.</summary>
@@ -245,6 +248,9 @@ public sealed class AppDbContext : DbContext, IApplicationDbContext
 
     /// <inheritdoc cref="IApplicationDbContext.ProjectMilestones" />
     IQueryable<ProjectMilestone> IApplicationDbContext.ProjectMilestones => ProjectMilestones;
+
+    /// <inheritdoc cref="IApplicationDbContext.ProjectProgressUpdates" />
+    IQueryable<ProjectProgressUpdate> IApplicationDbContext.ProjectProgressUpdates => ProjectProgressUpdates;
 
     /// <inheritdoc cref="IApplicationDbContext.WeekendPlaces" />
     IQueryable<WeekendPlace> IApplicationDbContext.WeekendPlaces => WeekendPlaces;

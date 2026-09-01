@@ -6,7 +6,7 @@ namespace Icbank.Platform.Application.Shorfah.Commands;
 /// <summary>
 /// Ports <c>POST /shorfah/issues</c> (API-SURFACE.md §19, BUSINESS-RULES.md §1.1). Admin-only.
 /// Auto-assigns <c>IssueNo</c> as <c>max(IssueNo)+1</c> when not supplied, and always seeds the
-/// 13 canonical sections synchronously (the Node source swallowed seeding failures silently --
+/// 18 canonical paragraphs synchronously (the Node source swallowed seeding failures silently --
 /// this port does not, see the handler's remarks).
 /// </summary>
 /// <param name="ActorUserId">The creating admin's id.</param>

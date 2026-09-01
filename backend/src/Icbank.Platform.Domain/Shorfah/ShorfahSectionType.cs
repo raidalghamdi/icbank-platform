@@ -1,6 +1,9 @@
 namespace Icbank.Platform.Domain.Shorfah;
 
-/// <summary>The 13 canonical Shorfah section types (DATA-MODEL.md section 5).</summary>
+/// <summary>
+/// The Shorfah section types (DATA-MODEL.md section 5). Persisted as strings, so members are
+/// appended with new numeric values and the existing values are never reused or renumbered.
+/// </summary>
 public enum ShorfahSectionType
 {
     /// <summary>Global news roundup.</summary>
@@ -41,4 +44,22 @@ public enum ShorfahSectionType
 
     /// <summary>Employee Q&amp;A feature.</summary>
     EmployeeQa = 12,
+
+    /// <summary>Economic study feature.</summary>
+    EconomicStudy = 13,
+
+    /// <summary>Case of the month feature.</summary>
+    CaseOfMonth = 14,
+
+    /// <summary>Court sessions roundup.</summary>
+    CourtSessions = 15,
+
+    /// <summary>Monopoly complaints and practices roundup.</summary>
+    MonopolyComplaints = 16,
+
+    /// <summary>Settlements roundup.</summary>
+    Settlements = 17,
+
+    /// <summary>Competition-in-the-month roundup.</summary>
+    CompetitionInMonth = 18,
 }

@@ -5,7 +5,7 @@ namespace Icbank.Platform.Application.Shorfah.Commands;
 
 /// <summary>
 /// Ports <c>POST /shorfah/issues/:id/collect</c> (API-SURFACE.md §19, BUSINESS-RULES.md §1.1).
-/// Idempotent: seeds the 13 canonical sections only if none exist yet, then sets status to
+/// Idempotent: seeds the 18 canonical paragraphs only if none exist yet, then sets status to
 /// <c>collecting</c> unless already <c>published</c> (in which case status is left unchanged).
 /// AMBIGUOUS-API-3 in API-SURFACE.md notes the Node source gated this with plain
 /// <c>requireAuth</c> (not <c>requireAdmin</c>) unlike every other issue-lifecycle mutation --

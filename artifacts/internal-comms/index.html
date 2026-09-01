@@ -302,6 +302,14 @@ body {
   transition: background 0.12s, color 0.12s;
 }
 .sidebar-section-title:hover { background: var(--surface-2); color: var(--text-3); }
+/* Sections read as headings, items as rows: the heading is bolder, wider-tracked and sits on a
+   hairline, so a glance separates "section" from "page". */
+.sidebar-section-title { font-weight: 800; }
+.sidebar-section + .sidebar-section > .sidebar-section-title {
+  border-top: 1px solid var(--border-subtle);
+  margin-top: 4px;
+  padding-top: 10px;
+}
 .sidebar-section-title:focus-visible {
   outline: 2px solid var(--primary);
   outline-offset: -2px;
@@ -320,6 +328,21 @@ body {
 .sidebar-section.is-collapsed.has-active > .sidebar-section-title { color: var(--primary); }
 
 .sidebar-nav { display: flex; flex-direction: column; gap: 1px; }
+
+/* Sub-group label inside a section (التقويم الاتصالي groups its rows under two headings).
+   Rendered as a quiet caption rather than a second collapsible level: the brief asks for no
+   extra sidebar levels beyond the ones it names, but these two headings are named. */
+.sidebar-subhead {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  color: var(--text-4);
+  padding: 10px 10px 4px;
+  margin-top: 2px;
+}
+.sidebar-subhead:first-child { margin-top: 0; padding-top: 4px; }
+/* Rows that belong to a sub-group are indented so the hierarchy reads at a glance. */
+.sidebar-subhead ~ .nav-item { padding-inline-start: 20px; }
 .nav-item {
   display: flex;
   align-items: center;
@@ -1741,6 +1764,34 @@ button.home-row:hover { border-color:var(--primary-100); background:var(--primar
 .pf-chip.is-on { background: var(--primary); border-color: var(--primary); color: #fff; }
 .pf-chip-count { font-family: var(--mono); font-size: 11px; opacity: 0.8; }
 
+/* سجل التقدم على بطاقة المشروع + نافذة تسجيل التقدم */
+.pf-up { border-top: 1px solid var(--border-subtle); margin-top: 12px; padding-top: 11px; }
+.pf-up-hd { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12.5px; color: var(--text-2); font-weight: 700; }
+.pf-up-list { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 8px; }
+.pf-up-item { display: grid; grid-template-columns: 46px 1fr; gap: 9px; align-items: start; }
+.pf-up-pct { font-size: 12px; font-weight: 800; color: var(--primary); background: var(--primary-50); border-radius: 7px; padding: 4px 0; text-align: center; }
+.pf-up-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.pf-up-note { font-size: 12.5px; color: var(--text); line-height: 1.65; }
+.pf-up-note.is-muted { color: var(--text-4); }
+.pf-up-meta { font-size: 11px; color: var(--text-4); }
+.pf-up-empty { font-size: 12px; color: var(--text-4); margin-top: 8px; }
+
+.pf-up-modal { display: none; position: fixed; inset: 0; z-index: 900; background: rgba(15, 23, 42, .55); align-items: center; justify-content: center; padding: 18px; }
+.pf-up-modal.is-open { display: flex; }
+.pf-up-dialog { background: var(--surface); border-radius: 16px; padding: 20px; width: 100%; max-width: 440px; box-shadow: 0 18px 48px rgba(16, 24, 40, .22); }
+.pf-up-dialog-hd { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.pf-up-dialog-title { font-size: 16px; font-weight: 800; color: var(--text); margin: 0; }
+.pf-up-close { background: none; border: 0; cursor: pointer; color: var(--text-3); padding: 4px; border-radius: 8px; }
+.pf-up-close:hover { background: var(--surface-2); color: var(--text); }
+.pf-up-project { font-size: 13.5px; font-weight: 700; color: var(--text-2); margin: 6px 0 16px; line-height: 1.6; }
+.pf-up-label { display: flex; align-items: center; justify-content: space-between; font-size: 12.5px; font-weight: 700; color: var(--text-2); margin: 0 0 6px; }
+.pf-up-out { font-size: 14px; font-weight: 800; color: var(--primary); }
+.pf-up-range { width: 100%; margin: 0 0 16px; accent-color: var(--primary); }
+.pf-up-textarea { width: 100%; border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; font: inherit; font-size: 13px; line-height: 1.7; color: var(--text); background: var(--bg); resize: vertical; }
+.pf-up-textarea:focus { outline: none; border-color: var(--primary); }
+.pf-up-err { font-size: 12.5px; color: var(--danger); margin-top: 10px; font-weight: 700; }
+.pf-up-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+
 .pf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 14px; }
 .pf-card {
   background: var(--surface); border: 1px solid var(--border);
@@ -2424,6 +2475,134 @@ button.home-row:hover { border-color:var(--primary-100); background:var(--primar
 
 /* ═══ WEEK START — بداية الأسبوع ═══ */
 .ws-layout{display:flex;flex-direction:column;gap:20px}
+/* ══════════════════════════════════════════════════════════
+   التقويم الاتصالي + أجندة الشهر + الرسائل الجاهزة
+   Shared look for the occasion lists, the month grid and the message libraries. Uses the
+   platform tokens only, so these pages inherit the approved font and palette.
+   ══════════════════════════════════════════════════════════ */
+/* Group headings for the three components inside أخبار المنافسة الدولية. */
+.news-group-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text);
+  margin: 18px 0 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex; align-items: center; gap: 8px;
+  /* The headings sit inside the same grid as the cards, so they must span every column
+     or each one steals a card slot and punches a hole in the row. */
+  grid-column: 1 / -1;
+}
+.news-group-title:first-child { margin-top: 4px; }
+.news-group-count {
+  font-size: 11.5px; font-weight: 700; color: var(--text-3);
+  background: var(--surface-2); border-radius: 999px; padding: 2px 8px;
+}
+
+.cal-list { display: grid; gap: 10px; margin-top: 14px; }
+.cal-row {
+  display: grid;
+  grid-template-columns: 92px 34px 1fr;
+  gap: 12px;
+  align-items: start;
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+.cal-row:hover { border-color: var(--border); }
+.cal-row-date {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--primary);
+  background: var(--primary-50);
+  border-radius: 8px;
+  padding: 8px 6px;
+  text-align: center;
+  line-height: 1.35;
+}
+.cal-row-date small { display: block; font-size: 10.5px; font-weight: 700; color: var(--text-3); }
+.cal-row-ico {
+  width: 34px; height: 34px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 9px;
+  background: var(--surface-2);
+  color: var(--text-2);
+}
+.cal-row-ico svg { width: 17px; height: 17px; }
+.cal-row-title { font-size: 14.5px; font-weight: 800; color: var(--text); line-height: 1.5; }
+.cal-row-desc { font-size: 13px; color: var(--text-2); line-height: 1.75; margin-top: 4px; }
+.cal-row-idea {
+  font-size: 12.5px; color: var(--text-2); line-height: 1.7; margin-top: 8px;
+  border-inline-start: 3px solid var(--primary-50); padding-inline-start: 10px;
+}
+.cal-row-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+.cal-tag {
+  font-size: 11px; font-weight: 700; color: var(--text-3);
+  background: var(--surface-2); border: 1px solid var(--border-subtle);
+  border-radius: 999px; padding: 3px 9px;
+}
+.cal-tag.is-soon { color: #92400E; background: #FEF3C7; border-color: #FDE68A; }
+.cal-tag.is-today { color: #065F46; background: #D1FAE5; border-color: #A7F3D0; }
+
+.cal-legend { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 12px; }
+.cal-legend-item { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-2); }
+.cal-dot { width: 9px; height: 9px; border-radius: 3px; display: inline-block; }
+.cal-month {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  padding: 12px;
+}
+.cal-dow { font-size: 11px; font-weight: 800; color: var(--text-3); text-align: center; padding: 4px 0 6px; }
+.cal-cell {
+  min-height: 84px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 6px;
+  background: var(--bg);
+  display: flex; flex-direction: column; gap: 4px;
+}
+.cal-cell.is-blank { background: transparent; border-color: transparent; }
+.cal-cell.is-today { border-color: var(--primary); box-shadow: inset 0 0 0 1px var(--primary); }
+.cal-cell-num { font-size: 11.5px; font-weight: 800; color: var(--text-3); }
+.cal-cell.is-today .cal-cell-num { color: var(--primary); }
+.cal-chip {
+  font-size: 10.5px; font-weight: 700; line-height: 1.4;
+  border-radius: 6px; padding: 3px 5px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  cursor: default;
+}
+.cal-chip.k-intl     { background: #E0F2FE; color: #075985; }
+.cal-chip.k-national { background: #DCFCE7; color: #14532D; }
+.cal-chip.k-official { background: #FEF3C7; color: #78350F; }
+.cal-chip.k-event    { background: #EDE9FE; color: #4C1D95; }
+.cal-chip.k-key      { background: #FFE4E6; color: #9F1239; }
+.cal-cell-more { font-size: 10px; font-weight: 700; color: var(--text-4); }
+
+.msg-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; margin-top: 14px; }
+.msg-card {
+  background: var(--surface); border: 1px solid var(--border-subtle);
+  border-radius: 12px; padding: 15px 16px;
+  display: flex; flex-direction: column; gap: 9px;
+}
+.msg-card-hd { display: flex; align-items: center; gap: 8px; }
+.msg-card-tag { font-size: 11px; font-weight: 800; color: var(--primary); background: var(--primary-50); border-radius: 999px; padding: 3px 9px; }
+.msg-card-body { font-size: 13.5px; color: var(--text); line-height: 1.9; }
+.msg-card-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; }
+.msg-card-note { font-size: 11.5px; color: var(--text-4); }
+
+@media (max-width: 720px) {
+  .cal-row { grid-template-columns: 64px 1fr; }
+  .cal-row-ico { display: none; }
+  .cal-month { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; padding: 8px; }
+  .cal-cell { min-height: 62px; padding: 4px; }
+  .cal-chip { font-size: 9px; padding: 2px 3px; }
+}
+
 .ws-sidebar-panel{display:flex;flex-direction:column;gap:16px;order:2}
 .ws-main-panel{display:flex;flex-direction:column;gap:16px;order:1}
 .ws-upload-zone{margin-top:10px}
@@ -3337,6 +3516,26 @@ button.home-row:hover { border-color:var(--primary-100); background:var(--primar
     <symbol id="i-image"   viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></symbol>
     <symbol id="i-inbox" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></symbol>
     <symbol id="i-file-text" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></symbol>
+    <!-- Icons added for the restructured sidebar and the per-paragraph Shorfah icons. Same
+         stroke-based family as the set above so they sit together without a visual seam. -->
+    <symbol id="i-handshake" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M11 17l-2 2a1.7 1.7 0 0 1-2.4-2.4l4-4"/><path d="M13 7l2-2a1.7 1.7 0 0 1 2.4 2.4l-4 4"/><path d="M2 12l4-4 5 5-4 4z"/><path d="M22 12l-4 4-5-5 4-4z"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="21" x2="21" y2="21"/><rect x="5" y="11" width="3.5" height="7"/><rect x="10.3" y="6" width="3.5" height="12"/><rect x="15.6" y="13" width="3.5" height="5"/></symbol>
+    <symbol id="i-research" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6"/><line x1="15.5" y1="15.5" x2="21" y2="21"/><line x1="8.5" y1="11" x2="13.5" y2="11"/><line x1="11" y1="8.5" x2="11" y2="13.5"/></symbol>
+    <symbol id="i-gauge" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 17a9 9 0 1 1 17 0"/><line x1="12" y1="13" x2="16" y2="9"/><circle cx="12" cy="13" r="1.4"/></symbol>
+    <symbol id="i-gavel" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M13 5l6 6-2.5 2.5-6-6z"/><line x1="10.5" y1="10.5" x2="4" y2="17"/><line x1="3" y1="21" x2="11" y2="21"/><line x1="15" y1="3" x2="21" y2="9"/></symbol>
+    <symbol id="i-check-circle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="8 12.5 11 15.5 16 9.5"/></symbol>
+    <symbol id="i-scale" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="4" x2="12" y2="20"/><line x1="8" y1="20" x2="16" y2="20"/><line x1="4" y1="8" x2="20" y2="8"/><path d="M4 8l-2 5h4z"/><path d="M20 8l-2 5h4z"/></symbol>
+    <symbol id="i-mic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="10" rx="3"/><path d="M6 11a6 6 0 0 0 12 0"/><line x1="12" y1="17" x2="12" y2="21"/><line x1="9" y1="21" x2="15" y2="21"/></symbol>
+    <symbol id="i-sparkles" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3l1.6 4.4L16 9l-4.4 1.6L10 15l-1.6-4.4L4 9l4.4-1.6z"/><path d="M18 14l.9 2.1L21 17l-2.1.9L18 20l-.9-2.1L15 17l2.1-.9z"/></symbol>
+    <symbol id="i-ticket" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2 2 2 0 0 0 0 4 2 2 0 0 1-2 2H5a2 2 0 0 1-2-2 2 2 0 0 0 0-4z"/><line x1="12" y1="7" x2="12" y2="9"/><line x1="12" y1="13" x2="12" y2="15"/></symbol>
+    <symbol id="i-user-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M15 20v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="3.5"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="16" y1="11" x2="22" y2="11"/></symbol>
+    <symbol id="i-quote" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 7H5a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h2v1a3 3 0 0 1-3 3"/><path d="M20 7h-4a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h2v1a3 3 0 0 1-3 3"/></symbol>
+    <symbol id="i-flag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4"/><path d="M5 5h11l-1.6 3.5L16 12H5z"/></symbol>
+    <symbol id="i-award" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="5"/><polyline points="9 13.5 8 21 12 19 16 21 15 13.5"/></symbol>
+    <symbol id="i-message" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-8 8H8l-4 3v-4.5A8 8 0 0 1 13 4a8 8 0 0 1 8 8z"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="7.5"/><rect x="13.5" y="3" width="7.5" height="7.5"/><rect x="3" y="13.5" width="7.5" height="7.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5"/></symbol>
+    <symbol id="i-palette" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21a9 9 0 1 1 9-9c0 2.2-1.8 3-3.5 3H16a2 2 0 0 0-1.4 3.4A2 2 0 0 1 12 21z"/><circle cx="8" cy="10" r="1"/><circle cx="12" cy="7.5" r="1"/><circle cx="15.5" cy="10" r="1"/></symbol>
+    <symbol id="i-megaphone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11v2a1 1 0 0 0 1 1h3l7 4V6L7 10H4a1 1 0 0 0-1 1z"/><path d="M18 9a4 4 0 0 1 0 6"/><line x1="7" y1="14" x2="7" y2="20"/></symbol>
   </defs>
 </svg>
 
@@ -3407,53 +3606,78 @@ button.home-row:hover { border-color:var(--primary-100); background:var(--primar
       </button>
       <div class="sidebar-nav" id="navgrp-overview" role="group" aria-label="نظرة عامة">
         <a class="nav-item active" data-page="home" onclick="showSection('home')"><span class="ico"><svg><use href="#i-home"/></svg></span><span>الرئيسية</span></a>
-        <a class="nav-item" data-page="reports" onclick="showSection('reports')"><span class="ico"><svg><use href="#i-trending-up"/></svg></span><span>الأداء التنفيذي للمشاريع</span></a>
       </div>
     </div>
 
-    <div class="sidebar-section is-collapsed" data-nav-group data-group-key="monitoring">
-      <button type="button" class="sidebar-section-title" aria-expanded="false" aria-controls="navgrp-monitoring" onclick="navToggleGroup(this)">
-        <span class="sidebar-section-label">الرصد والمعلومات</span>
+    <div class="sidebar-section" data-nav-group data-group-key="monitoring" data-group-default="open">
+      <button type="button" class="sidebar-section-title" aria-expanded="true" aria-controls="navgrp-monitoring" onclick="navToggleGroup(this)">
+        <span class="sidebar-section-label">الرصد والمشهد الإعلامي</span>
         <span class="sidebar-section-chevron ico" aria-hidden="true"><svg><use href="#i-chevron-down"/></svg></span>
       </button>
-      <div class="sidebar-nav" id="navgrp-monitoring" role="group" aria-label="الرصد والمعلومات">
+      <div class="sidebar-nav" id="navgrp-monitoring" role="group" aria-label="الرصد والمشهد الإعلامي">
         <a class="nav-item" data-page="media_monitoring" onclick="showSection('media_monitoring')"><span class="ico"><svg><use href="#i-news"/></svg></span><span>الرصد الإعلامي</span><span class="nav-item-count" id="mm-nav-count">—</span></a>
-        <a class="nav-item" data-page="news" onclick="showSection('news')"><span class="ico"><svg><use href="#i-globe"/></svg></span><span>أخبار هيئات المنافسة</span></a>
+        <a class="nav-item" data-page="news" onclick="showSection('news')"><span class="ico"><svg><use href="#i-globe"/></svg></span><span>أخبار المنافسة الدولية</span></a>
       </div>
     </div>
 
-    <div class="sidebar-section is-collapsed" data-nav-group data-group-key="planning">
-      <button type="button" class="sidebar-section-title" aria-expanded="false" aria-controls="navgrp-planning" onclick="navToggleGroup(this)">
-        <span class="sidebar-section-label">التخطيط والمناسبات</span>
+    <div class="sidebar-section is-collapsed" data-nav-group data-group-key="calendar">
+      <button type="button" class="sidebar-section-title" aria-expanded="false" aria-controls="navgrp-calendar" onclick="navToggleGroup(this)">
+        <span class="sidebar-section-label">التقويم الاتصالي</span>
         <span class="sidebar-section-chevron ico" aria-hidden="true"><svg><use href="#i-chevron-down"/></svg></span>
       </button>
-      <div class="sidebar-nav" id="navgrp-planning" role="group" aria-label="التخطيط والمناسبات">
-        <a class="nav-item" data-page="intldays" onclick="showSection('intldays')"><span class="ico"><svg><use href="#i-calendar"/></svg></span><span>الأيام العالمية</span></a>
-        <a class="nav-item" data-page="aiyear" onclick="showSection('aiyear')"><span class="ico"><svg><use href="#i-brain"/></svg></span><span>عام الذكاء الاصطناعي 2026</span></a>
+      <div class="sidebar-nav" id="navgrp-calendar" role="group" aria-label="التقويم الاتصالي">
+        <div class="sidebar-subhead" role="presentation">الأيام والمناسبات</div>
+        <a class="nav-item" data-page="intldays" onclick="showSection('intldays')"><span class="ico"><svg><use href="#i-calendar"/></svg></span><span>أيام عالمية</span></a>
+        <a class="nav-item" data-page="national_events" onclick="showSection('national_events')"><span class="ico"><svg><use href="#i-flag"/></svg></span><span>مناسبات وطنية</span></a>
+        <a class="nav-item" data-page="official_events" onclick="showSection('official_events')"><span class="ico"><svg><use href="#i-award"/></svg></span><span>مناسبات رسمية</span></a>
+        <div class="sidebar-subhead" role="presentation">الفعاليات والمؤتمرات</div>
+        <a class="nav-item" data-page="events_conferences" onclick="showSection('events_conferences')"><span class="ico"><svg><use href="#i-ticket"/></svg></span><span>الفعاليات والمؤتمرات</span></a>
+        <a class="nav-item" data-page="key_dates" onclick="showSection('key_dates')"><span class="ico"><svg><use href="#i-clock"/></svg></span><span>تواريخ مهمة</span></a>
       </div>
     </div>
 
-    <div class="sidebar-section" data-nav-group data-group-key="production" data-group-default="open">
-      <button type="button" class="sidebar-section-title" aria-expanded="true" aria-controls="navgrp-production" onclick="navToggleGroup(this)">
-        <span class="sidebar-section-label">الإنتاج والنشر</span>
+    <div class="sidebar-section is-collapsed" data-nav-group data-group-key="publications">
+      <button type="button" class="sidebar-section-title" aria-expanded="false" aria-controls="navgrp-publications" onclick="navToggleGroup(this)">
+        <span class="sidebar-section-label">الإصدارات الداخلية</span>
         <span class="sidebar-section-chevron ico" aria-hidden="true"><svg><use href="#i-chevron-down"/></svg></span>
       </button>
-      <div class="sidebar-nav" id="navgrp-production" role="group" aria-label="الإنتاج والنشر">
-        <a class="nav-item" data-page="shorfah" onclick="showSection('shorfah')"><span class="ico"><svg><use href="#i-book"/></svg></span><span>نشرة شُرفة</span><span class="nav-item-count" id="shorfah-nav-count">—</span></a>
-        <a class="nav-item" data-page="weekstart" onclick="showSection('weekstart')"><span class="ico"><svg><use href="#i-star"/></svg></span><span>بداية الأسبوع</span></a>
-        <a class="nav-item" data-page="weekend" onclick="showSection('weekend')"><span class="ico"><svg><use href="#i-calendar"/></svg></span><span>نهاية الأسبوع</span></a>
+      <div class="sidebar-nav" id="navgrp-publications" role="group" aria-label="الإصدارات الداخلية">
+        <a class="nav-item" data-page="shorfah" onclick="showSection('shorfah')"><span class="ico"><svg><use href="#i-book"/></svg></span><span>شرفة</span><span class="nav-item-count" id="shorfah-nav-count">—</span></a>
       </div>
     </div>
 
-    <div class="sidebar-section is-collapsed" data-nav-group data-group-key="creation">
-      <button type="button" class="sidebar-section-title" aria-expanded="false" aria-controls="navgrp-creation" onclick="navToggleGroup(this)">
-        <span class="sidebar-section-label">الإنشاء والأدوات</span>
+    <div class="sidebar-section is-collapsed" data-nav-group data-group-key="agenda">
+      <button type="button" class="sidebar-section-title" aria-expanded="false" aria-controls="navgrp-agenda" onclick="navToggleGroup(this)">
+        <span class="sidebar-section-label">أجندة الشهر</span>
         <span class="sidebar-section-chevron ico" aria-hidden="true"><svg><use href="#i-chevron-down"/></svg></span>
       </button>
-      <div class="sidebar-nav" id="navgrp-creation" role="group" aria-label="الإنشاء والأدوات">
+      <div class="sidebar-nav" id="navgrp-agenda" role="group" aria-label="أجندة الشهر">
+        <a class="nav-item" data-page="monthly_agenda" onclick="showSection('monthly_agenda')"><span class="ico"><svg><use href="#i-grid"/></svg></span><span>رزنامة</span></a>
+      </div>
+    </div>
+
+    <div class="sidebar-section is-collapsed" data-nav-group data-group-key="internal">
+      <button type="button" class="sidebar-section-title" aria-expanded="false" aria-controls="navgrp-internal" onclick="navToggleGroup(this)">
+        <span class="sidebar-section-label">التواصل الداخلي</span>
+        <span class="sidebar-section-chevron ico" aria-hidden="true"><svg><use href="#i-chevron-down"/></svg></span>
+      </button>
+      <div class="sidebar-nav" id="navgrp-internal" role="group" aria-label="التواصل الداخلي">
+        <a class="nav-item" data-page="weekstart" onclick="showSection('weekstart')"><span class="ico"><svg><use href="#i-star"/></svg></span><span>بداية أسبوع سعيدة</span></a>
+        <a class="nav-item" data-page="weekend" onclick="showSection('weekend')"><span class="ico"><svg><use href="#i-calendar"/></svg></span><span>نهاية أسبوع سعيدة</span></a>
+        <a class="nav-item" data-page="motivational_msgs" onclick="showSection('motivational_msgs')"><span class="ico"><svg><use href="#i-message"/></svg></span><span>رسائل تحفيزية</span></a>
+        <a class="nav-item" data-page="awareness_msgs" onclick="showSection('awareness_msgs')"><span class="ico"><svg><use href="#i-megaphone"/></svg></span><span>رسائل توعوية</span></a>
+      </div>
+    </div>
+
+    <div class="sidebar-section is-collapsed" data-nav-group data-group-key="content">
+      <button type="button" class="sidebar-section-title" aria-expanded="false" aria-controls="navgrp-content" onclick="navToggleGroup(this)">
+        <span class="sidebar-section-label">المحتوى والتصاميم</span>
+        <span class="sidebar-section-chevron ico" aria-hidden="true"><svg><use href="#i-chevron-down"/></svg></span>
+      </button>
+      <div class="sidebar-nav" id="navgrp-content" role="group" aria-label="المحتوى والتصاميم">
         <a class="nav-item" data-page="designs" onclick="showSection('designs')"><span class="ico"><svg><use href="#i-image"/></svg></span><span>إنشاء التصاميم</span></a>
-        <a class="nav-item" data-page="smart_assistant" onclick="showSection('smart_assistant')"><span class="ico"><svg><use href="#i-bot"/></svg></span><span>المساعد الذكي</span></a>
-        <a class="nav-item" data-page="libraries" onclick="showSection('libraries')"><span class="ico"><svg><use href="#i-book"/></svg></span><span>المكتبات</span></a>
+        <a class="nav-item" data-page="smart_assistant" onclick="showSection('smart_assistant')"><span class="ico"><svg><use href="#i-bot"/></svg></span><span>مساعد المحتوى الذكي</span></a>
+        <a class="nav-item" data-page="libraries" onclick="showSection('libraries')"><span class="ico"><svg><use href="#i-palette"/></svg></span><span>مكتبة الهوية</span></a>
       </div>
     </div>
 
@@ -3463,10 +3687,11 @@ button.home-row:hover { border-color:var(--primary-100); background:var(--primar
         <span class="sidebar-section-chevron ico" aria-hidden="true"><svg><use href="#i-chevron-down"/></svg></span>
       </button>
       <div class="sidebar-nav" id="navgrp-admin" role="group" aria-label="الإدارة">
-        <a class="nav-item" data-page="settings" onclick="showSection('settings')"><span class="ico"><svg><use href="#i-settings"/></svg></span><span>الإعدادات</span></a>
-        <!-- No inline display:none. لوحة التحكم is now rendered locked for non-admins by the
+        <!-- No inline display:none. لوحة التحكم is rendered locked for non-admins by the
              single gating pass in authUpdateUI(), like every other row. -->
         <a class="nav-item" id="nav-admin-panel" data-page="admin_panel" onclick="showSection('admin_panel')"><span class="ico"><svg><use href="#i-shield"/></svg></span><span>لوحة التحكم</span></a>
+        <a class="nav-item" data-page="settings" onclick="showSection('settings')"><span class="ico"><svg><use href="#i-settings"/></svg></span><span>الإعدادات</span></a>
+        <a class="nav-item" data-page="reports" onclick="showSection('reports')"><span class="ico"><svg><use href="#i-trending-up"/></svg></span><span>أداء تنفيذ المشاريع</span></a>
       </div>
     </div>
 
@@ -3544,7 +3769,7 @@ button.home-row:hover { border-color:var(--primary-100); background:var(--primar
 
     <div class="page-head">
       <div>
-        <h1 class="page-title">الأداء التنفيذي للمشاريع</h1>
+        <h1 class="page-title">أداء تنفيذ المشاريع</h1>
         <p class="page-sub">قراءة شاملة للحالة التشغيلية لمحفظة مشاريع الإدارة، مع تحليل المخاطر والتقدم نحو المستهدفات السنوية.</p>
       </div>
       <div class="page-actions">
@@ -3580,6 +3805,28 @@ button.home-row:hover { border-color:var(--primary-100); background:var(--primar
         <div class="pf-filters" id="pf-filters"></div>
       </div>
       <div class="pf-grid" id="pf-grid"></div>
+    </div>
+
+    <!-- تسجيل تقدم مشروع — يُفتح من زر «تسجيل تقدم» على بطاقة المشروع -->
+    <div class="pf-up-modal" id="pf-up-modal" role="dialog" aria-modal="true" aria-labelledby="pf-up-title">
+      <div class="pf-up-dialog">
+        <div class="pf-up-dialog-hd">
+          <h2 id="pf-up-title" class="pf-up-dialog-title">تسجيل تقدم</h2>
+          <button type="button" class="pf-up-close" onclick="pfCloseProgress()" aria-label="إغلاق">
+            <span class="ico"><svg><use href="#i-x"/></svg></span>
+          </button>
+        </div>
+        <div class="pf-up-project" id="pf-up-project">—</div>
+        <label class="pf-up-label" for="pf-up-pct">نسبة الإنجاز <span class="pf-up-out" id="pf-up-pct-out">0%</span></label>
+        <input type="range" id="pf-up-pct" min="0" max="100" step="1" value="0" class="pf-up-range" oninput="pfProgressSync()">
+        <label class="pf-up-label" for="pf-up-note">ملاحظة التقدم</label>
+        <textarea id="pf-up-note" class="pf-up-textarea" rows="3" placeholder="ما الذي أُنجز في هذه الفترة؟"></textarea>
+        <div class="pf-up-err" id="pf-up-error" style="display:none;"></div>
+        <div class="pf-up-actions">
+          <button type="button" class="btn btn-ghost" onclick="pfCloseProgress()">إلغاء</button>
+          <button type="button" class="btn btn-primary" id="pf-up-save" onclick="pfSubmitProgress()">حفظ التحديث</button>
+        </div>
+      </div>
     </div>
 
     <div id="pf-error" class="empty-state" style="display:none;">
@@ -3660,8 +3907,8 @@ button.home-row:hover { border-color:var(--primary-100); background:var(--primar
 
     <div class="page-head">
       <div>
-        <h1 class="page-title">أخبار هيئات المنافسة</h1>
-        <p class="page-sub">أحدث تطورات هيئات وسلطات المنافسة العالمية (FTC, EC/DG COMP, CMA, Bundeskartellamt, JFTC, KFTC, OECD, ICN, شبكة المنافسة العربية) إلى جانب أخبار الهيئة العامة للمنافسة السعودية.</p>
+        <h1 class="page-title">أخبار المنافسة الدولية</h1>
+        <p class="page-sub">أخبار عامة، مؤتمرات، ومستجدات وأخبار المنافسة الدولية — من هيئات وسلطات المنافسة العالمية <bdi dir="ltr">(FTC, EC/DG COMP, CMA, Bundeskartellamt, JFTC, KFTC, OECD, ICN)</bdi> وشبكة المنافسة العربية، إلى جانب أخبار الهيئة العامة للمنافسة.</p>
       </div>
       <div class="page-actions">
         <div class="period-chip">
@@ -3672,10 +3919,18 @@ button.home-row:hover { border-color:var(--primary-100); background:var(--primar
       </div>
     </div>
 
+    <!-- The three components of أخبار المنافسة الدولية live inside this page, not as extra
+         sidebar rows. "الكل" stacks the three groups under their own headings; picking one
+         narrows the page to that group. -->
     <div class="filter-tabs">
-      <button class="filter-tab active" onclick="filterNewsPage('all',this)">🌍 الكل</button>
-      <button class="filter-tab" onclick="filterNewsPage('global',this)">🌐 عالمي</button>
-      <button class="filter-tab" onclick="filterNewsPage('local',this)">🇸🇦 محلي (GAC)</button>
+      <button class="filter-tab active" onclick="filterNewsPage('all',this)">الكل</button>
+      <button class="filter-tab" onclick="filterNewsPage('general',this)">أخبار عامة</button>
+      <button class="filter-tab" onclick="filterNewsPage('conferences',this)">مؤتمرات</button>
+      <button class="filter-tab" onclick="filterNewsPage('intl',this)">مستجدات وأخبار المنافسة الدولية</button>
+    </div>
+    <div class="filter-tabs" style="margin-top:-4px;">
+      <button class="filter-tab" onclick="filterNewsPage('global',this)">عالمي</button>
+      <button class="filter-tab" onclick="filterNewsPage('local',this)">محلي <bdi dir="ltr">(GAC)</bdi></button>
       <button class="filter-tab" onclick="filterNewsPage('إنفاذ',this)">إنفاذ</button>
       <button class="filter-tab" onclick="filterNewsPage('غرامات',this)">غرامات</button>
       <button class="filter-tab" onclick="filterNewsPage('تعاون دولي',this)">تعاون دولي</button>
@@ -5911,6 +6166,174 @@ button.home-row:hover { border-color:var(--primary-100); background:var(--primar
 
 
   <!-- ══ 403 Forbidden Section ══ -->
+  <!-- ══════════════════════════════════
+       national_events
+  ══════════════════════════════════ -->
+  <div class="page-section" id="section-national_events">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title">مناسبات وطنية</h1>
+        <p class="page-sub">المناسبات الوطنية في المملكة العربية السعودية، مرتبة بحسب تاريخها خلال السنة، مع فكرة اتصالية جاهزة لكل مناسبة.</p>
+      </div>
+      <div class="page-actions">
+        <div class="period-chip">
+          <span class="ico"><svg><use href="#i-flag"/></svg></span>
+          <span id="cal-national_events-count">—</span>
+          <span>مناسبة</span>
+        </div>
+      </div>
+    </div>
+    <div class="filter-tabs" id="cal-national_events-tabs"></div>
+    <div class="cal-list" id="cal-national_events-list"></div>
+
+    <!-- عام الذكاء الاصطناعي 2026 keeps its own page. The new sidebar names no row for it, so it
+         is reached from here — the national-occasions page it belongs to — rather than adding an
+         unlisted sidebar level. -->
+    <article class="cal-row" style="cursor:pointer;" onclick="showSection('aiyear')" role="link" tabindex="0"
+             onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();showSection('aiyear');}">
+      <div class="cal-row-date">2026<small>عام كامل</small></div>
+      <span class="cal-row-ico"><svg><use href="#i-brain"/></svg></span>
+      <div>
+        <div class="cal-row-title">عام الذكاء الاصطناعي 2026</div>
+        <div class="cal-row-desc">مبادرة وطنية ممتدة على العام بكامله، ولها صفحة مستقلة داخل المنصة بخطتها ومحتواها الاتصالي.</div>
+        <div class="cal-row-tags"><span class="cal-tag">افتح الصفحة</span><span class="cal-tag">مبادرة وطنية</span></div>
+      </div>
+    </article>
+
+  </div>
+
+  <!-- ══════════════════════════════════
+       official_events
+  ══════════════════════════════════ -->
+  <div class="page-section" id="section-official_events">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title">مناسبات رسمية</h1>
+        <p class="page-sub">المناسبات الرسمية المرتبطة بأعمال الهيئة والجهات الحكومية خلال السنة.</p>
+      </div>
+      <div class="page-actions">
+        <div class="period-chip">
+          <span class="ico"><svg><use href="#i-award"/></svg></span>
+          <span id="cal-official_events-count">—</span>
+          <span>مناسبة</span>
+        </div>
+      </div>
+    </div>
+    <div class="filter-tabs" id="cal-official_events-tabs"></div>
+    <div class="cal-list" id="cal-official_events-list"></div>
+  </div>
+
+  <!-- ══════════════════════════════════
+       events_conferences
+  ══════════════════════════════════ -->
+  <div class="page-section" id="section-events_conferences">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title">الفعاليات والمؤتمرات</h1>
+        <p class="page-sub">الفعاليات والمؤتمرات المحلية والدولية ذات العلاقة بالمنافسة، وما يخص الهيئة من مشاركات فيها.</p>
+      </div>
+      <div class="page-actions">
+        <div class="period-chip">
+          <span class="ico"><svg><use href="#i-ticket"/></svg></span>
+          <span id="cal-events_conferences-count">—</span>
+          <span>مناسبة</span>
+        </div>
+      </div>
+    </div>
+    <div class="filter-tabs" id="cal-events_conferences-tabs"></div>
+    <div class="cal-list" id="cal-events_conferences-list"></div>
+  </div>
+
+  <!-- ══════════════════════════════════
+       key_dates
+  ══════════════════════════════════ -->
+  <div class="page-section" id="section-key_dates">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title">تواريخ مهمة</h1>
+        <p class="page-sub">التواريخ والمواعيد المهمة في دورة العمل الاتصالي: مواعيد التسليم والإصدار والمراجعات الدورية.</p>
+      </div>
+      <div class="page-actions">
+        <div class="period-chip">
+          <span class="ico"><svg><use href="#i-clock"/></svg></span>
+          <span id="cal-key_dates-count">—</span>
+          <span>مناسبة</span>
+        </div>
+      </div>
+    </div>
+    <div class="filter-tabs" id="cal-key_dates-tabs"></div>
+    <div class="cal-list" id="cal-key_dates-list"></div>
+  </div>
+
+  <!-- ══════════════════════════════════
+       monthly_agenda — رزنامة
+  ══════════════════════════════════ -->
+  <div class="page-section" id="section-monthly_agenda">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title">رزنامة</h1>
+        <p class="page-sub">أجندة الشهر في صفحة واحدة: الأيام العالمية والمناسبات الوطنية والرسمية والفعاليات والتواريخ المهمة، مجموعة على تقويم الشهر.</p>
+      </div>
+      <div class="page-actions">
+        <button class="btn btn-ghost" onclick="CAL.agendaShift(-1)">
+          <span class="ico"><svg><use href="#i-chevron-left"/></svg></span><span>الشهر السابق</span>
+        </button>
+        <div class="period-chip"><span class="ico"><svg><use href="#i-calendar"/></svg></span><span id="cal-agenda-label">—</span></div>
+        <button class="btn btn-ghost" onclick="CAL.agendaShift(1)">
+          <span>الشهر التالي</span><span class="ico" style="transform:scaleX(-1);"><svg><use href="#i-chevron-left"/></svg></span>
+        </button>
+        <button class="btn btn-primary" onclick="CAL.agendaShift(0)">
+          <span class="ico"><svg><use href="#i-refresh"/></svg></span><span>الشهر الحالي</span>
+        </button>
+      </div>
+    </div>
+    <div class="cal-legend" id="cal-agenda-legend"></div>
+    <div class="cal-month" id="cal-agenda-grid"></div>
+    <div class="cal-list" id="cal-agenda-list"></div>
+  </div>
+
+  <!-- ══════════════════════════════════
+       motivational_msgs
+  ══════════════════════════════════ -->
+  <div class="page-section" id="section-motivational_msgs">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title">رسائل تحفيزية</h1>
+        <p class="page-sub">رسائل جاهزة لتحفيز الفريق ورفع الروح المعنوية، قابلة للنسخ والاستخدام المباشر في القنوات الداخلية.</p>
+      </div>
+      <div class="page-actions">
+        <div class="period-chip">
+          <span class="ico"><svg><use href="#i-message"/></svg></span>
+          <span id="msg-motivational_msgs-count">—</span>
+          <span>رسالة</span>
+        </div>
+      </div>
+    </div>
+    <div class="filter-tabs" id="msg-motivational_msgs-tabs"></div>
+    <div class="msg-grid" id="msg-motivational_msgs-list"></div>
+  </div>
+
+  <!-- ══════════════════════════════════
+       awareness_msgs
+  ══════════════════════════════════ -->
+  <div class="page-section" id="section-awareness_msgs">
+    <div class="page-head">
+      <div>
+        <h1 class="page-title">رسائل توعوية</h1>
+        <p class="page-sub">رسائل توعوية جاهزة بنظام المنافسة وثقافة المنافسة والسلوك المؤسسي، قابلة للنسخ والنشر.</p>
+      </div>
+      <div class="page-actions">
+        <div class="period-chip">
+          <span class="ico"><svg><use href="#i-megaphone"/></svg></span>
+          <span id="msg-awareness_msgs-count">—</span>
+          <span>رسالة</span>
+        </div>
+      </div>
+    </div>
+    <div class="filter-tabs" id="msg-awareness_msgs-tabs"></div>
+    <div class="msg-grid" id="msg-awareness_msgs-list"></div>
+  </div>
+
   <div class="page-section" id="section-403" style="display:none;">
     <div style="text-align:center;padding:80px 20px;">
       <div style="font-size:72px;margin-bottom:16px;">🔒</div>
@@ -6023,6 +6446,16 @@ var PAGE_PERM_MAP = {
   'weekend':        'weekend',
   'weekstart':      'weekstart',
   'intldays':       'international_days',
+  // The four التقويم الاتصالي pages and رزنامة are calendar surfaces: they reuse the existing
+  // international-days slug instead of inventing permissions nobody has been granted yet.
+  'national_events':   'international_days',
+  'official_events':   'international_days',
+  'events_conferences':'international_days',
+  'key_dates':         'international_days',
+  'monthly_agenda':    'international_days',
+  // The two message libraries are internal-communication surfaces, same as بداية الأسبوع.
+  'motivational_msgs': 'weekstart',
+  'awareness_msgs':    'weekstart',
   'aiyear':         'ai_year',
   'smart_assistant':'smart_assistant',
   'settings':       'settings',
@@ -7826,9 +8259,13 @@ window.adminSaveSettings = function() {
 // Breadcrumb labels. Every rendered page-section must appear here, otherwise the
 // breadcrumb falls back to the raw English section key (e.g. "places").
 const PAGE_LABELS = {
-  reports:'الأداء التنفيذي للمشاريع', home:'الرئيسية',
-  news:'أخبار هيئات المنافسة', weekend:'نهاية الأسبوع',
+  reports:'أداء تنفيذ المشاريع', home:'الرئيسية',
+  news:'أخبار المنافسة الدولية', weekend:'نهاية الأسبوع',
   weekstart:'بداية الأسبوع', intldays:'الأيام العالمية',
+  national_events:'مناسبات وطنية', official_events:'مناسبات رسمية',
+  events_conferences:'الفعاليات والمؤتمرات', key_dates:'تواريخ مهمة',
+  monthly_agenda:'رزنامة',
+  motivational_msgs:'رسائل تحفيزية', awareness_msgs:'رسائل توعوية',
   aiyear:'عام الذكاء الاصطناعي 2026',
   smart_assistant:'المساعد الذكي', settings:'الإعدادات',
   admin_panel:'لوحة التحكم',
@@ -7941,9 +8378,12 @@ function showSection(name) {
 
 /* ════════════════════════════════════════
    SIDEBAR GROUP COLLAPSE — remembered per browser
-   Defaults: نظرة عامة + الإنتاج والنشر open, the rest collapsed.
+   Defaults: نظرة عامة + الرصد والمشهد الإعلامي open, the rest collapsed.
+   The storage key is versioned because the eight sections were re-cut: state saved against the
+   old group keys describes groups that no longer exist, so reading it would collapse sections
+   whose new default is open. Bumping the key retires the stale state instead.
    ════════════════════════════════════════ */
-var NAV_GROUP_STORAGE_KEY = 'icbank.nav.groups.v1';
+var NAV_GROUP_STORAGE_KEY = 'icbank.nav.groups.v2';
 
 function navReadGroupState() {
   try {
@@ -8569,7 +9009,7 @@ var HOME_WIDGETS = [
     }
   },
   {
-    page:'news', group:'الرصد والمعلومات', title:'أخبار هيئات المنافسة', cta:'عرض الأخبار',
+    page:'news', group:'الرصد والمشهد الإعلامي', title:'أخبار المنافسة الدولية', cta:'عرض الأخبار',
     load: async function() {
       var items = homeItems(await homeApiJson('/gac/news'));
       if (!items.length) return null;
@@ -9047,7 +9487,9 @@ function showLoaders(ids) {
 function renderNewsToAll(articles) {
   renderHeroArticle(articles[0]);
   renderHomeNews(articles.slice(0,3));
-  renderAllNews(articles);
+  // The أخبار المنافسة الدولية page opens on "الكل", which shows the three in-page components
+  // stacked, so the first paint must match the active tab.
+  renderNewsGrouped(articles);
   const sqEl = document.getElementById('sidebar-quick');
   if (sqEl) renderSidebarQuick(articles.slice(0,5));
   // Update news KPI count on dashboard
@@ -9256,16 +9698,60 @@ function resolveNewsUrl(url, title) {
 // ════════════════════════════════════════
 // FILTERS & SEARCH
 // ════════════════════════════════════════
+// Keyword sets that place an article in one of the page's three components. Matching is done on
+// the Arabic title plus the source tag; an article that matches nothing lands in "أخبار عامة"
+// rather than being dropped, so the three groups always sum to the full feed.
+const NEWS_CONF_WORDS = ['مؤتمر', 'مؤتمرات', 'ملتقى', 'منتدى', 'قمة', 'ورشة', 'اجتماع', 'ندوة', 'جلسة حوارية',
+  'conference', 'forum', 'summit', 'workshop', 'meeting', 'symposium'];
+const NEWS_INTL_WORDS = ['إنفاذ', 'غرامة', 'غرامات', 'احتكار', 'احتكارية', 'اندماج', 'استحواذ', 'تركز اقتصادي',
+  'مخالفة', 'تسوية', 'تحقيق', 'كارتل', 'antitrust', 'merger', 'acquisition', 'fine', 'cartel', 'enforcement',
+  'monopoly', 'investigation'];
+
+/// Returns the in-page component an article belongs to: 'conferences' | 'intl' | 'general'.
+function newsComponentOf(a) {
+  const hay = ((a.title || '') + ' ' + (a.tag || '') + ' ' + (a.summary || '')).toLowerCase();
+  if (NEWS_CONF_WORDS.some(w => hay.includes(w.toLowerCase()))) return 'conferences';
+  if (a.scope === 'global' || NEWS_INTL_WORDS.some(w => hay.includes(w.toLowerCase()))) return 'intl';
+  return 'general';
+}
+
+const NEWS_COMPONENT_LABELS = {
+  general: 'أخبار عامة',
+  conferences: 'مؤتمرات',
+  intl: 'مستجدات وأخبار المنافسة الدولية',
+};
+
+/// Renders the three components stacked, each under its own heading. Empty groups are skipped.
+function renderNewsGrouped(articles) {
+  const el = document.getElementById('all-news');
+  const countEl = document.getElementById('news-count-num');
+  if (countEl) countEl.textContent = articles.length;
+  if (!el) return;
+  if (!articles.length) { el.innerHTML = emptyState('لا توجد أخبار'); return; }
+  const order = ['general', 'conferences', 'intl'];
+  const buckets = { general: [], conferences: [], intl: [] };
+  articles.forEach(a => { buckets[newsComponentOf(a)].push(a); });
+  let idx = 0;
+  el.innerHTML = order.filter(k => buckets[k].length).map(k =>
+    '<h2 class="news-group-title">' + NEWS_COMPONENT_LABELS[k]
+    + ' <span class="news-group-count">' + buckets[k].length + '</span></h2>'
+    + buckets[k].map(a => newsCardHTML(a, idx++)).join('')
+  ).join('');
+}
+
 function filterNewsPage(type, btn) {
   document.querySelectorAll('#section-news .filter-tab').forEach(t=>t.classList.remove('active'));
   btn.classList.add('active');
-  if (type === 'all') renderAllNews(NEWS_DATA);
-  else if (type === 'local') renderAllNews(NEWS_LOCAL.length ? NEWS_LOCAL : NEWS_DATA.filter(a=>a.scope==='local'));
-  else if (type === 'global') renderAllNews(NEWS_GLOBAL.length ? NEWS_GLOBAL : NEWS_DATA.filter(a=>a.scope==='global'));
-  else {
-    const filtered = NEWS_DATA.filter(a => (a.tag||'').includes(type) || (a.title||'').toLowerCase().includes(type.toLowerCase()));
-    renderAllNews(filtered.length ? filtered : NEWS_DATA);
+  if (type === 'all') { renderNewsGrouped(NEWS_DATA); return; }
+  if (type === 'general' || type === 'conferences' || type === 'intl') {
+    renderAllNews(NEWS_DATA.filter(a => newsComponentOf(a) === type));
+    return;
   }
+  if (type === 'local') { renderAllNews(NEWS_LOCAL.length ? NEWS_LOCAL : NEWS_DATA.filter(a=>a.scope==='local')); return; }
+  if (type === 'global') { renderAllNews(NEWS_GLOBAL.length ? NEWS_GLOBAL : NEWS_DATA.filter(a=>a.scope==='global')); return; }
+  // Topic chips: show exactly what matched. Falling back to the full feed on zero matches made
+  // the page claim results for a filter that found none.
+  renderAllNews(NEWS_DATA.filter(a => (a.tag||'').includes(type) || (a.title||'').toLowerCase().includes(type.toLowerCase())));
 }
 
 function handleSearch(val) {
@@ -9862,7 +10348,7 @@ function pfRender() {
       pfKpi(k.total, 'إجمالي المشاريع', 'is-primary'),
       pfKpi((k.averageProgressPercent || 0) + '%', 'متوسط الإنجاز', 'is-primary'),
       pfKpi(k.onTrack, 'على المسار', 'is-good'),
-      pfKpi(k.atRisk, 'تحتاج متابعة', 'is-warn'),
+      pfKpi(k.atRisk, 'بحاجة إلى المتابعة', 'is-warn'),
       pfKpi(k.delayed, 'متأخرة', 'is-bad')
     ].join('');
   }
@@ -9936,7 +10422,7 @@ function pfCardHTML(p) {
         + '<span class="pf-prog-marker" style="right:' + plan + '%"></span></div>'
     + '</div>'
     + '<div class="pf-meta">'
-      + '<span>المسؤول <b>' + esc(p.owner) + '</b></span>'
+      + '<span>مدير المشروع <b>' + esc(p.owner) + '</b></span>'
       + '<span>الإدارة <b>' + esc(p.department) + '</b></span>'
       + '<span>الفريق <b class="pf-num">' + (p.teamSize || 0) + '</b></span>'
       + '<span>الانتهاء <b>' + pfDate(p.dueDate) + '</b></span>'
@@ -9945,7 +10431,155 @@ function pfCardHTML(p) {
     + (tot ? '<div class="pf-ms"><div class="pf-ms-hd"><span>المراحل ' + done + ' من ' + tot + '</span>'
         + '<span class="pf-ms-pips">' + pips + '</span></div>'
         + '<ul class="pf-ms-list">' + items + '</ul></div>' : '')
+    + pfProgressBlockHTML(p)
     + '</article>';
+}
+
+/// True when the signed-in user may log progress. The write endpoint is gated by
+/// `performance_reports:edit`, so the button is checked against that slug directly rather than
+/// through PAGE_PERM_MAP, whose 'reports' entry still points at the legacy dashboard slug.
+function pfCanRecordProgress() {
+  if (!AUTH_USER) return false;
+  if (AUTH_USER.isSuperAdmin) return true;
+  var perms = AUTH_USER.permissions || {};
+  var granted = perms['performance_reports'] || [];
+  return granted.indexOf('edit') !== -1;
+}
+
+/// The progress-report strip on a project card: a log button for managers plus the history of
+/// every report already logged, so repeated entries on the same project are visible as a trail
+/// rather than overwriting each other silently.
+function pfProgressBlockHTML(p) {
+  var updates = p.progressUpdates || [];
+  // Only the three newest entries are drawn. A scrolling strip cut a row in half and read as
+  // broken text; an explicit count of the older ones is honest and costs one line.
+  var VISIBLE = 3;
+  var shownUpdates = updates.slice(0, VISIBLE);
+  var hidden = Math.max(0, updates.length - VISIBLE);
+  var rows = shownUpdates.map(function(u) {
+    return '<li class="pf-up-item">'
+      + '<span class="pf-up-pct">' + Math.max(0, Math.min(100, u.progressPercent || 0)) + '%</span>'
+      + '<span class="pf-up-body">'
+        + (u.note ? '<span class="pf-up-note">' + esc(u.note) + '</span>' : '<span class="pf-up-note is-muted">بدون ملاحظة</span>')
+        + '<span class="pf-up-meta">' + esc(u.reportedBy || 'غير محدد') + ' · ' + pfStamp(u.reportedAt) + '</span>'
+      + '</span></li>';
+  }).join('');
+
+  return '<div class="pf-up">'
+    + '<div class="pf-up-hd">'
+      + '<span>سجل التقدم <b class="pf-num">' + updates.length + '</b></span>'
+      + (pfCanRecordProgress()
+        ? '<button type="button" class="btn btn-sm btn-primary" onclick="pfOpenProgress(' + p.id + ')">'
+          + '<span class="ico"><svg><use href="#i-plus"/></svg></span><span>تسجيل تقدم</span></button>'
+        : '')
+    + '</div>'
+    + (updates.length
+      ? '<ul class="pf-up-list">' + rows + '</ul>'
+        + (hidden ? '<div class="pf-up-empty">و' + hidden + ' تحديثات أقدم</div>' : '')
+      : '<div class="pf-up-empty">لم يُسجَّل أي تحديث بعد</div>')
+    + '</div>';
+}
+
+function pfStamp(value) {
+  if (!value) return '—';
+  var dt = new Date(value);
+  if (isNaN(dt.getTime())) return '—';
+  return dt.toLocaleDateString('ar-SA-u-ca-gregory-nu-latn', { year: 'numeric', month: 'short', day: 'numeric' })
+    + ' · ' + dt.toLocaleTimeString('ar-SA-u-ca-gregory-nu-latn', { hour: '2-digit', minute: '2-digit' });
+}
+
+// ── تسجيل تقدم المشروع ──────────────────────────────────────────────────────
+// A manager can log progress on the same project as many times as they like; each entry keeps
+// its own note and timestamp, and the card's percentage is whatever the newest entry reported.
+var pfProgressProjectId = null;
+
+function pfOpenProgress(projectId) {
+  var project = ((pfCache && pfCache.projects) || []).filter(function(x) { return x.id === projectId; })[0];
+  if (!project) return;
+  pfProgressProjectId = projectId;
+  var nameEl = document.getElementById('pf-up-project');
+  var pctEl = document.getElementById('pf-up-pct');
+  var noteEl = document.getElementById('pf-up-note');
+  var errEl = document.getElementById('pf-up-error');
+  var outEl = document.getElementById('pf-up-pct-out');
+  if (nameEl) nameEl.textContent = project.name;
+  if (pctEl) pctEl.value = Math.max(0, Math.min(100, project.progressPercent || 0));
+  if (outEl) outEl.textContent = (pctEl ? pctEl.value : 0) + '%';
+  if (noteEl) noteEl.value = '';
+  if (errEl) { errEl.style.display = 'none'; errEl.textContent = ''; }
+  var modal = document.getElementById('pf-up-modal');
+  if (modal) modal.classList.add('is-open');
+  if (noteEl) noteEl.focus();
+}
+
+function pfCloseProgress() {
+  var modal = document.getElementById('pf-up-modal');
+  if (modal) modal.classList.remove('is-open');
+  pfProgressProjectId = null;
+}
+
+function pfProgressSync() {
+  var pctEl = document.getElementById('pf-up-pct');
+  var outEl = document.getElementById('pf-up-pct-out');
+  if (pctEl && outEl) outEl.textContent = pctEl.value + '%';
+}
+
+async function pfSubmitProgress() {
+  if (pfProgressProjectId === null) return;
+  var pctEl = document.getElementById('pf-up-pct');
+  var noteEl = document.getElementById('pf-up-note');
+  var errEl = document.getElementById('pf-up-error');
+  var btn = document.getElementById('pf-up-save');
+  var pct = parseInt((pctEl || {}).value, 10);
+  var note = ((noteEl || {}).value || '').trim();
+  var fail = function(msg) {
+    if (errEl) { errEl.textContent = msg; errEl.style.display = 'block'; }
+    if (btn) { btn.disabled = false; btn.textContent = 'حفظ التحديث'; }
+  };
+  if (isNaN(pct) || pct < 0 || pct > 100) { fail('أدخل نسبة إنجاز بين 0 و 100'); return; }
+  if (!note) { fail('اكتب ملاحظة توضح ما تم إنجازه'); return; }
+  if (btn) { btn.disabled = true; btn.textContent = 'جارٍ الحفظ...'; }
+  if (errEl) errEl.style.display = 'none';
+  try {
+    var res = await apiFetch(apiUrl('/projects/' + pfProgressProjectId + '/progress'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ progressPercent: pct, note: note }),
+    });
+    if (res.status === 403) { fail('لا تملك صلاحية تسجيل التقدم على هذا المشروع'); return; }
+    if (!res.ok) { fail('تعذر حفظ التحديث — حاول مرة أخرى'); return; }
+    var updated = await res.json();
+    // Patch the cached card in place instead of refetching the whole portfolio: the endpoint
+    // already returns the recomputed card, and the KPIs are recomputed from the cache below.
+    var list = (pfCache && pfCache.projects) || [];
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].id === updated.id) { list[i] = updated; break; }
+    }
+    pfRecomputeKpis();
+    pfCloseProgress();
+    pfRender();
+  } catch (e) {
+    fail('تعذر الاتصال بالخادم');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'حفظ التحديث'; }
+  }
+}
+
+/// Recomputes the portfolio headline figures from the cached cards after one card changed, so
+/// the KPI row cannot keep showing pre-update counts while the card below it shows the new one.
+function pfRecomputeKpis() {
+  if (!pfCache) return;
+  var all = pfCache.projects || [];
+  var k = pfCache.kpis || (pfCache.kpis = {});
+  k.total = all.length;
+  k.onTrack = all.filter(function(x) { return x.health === 'on_track'; }).length;
+  k.atRisk = all.filter(function(x) { return x.health === 'at_risk'; }).length;
+  k.delayed = all.filter(function(x) { return x.health === 'delayed'; }).length;
+  k.operational = all.filter(function(x) { return x.category === 'operational'; }).length;
+  k.strategic = all.filter(function(x) { return x.category === 'strategic'; }).length;
+  k.averageProgressPercent = all.length
+    ? Math.round(all.reduce(function(sum, x) { return sum + (x.progressPercent || 0); }, 0) / all.length)
+    : 0;
 }
 
 function renderReportHTML(d) {
@@ -10451,6 +11085,454 @@ function wsExport(model) {
   URL.revokeObjectURL(url);
 }
 
+/* ══════════════════════════════════════════════════════════════════════
+   التقويم الاتصالي — أيام ومناسبات، فعاليات ومؤتمرات، تواريخ مهمة، رزنامة
+   One module drives four occasion lists plus the month grid so the three
+   pages cannot drift apart: every page reads the same records, and the
+   رزنامة is a projection of them onto the calendar of a chosen month.
+   Dates are stored as month/day pairs because these occasions recur every
+   year; anything tied to the Hijri calendar carries hijri:true and is
+   listed without a Gregorian slot instead of being pinned to a wrong day.
+   ══════════════════════════════════════════════════════════════════════ */
+var CAL = (function() {
+  var MONTHS = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+  var DOW = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+
+  var NATIONAL = [
+    { m:2, d:22, title:'يوم التأسيس', icon:'flag', tags:['مناسبة وطنية','إجازة رسمية'],
+      desc:'ذكرى تأسيس الدولة السعودية الأولى، ويُحتفى به سنوياً في الثاني والعشرين من فبراير.',
+      idea:'محتوى عن جذور المملكة وامتداد مسيرتها، ويمكن ربطه بمسيرة العمل المؤسسي وتطوره.' },
+    { m:3, d:11, title:'يوم العلم السعودي', icon:'flag', tags:['مناسبة وطنية'],
+      desc:'ذكرى اعتماد العلم السعودي بشكله الحالي، ويُحتفى به في الحادي عشر من مارس.',
+      idea:'رسالة داخلية قصيرة عن رمزية العلم، مع تصميم يحمل الهوية الوطنية.' },
+    { m:9, d:23, title:'اليوم الوطني السعودي', icon:'flag', tags:['مناسبة وطنية','إجازة رسمية'],
+      desc:'ذكرى توحيد المملكة العربية السعودية على يد الملك عبدالعزيز، في الثالث والعشرين من سبتمبر.',
+      idea:'حملة اتصالية متكاملة: تصاميم، رسالة قيادية، وفعالية داخلية للموظفين.' },
+    { m:0, d:0, hijri:true, title:'عيد الفطر', icon:'star', tags:['مناسبة وطنية','تقويم هجري'],
+      desc:'يوافق غرة شهر شوال، ويتغير موعده الميلادي كل عام بحسب التقويم الهجري.',
+      idea:'تهنئة رسمية من الهيئة، ورسالة داخلية للموظفين قبل الإجازة.' },
+    { m:0, d:0, hijri:true, title:'عيد الأضحى', icon:'star', tags:['مناسبة وطنية','تقويم هجري'],
+      desc:'يوافق العاشر من ذي الحجة، ويتغير موعده الميلادي كل عام بحسب التقويم الهجري.',
+      idea:'تهنئة رسمية، مع تنبيه مسبق بمواعيد العمل خلال الإجازة.' },
+    { m:0, d:0, hijri:true, title:'يوم البيعة', icon:'award', tags:['مناسبة وطنية','تقويم هجري'],
+      desc:'ذكرى مبايعة خادم الحرمين الشريفين، ويُحدَّد موعده بحسب التقويم الهجري.',
+      idea:'رسالة تجديد ولاء وتذكير بالمنجزات المؤسسية خلال العام.' }
+  ];
+
+  var OFFICIAL = [
+    { m:1, d:1, title:'بداية السنة المالية', icon:'calendar', tags:['دورة رسمية'],
+      desc:'انطلاق السنة المالية للجهات الحكومية وبدء دورة التخطيط والتنفيذ للعام الجديد.',
+      idea:'رسالة داخلية بأولويات العام، ونشر الخطة الاتصالية المعتمدة.' },
+    { m:3, d:31, title:'اعتماد التقرير السنوي', icon:'file-text', tags:['دورة رسمية','تقارير'],
+      desc:'الموعد المرجعي لاعتماد التقرير السنوي للهيئة وإجازته للنشر.',
+      idea:'خطة إطلاق للتقرير: بيان صحفي، ملخص تنفيذي، ومحتوى رقمي مختصر.' },
+    { m:6, d:1, title:'مراجعة منتصف العام', icon:'gauge', tags:['دورة رسمية'],
+      desc:'مراجعة نصف سنوية لمؤشرات الأداء ومستوى إنجاز المشاريع والمبادرات.',
+      idea:'عرض داخلي بأبرز المؤشرات، مع رسالة شكر للفرق المنجزة.' },
+    { m:11, d:1, title:'إعلان الميزانية العامة', icon:'chart', tags:['دورة رسمية','اقتصاد'],
+      desc:'موسم إعلان الميزانية العامة للدولة وما يتصل به من قراءات اقتصادية.',
+      idea:'قراءة اتصالية مختصرة لما يخص المنافسة وبيئة الأعمال.' },
+    { m:12, d:1, title:'إغلاق الخطة السنوية', icon:'check-circle', tags:['دورة رسمية'],
+      desc:'إغلاق أعمال الخطة الاتصالية للعام وإعداد تقرير الإنجاز الختامي.',
+      idea:'حصاد العام في إنفوجرافيك واحد، وشكر داخلي للفرق.' }
+  ];
+
+  var CONFERENCES = [
+    { m:5, d:1, title:'المؤتمر السنوي لشبكة المنافسة الدولية', icon:'globe', tags:['دولي','مؤتمر'],
+      desc:'أكبر تجمع سنوي لسلطات المنافسة حول العالم، ويناقش سياسات الإنفاذ والاندماج والاستحواذ.',
+      idea:'تغطية مشاركة الهيئة، ومحتوى ملخص لأبرز الجلسات ذات العلاقة.' },
+    { m:6, d:1, title:'اجتماعات لجنة المنافسة في منظمة التعاون الاقتصادي والتنمية', icon:'globe', tags:['دولي','اجتماع'],
+      desc:'اجتماعات دورية تُعقد مرتين في العام لمناقشة سياسات المنافسة وأوراق العمل الدولية.',
+      idea:'ملخص لما يخص المملكة، ونشره في «مشاركاتنا الدولية» بنشرة شرفة.' },
+    { m:10, d:1, title:'منتدى المنافسة العربي', icon:'handshake', tags:['إقليمي','منتدى'],
+      desc:'ملتقى إقليمي لسلطات المنافسة العربية لتبادل الخبرات وتنسيق الجهود.',
+      idea:'إبراز دور الهيئة الإقليمي، وتوثيق مذكرات التعاون إن وُجدت.' },
+    { m:11, d:1, title:'ملتقى الجوانب القانونية للاندماج والاستحواذ', icon:'scale', tags:['محلي','ملتقى'],
+      desc:'ملتقى محلي يجمع الجهات التشريعية والقطاع الخاص لمناقشة إجراءات التركز الاقتصادي.',
+      idea:'مشاركة متحدث من الهيئة، وتغطية إعلامية للجلسة الرئيسية.' },
+    { m:12, d:1, title:'أسبوع ثقافة المنافسة', icon:'megaphone', tags:['محلي','حملة'],
+      desc:'أسبوع توعوي مكثف بنظام المنافسة وحقوق المنشآت والمستهلكين.',
+      idea:'حملة داخلية وخارجية: رسائل توعوية، ورش عمل، ومحتوى مرئي قصير.' }
+  ];
+
+  var KEY_DATES = [
+    { title:'إصدار نشرة شرفة', icon:'book', recurrence:'نهاية كل شهر', tags:['شهري','إصدار داخلي'],
+      desc:'الموعد المرجعي لإغلاق مساهمات الإدارات وإجازة العدد الشهري ونشره.',
+      idea:'تنبيه للإدارات قبل عشرة أيام من الإغلاق.' },
+    { title:'التقرير الإعلامي الشهري', icon:'news', recurrence:'أول خمسة أيام من الشهر', tags:['شهري','رصد'],
+      desc:'إعداد تقرير الرصد الإعلامي للشهر المنقضي وتسليمه للإدارة العليا.',
+      idea:'الاعتماد على تحليل الظهور الإعلامي المحتسب من أرشيف الرصد.' },
+    { title:'رسالة بداية الأسبوع', icon:'star', recurrence:'كل يوم أحد', tags:['أسبوعي','تواصل داخلي'],
+      desc:'رسالة أسبوعية تفتح الأسبوع بأولويات العمل ونبرة تحفيزية.',
+      idea:'ربطها بمناسبة الأسبوع إن وُجدت في التقويم الاتصالي.' },
+    { title:'رسالة نهاية الأسبوع', icon:'calendar', recurrence:'كل يوم أربعاء', tags:['أسبوعي','تواصل داخلي'],
+      desc:'رسالة ختام الأسبوع بمقترحات وأنشطة لعطلة نهاية الأسبوع.',
+      idea:'تنويع المحتوى بين الأماكن والفعاليات والمحتوى المعرفي.' },
+    { title:'مراجعة الخطة الاتصالية', icon:'gauge', recurrence:'كل ربع سنة', tags:['ربعي','تخطيط'],
+      desc:'مراجعة ربعية لمؤشرات الخطة الاتصالية وتحديث الأولويات.',
+      idea:'عرض موجز بالمؤشرات، مع قرارات تعديل واضحة.' },
+    { title:'تحديث تقدم المشاريع', icon:'trending-up', recurrence:'كل أسبوعين', tags:['دوري','مشاريع'],
+      desc:'موعد تسجيل مديري المشاريع لتحديث نسب الإنجاز في «أداء تنفيذ المشاريع».',
+      idea:'تذكير آلي لمديري المشاريع قبل الموعد بيوم واحد.' }
+  ];
+
+  var PAGES = {
+    national_events:  { rows: NATIONAL,    kind: 'national', empty: 'لا توجد مناسبات وطنية في هذا التصنيف' },
+    official_events:  { rows: OFFICIAL,    kind: 'official', empty: 'لا توجد مناسبات رسمية في هذا التصنيف' },
+    events_conferences: { rows: CONFERENCES, kind: 'event',  empty: 'لا توجد فعاليات في هذا التصنيف' },
+    key_dates:        { rows: KEY_DATES,   kind: 'key',      empty: 'لا توجد تواريخ في هذا التصنيف' }
+  };
+
+  var filters = {};
+  var agendaMonth = null; // {y, m} — m is 1-12
+
+  function esc(v) {
+    return String(v === undefined || v === null ? '' : v)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function today() { var n = new Date(); return { y: n.getFullYear(), m: n.getMonth() + 1, d: n.getDate() }; }
+
+  /* Days from today until the occasion's next occurrence. Used only to badge a row as
+     "اليوم" or "قريباً" — recurring items without a Gregorian date return null. */
+  function daysUntil(row) {
+    if (row.hijri || !row.m) return null;
+    var t = new Date();
+    t.setHours(0, 0, 0, 0);
+    var next = new Date(t.getFullYear(), row.m - 1, row.d);
+    if (next < t) next = new Date(t.getFullYear() + 1, row.m - 1, row.d);
+    return Math.round((next - t) / 86400000);
+  }
+
+  function dateBlock(row) {
+    if (row.recurrence) return '<div class="cal-row-date">دوري<small>' + esc(row.recurrence) + '</small></div>';
+    if (row.hijri || !row.m) return '<div class="cal-row-date">متغير<small>تقويم هجري</small></div>';
+    return '<div class="cal-row-date">' + row.d + '<small>' + esc(MONTHS[row.m - 1]) + '</small></div>';
+  }
+
+  function rowHtml(row) {
+    var left = daysUntil(row);
+    var badge = '';
+    if (left === 0) badge = '<span class="cal-tag is-today">اليوم</span>';
+    else if (left !== null && left <= 30) badge = '<span class="cal-tag is-soon">بعد ' + left + ' يوم</span>';
+    var tags = (row.tags || []).map(function(t) { return '<span class="cal-tag">' + esc(t) + '</span>'; }).join('');
+    return '<article class="cal-row">'
+      + dateBlock(row)
+      + '<span class="cal-row-ico"><svg><use href="#i-' + esc(row.icon || 'calendar') + '"/></svg></span>'
+      + '<div><div class="cal-row-title">' + esc(row.title) + '</div>'
+      + '<div class="cal-row-desc">' + esc(row.desc) + '</div>'
+      + (row.idea ? '<div class="cal-row-idea"><b>فكرة اتصالية:</b> ' + esc(row.idea) + '</div>' : '')
+      + '<div class="cal-row-tags">' + badge + tags + '</div></div>'
+      + '</article>';
+  }
+
+  function tagsOf(rows) {
+    var seen = [];
+    rows.forEach(function(r) {
+      (r.tags || []).forEach(function(t) { if (seen.indexOf(t) === -1) seen.push(t); });
+    });
+    return seen;
+  }
+
+  function sortRows(rows) {
+    return rows.slice().sort(function(a, b) {
+      var am = a.m || 99, bm = b.m || 99;
+      if (am !== bm) return am - bm;
+      return (a.d || 99) - (b.d || 99);
+    });
+  }
+
+  function renderPage(page) {
+    var cfg = PAGES[page];
+    if (!cfg) return;
+    var active = filters[page] || 'all';
+    var listEl = document.getElementById('cal-' + page + '-list');
+    var tabsEl = document.getElementById('cal-' + page + '-tabs');
+    var countEl = document.getElementById('cal-' + page + '-count');
+    var rows = sortRows(cfg.rows);
+    var shown = active === 'all' ? rows : rows.filter(function(r) { return (r.tags || []).indexOf(active) !== -1; });
+
+    if (tabsEl) {
+      var defs = ['all'].concat(tagsOf(rows));
+      tabsEl.innerHTML = defs.map(function(t) {
+        var label = t === 'all' ? 'الكل' : t;
+        return '<button type="button" class="filter-tab' + (active === t ? ' active' : '') + '"'
+          + ' onclick="CAL.setFilter(\'' + page + '\',\'' + esc(t).replace(/'/g, '') + '\')">' + esc(label) + '</button>';
+      }).join('');
+    }
+    if (countEl) countEl.textContent = String(shown.length);
+    if (listEl) {
+      listEl.innerHTML = shown.length
+        ? shown.map(rowHtml).join('')
+        : '<div class="empty-text">' + esc(cfg.empty) + '</div>';
+    }
+  }
+
+  function setFilter(page, tag) {
+    filters[page] = tag;
+    renderPage(page);
+  }
+
+  /* ── رزنامة: every dated occasion projected onto one month ── */
+  function agendaSources() {
+    var out = [];
+    NATIONAL.forEach(function(r) { out.push({ row: r, kind: 'national', label: 'مناسبات وطنية' }); });
+    OFFICIAL.forEach(function(r) { out.push({ row: r, kind: 'official', label: 'مناسبات رسمية' }); });
+    CONFERENCES.forEach(function(r) { out.push({ row: r, kind: 'event', label: 'الفعاليات والمؤتمرات' }); });
+    KEY_DATES.forEach(function(r) { out.push({ row: r, kind: 'key', label: 'تواريخ مهمة' }); });
+    intlDaysForAgenda().forEach(function(r) { out.push({ row: r, kind: 'intl', label: 'أيام عالمية' }); });
+    return out;
+  }
+
+  /* The أيام عالمية page already owns the archive; the رزنامة reuses whatever it loaded rather
+     than keeping a second copy that could disagree with it. Annual dates there are free Arabic
+     text ("23 سبتمبر", "2025-09-23", "23/9"), so all three shapes are parsed and anything
+     unparseable is skipped rather than guessed at. */
+  var AR_MONTHS = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+  var AR_MONTH_ALIASES = { 'كانون الثاني':1, 'شباط':2, 'آذار':3, 'اذار':3, 'نيسان':4, 'أيار':5, 'ايار':5,
+    'حزيران':6, 'تموز':7, 'آب':8, 'اب':8, 'أيلول':9, 'ايلول':9, 'تشرين الأول':10, 'تشرين الاول':10,
+    'تشرين الثاني':11, 'كانون الأول':12, 'كانون الاول':12 };
+
+  function parseAnnualDate(text) {
+    var raw = String(text || '').trim();
+    if (!raw) return null;
+    var iso = raw.match(/(\d{1,2})\s*[-/]\s*(\d{1,2})\s*$/);
+    var full = raw.match(/^\s*\d{4}\s*[-/]\s*(\d{1,2})\s*[-/]\s*(\d{1,2})/);
+    if (full) return { m: parseInt(full[1], 10), d: parseInt(full[2], 10) };
+    var dayNum = raw.match(/(\d{1,2})/);
+    var mi = -1;
+    for (var i = 0; i < AR_MONTHS.length; i++) {
+      if (raw.indexOf(AR_MONTHS[i]) !== -1) { mi = i + 1; break; }
+    }
+    if (mi === -1) {
+      var keys = Object.keys(AR_MONTH_ALIASES);
+      for (var k = 0; k < keys.length; k++) {
+        if (raw.indexOf(keys[k]) !== -1) { mi = AR_MONTH_ALIASES[keys[k]]; break; }
+      }
+    }
+    if (mi !== -1 && dayNum) return { m: mi, d: parseInt(dayNum[1], 10) };
+    if (iso) return { m: parseInt(iso[1], 10), d: parseInt(iso[2], 10) };
+    return null;
+  }
+
+  function intlDaysForAgenda() {
+    var src = (typeof idArchiveData !== 'undefined' && Array.isArray(idArchiveData)) ? idArchiveData : [];
+    var out = [];
+    src.forEach(function(day) {
+      var parsed = parseAnnualDate(day.annualDate);
+      if (!parsed || !parsed.m || !parsed.d || parsed.m > 12 || parsed.d > 31) return;
+      out.push({ m: parsed.m, d: parsed.d, icon: 'globe',
+        title: day.dayNameAr || day.dayNameEn || 'يوم عالمي',
+        desc: day.category ? ('يوم عالمي — ' + day.category) : 'يوم عالمي معتمد في أرشيف الأيام العالمية.',
+        tags: ['يوم عالمي'] });
+    });
+    return out;
+  }
+
+  function agendaShift(delta) {
+    var t = today();
+    if (delta === 0 || !agendaMonth) agendaMonth = { y: t.y, m: t.m };
+    if (delta) {
+      var m = agendaMonth.m + delta, y = agendaMonth.y;
+      if (m < 1) { m = 12; y -= 1; }
+      if (m > 12) { m = 1; y += 1; }
+      agendaMonth = { y: y, m: m };
+    }
+    renderAgenda();
+  }
+
+  function renderAgenda() {
+    var t = today();
+    if (!agendaMonth) agendaMonth = { y: t.y, m: t.m };
+    var y = agendaMonth.y, m = agendaMonth.m;
+    var label = document.getElementById('cal-agenda-label');
+    if (label) label.textContent = MONTHS[m - 1] + ' ' + y;
+
+    var legend = document.getElementById('cal-agenda-legend');
+    if (legend) {
+      var defs = [['k-intl', 'أيام عالمية', '#E0F2FE'], ['k-national', 'مناسبات وطنية', '#DCFCE7'],
+        ['k-official', 'مناسبات رسمية', '#FEF3C7'], ['k-event', 'الفعاليات والمؤتمرات', '#EDE9FE'],
+        ['k-key', 'تواريخ مهمة', '#FFE4E6']];
+      legend.innerHTML = defs.map(function(d) {
+        return '<span class="cal-legend-item"><span class="cal-dot" style="background:' + d[2] + '"></span>' + esc(d[1]) + '</span>';
+      }).join('');
+    }
+
+    var byDay = {};
+    var undated = [];
+    agendaSources().forEach(function(entry) {
+      var r = entry.row;
+      if (r.m && r.d && r.m === m) {
+        byDay[r.d] = byDay[r.d] || [];
+        byDay[r.d].push(entry);
+      } else if (!r.m || r.hijri || r.recurrence) {
+        undated.push(entry);
+      }
+    });
+
+    var grid = document.getElementById('cal-agenda-grid');
+    if (grid) {
+      var html = DOW.map(function(n) { return '<div class="cal-dow">' + esc(n) + '</div>'; }).join('');
+      var first = new Date(y, m - 1, 1).getDay();
+      var total = new Date(y, m, 0).getDate();
+      for (var b = 0; b < first; b++) html += '<div class="cal-cell is-blank"></div>';
+      for (var day = 1; day <= total; day++) {
+        var isToday = (y === t.y && m === t.m && day === t.d);
+        var items = byDay[day] || [];
+        var chips = items.slice(0, 3).map(function(e) {
+          return '<span class="cal-chip ' + e.kind.replace(/^/, 'k-') + '" title="' + esc(e.row.title) + '">' + esc(e.row.title) + '</span>';
+        }).join('');
+        var more = items.length > 3 ? '<span class="cal-cell-more">+' + (items.length - 3) + ' أخرى</span>' : '';
+        html += '<div class="cal-cell' + (isToday ? ' is-today' : '') + '">'
+          + '<span class="cal-cell-num">' + day + '</span>' + chips + more + '</div>';
+      }
+      grid.innerHTML = html;
+    }
+
+    var list = document.getElementById('cal-agenda-list');
+    if (list) {
+      var dated = [];
+      Object.keys(byDay).map(Number).sort(function(a, b) { return a - b; }).forEach(function(d) {
+        byDay[d].forEach(function(e) { dated.push(e); });
+      });
+      var parts = [];
+      if (dated.length) {
+        parts.push('<h2 class="news-group-title">مناسبات ' + esc(MONTHS[m - 1])
+          + ' <span class="news-group-count">' + dated.length + '</span></h2>');
+        parts.push(dated.map(function(e) { return rowHtml(e.row); }).join(''));
+      } else {
+        parts.push('<div class="empty-text">لا توجد مناسبات مؤرخة في هذا الشهر</div>');
+      }
+      if (undated.length) {
+        parts.push('<h2 class="news-group-title">بنود دورية أو بتقويم هجري'
+          + ' <span class="news-group-count">' + undated.length + '</span></h2>');
+        parts.push(undated.map(function(e) { return rowHtml(e.row); }).join(''));
+      }
+      list.innerHTML = parts.join('');
+    }
+  }
+
+  function init(page) {
+    if (page === 'monthly_agenda') {
+      renderAgenda();
+      /* The archive is owned by the أيام عالمية page. If the user lands on رزنامة first it has
+         never been fetched, so pull it once and repaint — otherwise the month would silently
+         omit every international day. */
+      if (typeof idArchiveData !== 'undefined' && !idArchiveData.length && typeof idLoadArchive === 'function') {
+        Promise.resolve(idLoadArchive()).then(function() { renderAgenda(); }, function() { /* الشبكة — الرزنامة تبقى بالبيانات المحلية */ });
+      }
+      return;
+    }
+    renderPage(page);
+  }
+
+  return { init: init, setFilter: setFilter, agendaShift: agendaShift, renderAgenda: renderAgenda };
+})();
+
+/* ══════════════════════════════════════════════════════════════════════
+   الرسائل الجاهزة — رسائل تحفيزية ورسائل توعوية
+   Two libraries of ready-to-send internal messages. Kept client-side and
+   copy-to-clipboard only: they are templates, not records, so there is
+   nothing to persist and no round trip to wait for.
+   ══════════════════════════════════════════════════════════════════════ */
+var MSG = (function() {
+  var MOTIVATIONAL = [
+    { cat:'بداية الأسبوع', text:'أسبوع جديد وفرصة جديدة. لنبدأه بأولويات واضحة وخطوة واحدة نُنجزها اليوم قبل أن ننتقل لما بعدها.' },
+    { cat:'بداية الأسبوع', text:'ما نبدأه اليوم يصنع أثر الأسبوع كله. حدِّد أهم ثلاث مهام، وابدأ بأصعبها.' },
+    { cat:'إنجاز', text:'شكراً لكل من أنجز في صمت هذا الأسبوع. الأثر الحقيقي لا يحتاج ضوءاً ليُرى.' },
+    { cat:'إنجاز', text:'الإنجاز ليس أن نعمل أكثر، بل أن نعمل على ما يستحق. فلنقس أثرنا بما تغيَّر، لا بما انتهى.' },
+    { cat:'عمل الفريق', text:'خلف كل نتيجة جيدة فريق سمع بعضه جيداً. اسأل زميلك اليوم: كيف أساعدك؟' },
+    { cat:'عمل الفريق', text:'الفريق الذي يتشارك المعلومة أسرع من الفريق الذي يتشارك الجهد فقط.' },
+    { cat:'تطوير الذات', text:'مهارة واحدة تتعلمها هذا الشهر قد تغيّر طريقة عملك سنوات. اختر واحدة وابدأ.' },
+    { cat:'تطوير الذات', text:'اقرأ صفحة، اسأل سؤالاً، جرّب أداة. التطوير يبدأ صغيراً ثم يصبح عادة.' },
+    { cat:'تحفيز عام', text:'التميّز ليس حدثاً واحداً، بل تكرار عملٍ جيد حتى يصبح هو المعيار.' },
+    { cat:'تحفيز عام', text:'كل عمل نُنجزه في الهيئة يصل أثره إلى سوق أكثر عدالة ومستهلك أكثر حماية.' },
+    { cat:'نهاية الأسبوع', text:'أنهِ أسبوعك بمراجعة قصيرة: ما أنجزت؟ ما تعلمت؟ ما ستؤجله بوعي؟' },
+    { cat:'نهاية الأسبوع', text:'الراحة جزء من الإنتاجية وليست خصماً منها. استرح لتعود أقوى.' }
+  ];
+
+  var AWARENESS = [
+    { cat:'نظام المنافسة', text:'نظام المنافسة يحمي حرية السوق ويمنع الممارسات التي تُقيّد المنافسة. معرفتك بالنظام جزء من عملك، لا إضافة عليه.' },
+    { cat:'نظام المنافسة', text:'أي اتفاق يهدف إلى تحديد الأسعار أو تقاسم الأسواق مخالف لنظام المنافسة، مهما كان شكله أو تسميته.' },
+    { cat:'التركز الاقتصادي', text:'قبل إتمام أي عملية اندماج أو استحواذ تتجاوز الحدود النظامية، يجب التقدم بطلب عدم ممانعة إلى الهيئة.' },
+    { cat:'التركز الاقتصادي', text:'مراجعة طلبات التركز الاقتصادي تحمي السوق من تكوّن مراكز مهيمنة تُضعف المنافسة.' },
+    { cat:'الإبلاغ', text:'برنامج المبلغين يمنح حماية ومكافأة لمن يُبلغ عن مخالفات نظام المنافسة. الإبلاغ مسؤولية لا مجاملة.' },
+    { cat:'الإبلاغ', text:'إذا لاحظت ممارسة قد تُقيّد المنافسة، فالقناة الرسمية للإبلاغ هي الطريق الأسلم لك وللسوق.' },
+    { cat:'حماية المستهلك', text:'المنافسة العادلة تعني خياراً أوسع وسعراً أعدل وجودة أفضل للمستهلك.' },
+    { cat:'حماية المستهلك', text:'حصر بيع منتج على مورد واحد دون مبرر نظامي يحدّ من خيارات الأسرة ويخالف مبدأ المنافسة.' },
+    { cat:'السلوك المؤسسي', text:'الحفاظ على سرية المعلومات الوظيفية التزام دائم، ولا يسقط بانتهاء المهمة أو المشروع.' },
+    { cat:'السلوك المؤسسي', text:'أفصح عن أي تعارض مصالح مبكراً. الإفصاح يحميك ويحمي الجهة.' },
+    { cat:'أمن المعلومات', text:'لا تُشارك بيانات القضايا أو الطلبات عبر قنوات غير رسمية، حتى مع الزملاء.' },
+    { cat:'أمن المعلومات', text:'تحقق من هوية المرسل قبل فتح أي مرفق أو رابط، وأبلغ عن أي رسالة مشتبه بها فوراً.' }
+  ];
+
+  var SETS = {
+    motivational_msgs: { rows: MOTIVATIONAL, note: 'رسالة داخلية جاهزة — يمكن تعديلها قبل النشر' },
+    awareness_msgs:    { rows: AWARENESS,    note: 'رسالة توعوية جاهزة — يمكن تعديلها قبل النشر' }
+  };
+
+  var filters = {};
+
+  function esc(v) {
+    return String(v === undefined || v === null ? '' : v)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function render(page) {
+    var cfg = SETS[page];
+    if (!cfg) return;
+    var active = filters[page] || 'all';
+    var cats = [];
+    cfg.rows.forEach(function(r) { if (cats.indexOf(r.cat) === -1) cats.push(r.cat); });
+    var tabsEl = document.getElementById('msg-' + page + '-tabs');
+    if (tabsEl) {
+      tabsEl.innerHTML = ['all'].concat(cats).map(function(c) {
+        return '<button type="button" class="filter-tab' + (active === c ? ' active' : '') + '"'
+          + ' onclick="MSG.setFilter(\'' + page + '\',\'' + esc(c).replace(/'/g, '') + '\')">'
+          + esc(c === 'all' ? 'الكل' : c) + '</button>';
+      }).join('');
+    }
+    var shown = active === 'all' ? cfg.rows : cfg.rows.filter(function(r) { return r.cat === active; });
+    var countEl = document.getElementById('msg-' + page + '-count');
+    if (countEl) countEl.textContent = String(shown.length);
+    var listEl = document.getElementById('msg-' + page + '-list');
+    if (!listEl) return;
+    listEl.innerHTML = shown.length ? shown.map(function(r, i) {
+      return '<article class="msg-card">'
+        + '<div class="msg-card-hd"><span class="msg-card-tag">' + esc(r.cat) + '</span></div>'
+        + '<div class="msg-card-body" id="msg-' + page + '-t-' + i + '">' + esc(r.text) + '</div>'
+        + '<div class="msg-card-foot"><span class="msg-card-note">' + esc(cfg.note) + '</span>'
+        + '<button type="button" class="btn btn-ghost btn-sm" onclick="MSG.copy(\'msg-' + page + '-t-' + i + '\', this)">'
+        + '<span class="ico"><svg><use href="#i-file-text"/></svg></span><span>نسخ</span></button></div>'
+        + '</article>';
+    }).join('') : '<div class="empty-text">لا توجد رسائل في هذا التصنيف</div>';
+  }
+
+  function setFilter(page, cat) { filters[page] = cat; render(page); }
+
+  /* Clipboard write can be refused (no permission, insecure context), so the button reports the
+     outcome instead of silently pretending the copy happened. */
+  function copy(nodeId, btn) {
+    var node = document.getElementById(nodeId);
+    if (!node) return;
+    var label = btn ? btn.querySelector('span:last-child') : null;
+    var done = function(ok) {
+      if (!label) return;
+      label.textContent = ok ? 'تم النسخ' : 'تعذر النسخ';
+      setTimeout(function() { label.textContent = 'نسخ'; }, 1800);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(node.textContent).then(function() { done(true); }, function() { done(false); });
+    } else {
+      done(false);
+    }
+  }
+
+  function init(page) { render(page); }
+
+  return { init: init, setFilter: setFilter, copy: copy };
+})();
+
 // Hook showSection to load report lazily
 const _origShowSection = showSection;
 window.showSection = function(name) {
@@ -10458,7 +11540,11 @@ window.showSection = function(name) {
   if (name === 'reports') { loadProjectPortfolio(); loadDailyReport(); }
   if (name === 'weekstart') wsLoadArchive();
   if (name === 'intldays') idInit();
+  if (CAL_PAGES.indexOf(name) !== -1) CAL.init(name);
+  if (MSG_PAGES.indexOf(name) !== -1) MSG.init(name);
 };
+var CAL_PAGES = ['national_events', 'official_events', 'events_conferences', 'key_dates', 'monthly_agenda'];
+var MSG_PAGES = ['motivational_msgs', 'awareness_msgs'];
 
 // ════════════════════════════════════════
 // INTERNATIONAL DAYS
@@ -13208,7 +14294,14 @@ const SEARCH_INDEX = [
   { kind:'page', title:'الرئيسية', sub:'لوحة التحكم وملخص الأداء', section:'home', icon:'i-home' },
   // FE cleanup: removed "المبادرات" entry (section:'initiatives') — section-initiatives
   // was deleted in the nav-IA consolidation; global search must not surface a dead result.
-  { kind:'page', title:'أخبار التواصل المؤسسي', sub:'آخر الأخبار والتحديثات', section:'news', icon:'i-news' },
+  { kind:'page', title:'أخبار المنافسة الدولية', sub:'أخبار عامة ومؤتمرات ومستجدات دولية', section:'news', icon:'i-globe' },
+  { kind:'page', title:'مناسبات وطنية', sub:'التقويم الاتصالي', section:'national_events', icon:'i-flag' },
+  { kind:'page', title:'مناسبات رسمية', sub:'التقويم الاتصالي', section:'official_events', icon:'i-award' },
+  { kind:'page', title:'الفعاليات والمؤتمرات', sub:'التقويم الاتصالي', section:'events_conferences', icon:'i-ticket' },
+  { kind:'page', title:'تواريخ مهمة', sub:'مواعيد التسليم والإصدار', section:'key_dates', icon:'i-clock' },
+  { kind:'page', title:'رزنامة', sub:'أجندة الشهر في صفحة واحدة', section:'monthly_agenda', icon:'i-grid' },
+  { kind:'page', title:'رسائل تحفيزية', sub:'رسائل جاهزة للتواصل الداخلي', section:'motivational_msgs', icon:'i-message' },
+  { kind:'page', title:'رسائل توعوية', sub:'رسائل توعوية جاهزة', section:'awareness_msgs', icon:'i-megaphone' },
   { kind:'page', title:'نهاية الأسبوع', sub:'أماكن وعروض وبودكاست', section:'weekend', icon:'i-calendar' },
   { kind:'page', title:'بداية الأسبوع', sub:'مولّد المحتوى الأسبوعي', section:'weekstart', icon:'i-bulb' },
   { kind:'page', title:'الأيام العالمية', sub:'بحث عالمي + أرشيف', section:'intldays', icon:'i-globe' },
@@ -13420,58 +14513,70 @@ document.addEventListener('click', (e) => {
 // ═══ SHORFAH — Monthly Publication ═══
 var SHORFAH_STATE = { currentIssueId: null, issue: null, sections: [] };
 // Final 13-section canonical order per user spec (July 2026) + sub-sections
+// Paragraph metadata for شُرفة. Keys are the API's sectionType values (PascalCase enum names —
+// the old snake_case keys never matched, so every card silently fell back to "قسم مخصص").
+// `icon` is a sprite symbol id; the API also returns `iconKey` and that wins when present.
 var SHORFAH_SECTION_LABELS = {
-  global_news:           { ar: 'أخبار دولية',        icon: '🌐', color: '#0e3b4a', desc: 'أبرز الأخبار الدولية ذات الصلة' },
-  news:                  { ar: 'أخبارنا',           icon: '📰', color: '#1a6e7a', desc: 'أبرز أخبار الهيئة' },
-  intl_participation:    { ar: 'مشاركاتنا الدولية',   icon: '🤝', color: '#1a6e7a', desc: 'مشاركات الهيئة في المحافل والفعاليات الدولية' },
-  our_comms:             { ar: 'تواصلنا',           icon: '💬', color: '#2a8d9b', desc: 'يشمل لقاءات القطاع الخاص وجهود التواصل الحكومي', subs: [
-    { key: '4_1', ar: 'لقاءات القطاع الخاص' },
-    { key: '4_2', ar: 'جهود التواصل مع الجهات الحكومية' }
+  News:                 { ar: 'أخبار المنافسة',              icon: 'i-news',         color: '#1a6e7a' },
+  IntlParticipation:    { ar: 'مشاركاتنا الدولية',            icon: 'i-globe',        color: '#0e3b4a' },
+  OurComms:             { ar: 'تواصلنا',                    icon: 'i-handshake',    color: '#2a8d9b', subs: [
+    { key: '3_1', ar: 'لقاءات القطاع الخاص' },
+    { key: '3_2', ar: 'أوجه التواصل مع الجهات الحكومية' }
   ]},
-  economic_observatory:  { ar: 'المرصد الاقتصادي',     icon: '📈', color: '#0e3b4a', desc: 'أرقام اقتصادية، تركيز الشهر، دراسة وقضية الشهر', subs: [
-    { key: '5_1', ar: 'أرقام اقتصادية' },
-    { key: '5_2', ar: 'تركيز الشهر' },
-    { key: '5_3', ar: 'دراسة اقتصادية' },
-    { key: '5_4', ar: 'قضية الشهر' }
-  ]},
-  system_index:          { ar: 'مؤشر النظام',        icon: '📊', color: '#2a8d9b', desc: 'الجلسات، الشكاوى، الممارسات، التسويات', subs: [
-    { key: '6_1', ar: 'الجلسات القضائية' },
-    { key: '6_2', ar: 'الشكاوى الواردة' },
-    { key: '6_3', ar: 'الممارسات محل البحث والتحري والتحقيق' },
-    { key: '6_4', ar: 'التسويات' }
-  ]},
-  legal_window:          { ar: 'نافذة قانونية',       icon: '⚖️', color: '#5a8c96', desc: 'إطلالة على التشريعات والأنظمة' },
-  office_interview:      { ar: 'في مكتبهم',         icon: '🎙️', color: '#2a8d9b', desc: 'حوار مع قيادي' },
-  competition_culture:   { ar: 'ثقافة المنافسة',       icon: '🏳️', color: '#0e3b4a', desc: 'جهود نشر ثقافة المنافسة + المنافسة في شهر', subs: [
-    { key: '9_1', ar: 'جهود نشر ثقافة المنافسة' },
-    { key: '9_2', ar: 'المنافسة في شهر' }
-  ]},
-  outside_box:           { ar: 'خارج الصندوق',        icon: '💡', color: '#0e3b4a', desc: 'مقال موظف' },
-  events:                { ar: 'فعالياتنا',           icon: '🎉', color: '#1a6e7a', desc: 'فعاليات الهيئة' },
-  agency_lit:            { ar: 'نورتنا الهيئة',        icon: '✨', color: '#5a8c96', desc: 'منازل ومنافسات وإنجازات أفراد الهيئة' },
-  employee_qa:           { ar: 'عطنا علومك',          icon: '💬', color: '#2a8d9b', desc: 'حوار مع موظف' },
-  // Legacy / optional — kept for backward compat
-  editor:                { ar: 'كلمة افتتاحية',       icon: '✍️', color: '#5a8c96', desc: '' },
-  local_news:            { ar: 'أخبار محلية',        icon: '🇸🇦', color: '#1a6e7a', desc: '' },
-  regional_news:         { ar: 'أخبار خليجية/عربية', icon: '🌍', color: '#2a8d9b', desc: '' },
-  stakeholder:           { ar: 'مساهمة جهة',         icon: '🏢', color: '#5a8c96', desc: '' },
-  custom:                { ar: 'قسم مخصص',           icon: '➕', color: '#5a8c96', desc: '' }
+  EconomicObservatory:  { ar: 'المرصد الاقتصادي',            icon: 'i-chart',        color: '#0e3b4a' },
+  EconomicStudy:        { ar: 'دراسة اقتصادية',              icon: 'i-research',     color: '#1a6e7a' },
+  CaseOfMonth:          { ar: 'قضية الشهر',                  icon: 'i-folder',       color: '#5a8c96' },
+  SystemIndex:          { ar: 'مؤشر النظام',                 icon: 'i-gauge',        color: '#2a8d9b' },
+  CourtSessions:        { ar: 'جلسات قضائية',                icon: 'i-gavel',        color: '#0e3b4a' },
+  MonopolyComplaints:   { ar: 'شكاوى وممارسات احتكارية',      icon: 'i-alert-triangle', color: '#1a6e7a' },
+  Settlements:          { ar: 'تسويات',                      icon: 'i-check-circle', color: '#2a8d9b' },
+  LegalWindow:          { ar: 'نافذة قانونية',                icon: 'i-scale',        color: '#5a8c96' },
+  OfficeInterview:      { ar: 'حوار شهري',                   icon: 'i-mic',          color: '#2a8d9b' },
+  CompetitionCulture:   { ar: 'ثقافة المنافسة',               icon: 'i-bulb',         color: '#0e3b4a' },
+  CompetitionInMonth:   { ar: 'المنافسة في شهر',              icon: 'i-calendar',     color: '#1a6e7a' },
+  OutsideBox:           { ar: 'خارج الصندوق',                 icon: 'i-sparkles',     color: '#0e3b4a' },
+  Events:               { ar: 'فعالياتنا',                    icon: 'i-ticket',       color: '#1a6e7a' },
+  AgencyLit:            { ar: 'نشرتنا الهيئة',                icon: 'i-user-plus',    color: '#5a8c96' },
+  EmployeeQa:           { ar: 'أعطنا علومك',                  icon: 'i-quote',        color: '#2a8d9b' },
+  // Retired type — kept so any legacy row still renders with a real icon instead of the fallback.
+  GlobalNews:           { ar: 'أخبار دولية',                  icon: 'i-globe',        color: '#0e3b4a' },
+  custom:               { ar: 'قسم مخصص',                    icon: 'i-plus',         color: '#5a8c96' }
 };
-// Canonical order used for rendering & Word export (13 sections)
+// Maps the API's iconKey onto a sprite symbol id. Unknown keys fall back to the paragraph's own icon.
+var SHORFAH_ICON_SPRITES = {
+  newspaper: 'i-news', globe: 'i-globe', handshake: 'i-handshake', chart: 'i-chart',
+  research: 'i-research', folder: 'i-folder', gauge: 'i-gauge', gavel: 'i-gavel',
+  alert: 'i-alert-triangle', 'check-circle': 'i-check-circle', scale: 'i-scale', mic: 'i-mic',
+  lightbulb: 'i-bulb', calendar: 'i-calendar', sparkles: 'i-sparkles', ticket: 'i-ticket',
+  'user-plus': 'i-user-plus', quote: 'i-quote'
+};
+/**
+ * Resolves the sprite symbol id for a section: the API's iconKey first, then the local catalogue.
+ * @param {{iconKey?: string, sectionType?: string}} section The section as returned by the API.
+ * @returns {string} A sprite symbol id that exists in the document.
+ */
+function shorfahIconId(section) {
+  var byKey = section && section.iconKey ? SHORFAH_ICON_SPRITES[section.iconKey] : null;
+  if (byKey) return byKey;
+  var meta = SHORFAH_SECTION_LABELS[section && section.sectionType] || SHORFAH_SECTION_LABELS.custom;
+  return meta.icon;
+}
+/**
+ * Builds the inline SVG markup for a paragraph icon.
+ * @param {object} section The section as returned by the API.
+ * @param {number} size Icon edge length in pixels.
+ * @returns {string} SVG markup referencing the shared sprite.
+ */
+function shorfahIconSvg(section, size) {
+  return '<svg width="' + size + '" height="' + size + '" aria-hidden="true" focusable="false">'
+    + '<use href="#' + shorfahIconId(section) + '"></use></svg>';
+}
+// Canonical render/export order — matches ShorfahCanonicalSections.Templates on the API.
 var SHORFAH_CANONICAL_ORDER = [
-  'global_news',           // 1
-  'news',                  // 2
-  'intl_participation',    // 3
-  'our_comms',             // 4 (+4.1 +4.2)
-  'economic_observatory',  // 5 (+5.1 -> 5.4)
-  'system_index',          // 6 (+6.1 -> 6.4)
-  'legal_window',          // 7
-  'office_interview',      // 8
-  'competition_culture',   // 9 (+9.1 +9.2)
-  'outside_box',           // 10
-  'events',                // 11
-  'agency_lit',            // 12 نورتنا الهيئة
-  'employee_qa'            // 13 عطنا علومك
+  'News', 'IntlParticipation', 'OurComms', 'EconomicObservatory', 'EconomicStudy',
+  'CaseOfMonth', 'SystemIndex', 'CourtSessions', 'MonopolyComplaints', 'Settlements',
+  'LegalWindow', 'OfficeInterview', 'CompetitionCulture', 'CompetitionInMonth',
+  'OutsideBox', 'Events', 'AgencyLit', 'EmployeeQa'
 ];
 var SHORFAH_STATUS_LABELS = {
   pending_contribution: { ar: 'جاري العمل', color: '#9ca3af', bg: '#f3f4f6' },
@@ -13784,11 +14889,11 @@ function shorfahRenderBoard() {
     var hasContent = !!(s.contentMd && s.contentMd.trim().length > 0);
     var contentPreview = hasContent ? (s.contentMd.substring(0, 160).replace(/[*#]/g,'') + (s.contentMd.length > 160 ? '...' : '')) : '<em style="color:#9ca3af;">لا يوجد محتوى بعد</em>';
     return '<div style="border:1px solid #e5e7eb;border-radius:12px;padding:16px;background:#fff;display:flex;gap:14px;align-items:flex-start;">'+
-      '<div style="flex-shrink:0;width:56px;height:56px;border-radius:12px;background:'+meta.color+';color:#fff;display:flex;align-items:center;justify-content:center;font-size:28px;">'+meta.icon+'</div>'+
+      '<div style="flex-shrink:0;width:56px;height:56px;border-radius:12px;background:'+meta.color+';color:#fff;display:flex;align-items:center;justify-content:center;">'+shorfahIconSvg(s, 26)+'</div>'+
       '<div style="flex:1;min-width:0;">'+
         '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;">'+
           '<div style="font-size:17px;font-weight:900;color:var(--text);">'+s.titleAr+'</div>'+
-          '<span style="font-size:11px;padding:3px 8px;border-radius:10px;background:#e0f2fe;color:#0369a1;font-weight:700;">'+meta.ar+'</span>'+
+          (meta.ar === s.titleAr ? '' : '<span style="font-size:11px;padding:3px 8px;border-radius:10px;background:#e0f2fe;color:#0369a1;font-weight:700;">'+meta.ar+'</span>')+
           '<span style="font-size:11px;padding:3px 8px;border-radius:10px;background:'+status.bg+';color:'+status.color+';font-weight:700;">'+status.ar+'</span>'+
         '</div>'+
         (s.descriptionAr ? '<div style="font-size:12px;color:var(--text-3);margin-bottom:8px;">'+s.descriptionAr+'</div>' : '')+
@@ -13847,7 +14952,9 @@ function shorfahOpenEditor(sectionId) {
   var meta = SHORFAH_SECTION_LABELS[s.sectionType] || SHORFAH_SECTION_LABELS.custom;
   var status = SHORFAH_STATUS_LABELS[s.workflowStatus] || SHORFAH_STATUS_LABELS.pending_contribution;
   document.getElementById('shorfah-editor-title').textContent = s.titleAr;
-  document.getElementById('shorfah-editor-meta').innerHTML = meta.icon+' '+meta.ar + ' · حالة: <strong>'+status.ar+'</strong>';
+  document.getElementById('shorfah-editor-meta').innerHTML =
+    '<span style="display:inline-flex;align-items:center;gap:6px;vertical-align:-3px;color:'+meta.color+';">'
+    + shorfahIconSvg(s, 16) + '<span>'+meta.ar+'</span></span> · حالة: <strong>'+status.ar+'</strong>';
   document.getElementById('shorfah-editor-content').value = s.contentMd || '';
   document.getElementById('shorfah-editor-include').checked = (s.includeInPdf !== false);
   // Show AI-generate button for any section (works for all types now)

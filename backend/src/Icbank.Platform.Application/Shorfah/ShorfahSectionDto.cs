@@ -24,6 +24,7 @@ namespace Icbank.Platform.Application.Shorfah;
 /// <param name="SlaDays">The SLA day count for this section.</param>
 /// <param name="SlaStartsAt">The UTC timestamp the SLA clock started.</param>
 /// <param name="SlaDeadline">The computed SLA deadline.</param>
+/// <param name="IconKey">The lowercase kebab-case icon key the browser draws next to the paragraph.</param>
 public sealed record ShorfahSectionDto(
     int Id,
     int IssueId,
@@ -47,4 +48,5 @@ public sealed record ShorfahSectionDto(
     string? RejectionReason,
     int? SlaDays,
     DateTimeOffset? SlaStartsAt,
-    DateTimeOffset? SlaDeadline);
+    DateTimeOffset? SlaDeadline,
+    string IconKey);

@@ -62,6 +62,7 @@ public sealed partial class DatabaseSeeder
         await SeedDefaultRolePermissionsAsync(cancellationToken);
         await SeedInternationalDaysAsync(cancellationToken);
         await SeedPortfolioProjectsAsync(cancellationToken);
+        await ReconcileShorfahSectionsAsync(cancellationToken);
         return await SeedInitialSuperAdminAsync(cancellationToken);
     }
 
@@ -110,74 +111,91 @@ public sealed partial class DatabaseSeeder
     }
 
     // Why: the projects page had no store of its own and could only show whatever an external
-    // automation run had pushed, so it rendered an empty state on a fresh environment. Seeding a
-    // starter portfolio gives the page something to track from the first deployment.
+    // automation run had pushed, so it rendered an empty state on a fresh environment. The seed
+    // catalogue is therefore the source of truth for the portfolio and this reconciles the table
+    // against it in both directions — inserting only the missing codes left retired projects
+    // visible for ever and let renamed projects keep their old titles in already-seeded
+    // environments. Idempotent: a second run finds the same rows and writes nothing new.
     //
-    // Matched on the project code, the only stable natural key these rows have. Existing rows are
-    // never overwritten: once someone edits progress or a checkpoint, a restart must not undo it.
-    // Dates are stored relative to the seed instant so the schedule reads sensibly whenever an
-    // environment is first brought up.
+    // Matched on the project code, the only stable natural key these rows have. Dates are stored
+    // relative to the seed instant so the schedule reads sensibly whenever a run happens.
     private async Task SeedPortfolioProjectsAsync(CancellationToken cancellationToken)
     {
-        List<string> existing = await _dbContext.PortfolioProjects.Select(p => p.Code).ToListAsync(cancellationToken);
-        var known = new HashSet<string>(existing, StringComparer.Ordinal);
-        DateTime seededAt = DateTime.UtcNow;
+        List<Domain.Projects.PortfolioProject> tracked = await _dbContext.PortfolioProjects
+            .Include(project => project.Milestones)
+            .Include(project => project.ProgressUpdates)
+            .ToListAsync(cancellationToken);
 
-        var added = 0;
-        foreach (PortfolioProjectSeedRow row in PortfolioProjectSeedCatalog.Rows)
+        PortfolioProjectReconciliation plan = PortfolioProjectReconciler.Reconcile(tracked, DateTime.UtcNow);
+        if (!plan.HasChanges)
         {
-            if (!known.Add(row.Code))
+            return;
+        }
+
+        // Children go first so the delete order stays valid even where the cascade is enforced by
+        // the application rather than the database (e.g. an in-memory provider in tests).
+        _dbContext.ProjectProgressUpdates.RemoveRange(plan.RemovedProgressUpdates);
+        _dbContext.ProjectMilestones.RemoveRange(plan.RemovedMilestones);
+        _dbContext.PortfolioProjects.RemoveRange(plan.Removed);
+        _dbContext.PortfolioProjects.AddRange(plan.Added);
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        LogPortfolioProjectsReconciled(_logger, plan.Added.Count, plan.Updated.Count, plan.Removed.Count);
+    }
+
+    // Why: ShorfahSectionSeeder only runs when an issue is created, so every issue that already
+    // existed when the paragraph catalogue was restructured would keep its old Arabic titles and
+    // never gain the paragraphs added since — the شرفة page would disagree with the agreed table of
+    // contents until someone edited the database by hand. Published issues are left alone: their
+    // PDF is already out. Idempotent: a second run finds every paragraph already in line and
+    // writes nothing.
+    private async Task ReconcileShorfahSectionsAsync(CancellationToken cancellationToken)
+    {
+        List<Domain.Shorfah.ShorfahSectionSlaDefault> slaDefaults = await _dbContext.ShorfahSectionSlaDefaults.ToListAsync(cancellationToken);
+        var slaDefaultsByType = slaDefaults.ToDictionary(slaDefault => slaDefault.SectionType, slaDefault => slaDefault.SlaDays);
+
+        List<Domain.Shorfah.ShorfahIssue> issues = await LoadUnpublishedIssuesAsync(cancellationToken);
+
+        var inserted = 0;
+        var updated = 0;
+        var removed = 0;
+        foreach (Domain.Shorfah.ShorfahIssue issue in issues)
+        {
+            ShorfahSectionReconciliation plan = ShorfahCanonicalSectionReconciler.Reconcile(issue, slaDefaultsByType);
+            if (!plan.HasChanges)
             {
                 continue;
             }
 
-            _dbContext.PortfolioProjects.Add(BuildProject(row, seededAt));
-            added++;
+            _dbContext.ShorfahSections.RemoveRange(plan.Removed);
+            _dbContext.ShorfahSections.AddRange(plan.Inserted);
+            inserted += plan.Inserted.Count;
+            updated += plan.Updated.Count;
+            removed += plan.Removed.Count;
         }
 
-        if (added > 0)
+        if (inserted + updated + removed == 0)
         {
-            await _dbContext.SaveChangesAsync(cancellationToken);
-            LogPortfolioProjectsSeeded(_logger, added);
+            return;
         }
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        LogShorfahSectionsReconciled(_logger, inserted, updated, removed);
     }
 
-    private static Domain.Projects.PortfolioProject BuildProject(PortfolioProjectSeedRow row, DateTime seededAt)
-    {
-        var project = new Domain.Projects.PortfolioProject
-        {
-            Code = row.Code,
-            Name = row.Name,
-            Description = row.Description,
-            Category = row.Category,
-            Stage = row.Stage,
-            Owner = row.Owner,
-            Department = row.Department,
-            ProgressPercent = row.ProgressPercent,
-            TeamSize = row.TeamSize,
-            StartDate = seededAt.AddDays(row.StartOffsetDays).Date,
-            DueDate = seededAt.AddDays(row.DueOffsetDays).Date,
-            LatestUpdate = row.LatestUpdate,
-            SortOrder = row.SortOrder,
-            IsActive = true,
-            CreatedBy = "seeder",
-        };
-
-        var order = 1;
-        foreach (PortfolioMilestoneSeedRow milestone in row.Milestones)
-        {
-            project.Milestones.Add(new Domain.Projects.ProjectMilestone
-            {
-                Title = milestone.Title,
-                DueDate = seededAt.AddDays(milestone.DueOffsetDays).Date,
-                IsCompleted = milestone.IsCompleted,
-                SortOrder = order++,
-                CreatedBy = "seeder",
-            });
-        }
-
-        return project;
-    }
+    // Every collection that would be orphaned by deleting a paragraph is loaded, because the
+    // reconciler refuses to delete a paragraph that has any dependent row.
+    private Task<List<Domain.Shorfah.ShorfahIssue>> LoadUnpublishedIssuesAsync(CancellationToken cancellationToken) =>
+        _dbContext.ShorfahIssues
+            .Where(issue => issue.Status != Domain.Shorfah.ShorfahIssueStatus.Published)
+            .Include(issue => issue.Sections).ThenInclude(section => section.ChildSections)
+            .Include(issue => issue.Sections).ThenInclude(section => section.Permissions)
+            .Include(issue => issue.Sections).ThenInclude(section => section.Media)
+            .Include(issue => issue.Sections).ThenInclude(section => section.WorkflowLogs)
+            .Include(issue => issue.Sections).ThenInclude(section => section.Assignments)
+            .Include(issue => issue.Sections).ThenInclude(section => section.Reminders)
+            .Include(issue => issue.Sections).ThenInclude(section => section.Notifications)
+            .ToListAsync(cancellationToken);
 
     private async Task SeedRolesAsync(CancellationToken cancellationToken)
     {
@@ -340,8 +358,11 @@ public sealed partial class DatabaseSeeder
     [LoggerMessage(Level = LogLevel.Information, Message = "Seeded {Count} international day(s) into an empty or partial catalogue.")]
     private static partial void LogInternationalDaysSeeded(ILogger logger, int count);
 
-    [LoggerMessage(Level = LogLevel.Information, Message = "Seeded {Count} portfolio project(s) into an empty or partial portfolio.")]
-    private static partial void LogPortfolioProjectsSeeded(ILogger logger, int count);
+    [LoggerMessage(Level = LogLevel.Information, Message = "Reconciled the tracked portfolio against the seed catalogue: {Added} added, {Updated} refreshed, {Removed} removed.")]
+    private static partial void LogPortfolioProjectsReconciled(ILogger logger, int added, int updated, int removed);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Reconciled unpublished Shorfah issues against the canonical paragraph catalogue: {Inserted} inserted, {Updated} refreshed, {Removed} removed.")]
+    private static partial void LogShorfahSectionsReconciled(ILogger logger, int inserted, int updated, int removed);
 
     private static string RoleMachineName(RoleName roleName) => roleName switch
     {

@@ -39,7 +39,7 @@ public sealed class ShorfahIssuesWorkflowTests : IDisposable
 
         HttpResponseMessage getResponse = await client.GetAsync(new Uri($"/api/v1/shorfah/issues/{created.Issue.Id}", UriKind.Relative));
         GetIssuePayload? detail = await getResponse.Content.ReadFromJsonAsync<GetIssuePayload>();
-        detail!.Sections.Should().HaveCount(13, "BUSINESS-RULES.md §1.2 mandates the exact 13 canonical sections on every new issue");
+        detail!.Sections.Should().HaveCount(18, "BUSINESS-RULES.md §1.2 mandates the exact 18 canonical paragraphs on every new issue");
     }
 
     [Fact]
@@ -74,7 +74,7 @@ public sealed class ShorfahIssuesWorkflowTests : IDisposable
 
         response.StatusCode.Should().Be(HttpStatusCode.OK);
         CollectPayload? payload = await response.Content.ReadFromJsonAsync<CollectPayload>();
-        payload!.SectionsExisting.Should().Be(13, "the issue already has its 13 canonical sections from creation, so collect must not double-seed");
+        payload!.SectionsExisting.Should().Be(18, "the issue already has its 18 canonical paragraphs from creation, so collect must not double-seed");
         payload.SectionsSeeded.Should().Be(0);
         payload.Issue.Status.Should().Be(nameof(ShorfahIssueStatus.Collecting));
     }
@@ -90,12 +90,12 @@ public sealed class ShorfahIssuesWorkflowTests : IDisposable
 
         second.StatusCode.Should().Be(HttpStatusCode.OK);
         CollectPayload? payload = await second.Content.ReadFromJsonAsync<CollectPayload>();
-        payload!.SectionsExisting.Should().Be(13);
+        payload!.SectionsExisting.Should().Be(18);
         payload.SectionsSeeded.Should().Be(0);
 
         HttpResponseMessage detailResponse = await client.GetAsync(new Uri($"/api/v1/shorfah/issues/{issue.Id}", UriKind.Relative));
         GetIssuePayload? detail = await detailResponse.Content.ReadFromJsonAsync<GetIssuePayload>();
-        detail!.Sections.Should().HaveCount(13, "collect called twice must never duplicate the canonical section set");
+        detail!.Sections.Should().HaveCount(18, "collect called twice must never duplicate the canonical section set");
     }
 
     [Fact]

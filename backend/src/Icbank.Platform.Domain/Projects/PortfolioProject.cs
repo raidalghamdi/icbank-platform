@@ -53,4 +53,7 @@ public sealed class PortfolioProject : AuditableEntity
 
     /// <summary>Gets the delivery checkpoints that make the progress figure auditable.</summary>
     public ICollection<ProjectMilestone> Milestones { get; } = new List<ProjectMilestone>();
+
+    /// <summary>Gets the progress reports logged against the project, newest of which sets the card's percentage.</summary>
+    public ICollection<ProjectProgressUpdate> ProgressUpdates { get; } = new List<ProjectProgressUpdate>();
 }

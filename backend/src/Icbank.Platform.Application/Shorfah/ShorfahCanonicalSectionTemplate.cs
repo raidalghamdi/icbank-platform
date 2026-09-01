@@ -7,4 +7,10 @@ namespace Icbank.Platform.Application.Shorfah;
 /// <param name="TitleAr">The fixed Arabic title.</param>
 /// <param name="DescriptionAr">The fixed Arabic description.</param>
 /// <param name="DisplayOrder">The fixed display order.</param>
-public sealed record ShorfahCanonicalSectionTemplate(ShorfahSectionType SectionType, string TitleAr, string DescriptionAr, int DisplayOrder);
+/// <param name="IconKey">The lowercase kebab-case icon key the browser renders next to the paragraph.</param>
+public sealed record ShorfahCanonicalSectionTemplate(
+    ShorfahSectionType SectionType,
+    string TitleAr,
+    string DescriptionAr,
+    int DisplayOrder,
+    string IconKey);
