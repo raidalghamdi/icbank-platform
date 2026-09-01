@@ -287,13 +287,15 @@ jobs:
           curl -sS -H 'Cookie: has_session=1' "$BASE/" -o shell.html
           FAILED=0
 
-          # Collapsible nav groups: six real buttons carrying persistence keys.
+          # Collapsible nav groups: eight real buttons carrying persistence keys
+          # (نظرة عامة، الرصد والمشهد الإعلامي، التقويم الاتصالي، الإصدارات الداخلية،
+          #  أجندة الشهر، التواصل الداخلي، المحتوى والتصاميم، الإدارة).
           COUNT=$(grep -o 'data-group-key=' shell.html | wc -l)
-          if [ "$COUNT" -ne 6 ]; then
-            echo "::error::expected 6 collapsible nav groups, served shell has $COUNT"
+          if [ "$COUNT" -ne 8 ]; then
+            echo "::error::expected 8 collapsible nav groups, served shell has $COUNT"
             FAILED=1
           else
-            echo "OK   6 collapsible nav groups"
+            echo "OK   8 collapsible nav groups"
           fi
 
           # The off-canvas drawer must be parked with a transform, not a negative offset:
@@ -305,7 +307,7 @@ jobs:
             echo "OK   drawer parked with a transform"
           fi
 
-          for needle in 'icbank.nav.groups.v1' 'max-width: 1023.98px' 'tbl-cards'; do
+          for needle in 'icbank.nav.groups.v2' 'max-width: 1023.98px' 'tbl-cards'; do
             if grep -qF "$needle" shell.html; then
               echo "OK   found $needle"
             else
