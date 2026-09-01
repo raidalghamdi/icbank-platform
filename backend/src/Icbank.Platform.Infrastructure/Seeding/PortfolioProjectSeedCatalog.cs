@@ -15,7 +15,7 @@ internal static class PortfolioProjectSeedCatalog
     {
         new PortfolioProjectSeedRow(
             "OPS-01",
-            "تشغيل مركز الاتصال الموحد للهيئة العامة للمنافسة للعام 2023م.",
+            "تشغيل مركز الاتصال الموحد للهيئة العامة للمنافسة للعام 2023م",
             "تشغيل مركز الاتصال الموحد واستقبال بلاغات واستفسارات المستفيدين وقياس مستوى الخدمة.",
             ProjectCategory.Operational,
             ProjectStage.InProgress,
@@ -36,7 +36,7 @@ internal static class PortfolioProjectSeedCatalog
             }),
         new PortfolioProjectSeedRow(
             "OPS-02",
-            "إعداد التقرير السنوي 2025.",
+            "إعداد التقرير السنوي 2025",
             "جمع منجزات الإدارات وإعداد التقرير السنوي للهيئة وتصميمه واعتماده قبل النشر.",
             ProjectCategory.Operational,
             ProjectStage.InProgress,
@@ -57,7 +57,7 @@ internal static class PortfolioProjectSeedCatalog
             }),
         new PortfolioProjectSeedRow(
             "OPS-03",
-            "تقديم خدمات الترجمة للهيئة العامة للمنافسة.",
+            "تقديم خدمات الترجمة للهيئة العامة للمنافسة",
             "ترجمة الوثائق والتقارير والمحتوى الإعلامي للهيئة وضبط جودتها ضمن اتفاقية مستوى الخدمة.",
             ProjectCategory.Operational,
             ProjectStage.InProgress,

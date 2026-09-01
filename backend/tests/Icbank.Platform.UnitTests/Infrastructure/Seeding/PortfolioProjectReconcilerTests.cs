@@ -26,9 +26,9 @@ public sealed class PortfolioProjectReconcilerTests
     public void Catalog_NamesTheProjectsAsTheAuthorityRunsThem()
     {
         PortfolioProjectSeedCatalog.Rows.Select(row => row.Name).Should().Equal(
-            "تشغيل مركز الاتصال الموحد للهيئة العامة للمنافسة للعام 2023م.",
-            "إعداد التقرير السنوي 2025.",
-            "تقديم خدمات الترجمة للهيئة العامة للمنافسة.",
+            "تشغيل مركز الاتصال الموحد للهيئة العامة للمنافسة للعام 2023م",
+            "إعداد التقرير السنوي 2025",
+            "تقديم خدمات الترجمة للهيئة العامة للمنافسة",
             "مشروع حملة التوعية بالاستراتيجية وتعزيز القيم");
     }
 
