@@ -6653,9 +6653,46 @@ async function authFetchWithToken(url, opts) {
   return fetch(url, opts);
 }
 
+// ─── Boot-window GET de-duplication ────────────────────────────────────────
+// Why: the shell boots ~20 independent widgets, and several of them legitimately need the same
+// endpoint. A measured cold load on 2026-09-02 issued /shorfah/issues four times,
+// /gac/news?pageSize=100 twice plus /gac/news once, /intl-days/archive twice,
+// /shorfah/issues/1 twice and /final-media-reports twice — eleven duplicate round trips
+// competing with the two genuinely slow calls (/ai-year/activations 4.2 s, /wk2-data 3.9 s).
+// Sharing one response per URL for the boot window alone removes them without touching a single
+// call site, and the cache switches itself off afterwards so every user-initiated reload,
+// filter change and re-open still hits the network. Only GETs are ever shared.
+var API_BOOT_CACHE = new Map();
+var API_BOOT_CACHE_ACTIVE = true;
+
+/// Stops sharing responses. Called once the shell has finished booting, with a failsafe timer
+/// in case a boot step throws before it gets there.
+function apiBootCacheClose() {
+  API_BOOT_CACHE_ACTIVE = false;
+  API_BOOT_CACHE.clear();
+}
+setTimeout(apiBootCacheClose, 15000);
+
 // Smart API fetch: auto-refreshes the token on 401 and retries once.
 // Never use this for /auth/refresh or /auth/me — those handle their own flow.
 async function apiFetch(url, opts) {
+  var method = String((opts && opts.method) || 'GET').toUpperCase();
+  if (API_BOOT_CACHE_ACTIVE && method === 'GET') {
+    var shared = API_BOOT_CACHE.get(url);
+    if (!shared) {
+      shared = apiFetchUncached(url, opts);
+      API_BOOT_CACHE.set(url, shared);
+    }
+    var first = await shared;
+    // Every caller gets a clone, including the first, so the original body stays unread and
+    // remains cloneable for whoever asks next.
+    return typeof first.clone === 'function' ? first.clone() : first;
+  }
+  return apiFetchUncached(url, opts);
+}
+
+/// The real request: token attach, silent refresh on 401, one retry.
+async function apiFetchUncached(url, opts) {
   var res = await authFetchWithToken(url, opts);
   if (res.status !== 401) return res;
   // Token expired — try to refresh silently
@@ -9136,6 +9173,10 @@ var HOME_WIDGETS = [
     load: async function() {
       var data = await homeApiJson('/final-media-reports');
       var items = homeItems(data);
+      // Why: #mm-nav-count shipped as a literal em dash with no writer anywhere in the file —
+      // the only one of the four nav badges that was never wired up. It reads as a broken badge.
+      var mmBadge = document.getElementById('mm-nav-count');
+      if (mmBadge) mmBadge.textContent = items.length ? homeNumber(items.length) : '0';
       if (!items.length) return null;
       var lines = [homeNumber(items.length) + ' تقريراً في الرصد'];
       var latest = homeLatestDate(items);
@@ -9891,11 +9932,12 @@ function dashCopyAISummary() {
 document.addEventListener('DOMContentLoaded', async () => {
   var authenticated = await authCheckSession();
   if (!authenticated) return;
-  homeDashboardInit();
-  initWeekend();
-  fetchNews();
-  loadGacSocialFeed();
+  // Why: these four are the boot fan-out. Awaiting them together lets the shared-response window
+  // close as soon as the shell is actually up, instead of waiting out the 15 s failsafe.
+  var boot = Promise.allSettled([homeDashboardInit(), initWeekend(), fetchNews(), loadGacSocialFeed()]);
   localStorage.removeItem('weekend_issues');
+  await boot;
+  apiBootCacheClose();
 });
 
 // ─── GAC LinkedIn feed loader ──────────────────────────────────────
@@ -16603,6 +16645,8 @@ window.MM = (function(){
       state.reports = data.items || [];
       if (!Array.isArray(state.reports)) state.reports = [];
       state.loaded = true;
+      var navBadge = document.getElementById('mm-nav-count');
+      if (navBadge) navBadge.textContent = String(state.reports.length);
       renderStats();
       renderList();
       renderWizardStep();
