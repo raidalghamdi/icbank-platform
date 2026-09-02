@@ -1963,6 +1963,36 @@ button.home-row:hover { border-color:var(--primary-100); background:var(--primar
   overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
 }
 .xb { display: flex; flex-direction: column; gap: 14px; margin: 0 0 26px; }
+/* Executive snapshot — the one band an executive reads first: a plain-language line about the
+   current state, the counts that need a decision, and the next dated commitment. */
+.xs { background: var(--surface); border: 1px solid var(--border); border-top: 3px solid var(--primary); padding: 18px 20px; display: flex; flex-direction: column; gap: 16px; }
+.xs-hd { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.xs-title { font-size: 15px; font-weight: 700; color: var(--text); }
+.xs-stamp { font-size: 11.5px; color: var(--text-4); margin-right: auto; }
+.xs-lead { margin: 0; font-size: 15.5px; line-height: 2; color: var(--text-2); }
+.xs-lead b { color: var(--text); font-weight: 700; }
+.xs-lead .xs-num { font-family: var(--mono); font-weight: 700; color: var(--primary-600, var(--primary)); unicode-bidi: isolate; }
+.xs-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.xs-tile { appearance: none; background: var(--surface-2); border: 1px solid var(--border-subtle); border-right: 3px solid var(--border-strong); padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; text-align: right; cursor: pointer; font: inherit; transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s; }
+.xs-tile:hover { box-shadow: var(--shadow-sm); transform: translateY(-1px); }
+.xs-tile-val { font-size: 26px; font-weight: 700; font-family: var(--mono); line-height: 1; color: var(--text); direction: ltr; }
+.xs-tile-lbl { font-size: 12.5px; font-weight: 700; color: var(--text-2); }
+.xs-tile-note { font-size: 11px; color: var(--text-4); line-height: 1.6; }
+.xs-tile.tone-risk { border-right-color: var(--danger); background: var(--danger-bg); }
+.xs-tile.tone-risk .xs-tile-val { color: var(--danger); }
+.xs-tile.tone-warn { border-right-color: var(--warning); background: var(--warning-bg); }
+.xs-tile.tone-warn .xs-tile-val { color: var(--warning); }
+.xs-tile.tone-ok { border-right-color: var(--success); background: var(--success-bg); }
+.xs-tile.tone-ok .xs-tile-val { color: var(--success); }
+.xs-tile.tone-info { border-right-color: var(--info); background: var(--info-bg); }
+.xs-tile.tone-info .xs-tile-val { color: var(--info); }
+.xs-next { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; border-top: 1px dashed var(--border); padding-top: 14px; }
+.xs-next-lbl { font-size: 12px; font-weight: 700; color: var(--text-3); }
+.xs-next-chip { appearance: none; background: var(--surface); border: 1px solid var(--border); padding: 7px 12px; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font: inherit; font-size: 12.5px; color: var(--text-2); transition: border-color 0.15s, color 0.15s; }
+.xs-next-chip:hover { border-color: var(--primary); color: var(--primary); }
+.xs-next-chip b { color: var(--text); font-weight: 700; }
+.xs-next-chip .xs-next-day { font-family: var(--mono); font-size: 11.5px; color: var(--primary); font-weight: 700; unicode-bidi: isolate; }
+
 .xb-meters { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
 .xb-meter {
   background: var(--surface); border: 1px solid var(--border); border-top: 3px solid var(--primary);
@@ -2008,6 +2038,14 @@ button.home-row:hover { border-color:var(--primary-100); background:var(--primar
 @media (max-width: 1023.98px) {
   .xb-meters { grid-template-columns: 1fr; }
   .xb-cols { grid-template-columns: 1fr; }
+  .xs-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 559.98px) {
+  .xs { padding: 16px; }
+  .xs-grid { grid-template-columns: 1fr; }
+  .xs-lead { font-size: 14.5px; }
+  .xs-next-chip { width: 100%; }
 }
 
 /* Loading / empty states */
@@ -4124,6 +4162,16 @@ button.home-row:hover { border-color:var(--primary-100); background:var(--primar
       ══════════════════════════════════ -->
       <section class="xb" id="xb-board" aria-labelledby="xb-title">
         <h2 id="xb-title" class="sr-only">لوحة المتابعة التنفيذية</h2>
+
+        <section class="xs" id="xs-snapshot" aria-labelledby="xs-title">
+          <div class="xs-hd">
+            <h3 class="xs-title" id="xs-title">لمحة تنفيذية</h3>
+            <span class="xs-stamp" id="xs-stamp">جارٍ التحديث…</span>
+          </div>
+          <p class="xs-lead" id="xs-lead">جارٍ قراءة حالة أعمال التواصل المؤسسي…</p>
+          <div class="xs-grid" id="xs-tiles"></div>
+          <div class="xs-next" id="xs-next" hidden></div>
+        </section>
 
         <div class="xb-meters" id="xb-meters"></div>
 
@@ -9226,6 +9274,10 @@ async function homeFillSealIssue() {
 // ════════════════════════════════════════
 var XB_MAX_ROWS = 4;
 
+// Why: the snapshot must not re-query anything. Each loader stashes the slice it already fetched
+// so xsSnapshot() composes its sentence and its counts from exactly the numbers the tiles show.
+var XB_DATA = { shorfah: null, projects: null, campaigns: null };
+
 function xbEmpty(text) {
   return '<div class="xb-empty">' + homeEsc(text) + '</div>';
 }
@@ -9293,6 +9345,7 @@ async function xbShorfahMeter() {
     if (sections.length) {
       var done = sections.filter(function(s) { return String(s.workflowStatus || '') === 'approved'; }).length;
       pct = Math.round((done / sections.length) * 100);
+      XB_DATA.shorfah = { issueNo: current.issueNo || current.id, pct: pct, done: done, total: sections.length };
       var sub = 'العدد ' + homeNumber(current.issueNo || current.id) + ' · '
         + homeNumber(done) + ' من ' + homeNumber(sections.length) + ' قسماً معتمداً';
       return xbMeter('نشرة شُرفة — الإصدار الحالي', pct, sub, "homeGo('shorfah')");
@@ -9314,6 +9367,13 @@ async function xbProjects() {
         + homeNumber(k.delayed || 0) + ' متأخر', "homeGo('reports')");
     // "أهم" = still open, ordered by the nearest deadline, so the board leads with what is due.
     var live = projects.filter(function(p) { return String(p.health || '') !== 'completed'; });
+    XB_DATA.projects = {
+      total: k.total || projects.length,
+      open: live.length,
+      avg: k.averageProgressPercent === undefined ? null : k.averageProgressPercent,
+      delayed: typeof k.delayed === 'number' ? k.delayed
+        : live.filter(function(p) { return String(p.health || '') === 'delayed'; }).length
+    };
     var top = (live.length ? live : projects).slice().sort(function(a, b) {
       var av = typeof a.daysRemaining === 'number' ? a.daysRemaining : 9999;
       var bv = typeof b.daysRemaining === 'number' ? b.daysRemaining : 9999;
@@ -9347,12 +9407,17 @@ async function xbCampaigns() {
   }));
 
   var rows = [];
-  var totals = { total: 0, running: 0, sum: 0, count: 0 };
+  var totals = { total: 0, running: 0, underReview: 0, overdue: 0, sum: 0, count: 0 };
   boards.forEach(function(b) {
     if (!b.data) return;
     var k = b.data.kpis || {};
     totals.total += k.total || 0;
     totals.running += k.running || 0;
+    totals.underReview += k.underReview || 0;
+    // Overdue = still open but past its end date, which is the state an executive must act on.
+    totals.overdue += (b.data.campaigns || []).filter(function(c) {
+      return c.status !== 'completed' && typeof c.daysRemaining === 'number' && c.daysRemaining < 0;
+    }).length;
     if (k.averageProgressPercent !== undefined) { totals.sum += k.averageProgressPercent; totals.count += 1; }
     // Two rows per audience so both books are always represented, running campaigns first.
     var pool = (b.data.campaigns || []);
@@ -9382,6 +9447,10 @@ async function xbCampaigns() {
   }).join('') : xbEmpty('لا توجد حملات قائمة حالياً.'));
 
   var avg = totals.count ? Math.round(totals.sum / totals.count) : null;
+  XB_DATA.campaigns = {
+    total: totals.total, running: totals.running, underReview: totals.underReview,
+    overdue: totals.overdue, avg: avg
+  };
   return xbMeter('الحملات الداخلية والخارجية', avg,
     homeNumber(totals.total) + ' حملة · ' + homeNumber(totals.running) + ' قائمة الآن',
     "homeGo('internal_campaigns')");
@@ -9408,17 +9477,135 @@ async function xbUpcoming() {
   }).join('') : xbEmpty('لا توجد فعاليات قادمة مسجلة.'));
 }
 
+/// عدّ أخبار الرصد الإعلامي خلال نافذتين زمنيتين — نبض التغطية الذي يهم المسؤول.
+async function xsNewsPulse() {
+  try {
+    var items = homeItems(await homeApiJson('/gac/news?pageSize=100'));
+    var now = Date.now();
+    function within(hours) {
+      return items.filter(function(n) {
+        var t = Date.parse(n.publishedAt || n.published_at || '');
+        return !isNaN(t) && (now - t) <= hours * 3600000 && t <= now + 3600000;
+      }).length;
+    }
+    return { available: items.length, today: within(24), week: within(24 * 7) };
+  } catch (e) { return null; }
+}
+
+/// A snapshot tile: one number, what it is, and why it matters. Always rendered, even at zero,
+/// so the band keeps a stable shape between loads instead of shifting under the reader.
+function xsTile(value, label, note, tone, onclick) {
+  return '<button type="button" class="xs-tile tone-' + tone + '" onclick="' + onclick + '">'
+    + '<span class="xs-tile-val">' + (value === null ? '—' : homeNumber(value)) + '</span>'
+    + '<span class="xs-tile-lbl">' + homeEsc(label) + '</span>'
+    + '<span class="xs-tile-note">' + homeEsc(note) + '</span>'
+    + '</button>';
+}
+
+function xsNum(value) {
+  return '<span class="xs-num">' + homeNumber(value) + '</span>';
+}
+
+/// لمحة تنفيذية — سطر واحد بلغة مفهومة، ثم الأرقام التي تستدعي قراراً، ثم أقرب استحقاق مؤرَّخ.
+async function xsSnapshot() {
+  var lead = document.getElementById('xs-lead');
+  var tiles = document.getElementById('xs-tiles');
+  var stamp = document.getElementById('xs-stamp');
+  var nextHost = document.getElementById('xs-next');
+  if (!lead || !tiles) return;
+
+  var news = await xsNewsPulse();
+  var pr = XB_DATA.projects;
+  var cm = XB_DATA.campaigns;
+  var sh = XB_DATA.shorfah;
+
+  var due = [];
+  try {
+    if (typeof CAL !== 'undefined' && CAL.upcoming) {
+      due = CAL.upcoming(['national', 'official', 'intl', 'key', 'event'], 60)
+        .filter(function(r) { return typeof r.left === 'number'; });
+    }
+  } catch (e) { /* الرزنامة المحلية قد لا تكون جاهزة */ }
+  var soon = due.filter(function(r) { return r.left <= 7; });
+  var nearest = due[0] || null;
+
+  // ── السطر التنفيذي ──
+  var parts = [];
+  if (pr) parts.push('<b>' + xsNum(pr.open) + ' مشروعاً</b> قائماً');
+  if (cm) parts.push('<b>' + xsNum(cm.running) + ' حملة</b> جارية');
+  var sentence = parts.length
+    ? 'نعمل الآن على ' + parts.join(' و')
+    : 'لم تُحمَّل بيانات الأعمال الحالية';
+  var avgs = [];
+  if (pr && pr.avg !== null) avgs.push('المشاريع ' + xsNum(pr.avg) + '%');
+  if (cm && cm.avg !== null) avgs.push('الحملات ' + xsNum(cm.avg) + '%');
+  if (sh) avgs.push('نشرة شُرفة ' + xsNum(sh.pct) + '%');
+  if (avgs.length) sentence += '، بمتوسط إنجاز ' + avgs.join(' · ');
+  sentence += '.';
+  var risk = (pr ? pr.delayed : 0) + (cm ? cm.overdue : 0);
+  var waiting = (sh ? (sh.total - sh.done) : 0) + (cm ? cm.underReview : 0);
+  if (risk > 0) sentence += ' يحتاج <b>' + xsNum(risk) + ' بنداً</b> إلى تدخل فوري.';
+  else if (waiting > 0) sentence += ' لا توجد بنود متأخرة، و<b>' + xsNum(waiting) + ' بنداً</b> بانتظار الاعتماد.';
+  else sentence += ' لا توجد بنود متأخرة أو معلّقة.';
+  if (nearest) {
+    sentence += ' أقرب استحقاق: <b>' + homeEsc(nearest.title) + '</b> '
+      + (nearest.left === 0 ? 'اليوم' : nearest.left === 1 ? 'غداً' : 'بعد ' + xsNum(nearest.left) + ' يوم') + '.';
+  }
+  lead.innerHTML = sentence;
+
+  // ── بطاقات ما يستدعي قراراً ──
+  tiles.innerHTML = [
+    xsTile(risk, 'متأخر عن الخطة',
+      (pr ? homeNumber(pr.delayed) + ' مشروعاً' : '—') + ' · ' + (cm ? homeNumber(cm.overdue) + ' حملة' : '—'),
+      risk > 0 ? 'risk' : 'ok', "homeGo('reports')"),
+    xsTile(waiting, 'بانتظار الاعتماد',
+      (sh ? homeNumber(sh.total - sh.done) + ' قسماً في شُرفة' : '—') + ' · '
+        + (cm ? homeNumber(cm.underReview) + ' حملة تحت المراجعة' : '—'),
+      waiting > 0 ? 'warn' : 'ok', "homeGo('shorfah')"),
+    xsTile(news ? news.today : null, 'الرصد الإعلامي اليوم',
+      news ? homeNumber(news.week) + ' خبراً خلال 7 أيام · ' + homeNumber(news.available) + ' في الأرشيف'
+           : 'تعذر قراءة الرصد',
+      'info', "homeGo('media_monitoring')"),
+    xsTile(soon.length, 'استحقاقات خلال 7 أيام',
+      soon.length ? soon.slice(0, 2).map(function(r) { return r.title; }).join(' · ') : 'لا مناسبات أو فعاليات هذا الأسبوع',
+      soon.length ? 'info' : 'ok', "homeGo('key_dates')")
+  ].join('');
+
+  // ── أقرب استحقاقين مؤرَّخين ──
+  if (nextHost) {
+    var chips = due.slice(0, 3).map(function(r) {
+      var left = r.left === 0 ? 'اليوم' : r.left === 1 ? 'غداً' : 'بعد ' + r.left + ' يوم';
+      return '<button type="button" class="xs-next-chip" onclick="homeGo(\'' + r.page + '\')">'
+        + '<span class="xs-next-day">' + homeEsc(left) + '</span>'
+        + '<b>' + homeEsc(r.title) + '</b>'
+        + '<span>' + homeEsc(r.kindLabel) + '</span></button>';
+    });
+    if (chips.length) {
+      nextHost.innerHTML = '<span class="xs-next-lbl">القادم:</span>' + chips.join('');
+      nextHost.hidden = false;
+    } else {
+      nextHost.hidden = true;
+    }
+  }
+
+  if (stamp) {
+    stamp.textContent = 'آخر تحديث ' + new Date().toLocaleTimeString('ar-SA-u-nu-latn', { hour: '2-digit', minute: '2-digit' });
+  }
+}
+
 /// Paints the whole board. The three meters resolve in parallel and are written in a fixed order
 /// so the row never reshuffles between loads.
 async function xbInit() {
   var host = document.getElementById('xb-meters');
   if (!host) return;
-  xbUpcoming();
+  await xbUpcoming();
   var meters = await Promise.all([xbShorfahMeter(), xbProjects(), xbCampaigns()]);
   host.innerHTML = meters.join('');
   requestAnimationFrame(function() {
     host.querySelectorAll('[data-pct]').forEach(function(node) { node.style.width = node.dataset.pct + '%'; });
   });
+  // Why: the snapshot reads XB_DATA, so it runs only after every loader has stashed its slice.
+  await xsSnapshot();
 }
 
 async function homeDashboardInit() {

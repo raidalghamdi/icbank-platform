@@ -299,7 +299,7 @@ jobs:
           fi
 
           # قسم الحملات: صفحتان + لوحة المتابعة التنفيذية على الصفحة الرئيسية.
-          for TOKEN in 'section-internal_campaigns' 'section-external_campaigns' 'xb-meters' 'CMP.goto('; do
+          for TOKEN in 'section-internal_campaigns' 'section-external_campaigns' 'xb-meters' 'CMP.goto(' 'xs-snapshot' 'xs-tiles'; do
             if ! grep -qF "$TOKEN" shell.html; then
               echo "::error::served shell is missing required token: $TOKEN"
               FAILED=1
