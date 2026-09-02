@@ -9521,7 +9521,13 @@ async function xbUpcoming() {
 /// عدّ أخبار الرصد الإعلامي خلال نافذتين زمنيتين — نبض التغطية الذي يهم المسؤول.
 async function xsNewsPulse() {
   try {
-    var items = homeItems(await homeApiJson('/gac/news?pageSize=100'));
+    // Why: fetchNews() already pulled the same 100 rows during boot and left them mapped in
+    // NEWS_LOCAL. The board resolves after the shared-response window has closed, so asking the
+    // API again here was a real extra round trip on every load. Reuse first, fetch only as a
+    // fallback when the shell's own load failed.
+    var items = (Array.isArray(NEWS_LOCAL) && NEWS_LOCAL.length)
+      ? NEWS_LOCAL
+      : homeItems(await homeApiJson('/gac/news?pageSize=100'));
     var now = Date.now();
     function within(hours) {
       return items.filter(function(n) {
