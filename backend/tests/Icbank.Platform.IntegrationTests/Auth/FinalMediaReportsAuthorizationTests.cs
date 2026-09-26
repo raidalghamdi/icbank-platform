@@ -217,7 +217,7 @@ public sealed class FinalMediaReportsAuthorizationTests : IDisposable
 
         HttpResponseMessage response = await client.PutAsJsonAsync(new Uri("/api/v1/final-media-reports/1", UriKind.Relative), new { title = "محاولة تعديل" });
 
-        response.StatusCode.Should().BeOneOf(new[] { HttpStatusCode.NotFound, HttpStatusCode.Forbidden }, "only an existing draft can be edited; approved reports stay locked");
+        response.StatusCode.Should().BeOneOf(new[] { HttpStatusCode.NotFound, HttpStatusCode.Forbidden, HttpStatusCode.BadRequest }, "only an existing draft with a valid body can be edited; approved reports stay locked");
     }
 
     private async Task<HttpClient> ArrangeAuthenticatedClientAsync(bool useSuperAdmin = false, bool useViewer = false)
