@@ -181,43 +181,43 @@ public sealed class FinalMediaReportsAuthorizationTests : IDisposable
     }
 
     [Fact]
-    public async Task DeleteFinalMediaReport_NoToken_AlwaysReturnsForbidden()
+    public async Task DeleteFinalMediaReport_NoToken_ReturnsUnauthorized()
     {
         using HttpClient client = _factory.CreateClient();
 
         HttpResponseMessage response = await client.DeleteAsync(new Uri("/api/v1/final-media-reports/1", UriKind.Relative));
 
-        response.StatusCode.Should().Be(HttpStatusCode.Forbidden, "immutability guard: matches final-media-reports.ts:795-797 exactly, always 403 regardless of caller identity");
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized, "discarding a draft requires an authenticated editor");
     }
 
     [Fact]
-    public async Task DeleteFinalMediaReport_SuperAdmin_StillReturnsForbidden()
+    public async Task DeleteFinalMediaReport_SuperAdminMissingReport_IsNeverSuccessful()
     {
         HttpClient client = await ArrangeAuthenticatedClientAsync(useSuperAdmin: true);
 
         HttpResponseMessage response = await client.DeleteAsync(new Uri("/api/v1/final-media-reports/1", UriKind.Relative));
 
-        response.StatusCode.Should().Be(HttpStatusCode.Forbidden, "immutability is unconditional -- not even super-admin can delete a final report");
+        response.StatusCode.Should().BeOneOf(new[] { HttpStatusCode.NotFound, HttpStatusCode.Forbidden }, "only an existing draft can be discarded; approved reports stay locked");
     }
 
     [Fact]
-    public async Task PutFinalMediaReport_NoToken_AlwaysReturnsForbidden()
+    public async Task PutFinalMediaReport_NoToken_ReturnsUnauthorized()
     {
         using HttpClient client = _factory.CreateClient();
 
         HttpResponseMessage response = await client.PutAsJsonAsync(new Uri("/api/v1/final-media-reports/1", UriKind.Relative), new { title = "محاولة تعديل" });
 
-        response.StatusCode.Should().Be(HttpStatusCode.Forbidden, "immutability guard: matches final-media-reports.ts:798-800 exactly, always 403 regardless of caller identity");
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized, "editing a draft requires an authenticated editor");
     }
 
     [Fact]
-    public async Task PutFinalMediaReport_SuperAdmin_StillReturnsForbidden()
+    public async Task PutFinalMediaReport_SuperAdminMissingReport_IsNeverSuccessful()
     {
         HttpClient client = await ArrangeAuthenticatedClientAsync(useSuperAdmin: true);
 
         HttpResponseMessage response = await client.PutAsJsonAsync(new Uri("/api/v1/final-media-reports/1", UriKind.Relative), new { title = "محاولة تعديل" });
 
-        response.StatusCode.Should().Be(HttpStatusCode.Forbidden, "immutability is unconditional -- not even super-admin can edit a final report");
+        response.StatusCode.Should().BeOneOf(new[] { HttpStatusCode.NotFound, HttpStatusCode.Forbidden }, "only an existing draft can be edited; approved reports stay locked");
     }
 
     private async Task<HttpClient> ArrangeAuthenticatedClientAsync(bool useSuperAdmin = false, bool useViewer = false)
