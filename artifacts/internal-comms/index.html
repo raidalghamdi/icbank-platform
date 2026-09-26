@@ -3644,6 +3644,261 @@ button.home-row:hover { border-color:var(--primary-100); background:var(--primar
   .dash-hero { padding: 20px; }
   .dash-greeting { font-size: 18px; }
 }
+/* ── Media report review workflow ── */
+#mm-review{margin-bottom:24px;}
+.mmr-top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px;}
+.mmr-steps{list-style:none;display:flex;gap:6px;margin:0 0 16px;padding:10px;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow-x:auto;}
+.mmr-step{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:10px;font-size:12.5px;color:var(--text-3);white-space:nowrap;flex:1 0 auto;justify-content:center;}
+.mmr-step-n{width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;background:var(--surface-2,#f3f4f6);border:1px solid var(--border);}
+.mmr-step.is-link{cursor:pointer;color:var(--text-2);}
+.mmr-step.is-link:hover{background:var(--surface-2,#f3f4f6);}
+.mmr-step.is-done .mmr-step-n{background:#e7f6ee;border-color:#9fd8b8;color:#1f7a4d;}
+.mmr-step.is-current{background:#0e3b4a;color:#fff;font-weight:700;}
+.mmr-step.is-current .mmr-step-n{background:#fff;color:#0e3b4a;border-color:#fff;}
+.mmr-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:14px;}
+.mmr-num{font-size:12px;color:var(--text-3);}
+.mmr-title{font-size:19px;font-weight:800;color:#0e3b4a;margin-top:4px;}
+.mmr-badges{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.mmr-badge{font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:999px;}
+.mmr-badge-draft{background:#fef3c7;color:#92400e;}
+.mmr-badge-final{background:#e7f6ee;color:#1f7a4d;}
+.mmr-save{font-size:11.5px;}
+.mmr-save-ok{color:#1f7a4d;}
+.mmr-save-pending{color:var(--text-3);}
+.mmr-save-err{color:#b91c1c;}
+.mmr-card,.mmr-sec{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;}
+.mmr-card-title{font-size:15px;font-weight:800;color:#0e3b4a;margin-bottom:10px;}
+.mmr-sec.is-hidden{opacity:.62;border-style:dashed;}
+.mmr-sec.is-hidden .mmr-sec-body{display:none;}
+.mmr-sec-head{display:flex;align-items:center;gap:8px;}
+.mmr-sec-head .mmr-in{flex:1;font-weight:700;}
+.mmr-sec-n{min-width:26px;height:26px;border-radius:8px;background:#0e3b4a;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;}
+.mmr-sec-tools{display:flex;gap:4px;align-items:center;flex-shrink:0;}
+.mmr-sec-body{margin-top:12px;}
+.mmr-ib{width:30px;height:30px;border:1px solid var(--border);background:var(--surface);border-radius:8px;cursor:pointer;font-size:13px;color:var(--text-2);}
+.mmr-ib:hover:not([disabled]){background:var(--surface-2,#f3f4f6);}
+.mmr-ib[disabled]{opacity:.35;cursor:default;}
+.mmr-vis{height:30px;padding:0 10px;border-radius:8px;border:1px solid var(--border);background:var(--surface);font-size:12px;cursor:pointer;color:var(--text-3);font-family:inherit;}
+.mmr-vis.on{background:#e7f6ee;border-color:#9fd8b8;color:#1f7a4d;font-weight:700;}
+.mmr-lbl{display:block;font-size:12px;font-weight:700;color:var(--text-2);margin:10px 0 5px;}
+.mmr-in{width:100%;min-width:0;}
+.mmr-in-lg{height:40px;font-size:15px;font-weight:700;}
+.mmr-area{height:auto;padding:8px 10px;line-height:1.7;resize:vertical;font-family:inherit;}
+.mmr-item{border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px;background:var(--surface-2,#fafafa);}
+.mmr-item-head{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:#0e3b4a;}
+.mmr-grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.mmr-grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.mmr-note{font-size:12px;color:var(--text-3);line-height:1.7;margin-top:8px;}
+.mmr-hint{font-size:12.5px;color:var(--text-3);margin:0 0 12px;}
+.mmr-empty{padding:14px;text-align:center;color:var(--text-3);font-size:12.5px;border:1px dashed var(--border);border-radius:10px;margin-bottom:10px;}
+.mmr-add-row{display:flex;flex-wrap:wrap;gap:8px;}
+.mmr-actions{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:16px 0 4px;}
+.mmr-actions-c{justify-content:center;}
+.mmr-state{padding:40px 20px;text-align:center;color:var(--text-3);font-size:13px;background:var(--surface);border:1px solid var(--border);border-radius:12px;}
+.mmr-err{color:#b91c1c;}
+.mmr-banner-err{margin-top:12px;background:#fef2f2;border:1px solid #fecaca;color:#991b1b;padding:10px 12px;border-radius:8px;font-size:12.5px;}
+.mmr-checks{list-style:none;margin:0;padding:0;display:grid;gap:8px;}
+.mmr-checks li{display:flex;gap:8px;align-items:center;font-size:13px;}
+.mmr-checks li span{width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;}
+.mmr-checks li.ok span{background:#e7f6ee;color:#1f7a4d;}
+.mmr-checks li.warn span{background:#fef3c7;color:#92400e;}
+.mmr-checks li.bad span{background:#fee2e2;color:#b91c1c;}
+.mmr-approve{background:#1f7a4d;border-color:#1f7a4d;}
+.mmr-center{text-align:center;}
+.mmr-big{font-size:34px;margin-bottom:6px;color:#1f7a4d;}
+.mmr-paper{background:#fff;border:1px solid var(--border);border-radius:12px;padding:28px 32px;box-shadow:0 4px 18px rgba(14,59,74,.06);}
+.mmr-paper-head{border-bottom:3px solid #1a6e7a;padding-bottom:12px;margin-bottom:8px;}
+.mmr-paper-kicker{font-size:11.5px;color:var(--text-3);}
+.mmr-paper-head h2{margin:6px 0 4px;font-size:20px;color:#0e3b4a;}
+.mmr-paper-meta{font-size:12px;color:var(--text-3);}
+.mmr-pv-sec{margin-top:18px;}
+.mmr-pv-h{color:#1a6e7a;border-bottom:2px solid #cce4e6;padding-bottom:6px;margin:0 0 10px;font-size:16px;}
+.mmr-p{font-size:13px;line-height:1.85;color:var(--text-2);}
+.mmr-sub{font-weight:700;color:#0e3b4a;margin:12px 0 6px;font-size:13px;}
+.mmr-ul{margin:0 18px 0 0;padding:0;font-size:13px;line-height:1.8;}
+.mmr-cc{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;}
+.mmr-cc-tile{border:1px solid #e5e7eb;border-top:3px solid #1a6e7a;border-radius:8px;padding:12px;text-align:center;}
+.mmr-cc-tile .v{font-size:22px;font-weight:800;color:#1a6e7a;}
+.mmr-cc-tile .l{font-size:11.5px;color:var(--text-3);margin-top:4px;}
+.mmr-list-h{font-size:14px;font-weight:800;color:#0e3b4a;margin:0 0 10px;display:flex;align-items:center;gap:8px;}
+.mmr-count{background:#fef3c7;color:#92400e;border-radius:999px;padding:1px 9px;font-size:11.5px;}
+.mmr-drafts{display:grid;gap:10px;}
+.mmr-draft{display:flex;justify-content:space-between;align-items:center;gap:12px;background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:12px 14px;}
+.mmr-draft-t{font-weight:700;color:#0e3b4a;font-size:13.5px;}
+.mmr-draft-m{font-size:11.5px;color:var(--text-3);margin-top:3px;}
+.mmr-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:100000;padding:11px 18px;border-radius:10px;font-size:13px;font-weight:700;box-shadow:0 8px 24px rgba(0,0,0,.18);transition:opacity .4s;direction:rtl;max-width:90vw;}
+.mmr-toast.out{opacity:0;}
+.mmr-toast-ok{background:#1f7a4d;color:#fff;}
+.mmr-toast-info{background:#0e3b4a;color:#fff;}
+.mmr-toast-err{background:#b91c1c;color:#fff;}
+@media (max-width: 767.98px){
+  .mmr-grid2,.mmr-grid3{grid-template-columns:1fr;}
+  .mmr-step{flex:0 0 auto;padding:7px 9px;}
+  .mmr-step:not(.is-current) .mmr-step-l{display:none;}
+  .mmr-paper{padding:18px 16px;}
+  .mmr-sec-head{flex-wrap:wrap;}
+  .mmr-sec-head .mmr-in{flex:1 1 calc(100% - 40px);}
+  .mmr-sec-tools{width:100%;justify-content:flex-end;}
+  .mmr-draft{flex-direction:column;align-items:stretch;}
+}
+/* ── Campaign workflow ── */
+.cmw-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;}
+.cmw-tabs .pf-chip{white-space:nowrap;}
+.cmw-steps{margin:4px 0 0;}
+.cmw-stage{font-size:11.5px;color:var(--text-3);}
+.cmw-stage b{color:var(--text);}
+.cmw-head-actions{display:flex;gap:8px;flex-wrap:wrap;}
+.cmw-close{background:#1f7a4d;border-color:#1f7a4d;}
+.cmw-kvs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px 18px;}
+.cmw-kv{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--text-3);}
+.cmw-kv b{font-size:13px;color:var(--text);font-weight:700;}
+.cmw-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto auto;gap:8px;align-items:center;margin-bottom:8px;}
+.cmw-row > input[type=checkbox]{width:18px;height:18px;accent-color:#1a6e7a;}
+.cmw-row:not(:has(> input[type=checkbox])){grid-template-columns:minmax(0,1fr) auto auto auto auto;}
+.cmw-row .cmw-date,.cmw-date{width:150px;}
+.cmw-row .cmw-owner,.cmw-owner{width:150px;}
+.cmw-row .cmw-num,.cmw-num{width:110px;}
+.cmw-files{display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
+.cmw-file{display:inline-flex;align-items:center;gap:6px;background:var(--surface-2,#f3f4f6);border:1px solid var(--border);border-radius:8px;padding:2px 4px 2px 8px;font-size:12px;}
+.cmw-file-a{background:none;border:0;color:#1a6e7a;cursor:pointer;font:inherit;font-weight:700;}
+.cmw-file-s{color:var(--text-4);font-size:11px;direction:ltr;}
+.cmw-up{cursor:pointer;}
+.cmw-up.is-busy{opacity:.6;pointer-events:none;}
+.cmw-tl{list-style:none;margin:0;padding:0 14px 0 0;border-right:2px solid var(--border);}
+.cmw-tl-item{position:relative;display:flex;align-items:center;gap:10px;padding:8px 10px 8px 0;}
+.cmw-tl-dot{position:absolute;right:-21px;width:12px;height:12px;border-radius:50%;background:#cbd5e1;border:2px solid #fff;box-shadow:0 0 0 1px #cbd5e1;}
+.cmw-tl-main{display:flex;flex-direction:column;gap:2px;flex:1;font-size:13px;}
+.cmw-tl-main span{font-size:11.5px;color:var(--text-3);}
+.cmw-tl-st{font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px;background:var(--surface-2,#f3f4f6);color:var(--text-3);}
+.cmw-tl-item.is-done .cmw-tl-dot{background:#1f7a4d;box-shadow:0 0 0 1px #1f7a4d;}
+.cmw-tl-item.is-done .cmw-tl-st{background:#e7f6ee;color:#1f7a4d;}
+.cmw-tl-item.is-late .cmw-tl-dot{background:#b91c1c;box-shadow:0 0 0 1px #b91c1c;}
+.cmw-tl-item.is-late .cmw-tl-st{background:#fee2e2;color:#b91c1c;}
+.cmw-tl-item.is-now .cmw-tl-dot{background:#d99c0a;box-shadow:0 0 0 1px #d99c0a;}
+.cmw-tl-item.is-now .cmw-tl-st{background:#fef3c7;color:#92400e;}
+.cmw-banner{background:#fef3c7;border:1px solid #fde68a;color:#92400e;padding:10px 14px;border-radius:10px;font-size:12.5px;font-weight:700;}
+.cmw-banner.is-done{background:#e7f6ee;border-color:#9fd8b8;color:#1f7a4d;}
+.cmw-banner.is-muted{background:var(--surface-2,#f3f4f6);border-color:var(--border);color:var(--text-3);font-weight:600;}
+.cmw-tbl-wrap{overflow-x:auto;}
+.cmw-tbl{width:100%;border-collapse:collapse;font-size:12.5px;}
+.cmw-tbl th{background:#0e3b4a;color:#fff;font-weight:700;padding:8px 10px;text-align:right;white-space:nowrap;}
+.cmw-tbl td{padding:8px 10px;border-bottom:1px solid var(--border-subtle,#eef0f2);vertical-align:middle;}
+.cmw-n{font-family:var(--mono);direction:ltr;unicode-bidi:isolate;text-align:right;}
+.cmw-en{font-size:10.5px;color:var(--text-4);font-weight:600;direction:ltr;unicode-bidi:isolate;}
+.cmw-ach{display:inline-block;width:90px;height:7px;border-radius:999px;background:var(--surface-2,#eef0f2);overflow:hidden;vertical-align:middle;margin-left:8px;}
+.cmw-ach span{display:block;height:100%;background:#94a3b8;}
+.cmw-ach.is-good span{background:#1f7a4d;}
+.cmw-ach.is-warn span{background:#d99c0a;}
+.cmw-ach.is-bad span{background:#b91c1c;}
+.cmw-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px 16px;}
+.cmw-pair{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px;}
+.cmw-pair .adm-input,.cmw-row .adm-input{width:100%;min-width:0;box-sizing:border-box;}
+.cmw-kvs{grid-template-columns:repeat(3,minmax(0,1fr));}
+.cmw-integr{display:flex;flex-wrap:wrap;gap:6px;}
+.cmw-plat{font-size:11.5px;color:var(--text-3);border:1px dashed var(--border);border-radius:8px;padding:4px 10px;}
+.cmw-plat b{color:var(--text-2);margin-left:4px;}
+.cmw-src{font-size:10.5px;color:var(--text-4);margin-top:2px;}
+.cmw-plat-tbl .cmw-num{width:100%;min-width:90px;}
+.cmw-auto{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--surface-2,#f3f4f6);border-radius:10px;padding:10px 12px;margin-top:12px;font-size:12.5px;}
+.cmw-auto b{font-size:16px;color:#1a6e7a;font-family:var(--mono);}
+.cmw-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1000;align-items:center;justify-content:center;padding:20px;}
+.cmw-modal-box{background:var(--surface,#fff);border-radius:14px;max-width:640px;width:100%;padding:22px 24px;max-height:92vh;overflow-y:auto;direction:rtl;}
+.cmw-modal-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.cmw-modal-hd h3{margin:0;font-size:18px;font-weight:800;color:#0e3b4a;}
+.cmw-checks{display:flex;flex-wrap:wrap;gap:8px;}
+.cmw-check{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);border-radius:8px;padding:7px 12px;font-size:13px;cursor:pointer;}
+.cmw-check:has(input:checked){background:#e6f1f2;border-color:#1a6e7a;color:#0e3b4a;font-weight:700;}
+.cmw-req-panel{background:var(--surface);border:1px solid var(--border);padding:16px 18px;display:flex;flex-direction:column;gap:12px;}
+.cmw-req-hd{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;}
+.cmw-reqs{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;}
+.cmw-req{border:1px solid var(--border);border-top:3px solid #d99c0a;border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;background:var(--surface);}
+.cmw-req.is-approved{border-top-color:#1f7a4d;}
+.cmw-req.is-rejected{border-top-color:#94a3b8;}
+.cmw-req-st{font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px;background:#fef3c7;color:#92400e;}
+.cmw-req.is-approved .cmw-req-st{background:#e7f6ee;color:#1f7a4d;}
+.cmw-req.is-rejected .cmw-req-st{background:var(--surface-2,#f3f4f6);color:var(--text-3);}
+.cmw-req-act{display:flex;gap:8px;flex-wrap:wrap;}
+.cmw-history{background:var(--surface);border:1px solid var(--border);padding:14px 18px;}
+.cmw-history summary{cursor:pointer;font-weight:800;font-size:14px;color:#0e3b4a;}
+.cmw-history[open] summary{margin-bottom:12px;}
+@media (max-width: 1023.98px){ .cmw-kvs,.cmw-metrics{grid-template-columns:1fr 1fr;} }
+@media (max-width: 767.98px){
+  .cmw-kvs,.cmw-metrics{grid-template-columns:1fr;}
+  .cmw-row,.cmw-row:not(:has(> input[type=checkbox])){grid-template-columns:auto 1fr auto;}
+  .cmw-row .cmw-date,.cmw-row .cmw-owner,.cmw-row .cmw-num{grid-column:1 / -1;width:100%;}
+  .cmw-row:not(:has(> input[type=checkbox])) .mmr-in{grid-column:1 / span 2;}
+  .cmw-modal{padding:0;align-items:flex-end;}
+  .cmw-modal-box{border-radius:14px 14px 0 0;max-height:94vh;padding:18px 16px;}
+  .cmw-reqs{grid-template-columns:1fr;}
+  .cmw-tbl.tbl-cards thead{display:none;}
+  .cmw-tbl.tbl-cards tr{display:block;border:1px solid var(--border);border-radius:10px;margin-bottom:10px;padding:6px 4px;}
+  .cmw-tbl.tbl-cards td{display:flex;justify-content:space-between;gap:10px;border:0;padding:6px 10px;}
+  .cmw-tbl.tbl-cards td[data-label]::before{content:attr(data-label);font-weight:700;color:var(--text-3);}
+}
+/* ── Brand Design Generator ── */
+#bdg{direction:rtl;}
+.bdg-steps{margin-bottom:18px;}
+.bdg-steps li[onclick]{cursor:pointer;}
+.bdg-head h3{margin:0 0 4px;font-size:18px;color:var(--text,#0f172a);}
+.bdg-head{margin-bottom:14px;}
+.bdg-cats{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;}
+.bdg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;}
+.bdg-card{display:flex;flex-direction:column;gap:6px;align-items:stretch;text-align:right;background:var(--surface,#fff);border:1px solid var(--border,#e2e8f0);border-radius:14px;padding:10px;cursor:pointer;font:inherit;color:inherit;transition:border-color .15s,box-shadow .15s;}
+.bdg-card:hover,.bdg-card.is-on{border-color:#005275;box-shadow:0 0 0 3px rgba(0,82,117,.12);}
+.bdg-card canvas{width:100%;height:auto;border-radius:8px;background:#f1f5f9;max-height:320px;object-fit:contain;}
+.bdg-card b{font-size:14px;}
+.bdg-card span{font-size:12px;color:var(--text-muted,#64748b);}
+.bdg-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px;}
+.bdg-row>.mmr-lbl{min-width:96px;margin:0;}
+.bdg-ctl .bdg-row>.mmr-lbl{flex-basis:100%;}
+.bdg-ctl .bdg-row .pf-chip{font-size:12px;}
+.bdg-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 16px;margin:6px 0 10px;}
+.bdg-form-1{grid-template-columns:minmax(0,1fr);}
+.bdg-field .mmr-in,.bdg-field .mmr-area{width:100%;box-sizing:border-box;}
+.bdg-field:has(textarea),.bdg-field:has(.bdg-img){grid-column:1/-1;}
+.bdg-count{float:left;font-weight:400;font-size:11px;color:var(--text-muted,#64748b);font-family:ui-monospace,monospace;}
+.bdg-img{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:10px;border:1px dashed var(--border,#cbd5e1);border-radius:10px;}
+.bdg-img img{width:84px;height:84px;object-fit:cover;border-radius:8px;}
+.bdg-edit{display:grid;grid-template-columns:minmax(300px,380px) minmax(0,1fr);gap:20px;align-items:start;}
+.bdg-ctl{background:var(--surface,#fff);border:1px solid var(--border,#e2e8f0);border-radius:14px;padding:14px;}
+.bdg-stage{position:sticky;top:80px;}
+.bdg-canvas{background:repeating-conic-gradient(#eef2f6 0% 25%,#f8fafc 0% 50%) 0 0/20px 20px;border:1px solid var(--border,#e2e8f0);border-radius:14px;padding:14px;display:flex;justify-content:center;}
+.bdg-canvas canvas{max-width:100%;max-height:70vh;height:auto;width:auto;box-shadow:0 8px 28px rgba(0,40,60,.18);border-radius:4px;}
+.bdg-canvas-lg canvas{max-height:78vh;}
+.bdg-canvas-sm canvas{max-height:46vh;}
+.bdg-sw{min-width:40px;height:40px;border-radius:10px;border:2px solid var(--border,#cbd5e1);cursor:pointer;padding:0 10px;font:inherit;font-size:12px;}
+.bdg-sw span{color:#fff;font-weight:700;}
+.bdg-sw[style*="#FFFFFF"] span{color:#005275;}
+.bdg-sw-s{width:40px;padding:0;}
+.bdg-sw.is-on{outline:3px solid #005275;outline-offset:2px;}
+.bdg-rules{margin-top:8px;font-size:12.5px;color:var(--text-muted,#475569);}
+.bdg-rules summary{cursor:pointer;font-weight:700;color:#005275;}
+.bdg-rules ul{margin:8px 0 0;padding-inline-start:18px;line-height:1.8;}
+.bdg-minis{display:flex;flex-wrap:wrap;gap:12px;margin-top:14px;}
+.bdg-mini{margin:0;cursor:pointer;border:1px solid var(--border,#e2e8f0);border-radius:10px;padding:8px;background:var(--surface,#fff);text-align:center;}
+.bdg-mini.is-on{border-color:#005275;box-shadow:0 0 0 3px rgba(0,82,117,.12);}
+.bdg-mini canvas{height:130px;width:auto;display:block;margin:0 auto 6px;}
+.bdg-mini figcaption{font-size:12px;}
+.bdg-export{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:start;}
+.bdg-opts{display:flex;flex-direction:column;gap:8px;margin:6px 0 14px;}
+.bdg-opt{display:flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid var(--border,#e2e8f0);border-radius:10px;cursor:pointer;}
+.bdg-over{margin-bottom:10px;border-color:#D99C0A;background:#FFF8E6;}
+.bdg-ok{border-color:#00943E;background:#ECFDF3;color:#065F46;}
+@media (max-width:1023.98px){
+  .bdg-edit,.bdg-export{grid-template-columns:minmax(0,1fr);}
+  .bdg-stage{position:static;order:-1;}
+}
+@media (max-width:640px){
+  .bdg-form{grid-template-columns:minmax(0,1fr);}
+  .bdg-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+  .bdg-steps .mmr-step-l{display:none;}
+  .bdg-steps .is-current .mmr-step-l{display:inline;}
+  .bdg-canvas{padding:8px;}
+  .bdg-mini canvas{height:96px;}
+}
+
+.bdg-spin,.mmr-spin{display:inline-block;width:16px;height:16px;border:2px solid rgba(0,82,117,.2);border-top-color:#005275;border-radius:50%;animation:bdgspin .8s linear infinite;vertical-align:-3px;margin-inline-end:6px;}
+@keyframes bdgspin{to{transform:rotate(360deg);}}
 </style>
 </head>
 <body>
@@ -3965,6 +4220,8 @@ button.home-row:hover { border-color:var(--primary-100); background:var(--primar
         <p class="page-sub">الحملات الموجّهة لموظفي الهيئة — الحالة، نسبة الإنجاز، المدة، المسؤول، أبرز المخرجات، القنوات، والتحليلات.</p>
       </div>
       <div class="page-actions">
+        <button class="btn btn-ghost" onclick="CMW.openRequestForm()"><span>طلب حملة داخلية</span></button>
+        <button class="btn btn-secondary" onclick="CMW.openForm('internal')"><span>+ حملة جديدة</span></button>
         <button class="btn btn-primary" onclick="CMP.reload('internal')">
           <span class="ico"><svg><use href="#i-refresh"/></svg></span>
           <span>تحديث</span>
@@ -3993,6 +4250,11 @@ button.home-row:hover { border-color:var(--primary-100); background:var(--primar
         <div class="pf-filters filter-tabs-row" id="cmp-internal-filters"></div>
       </div>
       <div class="pf-grid" id="cmp-internal-grid"></div>
+      <section class="cmw-req-panel" id="cmp-internal-requests"></section>
+      <details class="cmw-history">
+        <summary>نتائج الحملات السابقة <span class="pf-band-sub">— المستهدف مقابل الفعلي لدعم تخطيط الحملات القادمة</span></summary>
+        <div id="cmp-internal-history"></div>
+      </details>
     </div>
 
     <div id="cmp-internal-detail" class="cmp-detail" style="display:none;"></div>
@@ -4011,6 +4273,7 @@ button.home-row:hover { border-color:var(--primary-100); background:var(--primar
         <p class="page-sub">الحملات الموجّهة للجمهور والقطاع — الحالة، نسبة الإنجاز، المدة، المسؤول، أبرز المخرجات، القنوات، والتحليلات.</p>
       </div>
       <div class="page-actions">
+        <button class="btn btn-secondary" onclick="CMW.openForm('external')"><span>+ حملة جديدة</span></button>
         <button class="btn btn-primary" onclick="CMP.reload('external')">
           <span class="ico"><svg><use href="#i-refresh"/></svg></span>
           <span>تحديث</span>
@@ -4039,6 +4302,10 @@ button.home-row:hover { border-color:var(--primary-100); background:var(--primar
         <div class="pf-filters filter-tabs-row" id="cmp-external-filters"></div>
       </div>
       <div class="pf-grid" id="cmp-external-grid"></div>
+      <details class="cmw-history">
+        <summary>نتائج الحملات السابقة <span class="pf-band-sub">— المستهدف مقابل الفعلي لدعم تخطيط الحملات القادمة</span></summary>
+        <div id="cmp-external-history"></div>
+      </details>
     </div>
 
     <div id="cmp-external-detail" class="cmp-detail" style="display:none;"></div>
@@ -5700,14 +5967,18 @@ button.home-row:hover { border-color:var(--primary-100); background:var(--primar
     <div class="page-head">
       <div>
         <h1 class="page-title">التصميم السريع</h1>
-        <p class="page-sub">تصميم سريع بالأيقونات، مع الشعارات والخطوط المعتمدة وخطوات إنشاء التصميم.</p>
+        <p class="page-sub">اختر القالب، أدخل المحتوى، ثم عدّل وعاين وصدّر — بالهوية البصرية المعتمدة للهيئة تلقائياً.</p>
       </div>
     </div>
 
     <div class="adm-tabs" id="des-tab-nav">
       <button class="adm-tab" data-tab="assets" onclick="showSection('libraries'); librariesSwitchTab('brand')">الشعارات والخطوط</button>
-      <button class="adm-tab active" data-tab="icons" onclick="desSwitchTab('icons');">التصميم السريع بالأيقونات</button>
+      <button class="adm-tab active" data-tab="studio" onclick="desSwitchTab('studio');">مولّد التصاميم بالهوية</button>
+      <button class="adm-tab" data-tab="icons" onclick="desSwitchTab('icons');">التصميم السريع بالأيقونات</button>
     </div>
+
+    <!-- ── Tab: Brand design generator (templates from /public/brand-assets/design-templates.json) ── -->
+    <div class="adm-pane active" id="des-pane-studio"><div class="card" id="bdg"></div></div>
 
     <!-- ── Tab: Assets ─────────────────────────────────────────── -->
     <div class="adm-pane active" id="des-pane-assets">
@@ -6056,9 +6327,9 @@ button.home-row:hover { border-color:var(--primary-100); background:var(--primar
     <div class="page-head">
       <div>
         <h1 class="page-title">الرصد الإعلامي</h1>
-        <p class="page-sub">تقارير رسمية بـ 8 أقسام <bdi dir="ltr">(GAC-MEDIA)</bdi> — تصدير <bdi dir="ltr">PDF</bdi>، إرسال بريد، بحد ذكي، تقارير محفوظة بشكل دائم.</p>
+        <p class="page-sub">توليد التقرير الأسبوعي ← المراجعة والتعديل ← المعاينة ← الاعتماد ← تصدير <bdi dir="ltr">PDF</bdi> ← الأرشيف.</p>
       </div>
-      <div style="display:flex;gap:8px;">
+      <div style="display:flex;gap:8px;" id="mm-page-actions">
         <button class="btn btn-ghost" onclick="MM.showWizard()" id="mm-wizard-btn">
           <span class="ico"><svg><use href="#i-bot"/></svg></span>
           معالج الأسئلة
@@ -6068,6 +6339,16 @@ button.home-row:hover { border-color:var(--primary-100); background:var(--primar
           تقرير جديد
         </button>
       </div>
+    </div>
+
+    <!-- ══ Review workspace: Review & Edit → Preview → Approve → Export PDF → Archive ══ -->
+    <div id="mm-review" style="display:none;">
+      <div class="mmr-top">
+        <button class="btn btn-ghost btn-sm" onclick="MMR.close()">→ العودة إلى التقارير</button>
+      </div>
+      <ol class="mmr-steps" id="mm-review-steps" aria-label="مراحل التقرير"></ol>
+      <div class="mmr-head" id="mm-review-head"></div>
+      <div id="mm-review-body"></div>
     </div>
 
     <!-- ══ Wizard معالج الأسئلة (يظهر في البداية) ══ -->
@@ -6108,10 +6389,11 @@ button.home-row:hover { border-color:var(--primary-100); background:var(--primar
 
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:14px;margin-bottom:20px;" id="mm-stats-cards"></div>
 
+    <div id="mm-drafts"></div>
     <div id="mm-loading" style="text-align:center;padding:30px;color:var(--text-3);font-size:13px;">جاري التحميل…</div>
     <div id="mm-empty" style="display:none;text-align:center;padding:60px 20px;color:var(--text-3);">
       <div style="font-size:48px;margin-bottom:12px;">📊</div>
-      <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:6px;">لا توجد تقارير محفوظة</div>
+      <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:6px;">لا توجد تقارير معتمدة في الأرشيف</div>
       <div style="font-size:13px;">اضغط "تقرير جديد" لتوليد تقرير رسمي.</div>
     </div>
     <div id="mm-list" style="display:none;"></div>
@@ -8552,7 +8834,7 @@ function showSection(name) {
   document.body.classList.toggle('designs-mode', name === 'designs');
   if (name === 'aiyear') aiyInit();
   if (name === 'admin_panel') adminInit();
-  if (name === 'designs') { designsInit(); desSwitchTab('icons'); }
+  if (name === 'designs') { designsInit(); desSwitchTab('studio'); }
   if (name === 'libraries') librariesInit();
   if (name === 'places') PLCS.init();
   if (name === 'weekend') wk2AdminInit();
@@ -9016,7 +9298,7 @@ function homeDate(value) { var d = new Date(value); return isNaN(d) ? null : d; 
 function homeRender(id, html) { var el = document.getElementById(id); if (el) el.innerHTML = html; }
 function homeEmpty(message) { return '<div class="home-empty">' + homeEsc(message) + '</div>'; }
 function homeError(message) { return '<div class="home-error">' + homeEsc(message) + '</div>'; }
-function homeGo(page) { showSection(page); if (page === 'designs') desSwitchTab('icons'); }
+function homeGo(page) { showSection(page); if (page === 'designs') desSwitchTab('studio'); }
 function homeUserId() { var u = window.AUTH_USER || {}; return String(u.id || u.userId || u.user_id || ''); }
 function homeAssigned(section) {
   var id = homeUserId(); if (!id) return false;
@@ -9483,7 +9765,7 @@ async function xbCampaigns() {
       ? (c.daysRemaining < 0 ? 'انتهت' : 'يتبقى ' + c.daysRemaining + ' يوم')
       : '—';
     return xbRow(xbPctLead(c.progressPercent), c.name,
-      c.audienceLabel + ' · ' + c.owner + ' · ' + days,
+      c.audienceLabel + ' · ' + (c.stageLabel ? c.stageLabel + ' · ' : '') + c.owner + ' · ' + days,
       c.statusLabel, 'st-' + c.status, "CMP.goto('" + r.aud + "'," + c.id + ')');
   }).join('') : xbEmpty('لا توجد حملات قائمة حالياً.'));
 
@@ -11122,7 +11404,7 @@ var CMP = (function() {
 
     if (s.detail) {
       if (board) board.style.display = 'none';
-      if (detailEl) { detailEl.style.display = 'flex'; detailEl.innerHTML = detailHTML(aud, s.detail); }
+      if (detailEl) { detailEl.style.display = 'flex'; CMW.mount(aud, s.detail, detailEl); }
       animate(detailEl);
       return;
     }
@@ -11170,6 +11452,14 @@ var CMP = (function() {
         ? shown.map(function(c) { return cardHTML(aud, c); }).join('')
         : '<div class="empty-text">لا توجد حملات بهذه الحالة</div>';
       animate(grid);
+    }
+    CMW.history(aud, all);
+    if (aud === 'internal') CMW.loadRequests(false);
+    // Reopen the campaign that was open before a page refresh.
+    if (!s.restored) {
+      s.restored = true;
+      var sv = CMW.savedView();
+      if (sv && sv.aud === aud && all.some(function(c) { return c.id === sv.id; })) open(aud, sv.id);
     }
   }
 
@@ -11275,13 +11565,34 @@ var CMP = (function() {
       if (!res.ok) throw new Error('detail');
       var fresh = await res.json();
       s.details[id] = fresh;
-      if (s.detail && s.detail.id === id) { s.detail = fresh; render(aud); }
+      if (s.detail && s.detail.id === id && !s.stale) { s.detail = fresh; render(aud); }
     } catch (e) { /* البطاقة المخزنة تبقى معروضة */ }
   }
 
   function back(aud) {
-    st(aud).detail = null;
+    var s = st(aud);
+    CMW.unmount();
+    s.detail = null;
+    if (s.stale) { s.stale = false; reload(aud); return; }
     render(aud);
+  }
+
+  /// Called by the workflow after every save so the board and detail cache show the new record;
+  /// the board KPIs are refetched when the user returns to the list.
+  function put(aud, c) {
+    var s = st(aud);
+    s.details[c.id] = c;
+    if (s.detail && s.detail.id === c.id) s.detail = c;
+    if (s.cache) {
+      var list = s.cache.campaigns || (s.cache.campaigns = []);
+      var i = list.findIndex(function(x) { return x.id === c.id; });
+      if (i >= 0) list[i] = c; else list.unshift(c);
+    }
+    s.stale = true;
+  }
+  function find(aud, id) {
+    var s = st(aud);
+    return s.details[id] || (s.cache && s.cache.campaigns || []).filter(function(c) { return c.id === id; })[0] || null;
   }
 
   function detailHTML(aud, c) {
@@ -11356,7 +11667,685 @@ var CMP = (function() {
     open(aud, id);
   }
 
-  return { load: load, reload: reload, setFilter: setFilter, open: open, back: back, goto: goto, statuses: STATUSES };
+  return { load: load, reload: reload, setFilter: setFilter, open: open, back: back, goto: goto, statuses: STATUSES, _put: put, _find: find };
+})();
+
+// ══ Campaign workflow (CMW) ══
+// Why: the campaigns board used to be read-only. This module turns each campaign into an operating
+// record — create/edit, internal requests reviewed by Corporate Communications, a lifecycle
+// (Planning → Execution → Measurement → Closure), tabs for plan, deliverables, content, channels
+// and results — while CMP keeps owning the board, its filters and the home-page summary.
+// Everything is saved on the server (PUT /campaigns/{aud}/{id}); the plan document lives in
+// Campaign.PlanJson, and the server derives progress from completed tasks and deliverables.
+window.CMW = (function(){
+  var STAGES = [
+    ['planning', 'التخطيط'], ['execution', 'التنفيذ'], ['measurement', 'قياس الأداء'], ['closed', 'الإغلاق']
+  ];
+  var SUPPORT = [['content','المحتوى'],['design','التصميم'],['publishing','النشر'],['activation','التفعيل']];
+  // Metric keys stay English in storage; the labels keep the technical term next to the Arabic.
+  var METRICS = [
+    ['reach','الوصول','Reach'], ['impressions','مرات الظهور','Impressions'], ['engagement','التفاعلات','Engagement'],
+    ['views','المشاهدات','Views'], ['clicks','النقرات','Clicks']
+  ];
+  // Platforms prepared for a later social-media integration. Each row is entered manually today;
+  // an importer only needs to fill the same row and set source:'api'.
+  var PLATFORMS = [['x','X'],['instagram','Instagram'],['linkedin','LinkedIn'],['youtube','YouTube'],['tiktok','TikTok'],['snapchat','Snapchat']];
+  var TABS = [
+    ['overview','نظرة عامة'], ['plan','الخطة والجدول الزمني'], ['deliverables','المخرجات'],
+    ['content','المحتوى'], ['channels','قنوات النشر'], ['results','الأداء والنتائج']
+  ];
+  var VIEW_KEY = 'icbank.cmp.view';
+  var REQ_DRAFT_KEY = 'icbank.cmp.request.draft';
+  var S = { aud: null, c: null, plan: null, tab: 'overview', saving: 0, timer: null, dirty: false, error: '', ver: 0 };
+
+  function e(v){ return escHtml(v == null ? '' : String(v)); }
+  function num(v){ var n = Number(v); return isFinite(n) && n > 0 ? n : 0; }
+  function fmt(v){ return Number(v || 0).toLocaleString('en-US'); }
+  function uid(p){ return (p || 'x') + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+  function iso(d){ if (!d) return ''; var s = String(d); return s.length >= 10 ? s.slice(0, 10) : s; }
+  function today(){ return new Date().toISOString().slice(0, 10); }
+  function fdate(v){
+    if (!v) return '—';
+    var dt = new Date(v); if (isNaN(dt.getTime())) return '—';
+    return dt.toLocaleDateString('ar-SA-u-ca-gregory-nu-latn', { year:'numeric', month:'short', day:'numeric' });
+  }
+  function stageIdx(k){ for (var i = 0; i < STAGES.length; i++) if (STAGES[i][0] === k) return i; return 0; }
+  function stageLabel(k){ return STAGES[stageIdx(k)][1]; }
+  function lines(t){ return String(t || '').split(/\r?\n/).map(function(x){ return x.trim(); }).filter(Boolean); }
+  function toast(msg, kind){
+    var t = document.createElement('div');
+    t.className = 'mmr-toast mmr-toast-' + (kind || 'ok'); t.setAttribute('role', 'status'); t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(function(){ t.classList.add('out'); }, 2600); setTimeout(function(){ t.remove(); }, 3100);
+  }
+  async function readErr(res, fallback){
+    try { var j = await res.json(); return j.error || j.detail || j.title || fallback; } catch (x) { return fallback; }
+  }
+  function api(path, opts){ return apiFetchUncached(apiUrl('/campaigns' + path), opts); }
+  function jsonOpts(method, body){ return { method: method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }; }
+  function remember(){ try { localStorage.setItem(VIEW_KEY, JSON.stringify(S.c ? { aud: S.aud, id: S.c.id, tab: S.tab } : null)); } catch (x) {} }
+  function saved(){ try { return JSON.parse(localStorage.getItem(VIEW_KEY) || 'null'); } catch (x) { return null; } }
+
+  // ── Plan normalisation ────────────────────────────────────────────────────
+  // Seeded campaigns carry deliverables and channels on the board record but no plan yet; the
+  // first plan is built from them so nothing already shown on the board disappears.
+  function planOf(c){
+    var p = c.plan && typeof c.plan === 'object' ? JSON.parse(JSON.stringify(c.plan)) : {};
+    if (!Array.isArray(p.deliverables)) {
+      p.deliverables = (c.deliverables || []).map(function(d, i){
+        return { id: 'd' + (i + 1), title: d.title, dueDate: iso(d.dueDate), done: !!d.isCompleted, files: [] };
+      });
+    }
+    p.deliverables.forEach(function(d){ if (!d.id) d.id = uid('d'); if (!Array.isArray(d.files)) d.files = []; });
+    ['tasks','milestones','content','files'].forEach(function(k){ if (!Array.isArray(p[k])) p[k] = []; });
+    p.tasks.forEach(function(t){ if (!t.id) t.id = uid('t'); });
+    p.milestones.forEach(function(m){ if (!m.id) m.id = uid('m'); });
+    p.content.forEach(function(m){ if (!m.id) m.id = uid('c'); });
+    if (!Array.isArray(p.channels)) {
+      var names = lines(c.plannedChannels);
+      if (!names.length) names = (c.channels || []).map(function(ch){ return ch.name; });
+      p.channels = names.map(function(n){ return { id: uid('ch'), name: n, plannedDate: '', status: 'planned', link: '' }; });
+    }
+    if (!p.targets || typeof p.targets !== 'object') p.targets = {};
+    if (!p.results || typeof p.results !== 'object') {
+      var a = c.analytics || {};
+      p.results = { reach: a.reachCount || 0, impressions: a.impressionsCount || 0, engagement: a.engagementCount || 0 };
+    }
+    if (!Array.isArray(p.results.byPlatform)) p.results.byPlatform = [];
+    if (!Array.isArray(p.results.other)) p.results.other = [];
+    if (!p.results.source) p.results.source = 'manual';
+    if (typeof p.lessons !== 'string') p.lessons = '';
+    if (typeof p.summary !== 'string') p.summary = '';
+    return p;
+  }
+  function progressOf(p){
+    var all = p.tasks.concat(p.deliverables);
+    if (!all.length) return null;
+    return Math.round(all.filter(function(x){ return x.done; }).length * 100 / all.length);
+  }
+  // Platform rows are the detailed source when they exist; totals are then their sum.
+  function recomputeTotals(p){
+    var rows = p.results.byPlatform;
+    if (!rows.length) return;
+    METRICS.forEach(function(m){ p.results[m[0]] = rows.reduce(function(s, r){ return s + num(r[m[0]]); }, 0); });
+  }
+  function rate(o){ var imp = num(o.impressions); return imp ? (num(o.engagement) * 100 / imp) : 0; }
+
+  // ── Save ──────────────────────────────────────────────────────────────────
+  function bodyOf(c, p, stage){
+    return {
+      name: c.name, objective: c.objective || '', targetAudience: c.targetAudience || '',
+      startDate: iso(c.startDate), endDate: iso(c.endDate), keyMessages: c.keyMessages || '',
+      owner: c.owner || '', teamMembers: c.teamMembers || '', plannedChannels: p.channels.map(function(ch){ return ch.name; }).join('\n'),
+      stage: stage || c.stage || 'planning', plan: p, latestUpdate: c.latestUpdate || ''
+    };
+  }
+  function queueSave(){
+    S.dirty = true; S.ver++; paintSave();
+    clearTimeout(S.timer); S.timer = setTimeout(flush, 700);
+  }
+  async function flush(stage){
+    clearTimeout(S.timer);
+    if (!S.c) return false;
+    S.saving++; S.error = ''; paintSave();
+    var sentVer = S.ver, id = S.c.id;
+    try {
+      var res = await api('/' + S.aud + '/' + id, jsonOpts('PUT', bodyOf(S.c, S.plan, stage)));
+      if (!res.ok) throw new Error(await readErr(res, 'تعذر حفظ التعديلات'));
+      var fresh = await res.json();
+      if (!S.c || S.c.id !== id) return true;
+      // Why: edits made while this request was in flight must not be replaced by the older
+      // server copy; they stay local and the queued save sends them next.
+      if (S.ver === sentVer) { S.c = fresh; S.plan = planOf(fresh); S.dirty = false; }
+      else { var keep = S.plan, latest = S.c.latestUpdate; S.c = fresh; S.c.latestUpdate = latest; S.plan = keep; }
+      if (window.CMP && CMP._put) CMP._put(S.aud, fresh);
+      return true;
+    } catch (x) {
+      S.error = x.message || 'تعذر حفظ التعديلات'; toast(S.error, 'err'); return false;
+    } finally { S.saving--; paintSave(); paintHead(); }
+  }
+  function paintSave(){
+    var n = document.getElementById('cmw-save'); if (!n) return;
+    if (S.saving) { n.className = 'mmr-save mmr-save-pending'; n.textContent = 'جارٍ الحفظ…'; }
+    else if (S.error) { n.className = 'mmr-save mmr-save-err'; n.textContent = 'لم يُحفظ — ' + S.error; }
+    else if (S.dirty) { n.className = 'mmr-save mmr-save-pending'; n.textContent = 'تعديلات بانتظار الحفظ'; }
+    else { n.className = 'mmr-save mmr-save-ok'; n.textContent = 'تم حفظ جميع التعديلات'; }
+  }
+
+  // ── Detail (mounted by CMP.render) ────────────────────────────────────────
+  function mount(aud, c, host){
+    var same = S.c && S.c.id === c.id && S.aud === aud;
+    S.aud = aud; S.c = c; S.plan = planOf(c);
+    if (!same) { var sv = saved(); S.tab = sv && sv.id === c.id && sv.aud === aud && sv.tab ? sv.tab : 'overview'; S.error = ''; }
+    remember();
+    host.innerHTML = '<button type="button" class="btn btn-ghost cmp-back" onclick="CMP.back(\'' + aud + '\')">'
+        + '<span class="ico"><svg><use href="#i-arrow-left"/></svg></span><span>رجوع إلى قائمة الحملات</span></button>'
+      + '<div id="cmw-head"></div>'
+      + '<div class="cmw-tabs filter-tabs-row" role="tablist" id="cmw-tabs"></div>'
+      + '<div id="cmw-body"></div>';
+    paintHead(); paintTabs(); paintBody();
+  }
+  function unmount(){ if (S.dirty) flush(); S.c = null; S.plan = null; remember(); }
+
+  function stepperHTML(stage){
+    var cur = stageIdx(stage);
+    var pre = S.c.sourceRequestId ? ['طلب الحملة', 'مراجعة الاتصال المؤسسي', 'الاعتماد والتحويل'] : [];
+    var items = pre.map(function(l){ return '<li class="mmr-step is-done"><span class="mmr-step-n">✓</span><span class="mmr-step-l">' + e(l) + '</span></li>'; });
+    STAGES.forEach(function(s, i){
+      var cls = i < cur || (i === cur && s[0] === 'closed') ? 'is-done' : (i === cur ? 'is-current' : '');
+      items.push('<li class="mmr-step ' + cls + '"><span class="mmr-step-n">' + (cls === 'is-done' ? '✓' : (i + 1)) + '</span><span class="mmr-step-l">' + e(s[1]) + '</span></li>');
+    });
+    return '<ol class="mmr-steps cmw-steps">' + items.join('') + '</ol>';
+  }
+  function nextStageAction(c){
+    var st = c.stage || 'planning';
+    if (st === 'planning') return '<button class="btn btn-primary btn-sm" onclick="CMW.advance(\'execution\')">بدء التنفيذ ←</button>';
+    if (st === 'execution') return '<button class="btn btn-primary btn-sm" onclick="CMW.advance(\'measurement\')">انتهاء النشر — الانتقال لقياس الأداء ←</button>';
+    if (st === 'measurement') return '<button class="btn btn-primary btn-sm cmw-close" onclick="CMW.advance(\'closed\')">إغلاق الحملة نهائياً ✓</button>';
+    return '<button class="btn btn-ghost btn-sm" onclick="CMW.advance(\'measurement\')">إعادة فتح قياس الأداء</button>';
+  }
+  function paintHead(){
+    var h = document.getElementById('cmw-head'); if (!h || !S.c) return;
+    var c = S.c, p = S.plan, pct = progressOf(p);
+    if (pct === null) pct = c.progressPercent || 0;
+    var work = p.tasks.length + p.deliverables.length;
+    var doneW = p.tasks.filter(function(t){ return t.done; }).length + p.deliverables.filter(function(d){ return d.done; }).length;
+    h.innerHTML = '<div class="cmp-dt-head st-' + e(c.status) + '">'
+      + '<div class="pf-card-top"><span class="pf-code">' + e(c.code) + '</span><span class="pf-tag">' + e(c.audienceLabel) + '</span>'
+        + '<span class="cmp-status st-' + e(c.status) + '">' + e(c.statusLabel) + '</span>'
+        + '<span class="cmw-stage">المرحلة: <b>' + e(c.stageLabel || stageLabel(c.stage)) + '</b></span>'
+        + '<span id="cmw-save" class="mmr-save" style="margin-right:auto;"></span></div>'
+      + '<div class="cmp-dt-title">' + e(c.name) + '</div>'
+      + '<div class="cmp-dt-obj">' + e(c.objective || c.description || '') + '</div>'
+      + '<div><div class="pf-prog-hd"><span class="pf-prog-val">' + pct + '%</span><span class="pf-band-sub">نسبة الإنجاز — محتسبة من المهام والمخرجات المكتملة</span>'
+        + '<span class="pf-prog-plan">' + doneW + ' من ' + work + ' منجزة</span></div>'
+        + '<div class="pf-prog-track"><div class="pf-prog-fill" style="width:' + pct + '%"></div></div></div>'
+      + stepperHTML(c.stage)
+      + '<div class="cmw-head-actions">' + nextStageAction(c)
+        + '<button class="btn btn-ghost btn-sm" onclick="CMW.edit()">تعديل بيانات الحملة</button></div>'
+      + '</div>';
+    paintSave();
+  }
+  function paintTabs(){
+    var t = document.getElementById('cmw-tabs'); if (!t) return;
+    t.innerHTML = TABS.map(function(x){
+      return '<button type="button" role="tab" aria-selected="' + (S.tab === x[0]) + '" class="pf-chip' + (S.tab === x[0] ? ' is-on' : '') + '" onclick="CMW.tab(\'' + x[0] + '\')">' + e(x[1]) + '</button>';
+    }).join('');
+  }
+  function setTab(k){ S.tab = k; remember(); paintTabs(); paintBody(); }
+  function paintBody(){
+    var b = document.getElementById('cmw-body'); if (!b) return;
+    var fn = { overview: overviewHTML, plan: planHTML, deliverables: deliverablesHTML, content: contentHTML, channels: channelsHTML, results: resultsHTML }[S.tab] || overviewHTML;
+    b.innerHTML = fn();
+  }
+
+  function kv(label, value){ return '<div class="cmw-kv"><span>' + e(label) + '</span><b>' + (value ? e(value) : '—') + '</b></div>'; }
+  function listBlock(title, text){
+    var l = lines(text);
+    return '<div class="cmp-panel"><div class="cmp-panel-title">' + e(title) + '</div>'
+      + (l.length ? '<ul class="mmr-ul">' + l.map(function(x){ return '<li>' + e(x) + '</li>'; }).join('') + '</ul>' : '<div class="mmr-empty">لم تُحدَّد بعد — أضفها من «تعديل بيانات الحملة».</div>') + '</div>';
+  }
+  function overviewHTML(){
+    var c = S.c, p = S.plan;
+    var support = (p.support || []).map(function(k){ var f = SUPPORT.filter(function(s){ return s[0] === k; })[0]; return f ? f[1] : k; });
+    return '<div class="cmp-panel"><div class="cmp-panel-title">بيانات الحملة</div><div class="cmw-kvs">'
+        + kv('نوع الحملة', c.audienceLabel) + kv('الجمهور المستهدف', c.targetAudience) + kv('مالك الحملة', c.owner)
+        + kv('تاريخ البداية', fdate(c.startDate)) + kv('تاريخ النهاية', fdate(c.endDate)) + kv('المدة', (c.durationDays || 0) + ' يوم')
+        + kv('الإدارة', c.department) + kv('حالة الحملة', c.statusLabel) + kv('الدعم المطلوب', support.join('، '))
+      + '</div></div>'
+      + '<div class="cmp-two">' + listBlock('الرسائل الرئيسية', c.keyMessages) + listBlock('فريق العمل', c.teamMembers) + '</div>'
+      + '<div class="cmp-panel"><div class="cmp-panel-title">آخر تحديث</div>'
+        + '<textarea class="adm-input mmr-in mmr-area" rows="2" placeholder="اكتب آخر مستجدات الحملة…" onchange="CMW.setLatest(this.value)">' + e(c.latestUpdate || '') + '</textarea></div>';
+  }
+
+  // Timeline: lifecycle stages from the campaign dates, then milestones and deadlines by date.
+  function timelineRows(){
+    var c = S.c, p = S.plan, now = today(), rows = [];
+    var cur = stageIdx(c.stage);
+    rows.push({ date: iso(c.startDate), title: 'بداية الحملة', kind: 'مرحلة', state: cur >= 1 ? 'done' : (iso(c.startDate) < now ? 'late' : 'up') });
+    rows.push({ date: iso(c.endDate), title: 'نهاية النشر والتنفيذ', kind: 'مرحلة', state: cur >= 2 ? 'done' : (iso(c.endDate) < now ? 'late' : 'up') });
+    p.milestones.forEach(function(m){ rows.push({ date: m.date, title: m.title, kind: 'محطة', state: m.done ? 'done' : (m.date && m.date < now ? 'late' : 'up') }); });
+    p.deliverables.forEach(function(d){ if (d.dueDate) rows.push({ date: d.dueDate, title: d.title, kind: 'مخرج', state: d.done ? 'done' : (d.dueDate < now ? 'late' : 'up') }); });
+    p.tasks.forEach(function(t){ if (t.dueDate) rows.push({ date: t.dueDate, title: t.title, kind: 'مهمة', state: t.done ? 'done' : (t.dueDate < now ? 'late' : 'up') }); });
+    rows.push({ date: '', title: 'قياس الأداء ثم الإغلاق', kind: 'مرحلة', state: cur >= 3 ? 'done' : (cur === 2 ? 'now' : 'up') });
+    return rows.sort(function(a, b){ if (!a.date) return 1; if (!b.date) return -1; return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; });
+  }
+  var STATE_LABEL = { done: 'مكتمل', late: 'متأخر', up: 'قادم', now: 'جارٍ' };
+  function planHTML(){
+    var p = S.plan;
+    var tl = timelineRows().map(function(r){
+      return '<li class="cmw-tl-item is-' + r.state + '"><span class="cmw-tl-dot"></span><div class="cmw-tl-main"><b>' + e(r.title) + '</b>'
+        + '<span>' + e(r.kind) + ' · ' + (r.date ? fdate(r.date) : 'بعد انتهاء النشر') + '</span></div><span class="cmw-tl-st">' + STATE_LABEL[r.state] + '</span></li>';
+    }).join('');
+    var ms = p.milestones.map(function(m, i){
+      return '<div class="cmw-row"><input type="checkbox" ' + (m.done ? 'checked' : '') + ' onchange="CMW.setItem(\'milestones\',' + i + ',\'done\',this.checked)" aria-label="مكتملة">'
+        + '<input class="adm-input mmr-in" value="' + e(m.title) + '" placeholder="اسم المحطة" onchange="CMW.setItem(\'milestones\',' + i + ',\'title\',this.value)">'
+        + '<input class="adm-input cmw-date" type="date" value="' + e(m.date || '') + '" onchange="CMW.setItem(\'milestones\',' + i + ',\'date\',this.value)">'
+        + '<button class="mmr-ib" title="حذف" onclick="CMW.removeItem(\'milestones\',' + i + ')">✕</button></div>';
+    }).join('');
+    var tasks = p.tasks.map(function(t, i){
+      return '<div class="cmw-row"><input type="checkbox" ' + (t.done ? 'checked' : '') + ' onchange="CMW.setItem(\'tasks\',' + i + ',\'done\',this.checked)" aria-label="منجزة">'
+        + '<input class="adm-input mmr-in" value="' + e(t.title) + '" placeholder="المهمة" onchange="CMW.setItem(\'tasks\',' + i + ',\'title\',this.value)">'
+        + '<input class="adm-input cmw-owner" value="' + e(t.owner || '') + '" placeholder="المسؤول" onchange="CMW.setItem(\'tasks\',' + i + ',\'owner\',this.value)">'
+        + '<input class="adm-input cmw-date" type="date" value="' + e(t.dueDate || '') + '" onchange="CMW.setItem(\'tasks\',' + i + ',\'dueDate\',this.value)">'
+        + '<button class="mmr-ib" title="حذف" onclick="CMW.removeItem(\'tasks\',' + i + ')">✕</button></div>';
+    }).join('');
+    return '<div class="cmp-panel"><div class="cmp-panel-title">الجدول الزمني</div><ol class="cmw-tl">' + tl + '</ol></div>'
+      + '<div class="cmp-two">'
+      + '<div class="cmp-panel"><div class="cmp-panel-title">المحطات الرئيسية</div>' + (ms || '<div class="mmr-empty">لا توجد محطات بعد.</div>')
+        + '<div><button class="btn btn-ghost btn-sm" onclick="CMW.addItem(\'milestones\')">+ إضافة محطة</button></div></div>'
+      + '<div class="cmp-panel"><div class="cmp-panel-title">المهام <span class="mmr-hint" style="margin:0;">تدخل في احتساب نسبة الإنجاز</span></div>' + (tasks || '<div class="mmr-empty">لا توجد مهام بعد.</div>')
+        + '<div><button class="btn btn-ghost btn-sm" onclick="CMW.addItem(\'tasks\')">+ إضافة مهمة</button></div></div>'
+      + '</div>';
+  }
+  function fileChips(files, owner, idx){
+    return (files || []).map(function(f, j){
+      return '<span class="cmw-file"><button class="cmw-file-a" onclick="CMW.openFile(\'' + e(f.path) + '\',\'' + e(f.fileName) + '\')">📎 ' + e(f.fileName) + '</button>'
+        + '<span class="cmw-file-s">' + Math.max(1, Math.round((f.sizeBytes || 0) / 1024)) + ' KB</span>'
+        + '<button class="mmr-ib" title="إزالة الملف" onclick="CMW.removeFile(\'' + owner + '\',' + idx + ',' + j + ')">✕</button></span>';
+    }).join('');
+  }
+  function uploadBtn(owner, idx){
+    return '<label class="btn btn-ghost btn-sm cmw-up">رفع ملف<input type="file" hidden onchange="CMW.upload(this,\'' + owner + '\',' + idx + ')"></label>';
+  }
+  function deliverablesHTML(){
+    var p = S.plan;
+    var rows = p.deliverables.map(function(d, i){
+      return '<div class="mmr-item"><div class="cmw-row"><input type="checkbox" ' + (d.done ? 'checked' : '') + ' onchange="CMW.setItem(\'deliverables\',' + i + ',\'done\',this.checked)" aria-label="مكتمل">'
+        + '<input class="adm-input mmr-in" value="' + e(d.title) + '" placeholder="اسم المخرج" onchange="CMW.setItem(\'deliverables\',' + i + ',\'title\',this.value)">'
+        + '<input class="adm-input cmw-date" type="date" value="' + e(d.dueDate || '') + '" onchange="CMW.setItem(\'deliverables\',' + i + ',\'dueDate\',this.value)">'
+        + '<button class="mmr-ib" title="حذف" onclick="CMW.removeItem(\'deliverables\',' + i + ')">✕</button></div>'
+        + '<div class="cmw-files">' + fileChips(d.files, 'deliverables', i) + uploadBtn('deliverables', i) + '</div></div>';
+    }).join('');
+    return '<div class="cmp-panel"><div class="cmp-panel-title">المخرجات المطلوبة</div>'
+      + '<p class="mmr-hint">علِّم المخرج كمكتمل عند تسليمه — تُحدَّث نسبة الإنجاز تلقائياً. يمكن إرفاق ملفات لكل مخرج (حتى 15 MB).</p>'
+      + (rows || '<div class="mmr-empty">لا توجد مخرجات بعد.</div>')
+      + '<div><button class="btn btn-ghost btn-sm" onclick="CMW.addItem(\'deliverables\')">+ إضافة مخرج</button></div></div>'
+      + '<div class="cmp-panel"><div class="cmp-panel-title">ملفات الحملة العامة</div>'
+      + '<div class="cmw-files">' + (fileChips(p.files, 'files', -1) || '<span class="mmr-hint" style="margin:0;">لا توجد ملفات مرفقة.</span>') + uploadBtn('files', -1) + '</div></div>';
+  }
+  var CONTENT_STATUS = [['draft','مسودة'],['review','قيد المراجعة'],['approved','معتمد'],['published','منشور']];
+  function opts(list, cur){ return list.map(function(o){ return '<option value="' + o[0] + '"' + (o[0] === cur ? ' selected' : '') + '>' + e(o[1]) + '</option>'; }).join(''); }
+  function contentHTML(){
+    var p = S.plan;
+    var rows = p.content.map(function(m, i){
+      return '<div class="mmr-item"><div class="cmw-row">'
+        + '<input class="adm-input mmr-in" value="' + e(m.title) + '" placeholder="عنوان المادة" onchange="CMW.setItem(\'content\',' + i + ',\'title\',this.value)">'
+        + '<input class="adm-input cmw-owner" value="' + e(m.type || '') + '" placeholder="النوع (منشور، فيديو…)" onchange="CMW.setItem(\'content\',' + i + ',\'type\',this.value)">'
+        + '<select class="adm-input cmw-owner" onchange="CMW.setItem(\'content\',' + i + ',\'status\',this.value)">' + opts(CONTENT_STATUS, m.status || 'draft') + '</select>'
+        + '<button class="mmr-ib" title="حذف" onclick="CMW.removeItem(\'content\',' + i + ')">✕</button></div>'
+        + '<textarea class="adm-input mmr-in mmr-area" rows="3" placeholder="نص المادة" onchange="CMW.setItem(\'content\',' + i + ',\'body\',this.value)">' + e(m.body || '') + '</textarea></div>';
+    }).join('');
+    return '<div class="cmp-panel"><div class="cmp-panel-title">مواد المحتوى</div>'
+      + (rows || '<div class="mmr-empty">لا توجد مواد محتوى بعد.</div>')
+      + '<div><button class="btn btn-ghost btn-sm" onclick="CMW.addItem(\'content\')">+ إضافة مادة</button></div></div>';
+  }
+  var CH_STATUS = [['planned','مخطط'],['scheduled','مجدول'],['published','منشور'],['activated','مُفعَّل']];
+  function channelsHTML(){
+    var p = S.plan;
+    var rows = p.channels.map(function(ch, i){
+      return '<div class="cmw-row">'
+        + '<input class="adm-input mmr-in" value="' + e(ch.name) + '" placeholder="القناة" onchange="CMW.setItem(\'channels\',' + i + ',\'name\',this.value)">'
+        + '<input class="adm-input cmw-date" type="date" value="' + e(ch.plannedDate || '') + '" onchange="CMW.setItem(\'channels\',' + i + ',\'plannedDate\',this.value)">'
+        + '<select class="adm-input cmw-owner" onchange="CMW.setItem(\'channels\',' + i + ',\'status\',this.value)">' + opts(CH_STATUS, ch.status || 'planned') + '</select>'
+        + '<input class="adm-input cmw-owner" dir="ltr" value="' + e(ch.link || '') + '" placeholder="https://" onchange="CMW.setItem(\'channels\',' + i + ',\'link\',this.value)">'
+        + '<button class="mmr-ib" title="حذف" onclick="CMW.removeItem(\'channels\',' + i + ')">✕</button></div>';
+    }).join('');
+    var live = (S.c.channels || []).filter(function(ch){ return ch.reachCount || ch.publishedItems; });
+    return '<div class="cmp-panel"><div class="cmp-panel-title">قنوات النشر والتفعيل</div>'
+      + (rows || '<div class="mmr-empty">لا توجد قنوات بعد.</div>')
+      + '<div><button class="btn btn-ghost btn-sm" onclick="CMW.addItem(\'channels\')">+ إضافة قناة</button></div></div>'
+      + (live.length ? '<div class="cmp-panel"><div class="cmp-panel-title">أداء القنوات المسجل</div><div class="cmp-chan-list">' + live.map(function(ch){
+          var share = Math.max(0, Math.min(100, ch.sharePercent || 0));
+          return '<div class="cmp-chan-row"><span class="cmp-chan-name">' + e(ch.name) + '</span><span class="cmp-chan-share">' + share + '%</span>'
+            + '<span class="cmp-chan-bar"><span class="cmp-chan-fill" style="width:' + share + '%"></span></span>'
+            + '<span class="cmp-chan-meta">' + fmt(ch.reachCount) + ' وصول · ' + fmt(ch.engagementCount) + ' تفاعل · ' + fmt(ch.publishedItems) + ' مادة منشورة</span></div>';
+        }).join('') + '</div></div>' : '');
+  }
+
+  function cmpRow(label, en, target, actual, isPct){
+    var t = Number(target) || 0, a = Number(actual) || 0;
+    var pct = t ? Math.round(a * 100 / t) : null;
+    var cls = pct === null ? '' : pct >= 100 ? 'is-good' : pct >= 70 ? 'is-warn' : 'is-bad';
+    var show = function(v){ return isPct ? (Number(v) || 0).toFixed(1) + '%' : fmt(v); };
+    return '<tr><td><b>' + e(label) + '</b> <span class="cmw-en">' + e(en) + '</span></td><td data-label="المستهدف" class="cmw-n">' + (t ? show(t) : '—') + '</td><td data-label="الفعلي" class="cmw-n">' + show(a) + '</td>'
+      + '<td data-label="التحقق"><div class="cmw-ach ' + cls + '"><span style="width:' + Math.min(100, pct || 0) + '%"></span></div><b class="cmw-n">' + (pct === null ? '—' : pct + '%') + '</b></td></tr>';
+  }
+  function resultsHTML(){
+    var c = S.c, p = S.plan, r = p.results, t = p.targets, ext = S.aud === 'external';
+    var stageNote = c.stage === 'measurement' ? '<div class="cmw-banner">الحملة في مرحلة قياس الأداء — أكمل النتائج ثم أغلق الحملة من الأعلى.</div>'
+      : c.stage === 'closed' ? '<div class="cmw-banner is-done">الحملة مغلقة — النتائج محفوظة في «نتائج الحملات السابقة».</div>'
+      : '<div class="cmw-banner is-muted">تُسجَّل النتائج الفعلية بعد التنفيذ، ويمكن تحديد المستهدفات من الآن.</div>';
+    var inputs = METRICS.map(function(m){
+      var auto = ext && r.byPlatform.length;
+      return '<div><label class="mmr-lbl">' + e(m[1]) + ' <span class="cmw-en">' + m[2] + '</span></label><div class="cmw-pair">'
+        + '<input class="adm-input" type="number" min="0" placeholder="المستهدف" value="' + (t[m[0]] || '') + '" onchange="CMW.setMetric(\'targets\',\'' + m[0] + '\',this.value)" aria-label="المستهدف">'
+        + '<input class="adm-input" type="number" min="0" placeholder="الفعلي" value="' + (r[m[0]] || '') + '" ' + (auto ? 'disabled title="يُحتسب من المنصات"' : '') + ' onchange="CMW.setMetric(\'results\',\'' + m[0] + '\',this.value)" aria-label="الفعلي"></div></div>';
+    }).join('');
+    var rateT = Number(t.engagementRate) || 0;
+    var table = METRICS.map(function(m){ return cmpRow(m[1], m[2], t[m[0]], r[m[0]]); }).join('')
+      + cmpRow('معدل التفاعل', 'Engagement Rate', rateT, rate(r), true)
+      + r.other.filter(function(o){ return o.label; }).map(function(o){ return cmpRow(o.label, o.platform || '', o.target, o.value); }).join('');
+    var other = r.other.map(function(o, i){
+      return '<div class="cmw-row"><input class="adm-input mmr-in" value="' + e(o.label || '') + '" placeholder="اسم المؤشر (مثل Saves، Shares)" onchange="CMW.setOther(' + i + ',\'label\',this.value)">'
+        + '<input class="adm-input cmw-owner" value="' + e(o.platform || '') + '" placeholder="المنصة" onchange="CMW.setOther(' + i + ',\'platform\',this.value)">'
+        + '<input class="adm-input cmw-num" type="number" min="0" value="' + (o.target || '') + '" placeholder="المستهدف" onchange="CMW.setOther(' + i + ',\'target\',this.value)">'
+        + '<input class="adm-input cmw-num" type="number" min="0" value="' + (o.value || '') + '" placeholder="الفعلي" onchange="CMW.setOther(' + i + ',\'value\',this.value)">'
+        + '<button class="mmr-ib" title="حذف" onclick="CMW.removeOther(' + i + ')">✕</button></div>';
+    }).join('');
+    var social = ext ? socialHTML(r) : '';
+    return stageNote
+      + '<div class="cmp-panel"><div class="cmp-panel-title">المستهدف مقابل الفعلي</div>'
+        + '<div class="cmw-tbl-wrap"><table class="cmw-tbl tbl-cards"><thead><tr><th>المؤشر</th><th>المستهدف</th><th>الفعلي</th><th>نسبة التحقق</th></tr></thead><tbody>' + table + '</tbody></table></div></div>'
+      + '<div class="cmp-panel"><div class="cmp-panel-title">إدخال المستهدفات والنتائج</div><div class="cmw-metrics">' + inputs
+        + '<div><label class="mmr-lbl">معدل التفاعل المستهدف <span class="cmw-en">Engagement Rate %</span></label><div class="cmw-pair">'
+          + '<input class="adm-input" type="number" min="0" step="0.1" value="' + (t.engagementRate || '') + '" onchange="CMW.setMetric(\'targets\',\'engagementRate\',this.value)" aria-label="المستهدف">'
+          + '<input class="adm-input" disabled value="' + rate(r).toFixed(1) + '%" title="التفاعلات ÷ مرات الظهور"></div></div>'
+        + '</div><p class="mmr-note">معدل التفاعل الفعلي يُحتسب تلقائياً = التفاعلات ÷ مرات الظهور.</p></div>'
+      + social
+      + '<div class="cmp-panel"><div class="cmp-panel-title">مؤشرات إضافية خاصة بالمنصات</div>' + (other || '<div class="mmr-empty">لا توجد مؤشرات إضافية.</div>')
+        + '<div><button class="btn btn-ghost btn-sm" onclick="CMW.addOther()">+ إضافة مؤشر</button></div></div>'
+      + '<div class="cmp-panel"><div class="cmp-panel-title">ملخص النتائج والدروس المستفادة</div>'
+        + '<label class="mmr-lbl">ملخص الأداء</label><textarea class="adm-input mmr-in mmr-area" rows="3" onchange="CMW.setText(\'summary\',this.value)">' + e(p.summary) + '</textarea>'
+        + '<label class="mmr-lbl">الدروس المستفادة للحملات القادمة</label><textarea class="adm-input mmr-in mmr-area" rows="3" onchange="CMW.setText(\'lessons\',this.value)">' + e(p.lessons) + '</textarea></div>';
+  }
+  // Prepared for Social Media Integration: one row per platform in the same shape an importer
+  // will write (source:'api', importedAt). Until a platform is connected, rows are manual.
+  function socialHTML(r){
+    var used = r.byPlatform.map(function(x){ return x.platform; });
+    var rows = r.byPlatform.map(function(x, i){
+      var name = (PLATFORMS.filter(function(p){ return p[0] === x.platform; })[0] || [x.platform, x.platform])[1];
+      return '<tr><td><b dir="ltr">' + e(name) + '</b><div class="cmw-src">' + (x.source === 'api' ? 'مستورد تلقائياً' : 'إدخال يدوي') + '</div></td>'
+        + METRICS.map(function(m){ return '<td data-label="' + e(m[1]) + '"><input class="adm-input cmw-num" type="number" min="0" value="' + (x[m[0]] || '') + '" onchange="CMW.setPlatform(' + i + ',\'' + m[0] + '\',this.value)" aria-label="' + e(m[2]) + '"></td>'; }).join('')
+        + '<td><button class="mmr-ib" title="حذف" onclick="CMW.removePlatform(' + i + ')">✕</button></td></tr>';
+    }).join('');
+    var free = PLATFORMS.filter(function(p){ return used.indexOf(p[0]) < 0; });
+    return '<div class="cmp-panel"><div class="cmp-panel-title">النتائج حسب المنصة <span class="cmw-en">Social Media</span></div>'
+      + '<div class="cmw-integr">' + PLATFORMS.map(function(p){ return '<span class="cmw-plat" title="الربط التلقائي غير مفعّل بعد"><b dir="ltr">' + p[1] + '</b> غير مرتبط</span>'; }).join('') + '</div>'
+      + '<p class="mmr-note">البنية جاهزة لاستيراد المؤشرات تلقائياً عند ربط حسابات المنصات لاحقاً. حالياً تُدخل الأرقام يدوياً، ويُحتسب الإجمالي منها.</p>'
+      + (rows ? '<div class="cmw-tbl-wrap"><table class="cmw-tbl cmw-plat-tbl"><thead><tr><th>المنصة</th>' + METRICS.map(function(m){ return '<th>' + e(m[1]) + '</th>'; }).join('') + '<th></th></tr></thead><tbody>' + rows + '</tbody></table></div>' : '')
+      + (free.length ? '<div class="cmw-row" style="grid-template-columns:auto 1fr;"><select class="adm-input cmw-owner" id="cmw-plat-pick">' + free.map(function(p){ return '<option value="' + p[0] + '">' + p[1] + '</option>'; }).join('') + '</select>'
+        + '<div><button class="btn btn-ghost btn-sm" onclick="CMW.addPlatform()">+ إضافة منصة</button></div></div>' : '')
+      + '</div>';
+  }
+
+  // ── Mutations ─────────────────────────────────────────────────────────────
+  var BLANK = {
+    milestones: function(){ return { id: uid('m'), title: '', date: '', done: false }; },
+    tasks: function(){ return { id: uid('t'), title: '', owner: '', dueDate: '', done: false }; },
+    deliverables: function(){ return { id: uid('d'), title: '', dueDate: '', done: false, files: [] }; },
+    content: function(){ return { id: uid('c'), title: '', type: '', status: 'draft', body: '' }; },
+    channels: function(){ return { id: uid('ch'), name: '', plannedDate: '', status: 'planned', link: '' }; }
+  };
+  function after(repaintHead){ if (repaintHead) paintHead(); paintBody(); queueSave(); }
+  function addItem(list){ S.plan[list].push(BLANK[list]()); after(list === 'tasks' || list === 'deliverables');
+    var b = document.getElementById('cmw-body'); var ins = b && b.querySelectorAll('.mmr-in'); if (ins && ins.length) ins[ins.length - 1].focus(); }
+  function removeItem(list, i){
+    var it = S.plan[list][i]; if (!it) return;
+    if ((it.title || it.name) && !confirm('حذف «' + (it.title || it.name) + '»؟')) return;
+    S.plan[list].splice(i, 1); after(list === 'tasks' || list === 'deliverables');
+  }
+  function setItem(list, i, key, val){ var it = S.plan[list][i]; if (!it) return; it[key] = val; after(key === 'done' || list === 'milestones'); }
+  function setMetric(group, key, val){ S.plan[group][key] = val === '' ? 0 : Math.max(0, Number(val) || 0); after(false); }
+  function setText(key, val){ S.plan[key] = val; queueSave(); }
+  function setLatest(val){ S.c.latestUpdate = val; queueSave(); }
+  function addOther(){ S.plan.results.other.push({ label: '', platform: '', target: 0, value: 0 }); after(false); }
+  function setOther(i, k, v){ var o = S.plan.results.other[i]; if (!o) return; o[k] = (k === 'target' || k === 'value') ? Math.max(0, Number(v) || 0) : v; after(false); }
+  function removeOther(i){ S.plan.results.other.splice(i, 1); after(false); }
+  function addPlatform(){
+    var pick = document.getElementById('cmw-plat-pick'); if (!pick) return;
+    S.plan.results.byPlatform.push({ platform: pick.value, source: 'manual', reach: 0, impressions: 0, engagement: 0, views: 0, clicks: 0 });
+    recomputeTotals(S.plan); after(false);
+  }
+  function setPlatform(i, k, v){ var x = S.plan.results.byPlatform[i]; if (!x) return; x[k] = Math.max(0, Number(v) || 0); recomputeTotals(S.plan); after(false); }
+  function removePlatform(i){ S.plan.results.byPlatform.splice(i, 1); recomputeTotals(S.plan); after(false); }
+
+  async function advance(stage){
+    var c = S.c;
+    if (stage === 'measurement' && c.stage === 'execution' && !confirm('تأكيد انتهاء النشر؟ ستنتقل الحملة إلى مرحلة قياس الأداء ولن تُعدّ مكتملة قبل الإغلاق.')) return;
+    if (stage === 'closed') {
+      var r = S.plan.results, hasResults = METRICS.some(function(m){ return num(r[m[0]]) > 0; });
+      if (!hasResults && !confirm('لم تُسجَّل نتائج أداء بعد. هل تريد إغلاق الحملة على أي حال؟')) { setTab('results'); return; }
+      if (hasResults && !confirm('إغلاق الحملة نهائياً؟')) return;
+    }
+    if (await flush(stage)) {
+      toast(stage === 'closed' ? 'تم إغلاق الحملة وحفظ نتائجها' : 'انتقلت الحملة إلى مرحلة ' + stageLabel(stage));
+      if (stage === 'measurement' || stage === 'closed') setTab('results'); else paintBody();
+    }
+  }
+
+  // ── Files ─────────────────────────────────────────────────────────────────
+  function toBase64(file){
+    return new Promise(function(res, rej){
+      var fr = new FileReader();
+      fr.onload = function(){ var s = String(fr.result); res(s.slice(s.indexOf(',') + 1)); };
+      fr.onerror = function(){ rej(new Error('تعذرت قراءة الملف')); };
+      fr.readAsDataURL(file);
+    });
+  }
+  async function upload(input, owner, idx){
+    var file = input.files && input.files[0]; if (!file) return;
+    if (file.size > 15 * 1024 * 1024) { toast('حجم الملف يتجاوز 15 MB', 'err'); input.value = ''; return; }
+    var label = input.parentNode; label.classList.add('is-busy'); label.firstChild.textContent = 'جارٍ الرفع…';
+    try {
+      var data = await toBase64(file);
+      var res = await api('/' + S.aud + '/' + S.c.id + '/files', jsonOpts('POST', { fileName: file.name, contentType: file.type || 'application/octet-stream', dataBase64: data }));
+      if (!res.ok) throw new Error(await readErr(res, 'تعذر رفع الملف'));
+      var f = await res.json();
+      (owner === 'files' ? S.plan.files : S.plan.deliverables[idx].files).push(f);
+      paintBody(); await flush(); toast('تم إرفاق الملف');
+    } catch (x) { toast(x.message || 'تعذر رفع الملف', 'err'); paintBody(); }
+  }
+  function removeFile(owner, idx, j){
+    var list = owner === 'files' ? S.plan.files : (S.plan.deliverables[idx] || {}).files;
+    if (!list || !list[j] || !confirm('إزالة الملف «' + list[j].fileName + '» من الحملة؟')) return;
+    list.splice(j, 1); after(false);
+  }
+  async function openFile(path, name){
+    try {
+      var res = await apiFetchUncached(apiUrl('/storage/objects/' + path));
+      if (!res.ok) throw new Error('تعذر فتح الملف');
+      var url = URL.createObjectURL(await res.blob());
+      var a = document.createElement('a'); a.href = url; a.download = name || 'file'; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+    } catch (x) { toast(x.message || 'تعذر فتح الملف', 'err'); }
+  }
+
+  // ── Create / edit form ────────────────────────────────────────────────────
+  function modal(html){
+    var m = document.getElementById('cmw-modal');
+    if (!m) { m = document.createElement('div'); m.id = 'cmw-modal'; m.className = 'cmw-modal'; document.body.appendChild(m);
+      m.addEventListener('click', function(ev){ if (ev.target === m) closeModal(); }); }
+    m.innerHTML = '<div class="cmw-modal-box" role="dialog" aria-modal="true">' + html + '</div>'; m.style.display = 'flex';
+    var f = m.querySelector('input,textarea,select'); if (f) f.focus();
+  }
+  function closeModal(){ var m = document.getElementById('cmw-modal'); if (m) { m.style.display = 'none'; m.innerHTML = ''; } }
+  function field(id, label, value, type, extra){
+    var input = type === 'area'
+      ? '<textarea id="' + id + '" class="adm-input mmr-in mmr-area" rows="3" ' + (extra || '') + '>' + e(value) + '</textarea>'
+      : '<input id="' + id + '" class="adm-input mmr-in" type="' + (type || 'text') + '" value="' + e(value) + '" ' + (extra || '') + '>';
+    return '<div><label class="mmr-lbl" for="' + id + '">' + label + '</label>' + input + '</div>';
+  }
+  function openForm(aud, c){
+    var isNew = !c; c = c || {};
+    var p = c.id ? planOf(c) : { deliverables: [], channels: [] };
+    var st = c.stage || 'planning';
+    var stageOpts = STAGES.filter(function(s){ return s[0] !== 'closed' || st === 'closed' || st === 'measurement'; })
+      .map(function(s){ return '<option value="' + s[0] + '"' + (s[0] === st ? ' selected' : '') + '>' + s[1] + '</option>'; }).join('');
+    var pct = c.id ? (progressOf(p) === null ? (c.progressPercent || 0) : progressOf(p)) : 0;
+    modal('<div class="cmw-modal-hd"><h3>' + (isNew ? 'حملة جديدة' : 'تعديل بيانات الحملة') + '</h3><button class="btn btn-ghost btn-sm" onclick="CMW.closeModal()" aria-label="إغلاق">✕</button></div>'
+      + '<form id="cmw-form" onsubmit="event.preventDefault();CMW.submitForm(\'' + aud + '\',' + (c.id || 0) + ')">'
+      + field('cmwf-name', 'اسم الحملة *', c.name || '', 'text', 'required maxlength="300"')
+      + '<div class="mmr-grid2"><div><label class="mmr-lbl" for="cmwf-type">نوع الحملة</label><select id="cmwf-type" class="adm-input mmr-in" ' + (isNew ? '' : 'disabled') + '>'
+        + '<option value="internal"' + (aud === 'internal' ? ' selected' : '') + '>داخلية</option><option value="external"' + (aud === 'external' ? ' selected' : '') + '>خارجية</option></select></div>'
+        + '<div><label class="mmr-lbl" for="cmwf-stage">حالة الحملة</label><select id="cmwf-stage" class="adm-input mmr-in">' + stageOpts + '</select></div></div>'
+      + field('cmwf-obj', 'الهدف', c.objective || '', 'area')
+      + field('cmwf-aud', 'الجمهور المستهدف', c.targetAudience || '')
+      + '<div class="mmr-grid2">' + field('cmwf-start', 'تاريخ البداية *', iso(c.startDate) || today(), 'date', 'required') + field('cmwf-end', 'تاريخ النهاية *', iso(c.endDate) || '', 'date', 'required') + '</div>'
+      + field('cmwf-msgs', 'الرسائل الرئيسية <span class="mmr-hint">(سطر لكل رسالة)</span>', c.keyMessages || '', 'area')
+      + '<div class="mmr-grid2">' + field('cmwf-owner', 'مالك الحملة', c.owner || (window.AUTH_USER && AUTH_USER.fullName) || '') + field('cmwf-team', 'فريق العمل <span class="mmr-hint">(سطر لكل عضو)</span>', c.teamMembers || '', 'area') + '</div>'
+      + field('cmwf-dels', 'المخرجات المطلوبة <span class="mmr-hint">(سطر لكل مخرج)</span>', (p.deliverables || []).map(function(d){ return d.title; }).join('\n'), 'area')
+      + field('cmwf-chans', 'قنوات النشر / التفعيل <span class="mmr-hint">(سطر لكل قناة)</span>', (p.channels || []).map(function(ch){ return ch.name; }).join('\n'), 'area')
+      + '<div class="cmw-auto"><span>نسبة الإنجاز</span><b>' + pct + '%</b><span class="mmr-hint" style="margin:0;">تُحتسب تلقائياً من المهام والمخرجات المكتملة</span></div>'
+      + '<div id="cmwf-err" class="mmr-banner-err" style="display:none;"></div>'
+      + '<div class="mmr-actions"><button type="button" class="btn btn-ghost" onclick="CMW.closeModal()">إلغاء</button>'
+        + '<button type="submit" class="btn btn-primary" id="cmwf-submit">' + (isNew ? 'إنشاء الحملة' : 'حفظ التعديلات') + '</button></div></form>');
+  }
+  function val(id){ var n = document.getElementById(id); return n ? n.value.trim() : ''; }
+  // Keeps existing rows (with their done flags, dates and files) when titles are unchanged.
+  function mergeByTitle(existing, titles, make, key){
+    key = key || 'title';
+    return titles.map(function(t){ var hit = existing.filter(function(x){ return x[key] === t; })[0]; return hit || make(t); });
+  }
+  async function submitForm(audIn, id){
+    var errEl = document.getElementById('cmwf-err'), btn = document.getElementById('cmwf-submit');
+    var aud = id ? audIn : val('cmwf-type');
+    var name = val('cmwf-name'), start = val('cmwf-start'), end = val('cmwf-end');
+    var err = !name ? 'اسم الحملة مطلوب' : !start || !end ? 'حدد تاريخي البداية والنهاية' : end < start ? 'تاريخ النهاية يسبق تاريخ البداية' : '';
+    if (err) { errEl.textContent = err; errEl.style.display = 'block'; return; }
+    var base = id && S.c && S.c.id === id ? S.c : (id ? CMP._find(aud, id) : null);
+    var p = base ? planOf(base) : planOf({});
+    p.deliverables = mergeByTitle(p.deliverables, lines(val('cmwf-dels')), function(t){ return { id: uid('d'), title: t, dueDate: end, done: false, files: [] }; });
+    p.channels = mergeByTitle(p.channels, lines(val('cmwf-chans')), function(t){ return { id: uid('ch'), name: t, plannedDate: '', status: 'planned', link: '' }; }, 'name');
+    var body = bodyOf({ name: name, objective: val('cmwf-obj'), targetAudience: val('cmwf-aud'), startDate: start, endDate: end,
+      keyMessages: val('cmwf-msgs'), owner: val('cmwf-owner'), teamMembers: val('cmwf-team'), latestUpdate: base ? base.latestUpdate : '' }, p, val('cmwf-stage'));
+    btn.disabled = true; btn.textContent = 'جارٍ الحفظ…'; errEl.style.display = 'none';
+    try {
+      var res = await api('/' + aud + (id ? '/' + id : ''), jsonOpts(id ? 'PUT' : 'POST', body));
+      if (!res.ok) throw new Error(await readErr(res, 'تعذر حفظ الحملة'));
+      var fresh = await res.json();
+      closeModal(); toast(id ? 'تم حفظ بيانات الحملة' : 'تم إنشاء الحملة');
+      CMP._put(aud, fresh);
+      if (!id) { if (document.getElementById('section-' + aud + '_campaigns').classList.contains('active')) CMP.open(aud, fresh.id); else CMP.goto(aud, fresh.id); }
+      else if (S.c && S.c.id === id) { S.c = fresh; S.plan = planOf(fresh); paintHead(); paintBody(); }
+    } catch (x) { errEl.textContent = x.message; errEl.style.display = 'block'; btn.disabled = false; btn.textContent = id ? 'حفظ التعديلات' : 'إنشاء الحملة'; }
+  }
+
+  // ── Internal campaign requests ───────────────────────────────────────────
+  var R = { items: null, canReview: false, loading: false, error: '' };
+  function reqDraft(){ try { return JSON.parse(localStorage.getItem(REQ_DRAFT_KEY) || '{}'); } catch (x) { return {}; } }
+  function saveReqDraft(){
+    var d = { dept: val('cmwr-dept'), name: val('cmwr-name'), obj: val('cmwr-obj'), aud: val('cmwr-aud'), start: val('cmwr-start'), end: val('cmwr-end'), msgs: val('cmwr-msgs'),
+      support: Array.prototype.map.call(document.querySelectorAll('#cmw-req-form input[name=cmwr-sup]:checked'), function(x){ return x.value; }) };
+    try { localStorage.setItem(REQ_DRAFT_KEY, JSON.stringify(d)); } catch (x) {}
+  }
+  function openRequestForm(){
+    var d = reqDraft(), sup = d.support || [];
+    modal('<div class="cmw-modal-hd"><h3>طلب حملة داخلية</h3><button class="btn btn-ghost btn-sm" onclick="CMW.closeModal()" aria-label="إغلاق">✕</button></div>'
+      + '<p class="mmr-hint">يُرسَل الطلب إلى الاتصال المؤسسي للمراجعة، وعند اعتماده يتحول مباشرة إلى حملة دون إعادة إدخال البيانات.</p>'
+      + '<form id="cmw-req-form" oninput="CMW._reqDraft()" onsubmit="event.preventDefault();CMW.submitRequest()">'
+      + field('cmwr-dept', 'الإدارة الطالبة *', d.dept || '', 'text', 'required')
+      + field('cmwr-name', 'اسم الحملة *', d.name || '', 'text', 'required maxlength="300"')
+      + field('cmwr-obj', 'الهدف *', d.obj || '', 'area', 'required')
+      + field('cmwr-aud', 'الجمهور المستهدف', d.aud || '')
+      + '<div class="mmr-grid2">' + field('cmwr-start', 'بداية الفترة المقترحة *', d.start || '', 'date', 'required') + field('cmwr-end', 'نهاية الفترة المقترحة *', d.end || '', 'date', 'required') + '</div>'
+      + field('cmwr-msgs', 'الرسائل الرئيسية <span class="mmr-hint">(سطر لكل رسالة)</span>', d.msgs || '', 'area')
+      + '<label class="mmr-lbl">الدعم المطلوب * <span class="mmr-hint">(يمكن اختيار أكثر من خيار)</span></label><div class="cmw-checks">'
+        + SUPPORT.map(function(s){ return '<label class="cmw-check"><input type="checkbox" name="cmwr-sup" value="' + s[0] + '"' + (sup.indexOf(s[0]) >= 0 ? ' checked' : '') + '> ' + s[1] + '</label>'; }).join('') + '</div>'
+      + '<div id="cmwr-err" class="mmr-banner-err" style="display:none;"></div>'
+      + '<div class="mmr-actions"><button type="button" class="btn btn-ghost" onclick="CMW.closeModal()">إلغاء</button><button type="submit" class="btn btn-primary" id="cmwr-submit">إرسال الطلب للمراجعة</button></div></form>');
+  }
+  async function submitRequest(){
+    var errEl = document.getElementById('cmwr-err'), btn = document.getElementById('cmwr-submit');
+    var sup = Array.prototype.map.call(document.querySelectorAll('#cmw-req-form input[name=cmwr-sup]:checked'), function(x){ return x.value; });
+    var body = { requestingDepartment: val('cmwr-dept'), name: val('cmwr-name'), objective: val('cmwr-obj'), targetAudience: val('cmwr-aud'),
+      proposedStart: val('cmwr-start'), proposedEnd: val('cmwr-end'), keyMessages: val('cmwr-msgs'), supportTypes: sup };
+    var err = !body.requestingDepartment ? 'حدد الإدارة الطالبة' : !body.name ? 'اسم الحملة مطلوب' : !body.objective ? 'الهدف مطلوب'
+      : !body.proposedStart || !body.proposedEnd ? 'حدد الفترة المقترحة' : body.proposedEnd < body.proposedStart ? 'نهاية الفترة تسبق بدايتها' : !sup.length ? 'اختر نوع الدعم المطلوب' : '';
+    if (err) { errEl.textContent = err; errEl.style.display = 'block'; return; }
+    btn.disabled = true; btn.textContent = 'جارٍ الإرسال…'; errEl.style.display = 'none';
+    try {
+      var res = await api('/requests', jsonOpts('POST', body));
+      if (!res.ok) throw new Error(await readErr(res, 'تعذر إرسال الطلب'));
+      try { localStorage.removeItem(REQ_DRAFT_KEY); } catch (x) {}
+      closeModal(); toast('تم إرسال الطلب إلى الاتصال المؤسسي'); loadRequests(true);
+    } catch (x) { errEl.textContent = x.message; errEl.style.display = 'block'; btn.disabled = false; btn.textContent = 'إرسال الطلب للمراجعة'; }
+  }
+  async function loadRequests(force){
+    var host = document.getElementById('cmp-internal-requests'); if (!host) return;
+    if (R.items && !force) { paintRequests(); return; }
+    R.loading = true; R.error = ''; paintRequests();
+    try {
+      var res = await api('/requests');
+      if (!res.ok) throw new Error(await readErr(res, 'تعذر تحميل الطلبات'));
+      var j = await res.json(); R.items = j.items || []; R.canReview = !!j.canReview;
+    } catch (x) { R.error = x.message; }
+    R.loading = false; paintRequests();
+  }
+  function paintRequests(){
+    var host = document.getElementById('cmp-internal-requests'); if (!host) return;
+    var head = '<div class="cmw-req-hd"><div><div class="pf-band-title">طلبات الحملات الداخلية</div><div class="pf-band-sub">طلب ← مراجعة الاتصال المؤسسي ← الاعتماد ← التحويل إلى حملة</div></div>'
+      + '<button class="btn btn-primary btn-sm" onclick="CMW.openRequestForm()">+ طلب حملة داخلية</button></div>';
+    if (R.loading && !R.items) { host.innerHTML = head + '<div class="mmr-state">جارٍ تحميل الطلبات…</div>'; return; }
+    if (R.error) { host.innerHTML = head + '<div class="mmr-state mmr-err">' + e(R.error) + ' <button class="btn btn-ghost btn-sm" onclick="CMW.loadRequests(true)">إعادة المحاولة</button></div>'; return; }
+    var items = R.items || [];
+    var pending = items.filter(function(r){ return r.status === 'submitted'; });
+    var done = items.filter(function(r){ return r.status !== 'submitted'; }).slice(0, 6);
+    if (!items.length) { host.innerHTML = head + '<div class="mmr-empty">لا توجد طلبات بعد. يمكن لأي إدارة إرسال طلب حملة داخلية.</div>'; return; }
+    host.innerHTML = head + '<div class="cmw-reqs">' + pending.concat(done).map(reqCard).join('') + '</div>';
+  }
+  function reqCard(r){
+    var sup = (r.supportTypes || []).map(function(k){ var f = SUPPORT.filter(function(s){ return s[0] === k; })[0]; return '<span class="cmp-chan">' + e(f ? f[1] : k) + '</span>'; }).join('');
+    var actions = '';
+    if (r.status === 'submitted' && R.canReview) actions = '<div class="cmw-req-act"><button class="btn btn-primary btn-sm" onclick="CMW.review(' + r.id + ',true)">اعتماد وتحويل إلى حملة</button>'
+      + '<button class="btn btn-ghost btn-sm" onclick="CMW.review(' + r.id + ',false)">إعادة للإدارة مع ملاحظة</button></div>';
+    else if (r.status === 'submitted') actions = '<div class="mmr-note">بانتظار مراجعة الاتصال المؤسسي.</div>';
+    else if (r.status === 'approved' && r.campaignId) actions = '<div class="cmw-req-act"><button class="btn btn-secondary btn-sm" onclick="CMP.open(\'internal\',' + r.campaignId + ')">فتح الحملة ←</button></div>';
+    return '<article class="cmw-req is-' + e(r.status) + '"><div class="pf-card-top"><span class="cmw-req-st">' + e(r.statusLabel) + '</span><span class="pf-tag">' + e(r.requestingDepartment) + '</span></div>'
+      + '<div class="pf-name">' + e(r.name) + '</div><div class="pf-desc">' + e(r.objective) + '</div>'
+      + '<div class="pf-meta"><span>الفترة <b>' + fdate(r.proposedStart) + ' — ' + fdate(r.proposedEnd) + '</b></span><span>مقدم الطلب <b>' + e(r.submittedByName || '—') + '</b></span></div>'
+      + (sup ? '<div class="cmp-chans">' + sup + '</div>' : '')
+      + (r.reviewNote ? '<div class="mmr-note">ملاحظة المراجعة: ' + e(r.reviewNote) + '</div>' : '')
+      + actions + '</article>';
+  }
+  async function review(id, approve){
+    var note = '';
+    if (!approve) { note = prompt('سبب الإعادة (مطلوب):', ''); if (note === null) return; if (!note.trim()) { toast('أدخل سبب الإعادة', 'err'); return; } }
+    else if (!confirm('اعتماد الطلب وتحويله إلى حملة داخلية في مرحلة التخطيط؟')) return;
+    try {
+      var res = await api('/requests/' + id + '/review', jsonOpts('POST', { approve: approve, note: note }));
+      if (!res.ok) throw new Error(await readErr(res, 'تعذر حفظ قرار المراجعة'));
+      var r = await res.json();
+      toast(approve ? 'تم اعتماد الطلب وتحويله إلى حملة' : 'أُعيد الطلب للإدارة');
+      await loadRequests(true);
+      if (approve && r.campaignId) { await CMP.reload('internal'); CMP.open('internal', r.campaignId); }
+    } catch (x) { toast(x.message, 'err'); }
+  }
+
+  // ── Previous results ─────────────────────────────────────────────────────
+  function history(aud, all){
+    var host = document.getElementById('cmp-' + aud + '-history'); if (!host) return;
+    var past = (all || []).filter(function(c){ return c.status === 'completed' || c.stage === 'measurement' || c.stage === 'closed'; })
+      .sort(function(a, b){ return String(b.endDate).localeCompare(String(a.endDate)); });
+    if (!past.length) { host.innerHTML = '<div class="mmr-empty">لا توجد نتائج حملات سابقة بعد.</div>'; return; }
+    host.innerHTML = '<div class="cmw-tbl-wrap"><table class="cmw-tbl tbl-cards"><thead><tr><th>الحملة</th><th>الفترة</th><th>الوصول</th><th>مرات الظهور</th><th>التفاعلات</th><th>معدل التفاعل</th><th>التحقق من المستهدف</th><th></th></tr></thead><tbody>'
+      + past.map(function(c){
+        var p = planOf(c), r = p.results, t = p.targets;
+        var ach = METRICS.filter(function(m){ return num(t[m[0]]); }).map(function(m){ return Math.min(150, num(r[m[0]]) * 100 / num(t[m[0]])); });
+        var avg = ach.length ? Math.round(ach.reduce(function(s, x){ return s + x; }, 0) / ach.length) + '%' : '—';
+        return '<tr><td data-label="الحملة"><b>' + e(c.name) + '</b><div class="cmw-src">' + e(c.stageLabel || '') + '</div></td>'
+          + '<td data-label="الفترة">' + fdate(c.startDate) + ' — ' + fdate(c.endDate) + '</td>'
+          + '<td data-label="الوصول" class="cmw-n">' + fmt(r.reach) + '</td><td data-label="مرات الظهور" class="cmw-n">' + fmt(r.impressions) + '</td>'
+          + '<td data-label="التفاعلات" class="cmw-n">' + fmt(r.engagement) + '</td><td data-label="معدل التفاعل" class="cmw-n">' + rate(r).toFixed(1) + '%</td>'
+          + '<td data-label="التحقق" class="cmw-n">' + avg + '</td>'
+          + '<td><button class="btn btn-ghost btn-sm" onclick="CMW.openResults(\'' + aud + '\',' + c.id + ')">عرض النتائج</button></td></tr>';
+      }).join('') + '</tbody></table></div>';
+  }
+  function openResults(aud, id){ S.tab = 'results'; try { localStorage.setItem(VIEW_KEY, JSON.stringify({ aud: aud, id: id, tab: 'results' })); } catch (x) {} CMP.open(aud, id); }
+  function edit(){ if (S.c) openForm(S.aud, S.c); }
+
+  document.addEventListener('keydown', function(ev){ if (ev.key === 'Escape') closeModal(); });
+  window.addEventListener('beforeunload', function(){ if (S.dirty) flush(); });
+
+  return {
+    mount: mount, unmount: unmount, tab: setTab, advance: advance, edit: edit,
+    addItem: addItem, removeItem: removeItem, setItem: setItem, setMetric: setMetric, setText: setText, setLatest: setLatest,
+    addOther: addOther, setOther: setOther, removeOther: removeOther, addPlatform: addPlatform, setPlatform: setPlatform, removePlatform: removePlatform,
+    upload: upload, removeFile: removeFile, openFile: openFile,
+    openForm: openForm, submitForm: submitForm, closeModal: closeModal,
+    openRequestForm: openRequestForm, submitRequest: submitRequest, loadRequests: loadRequests, review: review, _reqDraft: saveReqDraft,
+    history: history, openResults: openResults, savedView: saved
+  };
 })();
 
 // ── تسجيل تقدم المشروع ──────────────────────────────────────────────────────
@@ -13810,6 +14799,7 @@ var DES = (function() {
     var pane = document.getElementById('des-pane-' + tab);
     if (pane) pane.classList.add('active');
     if (tab === 'templates') loadTemplates();
+    if (tab === 'studio' && window.BDG) BDG.init();
   }
 
   // ── Logos ───────────────────────────────────────────────────────
@@ -16656,6 +17646,7 @@ window.MM = (function(){
       renderStats();
       renderList();
       renderWizardStep();
+      if (window.MMR) MMR.afterLoad();
     } catch(e) {
       loadingEl.innerHTML = '<div style="color:var(--danger)">تعذّر تحميل التقارير: ' + escHtml(e.message||'') + '</div>';
     }
@@ -16878,17 +17869,10 @@ window.MM = (function(){
       state.draft = data.draft;
 
       if (data.saved) {
-        // Saved as final → reload list + open
-        await load();
+        // The generated report is saved as a draft and opens in Review & Edit. It is emailed to
+        // the wizard's recipients only once it has been approved (drafts cannot be sent).
         hideWizard();
-        viewReport(data.saved.id);
-        // Auto-send email if recipients provided
-        if (state.wizAnswers.recipients) {
-          var emails = state.wizAnswers.recipients.split(/[,،\s]+/).map(function(e){return e.trim();}).filter(function(e){return e && e.indexOf('@')>0;});
-          if (emails.length > 0) {
-            apiFetch(apiUrl('/final-media-reports/')+data.saved.id+'/send-email', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ recipients: emails }) }).catch(function(){});
-          }
-        }
+        MMR.open(data.saved.id, { recipients: state.wizAnswers.recipients || '', fresh: true });
       } else {
         // Draft only (non-admin) — show preview
         hideWizard();
@@ -16903,9 +17887,8 @@ window.MM = (function(){
       stopTicker();
       var recovered = await recoverGeneratedReport(period);
       if (recovered) {
-        await load();
         hideWizard();
-        viewReport(recovered.id);
+        MMR.open(recovered.id, { recipients: state.wizAnswers.recipients || '', fresh: true });
       } else {
         alert('تعذّر التوليد:\n\n' + (e.message || e));
       }
@@ -16957,7 +17940,8 @@ window.MM = (function(){
     while (Date.now() - startedAt < deadlineMs) {
       await new Promise(function(r){ setTimeout(r, pollMs); });
       try {
-        var res = await apiFetch(apiUrl('/final-media-reports?page=1&pageSize=5'));
+        // Generated reports now land as drafts awaiting review, so that is the list to watch.
+        var res = await apiFetchUncached(apiUrl('/final-media-reports/drafts?page=1&pageSize=5'));
         if (!res.ok) { continue; }
         var body = await res.json();
         var items = body.items || [];
@@ -17330,8 +18314,21 @@ window.MM = (function(){
           audienceLabel(r.audience) + ' · ' + typeLabel(r.reportType) + ' · ' + date +
           (hashShort ? ' · <span style="font-family:monospace;color:var(--text-4);" title="بصمة المحتوى">'+hashShort+'</span>' : '');
       }
-      // Section 1: Executive Summary + KPIs
+      if (r.status === 'Draft') { MMR.open(r.id); return; }
+      if (r.approvedAt && metaEl) {
+        metaEl.innerHTML += ' · <span style="color:#065f46;">اعتمده ' + escHtml(r.approvedByName || '') + ' في ' + escHtml(new Date(r.approvedAt).toLocaleDateString('ar-SA-u-ca-gregory-nu-latn')) + '</span>';
+      }
       var sumEl = document.getElementById('mm-view-summary');
+      if (window.MMR && r.layout) {
+        if (sumEl) sumEl.style.display = 'none';
+        var contLayout = document.getElementById('mm-view-content');
+        if (contLayout) contLayout.innerHTML = MMR.renderBody(r, r.layout);
+        var modalLayout = document.getElementById('mm-view-modal');
+        if (modalLayout) modalLayout.style.display = 'flex';
+        return;
+      }
+      if (sumEl) sumEl.style.display = '';
+      // Section 1: Executive Summary + KPIs
       if (sumEl){
         sumEl.innerHTML = '<h3 style="color:#1a6e7a;border-bottom:2px solid #cce4e6;padding-bottom:6px;">1) الملخص التنفيذي</h3>' +
           '<div style="font-size:13px;line-height:1.85;color:var(--text-2);">' + mmRenderMarkdown(r.executiveSummary||'') + '</div>' +
@@ -17493,8 +18490,7 @@ window.MM = (function(){
       var data = await res.json();
       closeGenerateModal();
       if (data.saved) {
-        await load();
-        viewReport(data.saved.id);
+        MMR.open(data.saved.id, { fresh: true });
       } else if (data.draft) {
         showDraftPreview(data.draft);
       }
@@ -17507,8 +18503,7 @@ window.MM = (function(){
       var recovered = await recoverGeneratedReport(genPeriod, function(t){ if (note) { note.textContent = t; } });
       if (recovered) {
         closeGenerateModal();
-        await load();
-        viewReport(recovered.id);
+        MMR.open(recovered.id, { fresh: true });
       } else {
         alert('تعذّر التوليد:\n\n' + (e.message || e));
       }
@@ -17614,7 +18609,1168 @@ window.MM = (function(){
     exportPdf: exportPdf, sendEmail: sendEmail, execSummary: execSummary,
     exportReport: exportReport, deleteReport: deleteReport,
     openGenerateModal: openGenerateModal, closeGenerateModal: closeGenerateModal,
-    onTypeChange: onTypeChange, runGenerate: runGenerate };
+    onTypeChange: onTypeChange, runGenerate: runGenerate,
+    _render: renderEightSections, _kpis: renderKpiCards, _audience: audienceLabel, _type: typeLabel };
+})();
+
+
+// ══ Weekly media report workflow: Generate → Review & Edit → Preview → Approve → Export PDF → Archive ══
+// A generated report is saved on the server as a draft. Every edit here is written back to that
+// draft (debounced PUT) and mirrored to localStorage first, so nothing typed is lost to a refresh
+// or a dropped connection. Approval locks the report; only then can it be exported and emailed.
+window.MMR = (function(){
+  var STEPS = [
+    { key:'generate', label:'توليد التقرير' },
+    { key:'edit', label:'المراجعة والتعديل' },
+    { key:'preview', label:'المعاينة' },
+    { key:'approve', label:'الاعتماد' },
+    { key:'export', label:'تصدير PDF' },
+    { key:'archive', label:'الأرشيف' }
+  ];
+  var DEFAULT_SECTIONS = [
+    { key:'summary', title:'الملخص التنفيذي', visible:true },
+    { key:'news', title:'أبرز الأخبار خلال الفترة', visible:true },
+    { key:'tone', title:'تحليل التوجه الإعلامي', visible:true },
+    { key:'analysis', title:'تحليل عميق ومؤشرات قطاعية', visible:true },
+    { key:'recommendations', title:'التوصيات والإجراءات المقترحة', visible:true },
+    { key:'methodology', title:'المنهجية والمصادر', visible:true },
+    { key:'contact_center', title:'مركز الاتصال', visible:false }
+  ];
+  var ACTIVE_KEY = 'icbank.mm.review';
+  var R = { id:null, item:null, doc:null, step:'edit', timer:null, saving:false, pending:false, error:'', recipients:'', exported:false };
+
+  function el(id){ return document.getElementById(id); }
+  function esc(v){ return escHtml(v == null ? '' : String(v)); }
+  function draftKey(id){ return 'icbank.mm.draft.' + id; }
+  function readJson(k){ try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch(_) { return null; } }
+  function writeJson(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(_) {} }
+  function isFinal(){ return !!(R.item && R.item.status === 'Final'); }
+  function fmtDate(v){ return v ? new Date(v).toLocaleDateString('ar-SA-u-ca-gregory-nu-latn', { year:'numeric', month:'long', day:'numeric' }) : ''; }
+
+  function toast(msg, kind){
+    var t = document.createElement('div');
+    t.className = 'mmr-toast mmr-toast-' + (kind || 'ok');
+    t.setAttribute('role', 'status');
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(function(){ t.classList.add('out'); }, 2600);
+    setTimeout(function(){ t.remove(); }, 3100);
+  }
+
+  function toDraft(it){
+    return {
+      periodLabel: it.periodLabel || '',
+      executiveSummary: it.executiveSummary || '',
+      kpis: it.kpis || { totalNews:0, positivePercent:0, mediaOutlets:0, keyTopics:0, reach:'', alertsCount:0 },
+      topNews: (it.topNews || []).map(function(n){ return { date:n.date||'', tone:n.tone||'محايد', headline:n.headline||'', details:(n.details||[]).slice(), source:n.source||'' }; }),
+      timeline: it.timeline || [],
+      digitalPresence: it.digitalPresence || { platforms:[], hashtags:[] },
+      editorialTone: it.editorialTone || { distribution:[], classification:[], sources:[] },
+      deepAnalysis: it.deepAnalysis || { keywords:[], quote:null, strengths:[], weaknesses:[] },
+      regionalComparison: it.regionalComparison || [],
+      recommendations: (it.recommendations || []).map(function(r){ return { title:r.title||'', description:r.description||'', priority:r.priority||'', responsible:r.responsible||'', kpi:r.kpi||'', deadline:r.deadline||'', dependencies:r.dependencies||'' }; }),
+      alerts: it.alerts || [],
+      quotesAppendix: it.quotesAppendix || [],
+      methodology: it.methodology || '',
+      sources: it.sources || []
+    };
+  }
+  function toLayout(l){
+    var secs = (l && Array.isArray(l.sections) && l.sections.length) ? l.sections : DEFAULT_SECTIONS;
+    var cc = (l && l.contactCenter) || {};
+    return {
+      sections: secs.map(function(s){ return { key:s.key, title:s.title || defaultTitle(s.key) || 'قسم إضافي', visible: s.visible !== false, body: s.body || '' }; }),
+      contactCenter: { calls: cc.calls == null ? null : cc.calls, emails: cc.emails == null ? null : cc.emails, inquiries: cc.inquiries == null ? null : cc.inquiries, notes: cc.notes || '' }
+    };
+  }
+  function defaultTitle(key){ var d = DEFAULT_SECTIONS.filter(function(s){ return s.key === key; })[0]; return d ? d.title : ''; }
+  function section(key){ return R.doc.layout.sections.filter(function(s){ return s.key === key; })[0]; }
+
+  // ─── Screen switching: the review workspace replaces the list, with a clear way back ───
+  var LIST_PARTS = ['mm-wizard','mm-search-bar','mm-stats-cards','mm-loading','mm-empty','mm-list','mm-drafts','mm-page-actions'];
+  function showWorkspace(on){
+    var ws = el('mm-review');
+    if (!ws) return;
+    ws.style.display = on ? 'block' : 'none';
+    LIST_PARTS.forEach(function(id){
+      var n = el(id);
+      if (!n) return;
+      if (on) { n.dataset.mmrPrev = n.style.display; n.style.display = 'none'; }
+      else if (n.dataset.mmrPrev !== undefined) { n.style.display = n.dataset.mmrPrev; delete n.dataset.mmrPrev; }
+    });
+  }
+
+  async function open(id, opts){
+    opts = opts || {};
+    flushTimer();
+    R = { id:id, item:null, doc:null, step: opts.step || 'edit', timer:null, saving:false, pending:false, error:'', recipients: opts.recipients || '', exported:false };
+    if (window.MM && typeof MM.closeViewModal === 'function') { var vm = el('mm-view-modal'); if (vm && vm.style.display !== 'none') MM.closeViewModal(); }
+    showWorkspace(true);
+    window.scrollTo({ top:0, behavior:'smooth' });
+    el('mm-review-body').innerHTML = '<div class="mmr-state">جارٍ تحميل التقرير…</div>';
+    renderStepper();
+    try {
+      var res = await apiFetchUncached(apiUrl('/final-media-reports/') + id);
+      if (!res.ok) throw new Error(res.status === 404 ? 'لم يعد هذا التقرير موجوداً.' : 'تعذّر تحميل التقرير.');
+      var data = await res.json();
+      R.item = data.item;
+      R.doc = { title: R.item.title || '', draft: toDraft(R.item), layout: toLayout(R.item.layout) };
+      var saved = readJson(ACTIVE_KEY) || {};
+      if (saved.id === id && !opts.step && saved.step) R.step = saved.step;
+      if (saved.id === id && saved.recipients && !R.recipients) R.recipients = saved.recipients;
+      if (saved.id === id && saved.exported) R.exported = true;
+      if (isFinal()) {
+        if (['export','archive'].indexOf(R.step) < 0) R.step = 'export';
+        localStorage.removeItem(draftKey(id));
+      } else {
+        if (['export','archive'].indexOf(R.step) >= 0) R.step = 'approve';
+        var local = readJson(draftKey(id));
+        if (local && local.pending && local.doc) {
+          R.doc = local.doc;
+          R.pending = true;
+          scheduleSave(200);
+          toast('استُعيدت تعديلاتك غير المحفوظة', 'info');
+        }
+      }
+      if (opts.fresh) toast('تم توليد التقرير — راجعه وعدّله قبل الاعتماد', 'ok');
+      remember();
+      render();
+    } catch(e) {
+      el('mm-review-body').innerHTML = '<div class="mmr-state mmr-err">' + esc(e.message || 'تعذّر تحميل التقرير.') +
+        '<div style="margin-top:12px;"><button class="btn btn-ghost btn-sm" onclick="MMR.open(' + Number(id) + ')">إعادة المحاولة</button> <button class="btn btn-ghost btn-sm" onclick="MMR.close()">العودة إلى التقارير</button></div></div>';
+    }
+  }
+
+  function remember(){ writeJson(ACTIVE_KEY, { id:R.id, step:R.step, recipients:R.recipients, exported:R.exported }); }
+
+  async function close(){
+    await flushSave();
+    localStorage.removeItem(ACTIVE_KEY);
+    R.id = null;
+    showWorkspace(false);
+    if (window.MM) MM.load();
+  }
+
+  // ─── Saving ───
+  function touch(){
+    R.pending = true;
+    writeJson(draftKey(R.id), { doc:R.doc, pending:true, at:Date.now() });
+    setSaveState('pending');
+    scheduleSave(1200);
+  }
+  function scheduleSave(ms){ clearTimeout(R.timer); R.timer = setTimeout(save, ms); }
+  function flushTimer(){ if (R && R.timer) { clearTimeout(R.timer); R.timer = null; } }
+  async function flushSave(){ if (R.pending && R.id && !isFinal()) { flushTimer(); return save(); } return true; }
+
+  async function save(){
+    if (!R.id || isFinal()) return true;
+    if (!String(R.doc.title || '').trim()) { setSaveState('error', 'عنوان التقرير مطلوب'); return false; }
+    R.saving = true; setSaveState('saving');
+    var id = R.id;
+    try {
+      var res = await apiFetchUncached(apiUrl('/final-media-reports/') + id, {
+        method:'PUT', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ title: R.doc.title.trim(), draft: R.doc.draft, layout: R.doc.layout })
+      });
+      var data = await res.json().catch(function(){ return {}; });
+      if (!res.ok || !data.ok) throw new Error(data.error || data.detail || data.title || ('HTTP ' + res.status));
+      if (R.id !== id) return true;
+      R.item = data.item;
+      R.pending = false;
+      localStorage.removeItem(draftKey(id));
+      setSaveState('saved');
+      return true;
+    } catch(e) {
+      setSaveState('error', e.message);
+      return false;
+    } finally { R.saving = false; }
+  }
+  function setSaveState(kind, msg){
+    var n = el('mmr-save');
+    if (!n) return;
+    var map = {
+      pending: ['mmr-save-pending', 'تعديلات غير محفوظة…'],
+      saving: ['mmr-save-pending', 'جارٍ الحفظ…'],
+      saved: ['mmr-save-ok', 'تم حفظ جميع التعديلات'],
+      error: ['mmr-save-err', 'تعذّر الحفظ على الخادم — التعديلات محفوظة على هذا الجهاز' + (msg ? ' (' + msg + ')' : '')]
+    };
+    var m = map[kind] || map.saved;
+    n.className = 'mmr-save ' + m[0];
+    n.textContent = m[1];
+  }
+
+  // ─── Stepper ───
+  function stepIndex(k){ for (var i=0;i<STEPS.length;i++) if (STEPS[i].key === k) return i; return 1; }
+  function canGo(k){
+    if (k === 'generate') return false;
+    if (isFinal()) return k === 'export' || k === 'archive';
+    return k === 'edit' || k === 'preview' || k === 'approve';
+  }
+  function renderStepper(){
+    var cur = stepIndex(R.step);
+    var fin = isFinal();
+    el('mm-review-steps').innerHTML = STEPS.map(function(s, i){
+      var done = i < cur || (fin && i <= 3) || (s.key === 'export' && R.exported);
+      var cls = 'mmr-step' + (i === cur ? ' is-current' : '') + (done && i !== cur ? ' is-done' : '') + (canGo(s.key) ? ' is-link' : '');
+      var attrs = canGo(s.key) ? ' role="button" tabindex="0" onclick="MMR.go(\'' + s.key + '\')" onkeydown="if(event.key===\'Enter\')MMR.go(\'' + s.key + '\')"' : '';
+      return '<li class="' + cls + '"' + attrs + (i === cur ? ' aria-current="step"' : '') + '><span class="mmr-step-n">' + (done && i !== cur ? '✓' : (i + 1)) + '</span><span class="mmr-step-l">' + s.label + '</span></li>';
+    }).join('');
+  }
+  async function go(k){
+    if (!canGo(k)) return;
+    if (k !== 'edit') await flushSave();
+    R.step = k; remember(); render();
+    window.scrollTo({ top:0, behavior:'smooth' });
+  }
+
+  function render(){
+    renderStepper();
+    var it = R.item || {};
+    el('mm-review-head').innerHTML =
+      '<div><div class="mmr-num">' + esc(it.reportNumber || '') + ' · ' + esc(it.periodLabel || '') + '</div>' +
+      '<div class="mmr-title">' + esc(R.doc.title || 'تقرير رصد إعلامي') + '</div></div>' +
+      '<div class="mmr-badges">' + (isFinal()
+        ? '<span class="mmr-badge mmr-badge-final">معتمد' + (it.approvedAt ? ' — ' + esc(fmtDate(it.approvedAt)) : '') + '</span>'
+        : '<span class="mmr-badge mmr-badge-draft">مسودة قيد المراجعة</span><span id="mmr-save" class="mmr-save mmr-save-ok">تم حفظ جميع التعديلات</span>') + '</div>';
+    if (R.pending && !isFinal()) setSaveState('pending');
+    var body = el('mm-review-body');
+    if (R.step === 'preview') body.innerHTML = renderPreviewStep();
+    else if (R.step === 'approve') body.innerHTML = renderApproveStep();
+    else if (R.step === 'export') body.innerHTML = renderExportStep();
+    else if (R.step === 'archive') body.innerHTML = renderArchiveStep();
+    else body.innerHTML = renderEditStep();
+  }
+
+  // ─── Review & Edit ───
+  function inp(val, handler, ph, extra){ return '<input class="adm-input mmr-in" value="' + esc(val) + '" placeholder="' + esc(ph || '') + '" oninput="' + handler + '"' + (extra || '') + '>'; }
+  function area(val, handler, rows, ph){ return '<textarea class="adm-input mmr-in mmr-area" rows="' + (rows || 3) + '" placeholder="' + esc(ph || '') + '" oninput="' + handler + '">' + esc(val) + '</textarea>'; }
+  function iconBtn(label, onclick, title, disabled){ return '<button type="button" class="mmr-ib" title="' + esc(title) + '" aria-label="' + esc(title) + '" onclick="' + onclick + '"' + (disabled ? ' disabled' : '') + '>' + label + '</button>'; }
+
+  function renderEditStep(){
+    var d = R.doc.draft, secs = R.doc.layout.sections;
+    var removed = DEFAULT_SECTIONS.filter(function(b){ return !section(b.key); });
+    var html = '<div class="mmr-card"><label class="mmr-lbl" for="mmr-title-in">عنوان التقرير</label>' +
+      '<input id="mmr-title-in" class="adm-input mmr-in mmr-in-lg" value="' + esc(R.doc.title) + '" maxlength="300" oninput="MMR.setTitle(this.value)"></div>';
+    html += '<div class="mmr-hint">رتّب الأقسام بالأسهم، وأظهر أو أخفِ ما تحتاجه، وعدّل العناوين والنصوص. تُحفظ التعديلات تلقائياً.</div>';
+    secs.forEach(function(s, i){
+      var k = s.key;
+      html += '<div class="mmr-sec' + (s.visible ? '' : ' is-hidden') + '" id="mmr-sec-' + esc(k) + '">' +
+        '<div class="mmr-sec-head"><span class="mmr-sec-n">' + (i + 1) + '</span>' +
+        inp(s.title, "MMR.secTitle('" + k + "',this.value)", 'عنوان القسم', ' aria-label="عنوان القسم"') +
+        '<div class="mmr-sec-tools">' +
+          iconBtn('↑', "MMR.secMove('" + k + "',-1)", 'نقل للأعلى', i === 0) +
+          iconBtn('↓', "MMR.secMove('" + k + "',1)", 'نقل للأسفل', i === secs.length - 1) +
+          '<button type="button" class="mmr-vis' + (s.visible ? ' on' : '') + '" onclick="MMR.secToggle(\'' + k + '\')" aria-pressed="' + (s.visible ? 'true' : 'false') + '">' + (s.visible ? 'ظاهر' : 'مخفي') + '</button>' +
+          iconBtn('✕', "MMR.secDel('" + k + "')", 'حذف القسم') +
+        '</div></div>' +
+        '<div class="mmr-sec-body">' + sectionEditor(k, s, d) + '</div></div>';
+    });
+    html += '<div class="mmr-card mmr-add"><span class="mmr-lbl">إضافة قسم</span><div class="mmr-add-row">' +
+      removed.map(function(b){ return '<button type="button" class="btn btn-ghost btn-sm" onclick="MMR.secAdd(\'' + b.key + '\')">+ ' + esc(b.title) + '</button>'; }).join('') +
+      '<button type="button" class="btn btn-ghost btn-sm" onclick="MMR.secAdd(\'custom\')">+ قسم نصي جديد</button></div></div>';
+    html += '<div class="mmr-actions">' +
+      '<button class="btn btn-ghost" onclick="MMR.discard()">حذف المسودة</button>' +
+      '<button class="btn btn-primary" onclick="MMR.go(\'preview\')">التالي: المعاينة ←</button></div>';
+    return html;
+  }
+
+  function sectionEditor(k, s, d){
+    if (k === 'summary') {
+      return '<label class="mmr-lbl">نص الملخص التنفيذي</label>' + area(d.executiveSummary, 'MMR.setField(\'executiveSummary\',this.value)', 6) +
+        '<div class="mmr-note">تُعرض مؤشرات الفترة المحسوبة من الرصد مع الملخص تلقائياً.</div>';
+    }
+    if (k === 'news') {
+      var news = d.topNews;
+      var h = news.length ? '' : '<div class="mmr-empty">لا توجد أخبار في هذا القسم. أضف خبراً.</div>';
+      news.forEach(function(n, i){
+        h += '<div class="mmr-item"><div class="mmr-item-head"><b>الخبر ' + (i + 1) + '</b><div class="mmr-sec-tools">' +
+          iconBtn('↑', 'MMR.newsMove(' + i + ',-1)', 'نقل الخبر للأعلى', i === 0) +
+          iconBtn('↓', 'MMR.newsMove(' + i + ',1)', 'نقل الخبر للأسفل', i === news.length - 1) +
+          iconBtn('✕', 'MMR.newsDel(' + i + ')', 'حذف الخبر') + '</div></div>' +
+          '<label class="mmr-lbl">العنوان</label>' + inp(n.headline, 'MMR.newsSet(' + i + ',\'headline\',this.value)') +
+          '<div class="mmr-grid3"><div><label class="mmr-lbl">المصدر</label>' + inp(n.source, 'MMR.newsSet(' + i + ',\'source\',this.value)') + '</div>' +
+          '<div><label class="mmr-lbl">التاريخ</label>' + inp(n.date, 'MMR.newsSet(' + i + ',\'date\',this.value)', 'YYYY-MM-DD') + '</div>' +
+          '<div><label class="mmr-lbl">النبرة</label><select class="adm-input mmr-in" onchange="MMR.newsSet(' + i + ',\'tone\',this.value)">' +
+            ['إيجابي','محايد','سلبي'].map(function(t){ return '<option' + (n.tone === t ? ' selected' : '') + '>' + t + '</option>'; }).join('') + '</select></div></div>' +
+          '<label class="mmr-lbl">التفاصيل (سطر لكل نقطة)</label>' + area((n.details || []).join('\n'), 'MMR.newsSet(' + i + ',\'details\',this.value)', 3) +
+        '</div>';
+      });
+      return h + '<button type="button" class="btn btn-ghost btn-sm" onclick="MMR.newsAdd()">+ إضافة خبر</button>';
+    }
+    if (k === 'tone') {
+      return '<div class="mmr-note">يُحسب هذا القسم من بيانات الرصد الفعلية (توزيع النبرة والمصادر والظهور)، لذلك لا يُحرَّر نصه — يمكنك إعادة تسميته أو إخفاؤه أو تغيير ترتيبه.</div>';
+    }
+    if (k === 'analysis') {
+      var da = d.deepAnalysis;
+      return '<div class="mmr-grid2"><div><label class="mmr-lbl">نقاط القوة (سطر لكل نقطة)</label>' + area((da.strengths || []).join('\n'), 'MMR.setLines(\'strengths\',this.value)', 4) + '</div>' +
+        '<div><label class="mmr-lbl">نقاط الضعف (سطر لكل نقطة)</label>' + area((da.weaknesses || []).join('\n'), 'MMR.setLines(\'weaknesses\',this.value)', 4) + '</div></div>' +
+        '<div class="mmr-note">الكلمات المفتاحية والمقارنة الإقليمية تُعرض كما رُصدت.</div>';
+    }
+    if (k === 'recommendations') {
+      var recs = d.recommendations;
+      var r = recs.length ? '' : '<div class="mmr-empty">لا توجد توصيات. أضف توصية.</div>';
+      recs.forEach(function(x, i){
+        r += '<div class="mmr-item"><div class="mmr-item-head"><b>التوصية ' + (i + 1) + '</b><div class="mmr-sec-tools">' +
+          iconBtn('↑', 'MMR.recMove(' + i + ',-1)', 'نقل للأعلى', i === 0) +
+          iconBtn('↓', 'MMR.recMove(' + i + ',1)', 'نقل للأسفل', i === recs.length - 1) +
+          iconBtn('✕', 'MMR.recDel(' + i + ')', 'حذف التوصية') + '</div></div>' +
+          '<label class="mmr-lbl">التوصية</label>' + inp(x.title, 'MMR.recSet(' + i + ',\'title\',this.value)') +
+          '<label class="mmr-lbl">الوصف</label>' + area(x.description, 'MMR.recSet(' + i + ',\'description\',this.value)', 2) +
+          '<div class="mmr-grid3"><div><label class="mmr-lbl">المسؤول</label>' + inp(x.responsible, 'MMR.recSet(' + i + ',\'responsible\',this.value)') + '</div>' +
+          '<div><label class="mmr-lbl">الأولوية</label>' + inp(x.priority, 'MMR.recSet(' + i + ',\'priority\',this.value)') + '</div>' +
+          '<div><label class="mmr-lbl">الموعد</label>' + inp(x.deadline, 'MMR.recSet(' + i + ',\'deadline\',this.value)') + '</div></div></div>';
+      });
+      return r + '<button type="button" class="btn btn-ghost btn-sm" onclick="MMR.recAdd()">+ إضافة توصية</button>';
+    }
+    if (k === 'methodology') {
+      return '<label class="mmr-lbl">نص المنهجية</label>' + area(d.methodology, 'MMR.setField(\'methodology\',this.value)', 4);
+    }
+    if (k === 'contact_center') {
+      var cc = R.doc.layout.contactCenter;
+      function num(f, lbl){ return '<div><label class="mmr-lbl">' + lbl + '</label><input type="number" min="0" inputmode="numeric" class="adm-input mmr-in" value="' + (cc[f] == null ? '' : esc(cc[f])) + '" oninput="MMR.ccSet(\'' + f + '\',this.value)"></div>'; }
+      return '<div class="mmr-grid3">' + num('calls', 'عدد المكالمات') + num('emails', 'عدد رسائل البريد') + num('inquiries', 'عدد الاستفسارات') + '</div>' +
+        '<label class="mmr-lbl">أبرز الملاحظات أو المواضيع</label>' + area(cc.notes, 'MMR.ccSet(\'notes\',this.value)', 3) +
+        '<div class="mmr-note">القسم اختياري — اتركه مخفياً إذا لم تتوفر بيانات مركز الاتصال لهذا الأسبوع. الحقول الفارغة لا تظهر في التقرير.</div>';
+    }
+    return '<label class="mmr-lbl">نص القسم</label>' + area(s.body, 'MMR.secBody(\'' + k + '\',this.value)', 5, 'اكتب محتوى القسم…');
+  }
+
+  function setTitle(v){ R.doc.title = v; var t = el('mm-review-head').querySelector('.mmr-title'); if (t) t.textContent = v || 'تقرير رصد إعلامي'; touch(); }
+  function setField(f, v){ R.doc.draft[f] = v; touch(); }
+  function lines(v){ return String(v || '').split('\n').map(function(x){ return x.trim(); }).filter(Boolean); }
+  function setLines(f, v){ R.doc.draft.deepAnalysis[f] = lines(v); touch(); }
+  function move(arr, i, d){ var j = i + d; if (j < 0 || j >= arr.length) return false; var t = arr[i]; arr[i] = arr[j]; arr[j] = t; return true; }
+  function structural(){ touch(); render(); }
+  function newsSet(i, f, v){ R.doc.draft.topNews[i][f] = f === 'details' ? lines(v) : v; touch(); }
+  function newsMove(i, d){ if (move(R.doc.draft.topNews, i, d)) structural(); }
+  function newsDel(i){ if (!confirm('حذف هذا الخبر من التقرير؟')) return; R.doc.draft.topNews.splice(i, 1); structural(); }
+  function newsAdd(){ R.doc.draft.topNews.push({ date: new Date().toISOString().slice(0, 10), tone:'محايد', headline:'', details:[], source:'' }); structural(); }
+  function recSet(i, f, v){ R.doc.draft.recommendations[i][f] = v; touch(); }
+  function recMove(i, d){ if (move(R.doc.draft.recommendations, i, d)) structural(); }
+  function recDel(i){ if (!confirm('حذف هذه التوصية؟')) return; R.doc.draft.recommendations.splice(i, 1); structural(); }
+  function recAdd(){ R.doc.draft.recommendations.push({ title:'', description:'', priority:'', responsible:'', kpi:'', deadline:'', dependencies:'' }); structural(); }
+  function secIndex(k){ var s = R.doc.layout.sections; for (var i=0;i<s.length;i++) if (s[i].key === k) return i; return -1; }
+  function secTitle(k, v){ section(k).title = v; touch(); }
+  function secBody(k, v){ section(k).body = v; touch(); }
+  function secMove(k, d){ if (move(R.doc.layout.sections, secIndex(k), d)) structural(); }
+  function secToggle(k){ var s = section(k); s.visible = !s.visible; structural(); }
+  function secDel(k){
+    var s = section(k);
+    if (!confirm('حذف قسم «' + (s.title || '') + '» من التقرير؟' + (k.indexOf('custom-') === 0 ? '' : ' يمكنك إعادته لاحقاً من «إضافة قسم».'))) return;
+    R.doc.layout.sections.splice(secIndex(k), 1); structural();
+  }
+  function secAdd(k){
+    var key = k === 'custom' ? 'custom-' + Date.now().toString(36) : k;
+    R.doc.layout.sections.push({ key:key, title: k === 'custom' ? 'قسم جديد' : defaultTitle(k), visible:true, body:'' });
+    structural();
+    setTimeout(function(){ var n = el('mmr-sec-' + key); if (n) { n.scrollIntoView({ behavior:'smooth', block:'center' }); var f = n.querySelector('input'); if (f) f.select(); } }, 50);
+  }
+  function ccSet(f, v){
+    var cc = R.doc.layout.contactCenter;
+    if (f === 'notes') cc.notes = v;
+    else { var n = parseInt(v, 10); cc[f] = isNaN(n) || n < 0 ? null : n; }
+    touch();
+  }
+
+  // ─── Rendering the report exactly as it will be exported ───
+  function stripHeading(html){ return html.replace(/^\s*<h3[^>]*>[\s\S]*?<\/h3>/, ''); }
+  function sectionHtml(r, s, cc){
+    var k = s.key;
+    if (k === 'summary') {
+      var hl = (r.topNews || []).slice(0, 5).map(function(n){ return n.headline; }).filter(Boolean);
+      return '<div class="mmr-p">' + mmRenderMarkdown(r.executiveSummary || '') + '</div>' + MM._kpis(r.kpis || {}, r.appearance) +
+        (hl.length ? '<div class="mmr-sub">أبرز المحاور خلال الفترة</div><ul class="mmr-ul">' + hl.map(function(h){ return '<li>' + esc(h) + '</li>'; }).join('') + '</ul>' : '');
+    }
+    if (k === 'news') return (r.topNews && r.topNews.length) ? stripHeading(MM._render({ topNews: r.topNews })) + stripHeading(MM._render({ timeline: r.timeline })) : '<p class="mmr-p">لا توجد أخبار مسجلة.</p>';
+    if (k === 'tone') return stripHeading(MM._render({ editorialTone: r.editorialTone })) + MM._render({ appearance: r.appearance }).replace(/^[\s\S]*?<\/h3>/, '');
+    if (k === 'analysis') return stripHeading(MM._render({ deepAnalysis: r.deepAnalysis })) + stripHeading(MM._render({ regionalComparison: r.regionalComparison }));
+    if (k === 'recommendations') return stripHeading(MM._render({ recommendations: r.recommendations })) + MM._render({ alerts: r.alerts });
+    if (k === 'methodology') return stripHeading(MM._render({ methodology: r.methodology || ' ', sources: r.sources }));
+    if (k === 'contact_center') {
+      cc = cc || {};
+      var tiles = [['calls','المكالمات'],['emails','رسائل البريد'],['inquiries','الاستفسارات']].filter(function(t){ return cc[t[0]] != null; });
+      if (!tiles.length && !String(cc.notes || '').trim()) return '<p class="mmr-p">لم تُسجَّل بيانات مركز الاتصال لهذه الفترة.</p>';
+      return '<div class="mmr-cc">' + tiles.map(function(t){ return '<div class="mmr-cc-tile"><div class="v">' + esc(Number(cc[t[0]]).toLocaleString('en-US')) + '</div><div class="l">' + t[1] + '</div></div>'; }).join('') + '</div>' +
+        (String(cc.notes || '').trim() ? '<div class="mmr-sub">أبرز الملاحظات والمواضيع</div><div class="mmr-p">' + esc(cc.notes).replace(/\n/g, '<br>') + '</div>' : '');
+    }
+    return '<div class="mmr-p">' + esc(s.body || '').replace(/\n/g, '<br>') + '</div>';
+  }
+  function renderBody(r, layout){
+    var l = toLayout(layout);
+    var n = 0;
+    return l.sections.filter(function(s){ return s.visible; }).map(function(s){
+      n++;
+      return '<section class="mmr-pv-sec"><h3 class="mmr-pv-h">' + n + ') ' + esc(s.title || defaultTitle(s.key)) + '</h3>' + sectionHtml(r, s, l.contactCenter) + '</section>';
+    }).join('') || '<div class="mmr-empty">كل الأقسام مخفية. أظهر قسماً واحداً على الأقل.</div>';
+  }
+  function merged(){ var d = R.doc.draft; var it = R.item || {}; var o = {}; for (var k in it) o[k] = it[k]; for (var j in d) o[j] = d[j]; o.title = R.doc.title; return o; }
+  function previewDoc(){
+    var r = merged(), it = R.item || {};
+    return '<article class="mmr-paper" dir="rtl"><header class="mmr-paper-head"><div class="mmr-paper-kicker">الهيئة العامة للمنافسة · تقرير الرصد الإعلامي</div>' +
+      '<h2>' + esc(r.title) + '</h2><div class="mmr-paper-meta">' + esc(it.reportNumber || '') + ' · ' + esc(it.periodLabel || '') + '</div></header>' +
+      renderBody(r, R.doc.layout) + '</article>';
+  }
+  function renderPreviewStep(){
+    return '<div class="mmr-hint">هذه معاينة التقرير كما سيُعتمد ويُصدَّر. للتعديل ارجع إلى «المراجعة والتعديل».</div>' + previewDoc() +
+      '<div class="mmr-actions"><button class="btn btn-ghost" onclick="MMR.go(\'edit\')">→ العودة للتعديل</button>' +
+      '<button class="btn btn-primary" onclick="MMR.go(\'approve\')">التالي: الاعتماد ←</button></div>';
+  }
+
+  // ─── Approve ───
+  function checks(){
+    var d = R.doc.draft, l = R.doc.layout, vis = l.sections.filter(function(s){ return s.visible; });
+    var out = [];
+    out.push([!!String(R.doc.title || '').trim(), 'عنوان التقرير مُدخل', true]);
+    out.push([vis.length > 0, vis.length + ' أقسام ظاهرة في التقرير', true]);
+    var newsVisible = vis.some(function(s){ return s.key === 'news'; });
+    out.push([!newsVisible || d.topNews.length > 0, 'قسم الأخبار يحتوي ' + d.topNews.length + ' خبر', false]);
+    var emptyNews = d.topNews.filter(function(n){ return !String(n.headline || '').trim(); }).length;
+    out.push([emptyNews === 0, emptyNews ? emptyNews + ' خبر بلا عنوان' : 'كل الأخبار لها عناوين', false]);
+    var ccVisible = vis.some(function(s){ return s.key === 'contact_center'; });
+    if (ccVisible) {
+      var cc = l.contactCenter;
+      out.push([cc.calls != null || cc.emails != null || cc.inquiries != null || !!String(cc.notes || '').trim(), 'بيانات مركز الاتصال مُدخلة', false]);
+    }
+    return out;
+  }
+  function renderApproveStep(){
+    var list = checks();
+    var blocked = list.some(function(c){ return c[2] && !c[0]; });
+    return '<div class="mmr-card"><div class="mmr-card-title">قبل الاعتماد</div><ul class="mmr-checks">' +
+      list.map(function(c){ return '<li class="' + (c[0] ? 'ok' : (c[2] ? 'bad' : 'warn')) + '"><span>' + (c[0] ? '✓' : '!') + '</span>' + esc(c[1]) + '</li>'; }).join('') + '</ul>' +
+      '<div class="mmr-note">بعد الاعتماد يُقفل التقرير نهائياً ولا يمكن تعديله أو حذفه، ويُحفظ في الأرشيف ويصبح متاحاً للتصدير بصيغة PDF.</div>' +
+      (R.recipients ? '<div class="mmr-note">سيُرسل التقرير بعد الاعتماد إلى: <bdi dir="ltr">' + esc(R.recipients) + '</bdi></div>' : '') +
+      '<div id="mmr-approve-err"></div></div>' +
+      '<div class="mmr-actions"><button class="btn btn-ghost" onclick="MMR.go(\'preview\')">→ العودة للمعاينة</button>' +
+      '<button class="btn btn-primary mmr-approve" id="mmr-approve-btn" onclick="MMR.approve()"' + (blocked ? ' disabled' : '') + '>✓ اعتماد التقرير</button></div>';
+  }
+  async function approve(){
+    var btn = el('mmr-approve-btn'), errEl = el('mmr-approve-err');
+    if (!confirm('اعتماد التقرير نهائياً؟ لن يمكن تعديله بعد الاعتماد.')) return;
+    btn.disabled = true; btn.textContent = 'جارٍ الاعتماد…';
+    errEl.innerHTML = '';
+    try {
+      if (!(await flushSave()) || R.pending) throw new Error('تعذّر حفظ آخر التعديلات. تحقق من الاتصال ثم أعد المحاولة.');
+      var res = await apiFetchUncached(apiUrl('/final-media-reports/') + R.id + '/approve', { method:'POST' });
+      var data = await res.json().catch(function(){ return {}; });
+      if (!res.ok || !data.ok) throw new Error(data.error || data.detail || data.title || ('HTTP ' + res.status));
+      var fresh = await apiFetchUncached(apiUrl('/final-media-reports/') + R.id);
+      var fd = await fresh.json().catch(function(){ return {}; });
+      R.item = fd.item || Object.assign({}, R.item, data.item, { status:'Final' });
+      localStorage.removeItem(draftKey(R.id));
+      toast('تم اعتماد التقرير وحفظه في الأرشيف', 'ok');
+      sendToRecipients();
+      R.step = 'export'; remember(); render();
+    } catch(e) {
+      errEl.innerHTML = '<div class="mmr-banner-err">تعذّر الاعتماد: ' + esc(e.message) + '</div>';
+      btn.disabled = false; btn.textContent = '✓ اعتماد التقرير';
+    }
+  }
+  function sendToRecipients(){
+    var emails = String(R.recipients || '').split(/[,،\s]+/).map(function(e){ return e.trim(); }).filter(function(e){ return e && e.indexOf('@') > 0; });
+    if (!emails.length) return;
+    apiFetchUncached(apiUrl('/final-media-reports/') + R.id + '/send-email', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ recipients: emails }) })
+      .then(function(r){ toast(r.ok ? 'أُرسل التقرير إلى ' + emails.length + ' مستلم' : 'تعذّر إرسال التقرير بالبريد', r.ok ? 'ok' : 'err'); })
+      .catch(function(){ toast('تعذّر إرسال التقرير بالبريد', 'err'); });
+    R.recipients = ''; remember();
+  }
+
+  // ─── Export & Archive ───
+  function renderExportStep(){
+    var it = R.item || {};
+    return '<div class="mmr-card mmr-center"><div class="mmr-big">✓</div><div class="mmr-card-title">التقرير معتمد</div>' +
+      '<div class="mmr-note">' + esc(it.reportNumber || '') + (it.approvedByName ? ' · اعتمده ' + esc(it.approvedByName) : '') + (it.approvedAt ? ' · ' + esc(fmtDate(it.approvedAt)) : '') + '</div>' +
+      '<div class="mmr-actions mmr-actions-c"><button class="btn btn-primary" id="mmr-pdf-btn" onclick="MMR.exportPdf()">تصدير PDF</button>' +
+      '<button class="btn btn-ghost" onclick="MMR.go(\'archive\')">الانتقال إلى الأرشيف ←</button></div><div id="mmr-pdf-err"></div></div>' + previewDoc();
+  }
+  async function exportPdf(){
+    var btn = el('mmr-pdf-btn'), errEl = el('mmr-pdf-err');
+    btn.disabled = true; btn.textContent = 'جارٍ إنشاء PDF…'; errEl.innerHTML = '';
+    try {
+      var res = await apiFetchUncached(apiUrl('/final-media-reports/') + R.id + '/export-pdf', { method:'POST' });
+      if (!res.ok) { var j = await res.json().catch(function(){ return {}; }); throw new Error(j.error || j.detail || ('HTTP ' + res.status)); }
+      var blob = await res.blob();
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url; a.download = String(R.item.reportNumber || 'report').replace(/[\/\\:*?"<>|]/g, '_') + '.pdf';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+      R.exported = true; remember();
+      toast('تم تصدير التقرير بصيغة PDF', 'ok');
+      R.step = 'archive'; render();
+    } catch(e) {
+      errEl.innerHTML = '<div class="mmr-banner-err">تعذّر التصدير: ' + esc(e.message) + '</div>';
+      btn.disabled = false; btn.textContent = 'تصدير PDF';
+    }
+  }
+  function renderArchiveStep(){
+    var it = R.item || {};
+    return '<div class="mmr-card mmr-center"><div class="mmr-big">🗂</div><div class="mmr-card-title">محفوظ في الأرشيف</div>' +
+      '<div class="mmr-note">التقرير ' + esc(it.reportNumber || '') + ' محفوظ بشكل دائم ويمكن الرجوع إليه وتصديره في أي وقت من «أرشيف التقارير المعتمدة».</div>' +
+      '<div class="mmr-actions mmr-actions-c"><button class="btn btn-ghost" onclick="MMR.go(\'export\')">→ تصدير PDF مرة أخرى</button>' +
+      '<button class="btn btn-primary" onclick="MMR.close()">فتح الأرشيف</button></div></div>';
+  }
+
+  async function discard(){
+    if (!confirm('حذف هذه المسودة نهائياً؟')) return;
+    flushTimer(); R.pending = false;
+    try {
+      var res = await apiFetchUncached(apiUrl('/final-media-reports/') + R.id, { method:'DELETE' });
+      if (!res.ok && res.status !== 404) { var j = await res.json().catch(function(){ return {}; }); throw new Error(j.error || ('HTTP ' + res.status)); }
+      localStorage.removeItem(draftKey(R.id));
+      toast('حُذفت المسودة', 'ok');
+      close();
+    } catch(e) { toast('تعذّر حذف المسودة: ' + e.message, 'err'); }
+  }
+
+  // ─── Drafts list on the main page, and resuming after a refresh ───
+  async function loadDrafts(){
+    var box = el('mm-drafts');
+    if (!box) return;
+    try {
+      var res = await apiFetchUncached(apiUrl('/final-media-reports/drafts?page=1&pageSize=20'));
+      if (!res.ok) { box.innerHTML = ''; return; }
+      var data = await res.json();
+      var items = data.items || [];
+      if (!items.length) { box.innerHTML = ''; return; }
+      box.innerHTML = '<div class="mmr-list-h">مسودات قيد المراجعة <span class="mmr-count">' + items.length + '</span></div><div class="mmr-drafts">' +
+        items.map(function(r){
+          var local = readJson(draftKey(r.id));
+          return '<div class="mmr-draft"><div><div class="mmr-draft-t">' + esc(r.title || '') + '</div><div class="mmr-draft-m">' + esc(r.reportNumber || '') + ' · ' + esc(r.periodLabel || '') +
+            (local && local.pending ? ' · <span style="color:#b45309;">تعديلات محلية غير مرفوعة</span>' : '') + '</div></div>' +
+            '<button class="btn btn-primary btn-sm" onclick="MMR.open(' + Number(r.id) + ')">متابعة المراجعة</button></div>';
+        }).join('') + '</div><div class="mmr-list-h" style="margin-top:18px;">أرشيف التقارير المعتمدة</div>';
+    } catch(_) { box.innerHTML = ''; }
+  }
+  function afterLoad(){
+    loadDrafts();
+    var active = readJson(ACTIVE_KEY);
+    if (active && active.id && !R.id) open(active.id, { recipients: active.recipients });
+  }
+  window.addEventListener('beforeunload', function(){ if (R.pending && R.id) writeJson(draftKey(R.id), { doc:R.doc, pending:true, at:Date.now() }); });
+
+  return { open:open, close:close, go:go, afterLoad:afterLoad, renderBody:renderBody,
+    setTitle:setTitle, setField:setField, setLines:setLines,
+    newsSet:newsSet, newsMove:newsMove, newsDel:newsDel, newsAdd:newsAdd,
+    recSet:recSet, recMove:recMove, recDel:recDel, recAdd:recAdd,
+    secTitle:secTitle, secBody:secBody, secMove:secMove, secToggle:secToggle, secDel:secDel, secAdd:secAdd,
+    ccSet:ccSet, approve:approve, exportPdf:exportPdf, discard:discard };
+})();
+
+// ══ Brand Design Generator (مولّد التصاميم) ══
+// Why canvas: text is shaped by the browser's own Arabic engine and the exported PNG/PDF is
+// the exact pixels shown in the preview, which DOM-to-image capture could not guarantee for RTL.
+// Everything brand-related (colours, logos, patterns, fonts, sizes, templates) is read from
+// /public/brand-assets/design-templates.json at runtime, so it can be updated without a rebuild.
+window.BDG = (function(){
+  var CFG_URL = '/public/brand-assets/design-templates.json';
+  var KEY = 'icbank.bdg.v1';
+  var FAMILY = 'BDG Plex';
+  var STEPS = ['اختيار القالب', 'إدخال المحتوى', 'توليد التصميم', 'التعديل', 'المعاينة', 'التصدير'];
+  var cfg = null, loading = null, assets = {}, fontsReady = false, inited = false;
+  var S = load();
+  var e = function(v){ return escHtml(v == null ? '' : String(v)); };
+
+  function load(){
+    try { var s = JSON.parse(localStorage.getItem(KEY) || 'null'); if (s && s.v === 1) return s; } catch (_) {}
+    return { v: 1, step: 0, reached: 0, cat: 'social', tpl: null, size: null, content: {}, style: {}, image: null, exportSizes: [], exportFmt: 'png' };
+  }
+  function save(){
+    try { localStorage.setItem(KEY, JSON.stringify(S)); }
+    catch (_) { var img = S.image; S.image = null; try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (__) {} S.image = img; toast('تعذّر حفظ الصورة محلياً لكبر حجمها — بقية التعديلات محفوظة', true); }
+  }
+  function root(){ return document.getElementById('bdg'); }
+  function toast(msg, bad){
+    var t = document.createElement('div'); t.className = 'mmr-toast ' + (bad ? 'mmr-toast-err' : 'mmr-toast-ok'); t.textContent = msg;
+    document.body.appendChild(t); setTimeout(function(){ t.classList.add('out'); setTimeout(function(){ t.remove(); }, 450); }, 3000);
+  }
+
+  // ── config + assets ────────────────────────────────────────────
+  function loadConfig(){
+    if (cfg) return Promise.resolve(cfg);
+    if (loading) return loading;
+    loading = fetch(CFG_URL + '?t=' + Date.now(), { cache: 'no-store' }).then(function(r){
+      if (!r.ok) throw new Error('config ' + r.status);
+      return r.json();
+    }).then(function(c){ cfg = c; loading = null; return c; }, function(err){ loading = null; throw err; });
+    return loading;
+  }
+  function img(src){
+    if (!src) return Promise.resolve(null);
+    if (assets[src]) return assets[src];
+    assets[src] = new Promise(function(res, rej){
+      var i = new Image(); i.onload = function(){ res(i); }; i.onerror = function(){ delete assets[src]; rej(new Error('asset ' + src)); }; i.src = src;
+    });
+    return assets[src];
+  }
+  function loadFonts(){
+    if (fontsReady) return Promise.resolve();
+    var files = cfg.brand.font.files;
+    return Promise.all(Object.keys(files).map(function(w){
+      var f = new FontFace(FAMILY, 'url(' + files[w] + ')', { weight: w });
+      return f.load().then(function(ff){ document.fonts.add(ff); });
+    })).then(function(){ fontsReady = true; });
+  }
+  function loadBrandAssets(){
+    var b = cfg.brand;
+    return Promise.all([loadFonts(), img(b.logos.onColor), img(b.logos.onWhite), img(b.patterns.onColor), img(b.patterns.onWhite)]);
+  }
+
+  // ── model helpers ──────────────────────────────────────────────
+  function tplOf(key){
+    var out = null;
+    (cfg.categories || []).forEach(function(c){ (c.templates || []).forEach(function(t){ if (t.key === key) out = t; }); });
+    return out;
+  }
+  function catOf(tplKey){ var out = null; cfg.categories.forEach(function(c){ c.templates.forEach(function(t){ if (t.key === tplKey) out = c; }); }); return out; }
+  function sizeOf(key){ return cfg.sizes.filter(function(s){ return s.key === key; })[0] || cfg.sizes[0]; }
+  function themeOf(key){ return cfg.brand.themes.filter(function(t){ return t.key === key; })[0] || cfg.brand.themes[0]; }
+  function accentHex(key){ return cfg.brand.colors.secondary[key] || cfg.brand.colors.secondary.lime; }
+  function styleOf(t){
+    var st = S.style || {};
+    var themeOk = cfg.brand.themes.some(function(x){ return x.key === st.theme; });
+    var accOk = cfg.brand.accents.indexOf(st.accent) >= 0;
+    return { theme: themeOk ? st.theme : t.theme, accent: accOk ? st.accent : t.accent, scale: [0.9, 1, 1.1].indexOf(st.scale) >= 0 ? st.scale : 1, focus: st.focus || 'center' };
+  }
+
+  // ── canvas primitives ──────────────────────────────────────────
+  function F(w, px){ return w + ' ' + Math.round(px) + 'px "' + FAMILY + '", "Frutiger LT Arabic", sans-serif'; }
+  function wrap(ctx, text, maxW){
+    var out = [];
+    String(text || '').split('\n').forEach(function(par){
+      var words = par.trim().split(/\s+/).filter(Boolean), line = '';
+      if (!words.length) return;
+      words.forEach(function(w){
+        var t = line ? line + ' ' + w : w;
+        if (ctx.measureText(t).width <= maxW || !line) line = t; else { out.push(line); line = w; }
+      });
+      out.push(line);
+    });
+    return out;
+  }
+  // Why: brand hierarchy fixes a maximum size; long text shrinks down to the brand minimum and
+  // is never cut, so the user's wording is exactly what gets exported.
+  function fit(ctx, text, maxW, maxLines, big, small, weight){
+    var size = big, lines;
+    if (small > big) small = big;
+    for (; size >= small; size -= 2) { ctx.font = F(weight, size); lines = wrap(ctx, text, maxW); if (lines.length <= maxLines) return { size: size, lines: lines, over: false }; }
+    ctx.font = F(weight, small); lines = wrap(ctx, text, maxW);
+    return { size: small, lines: lines, over: true };
+  }
+  function lines(ctx, L, x, y, lh, color, weight, align){
+    ctx.font = F(weight, L.size); ctx.fillStyle = color; ctx.textAlign = align || 'right'; ctx.textBaseline = 'top';
+    L.lines.forEach(function(s, i){ ctx.fillText(s, x, y + i * L.size * lh); });
+    return y + L.lines.length * L.size * lh;
+  }
+  function hLines(L, lh){ return L.lines.length ? L.lines.length * L.size * lh : 0; }
+  function band(ctx, pat, x, y, w, h){
+    if (!pat) return;
+    var tw = h * (pat.naturalWidth / pat.naturalHeight || 5.446);
+    ctx.save(); ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip();
+    for (var px = x + w; px > x - tw; px -= tw) ctx.drawImage(pat, px - tw, y, tw, h);
+    ctx.restore();
+  }
+  function logo(ctx, im, xRight, y, w){
+    if (!im) return 0;
+    var h = w * (im.naturalHeight / im.naturalWidth);
+    ctx.drawImage(im, xRight - w, y, w, h); return h;
+  }
+  function chip(ctx, text, xRight, y, px, bg, fg, align){
+    ctx.font = F(700, px);
+    var tw = ctx.measureText(text).width, padX = px * 0.75, h = px * 1.9, w = tw + padX * 2;
+    var x = align === 'center' ? xRight - w / 2 : xRight - w;
+    ctx.fillStyle = bg; roundRect(ctx, x, y, w, h, h / 2); ctx.fill();
+    ctx.fillStyle = fg; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(text, x + w / 2, y + h / 2 + px * 0.05);
+    return h;
+  }
+  function roundRect(ctx, x, y, w, h, r){ ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+  function treatedImage(ctx, im, x, y, w, h, focus, primary){
+    ctx.save(); ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip();
+    if (im) {
+      var s = Math.max(w / im.naturalWidth, h / im.naturalHeight), dw = im.naturalWidth * s, dh = im.naturalHeight * s;
+      var fy = focus === 'top' ? 0 : focus === 'bottom' ? 1 : 0.5;
+      ctx.filter = 'grayscale(1) contrast(1.08)';
+      ctx.drawImage(im, x + (w - dw) / 2, y + (h - dh) * fy, dw, dh);
+      ctx.filter = 'none';
+      ctx.globalCompositeOperation = 'multiply'; ctx.fillStyle = primary; ctx.globalAlpha = 0.85; ctx.fillRect(x, y, w, h);
+      ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 0.18; ctx.fillRect(x, y, w, h); ctx.globalAlpha = 1;
+    } else {
+      ctx.fillStyle = cfg.brand.colors.navy; ctx.fillRect(x, y, w, h);
+      var pat = assets.__pc, bh = Math.min(w, h) / 5;
+      for (var yy = y; yy < y + h; yy += bh) band(ctx, pat, x, yy, w, bh);
+    }
+    ctx.restore();
+  }
+
+  // ── layouts ────────────────────────────────────────────────────
+  // Each layout receives the same context object and places brand elements by proportion of
+  // the canvas, which is what lets one design re-flow into every channel size.
+  function ctxOf(ctx, W, H, t, style){
+    var th = themeOf(style.theme), b = cfg.brand, u = Math.min(W, H) / 1080 * (H / W > 1.5 ? 1.12 : 1);
+    var land = W / H > 1.25, tall = H / W > 1.5;
+    return {
+      ctx: ctx, W: W, H: H, u: u, land: land, tall: tall, sc: style.scale,
+      m: Math.round(Math.min(W, H) * (b.rules.safeMarginPct / 100) * (land ? 1.15 : 1)),
+      bg: th.bg, fg: th.text, dark: th.bg.toUpperCase() !== '#FFFFFF',
+      sub: th.bg.toUpperCase() === '#FFFFFF' ? b.colors.muted : 'rgba(255,255,255,0.88)',
+      accent: accentHex(style.accent), accentInk: b.colors.navy,
+      detailW: Math.min(W, H) * 0.8, logo: assets.__logo[th.logo], pat: assets.__pat[th.pattern], patW: assets.__pat.onWhite,
+      logoW: Math.min(W, H) * (b.rules.logoWidthPct / 100),
+      primary: b.colors.primary, c: S.content, style: style, over: []
+    };
+  }
+  function txt(k){
+    var t = S.tpl && cfg ? tplOf(S.tpl) : null;
+    if (t && t.fields.indexOf(k) < 0) return '';
+    return (S.content[k] || '').trim();
+  }
+  // Why: when the user's text is longer than the brand layout allows, the whole hierarchy
+  // steps down together (keeping title > subtitle > body ratios) instead of overlapping.
+  function flow(o, maxW, opts, avail, extra){
+    var base = o.sc, k = base, items, h;
+    for (;;) {
+      o.sc = k; o.over = [];
+      items = textBlock(o, maxW, opts);
+      h = measureStack(items) + (extra ? extra(k) : 0);
+      if (h <= avail || k <= 0.56) break;
+      k = Math.round((k - 0.05) * 100) / 100;
+    }
+    if (h > avail) o.over.push('المحتوى');
+    o.fitK = k; return { items: items, h: h, restore: function(){ o.sc = base; } };
+  }
+  function stack(o, x, top, maxW, items, align){
+    // items: [{kind:'chip'|'text'|'bar'|'gap', ...}] laid out top-down; returns height used
+    var y = top, ctx = o.ctx;
+    items.forEach(function(it){
+      if (it.kind === 'gap') { y += it.h; return; }
+      if (it.kind === 'chip') { y += chip(ctx, it.text, align === 'center' ? x : x, y, it.px, it.bg, it.fg, align); return; }
+      if (it.kind === 'bar') { ctx.fillStyle = it.color; var bx = align === 'center' ? x - it.w / 2 : x - it.w; ctx.fillRect(bx, y, it.w, it.h); y += it.h; return; }
+      if (it.kind === 'text') { y = lines(ctx, it.L, x, y, it.lh, it.color, it.w, align); }
+    });
+    return y - top;
+  }
+  function measureStack(items){
+    return items.reduce(function(h, it){
+      if (it.kind === 'gap') return h + it.h;
+      if (it.kind === 'chip') return h + it.px * 1.9;
+      if (it.kind === 'bar') return h + it.h;
+      return h + hLines(it.L, it.lh);
+    }, 0);
+  }
+  function textBlock(o, maxW, opts){
+    var ctx = o.ctx, u = o.u, sc = o.sc, items = [];
+    var tBig = (opts.titleBig || (o.land ? 104 : 96)) * u * sc, tMin = Math.max(cfg.brand.rules.minTitlePx * u, tBig * 0.45);
+    if (txt('badge')) { items.push({ kind: 'chip', text: txt('badge'), px: 30 * u * sc, bg: o.accent, fg: o.accentInk }); items.push({ kind: 'gap', h: 34 * u }); }
+    if (opts.stat && txt('stat')) { var S1 = fit(ctx, txt('stat'), maxW, 1, 250 * u * sc, 120 * u, 700); items.push({ kind: 'text', L: S1, lh: 1.15, color: o.accent, w: 700 }); items.push({ kind: 'gap', h: 10 * u }); }
+    var T = fit(ctx, txt('title'), maxW, opts.titleLines || 4, tBig, tMin, 700); if (T.over) o.over.push('العنوان');
+    items.push({ kind: 'text', L: T, lh: 1.3, color: o.fg, w: 700 });
+    items.push({ kind: 'gap', h: 30 * u }); items.push({ kind: 'bar', color: o.accent, w: 120 * u, h: 10 * u });
+    var sub = txt('subtitle'), body = txt('body');
+    if (sub) { var Su = fit(ctx, sub, maxW, 3, 42 * u * sc, 28 * u, 400); if (Su.over) o.over.push('العنوان الفرعي'); items.push({ kind: 'gap', h: 30 * u }); items.push({ kind: 'text', L: Su, lh: 1.55, color: o.sub, w: 400 }); }
+    if (body) { var Bo = fit(ctx, body, maxW, opts.bodyLines || 7, 36 * u * sc, 24 * u, 400); if (Bo.over) o.over.push('النص'); items.push({ kind: 'gap', h: 28 * u }); items.push({ kind: 'text', L: Bo, lh: 1.65, color: o.sub, w: 400 }); }
+    return items;
+  }
+  function details(o, keys){
+    var labels = { date: 'التاريخ', time: 'الوقت', place: 'المكان' };
+    return keys.filter(function(k){ return txt(k); }).map(function(k){ return { label: labels[k], value: txt(k) }; });
+  }
+  function hasFoot(){ return !!(txt('cta') || txt('hashtag')); }
+  function footerLine(o, y, align, x){
+    var s = [txt('cta'), txt('hashtag')].filter(Boolean).join('   ');
+    if (!s) return;
+    var ctx = o.ctx; ctx.font = F(500, 32 * o.u * o.sc); ctx.fillStyle = o.dark ? o.accent : o.primary; ctx.textAlign = align || 'right'; ctx.textBaseline = 'alphabetic';
+    ctx.fillText(s, x == null ? o.W - o.m : x, y);
+  }
+
+  var LAYOUTS = {
+    cover: function(o){
+      var ctx = o.ctx, W = o.W, H = o.H, m = o.m, u = o.u;
+      ctx.fillStyle = o.bg; ctx.fillRect(0, 0, W, H);
+      var bh = (o.land ? 130 : 150) * u; band(ctx, o.pat, 0, H - bh, W, bh);
+      var lh = logo(ctx, o.logo, W - m, m, o.logoW);
+      var maxW = o.land ? W * 0.6 : W - 2 * m;
+      var top = m + lh + 50 * u, bottom = H - bh - (hasFoot() ? 110 : 50) * u;
+      var f = flow(o, maxW, {}, bottom - top);
+      stack(o, W - m, Math.max(top, top + (bottom - top - f.h) / 2), maxW, f.items);
+      footerLine(o, H - bh - 44 * u);
+    },
+    occasion: function(o){
+      var ctx = o.ctx, W = o.W, H = o.H, m = o.m, u = o.u;
+      ctx.fillStyle = o.bg; ctx.fillRect(0, 0, W, H);
+      var bh = 120 * u; band(ctx, o.pat, 0, 0, W, bh); band(ctx, o.pat, 0, H - bh, W, bh);
+      var lh = logo(ctx, o.logo, W / 2 + o.logoW / 2, bh + m * 0.6, o.logoW);
+      var maxW = o.land ? W * 0.62 : W - 2.4 * m;
+      var top = bh + m * 0.6 + lh + 60 * u, bottom = H - bh - (hasFoot() ? 120 : 50) * u;
+      var f = flow(o, maxW, { titleBig: o.land ? 120 : 110, titleLines: 3 }, bottom - top);
+      stack(o, W / 2, Math.max(top, top + (bottom - top - f.h) / 2), maxW, f.items, 'center');
+      footerLine(o, H - bh - 50 * u, 'center', W / 2);
+    },
+    stat: function(o){
+      var ctx = o.ctx, W = o.W, H = o.H, m = o.m, u = o.u;
+      ctx.fillStyle = o.bg; ctx.fillRect(0, 0, W, H);
+      var bh = 140 * u; band(ctx, o.pat, 0, H - bh, W, bh);
+      var lh = logo(ctx, o.logo, W - m, m, o.logoW);
+      var maxW = W - 2 * m, top = m + lh + 40 * u, bottom = H - bh - (hasFoot() ? 110 : 50) * u;
+      var f = flow(o, maxW, { stat: true, titleBig: 80, bodyLines: 5 }, bottom - top);
+      stack(o, W - m, Math.max(top, top + (bottom - top - f.h) / 2), maxW, f.items);
+      footerLine(o, H - bh - 44 * u);
+    },
+    photo: function(o){
+      var ctx = o.ctx, W = o.W, H = o.H, m = o.m, u = o.u, im = assets.__user;
+      var ix, iy, iw, ih, tx, ty, tw, th;
+      if (o.land) { iw = W * 0.46; ih = H; ix = 0; iy = 0; tx = iw; ty = 0; tw = W - iw; th = H; }
+      else { iw = W; ih = H * (o.tall ? 0.46 : 0.5); ix = 0; iy = 0; tx = 0; ty = ih; tw = W; th = H - ih; }
+      ctx.fillStyle = o.bg; ctx.fillRect(0, 0, W, H);
+      treatedImage(ctx, im, ix, iy, iw, ih, o.style.focus, o.primary);
+      var bh = 90 * u; band(ctx, o.pat, tx, H - bh, tw, bh);
+      // The logo sits on the colour field (never on the photo) so it keeps its approved contrast.
+      var lh = 0;
+      if (o.land) lh = logo(ctx, o.logo, W - m, m, o.logoW * 0.9);
+      else { ctx.fillStyle = o.bg; var pw = o.logoW + m * 0.9, ph = o.logoW * 0.31 + m * 0.9; ctx.fillRect(W - pw - m * 0.55, 0, pw, ph + m * 0.2); logo(ctx, o.logo, W - m, m * 0.6, o.logoW); }
+      var maxW = tw - 2 * m, d = details(o, ['date', 'time', 'place']);
+      var top = ty + (o.land ? m + lh + 40 * u : m * 0.9), bottom = H - bh - (hasFoot() ? 90 : 40) * u;
+      var f = flow(o, maxW, { titleBig: o.land ? 88 : 78, titleLines: 3, bodyLines: 3 }, bottom - top, function(){ return d.length ? 40 * u + d.length * 50 * u : 0; });
+      var y = Math.max(top, top + (bottom - top - f.h) / 2);
+      y += stack(o, tx + tw - m, y, maxW, f.items);
+      if (d.length) { y += 40 * u; drawDetailsList(o, tx + tw - m, y, d); }
+      footerLine(o, H - bh - 36 * u, 'right', tx + tw - m);
+    },
+    event: function(o){
+      var ctx = o.ctx, W = o.W, H = o.H, m = o.m, u = o.u;
+      ctx.fillStyle = o.bg; ctx.fillRect(0, 0, W, H);
+      var bh = 120 * u; band(ctx, o.pat, 0, H - bh, W, bh);
+      var lh = logo(ctx, o.logo, W - m, m, o.logoW);
+      var maxW = o.land ? W * 0.62 : W - 2 * m, d = details(o, ['date', 'time', 'place']);
+      var cardsH = d.length ? (o.land ? 150 * u : d.length * 120 * u - 20 * u) : 0;
+      var top = m + lh + 50 * u, bottom = H - bh - 60 * u;
+      var f = flow(o, maxW, { titleLines: 3 }, bottom - top, function(){ return d.length ? 60 * u + cardsH : 0; });
+      var y = Math.max(top, top + (bottom - top - f.h) / 2);
+      y += stack(o, W - m, y, maxW, f.items);
+      if (!d.length) return;
+      y += 60 * u;
+      var gap = 20 * u, cw = o.land ? Math.min(420 * u, (W - 2 * m - gap * (d.length - 1)) / d.length) : W - 2 * m, ch = o.land ? 150 * u : 100 * u;
+      d.forEach(function(it, i){
+        var x = o.land ? W - m - (i + 1) * cw - i * gap : m, yy = o.land ? y : y + i * (ch + gap);
+        ctx.fillStyle = o.dark ? 'rgba(255,255,255,0.10)' : 'rgba(0,82,117,0.06)'; roundRect(ctx, x, yy, cw, ch, 18 * u); ctx.fill();
+        ctx.fillStyle = o.accent; ctx.fillRect(x + cw - 8 * u, yy + 22 * u, 8 * u, ch - 44 * u);
+        ctx.textAlign = 'right'; ctx.textBaseline = 'top';
+        ctx.font = F(500, 26 * u); ctx.fillStyle = o.sub; ctx.fillText(it.label, x + cw - 34 * u, yy + (o.land ? 30 : 18) * u);
+        var V = fit(ctx, it.value, cw - 60 * u, 1, 40 * u * o.sc, 22 * u, 700);
+        // maxWidth keeps every word of a long value inside its card rather than dropping any.
+        ctx.font = F(700, V.size); ctx.fillStyle = o.fg; ctx.fillText(it.value, x + cw - 34 * u, yy + (o.land ? 76 : 52) * u, cw - 60 * u);
+      });
+    },
+    panel: function(o){
+      var ctx = o.ctx, W = o.W, H = o.H, m = o.m, u = o.u, hh = H * (o.land ? 0.26 : 0.22);
+      var headBg = o.dark ? cfg.brand.colors.navy : o.primary;
+      ctx.fillStyle = o.dark ? o.bg : '#FFFFFF'; ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = headBg; ctx.fillRect(0, 0, W, hh);
+      band(ctx, assets.__pat.onColor, 0, hh - 110 * u, W, 110 * u);
+      logo(ctx, assets.__logo.onColor, W - m, m * 0.8, o.logoW * 0.9);
+      var fg = o.dark ? '#FFFFFF' : o.primary, sub = o.dark ? 'rgba(255,255,255,0.88)' : cfg.brand.colors.ink;
+      var saveFg = o.fg, saveSub = o.sub; o.fg = fg; o.sub = sub;
+      var badge = txt('badge'), y = hh;
+      if (badge) { chip(ctx, badge, W - m, hh - 30 * u * o.sc * 0.95, 30 * u * o.sc, o.accent, o.accentInk); }
+      var maxW = o.land ? W * 0.7 : W - 2 * m;
+      var keep = S.content.badge; S.content.badge = '';
+      var d = details(o, ['date']);
+      var fh = 18 * u, top = hh + 90 * u, bottom = H - fh - (txt('cta') ? 120 : 50) * u;
+      var f = flow(o, maxW, { titleBig: o.land ? 84 : 78, titleLines: 3, bodyLines: o.land ? 5 : 9 }, bottom - top, function(){ return d.length ? 90 * u : 0; });
+      S.content.badge = keep;
+      y = Math.max(top, top + (bottom - top - f.h) / 2.4);
+      y += stack(o, W - m, y, maxW, f.items);
+      if (d.length) { y += 40 * u; drawDetailsList(o, W - m, y, d); }
+      ctx.fillStyle = o.primary; ctx.fillRect(0, H - fh, W, fh); ctx.fillStyle = o.accent; ctx.fillRect(0, H - fh, W * 0.22, fh);
+      o.fg = saveFg; o.sub = saveSub; o.dark = o.dark || false;
+      var s = txt('cta'); if (s) { ctx.font = F(500, 32 * u * o.sc); ctx.fillStyle = o.dark ? o.accent : o.primary; ctx.textAlign = 'right'; ctx.textBaseline = 'alphabetic'; ctx.fillText(s, W - m, H - fh - 50 * u); }
+    },
+    invite: function(o){
+      var ctx = o.ctx, W = o.W, H = o.H, m = o.m, u = o.u;
+      ctx.fillStyle = o.bg; ctx.fillRect(0, 0, W, H);
+      var bh = 110 * u; band(ctx, o.pat, 0, 0, W, bh); band(ctx, o.pat, 0, H - bh, W, bh);
+      var lh = logo(ctx, o.logo, W / 2 + o.logoW / 2, bh + m * 0.5, o.logoW);
+      var maxW = W - 2.4 * m, d = details(o, ['date', 'time', 'place']);
+      var rowH = 96 * u, boxH = d.length ? d.length * rowH + 40 * u : 0;
+      var top = bh + m * 0.5 + lh + 60 * u, bottom = H - bh - (hasFoot() ? 130 : 50) * u;
+      var f = flow(o, maxW, { titleBig: 84, titleLines: 3 }, bottom - top, function(){ return boxH ? 50 * u + boxH : 0; });
+      var y = Math.max(top, top + (bottom - top - f.h) / 2);
+      y += stack(o, W / 2, y, maxW, f.items, 'center');
+      if (boxH) {
+        y += 50 * u; var bw = Math.min(W - 2 * m, 820 * u), bx = (W - bw) / 2;
+        ctx.strokeStyle = o.dark ? 'rgba(255,255,255,0.35)' : 'rgba(0,82,117,0.25)'; ctx.lineWidth = 2 * u; roundRect(ctx, bx, y, bw, boxH, 20 * u); ctx.stroke();
+        d.forEach(function(it, i){
+          var ry = y + 20 * u + i * rowH;
+          if (i) { ctx.fillStyle = o.dark ? 'rgba(255,255,255,0.15)' : 'rgba(0,82,117,0.10)'; ctx.fillRect(bx + 30 * u, ry, bw - 60 * u, 2 * u); }
+          ctx.textBaseline = 'middle'; ctx.textAlign = 'right'; ctx.font = F(500, 28 * u); ctx.fillStyle = o.dark ? o.accent : o.primary; ctx.fillText(it.label, bx + bw - 40 * u, ry + rowH / 2);
+          var V = fit(ctx, it.value, bw - 260 * u, 1, 36 * u * o.sc, 22 * u, 700);
+          ctx.font = F(700, V.size); ctx.fillStyle = o.fg; ctx.textAlign = 'right';
+          ctx.fillText(it.value, bx + bw - 220 * u, ry + rowH / 2, bw - 260 * u);
+        });
+      }
+      footerLine(o, H - bh - 50 * u, 'center', W / 2);
+    }
+  };
+  function drawDetailsList(o, xRight, y, d){
+    var ctx = o.ctx, u = o.u;
+    d.forEach(function(it, i){
+      var yy = y + i * 50 * u;
+      ctx.fillStyle = o.accent; ctx.fillRect(xRight - 14 * u, yy + 10 * u, 14 * u, 14 * u);
+      ctx.textAlign = 'right'; ctx.textBaseline = 'top';
+      ctx.font = F(500, 26 * u); ctx.fillStyle = o.sub; var lbl = it.label + ':'; ctx.fillText(lbl, xRight - 30 * u, yy);
+      var lw = ctx.measureText(lbl).width;
+      ctx.font = F(700, 30 * u * o.sc); ctx.fillStyle = o.fg; ctx.fillText(it.value, xRight - 44 * u - lw, yy - 2 * u, Math.max(40 * u, o.detailW - 44 * u - lw));
+    });
+  }
+
+  // Renders a design into a canvas at native size (scale>1 for print exports).
+  function render(canvas, sizeKey, scale){
+    var t = tplOf(S.tpl), sz = sizeOf(sizeKey), k = scale || 1;
+    canvas.width = Math.round(sz.w * k); canvas.height = Math.round(sz.h * k);
+    var ctx = canvas.getContext('2d'); ctx.setTransform(k, 0, 0, k, 0, 0); ctx.direction = 'rtl';
+    var o = ctxOf(ctx, sz.w, sz.h, t, styleOf(t));
+    (LAYOUTS[t.layout] || LAYOUTS.cover)(o);
+    return o.over;
+  }
+  function prepare(){
+    var b = cfg.brand;
+    return loadBrandAssets().then(function(r){
+      assets.__logo = { onColor: r[1], onWhite: r[2] }; assets.__pat = { onColor: r[3], onWhite: r[4] }; assets.__pc = r[3];
+      return S.image ? img(S.image).then(function(i){ assets.__user = i; }, function(){ assets.__user = null; }) : (assets.__user = null);
+    });
+  }
+
+  // ── UI ─────────────────────────────────────────────────────────
+  function init(){
+    var el = root(); if (!el) return;
+    if (!inited) { inited = true; }
+    if (cfg && fontsReady) { paint(); return; }
+    el.innerHTML = '<div class="mmr-state"><span class="mmr-spin"></span> جاري تحميل قوالب الهوية المعتمدة…</div>';
+    loadConfig().then(prepare).then(paint).catch(function(err){
+      el.innerHTML = '<div class="mmr-state mmr-banner-err">تعذّر تحميل ملفات الهوية أو القوالب. <button class="btn btn-ghost" onclick="BDG.retry()">إعادة المحاولة</button></div>';
+      if (window.console) console.warn('BDG', err);
+    });
+  }
+  function retry(){ cfg = null; fontsReady = false; assets = {}; init(); }
+  function go(step){
+    if (step > S.reached && step !== S.step + 1) return;
+    if (step >= 1 && !S.tpl) step = 0;
+    if (step >= 2 && !txt('title')) { step = 1; }
+    S.step = step; S.reached = Math.max(S.reached, step); save(); paint();
+    var r = root(); if (r && r.getBoundingClientRect().top < 0) r.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  function stepsHtml(){
+    return '<ol class="bdg-steps mmr-steps" aria-label="مراحل التصميم">' + STEPS.map(function(s, i){
+      var cur = i === S.step, done = i < S.reached || (i <= S.reached && !cur), link = !cur && i <= S.reached && i !== 2;
+      var cls = 'mmr-step' + (cur ? ' is-current' : '') + (done && !cur ? ' is-done' : '') + (link ? ' is-link' : '');
+      return '<li class="' + cls + '"' + (link ? ' onclick="BDG.go(' + i + ')"' : '') + (cur ? ' aria-current="step"' : '') + '><span class="mmr-step-n">' + (done && !cur ? '✓' : (i + 1)) + '</span><span class="mmr-step-l">' + s + '</span></li>';
+    }).join('') + '</ol>';
+  }
+  function paint(){
+    var el = root(); if (!el || !cfg) return;
+    if (S.tpl && !tplOf(S.tpl)) { S.tpl = null; S.step = 0; S.reached = 0; }
+    var t = S.tpl ? tplOf(S.tpl) : null;
+    if (t && t.sizes.indexOf(S.size) < 0) S.size = t.sizes[0];
+    var body = [paintPick, paintContent, paintGenerate, paintEdit, paintPreview, paintExport][S.step]();
+    el.innerHTML = stepsHtml() + '<div class="bdg-body">' + body + '</div>';
+    after();
+  }
+  function after(){
+    root().querySelectorAll('canvas[data-bdg]').forEach(function(c){
+      var over = render(c, c.getAttribute('data-bdg'), 1);
+      if (c.hasAttribute('data-main')) warn(over);
+    });
+    root().querySelectorAll('canvas[data-thumb]').forEach(function(c){ thumb(c, c.getAttribute('data-thumb')); });
+    if (S.step === 2) generate();
+  }
+  function warn(over){
+    var w = document.getElementById('bdg-warn'); if (!w) return;
+    w.innerHTML = over.length ? '<div class="mmr-note bdg-over">النص في (' + e(over.join('، ')) + ') أطول من المساحة المعتمدة؛ صُغّر إلى الحد الأدنى للخط دون حذف أي كلمة — يُنصح باختصاره.</div>' : '';
+  }
+  function thumb(c, key){
+    var keep = { tpl: S.tpl, content: S.content, style: S.style };
+    var t = tplOf(key), cat = catOf(key);
+    S.tpl = key; S.style = {};
+    S.content = { badge: cat.label, title: t.label, subtitle: 'نص توضيحي مختصر يظهر هنا', stat: '85%', date: '15 أكتوبر 2026', time: '10:00 صباحاً', place: 'مقر الهيئة — الرياض', body: 'نص الإعلان يظهر هنا بخط الهوية وتسلسلها الهرمي.' };
+    var tmp = document.createElement('canvas');
+    try { render(tmp, t.sizes[0], 1); } finally { S.tpl = keep.tpl; S.content = keep.content; S.style = keep.style; }
+    c.width = 360; c.height = Math.round(360 * tmp.height / tmp.width);
+    c.getContext('2d').drawImage(tmp, 0, 0, c.width, c.height);
+  }
+  function paintPick(){
+    var cat = cfg.categories.filter(function(c){ return c.key === S.cat; })[0] || cfg.categories[0];
+    var chips = cfg.categories.map(function(c){ return '<button class="pf-chip' + (c.key === cat.key ? ' is-on' : '') + '" onclick="BDG.cat(\'' + c.key + '\')">' + e(c.label) + ' <span class="pf-chip-count">' + c.templates.length + '</span></button>'; }).join('');
+    var cards = (cat.templates || []).map(function(t){
+      return '<button class="bdg-card' + (t.key === S.tpl ? ' is-on' : '') + '" onclick="BDG.pick(\'' + t.key + '\')"><canvas data-thumb="' + t.key + '"></canvas><b>' + e(t.label) + '</b><span>' + t.sizes.map(function(k){ return e(sizeOf(k).label); }).join(' · ') + '</span></button>';
+    }).join('');
+    return '<div class="bdg-head"><h3>اختر فئة التصميم ثم القالب</h3><p class="mmr-hint">كل القوالب مبنية على الدليل الإرشادي للهوية (الإصدار 1.0) بالألوان والخطوط والشعارات المعتمدة.</p></div>'
+      + '<div class="bdg-cats">' + chips + '</div>'
+      + (cards ? '<div class="bdg-grid">' + cards + '</div>' : '<div class="mmr-empty">لا توجد قوالب في هذه الفئة بعد.</div>');
+  }
+  function fieldsHtml(t){
+    return t.fields.map(function(k){
+      var f = cfg.fields[k] || { label: k };
+      if (f.type === 'image') {
+        return '<div class="bdg-field"><label class="mmr-lbl">' + e(f.label) + ' <span class="mmr-hint">(تُعالج تلقائياً بلون الهوية)</span></label><div class="bdg-img">'
+          + (S.image ? '<img src="' + S.image + '" alt=""><button class="btn btn-ghost" onclick="BDG.clearImage()">إزالة الصورة</button>' : '<span class="mmr-hint">بدون صورة يُستخدم نمط الهوية الزخرفي بدلاً منها.</span>')
+          + '<label class="btn btn-ghost">' + (S.image ? 'تغيير' : 'رفع صورة') + '<input type="file" accept="image/png,image/jpeg,image/webp" hidden onchange="BDG.image(this)"></label></div>'
+          + (S.image ? '<div class="bdg-row"><span class="mmr-lbl">موضع الصورة</span>' + [['top', 'أعلى'], ['center', 'وسط'], ['bottom', 'أسفل']].map(function(p){ return '<button class="pf-chip' + (styleOf(t).focus === p[0] ? ' is-on' : '') + '" onclick="BDG.set(\'focus\',\'' + p[0] + '\')">' + p[1] + '</button>'; }).join('') + '</div>' : '')
+          + '</div>';
+      }
+      var v = S.content[k] || '', tag = f.multiline
+        ? '<textarea class="adm-input mmr-area" rows="4" maxlength="' + f.max + '" oninput="BDG.field(\'' + k + '\', this)">' + e(v) + '</textarea>'
+        : '<input class="adm-input mmr-in" maxlength="' + f.max + '" value="' + e(v) + '" oninput="BDG.field(\'' + k + '\', this)">';
+      return '<div class="bdg-field"><label class="mmr-lbl">' + e(f.label) + (f.required ? ' *' : '') + ' <span class="bdg-count" id="bdg-n-' + k + '">' + v.length + '/' + f.max + '</span></label>' + tag + '</div>';
+    }).join('');
+  }
+  function sizesHtml(t, act){
+    return t.sizes.map(function(k){ var s = sizeOf(k); return '<button class="pf-chip' + (S.size === k ? ' is-on' : '') + '" onclick="' + act + '(\'' + k + '\')">' + e(s.label) + ' <span class="cmw-en">' + s.w + '×' + s.h + '</span></button>'; }).join('');
+  }
+  function paintContent(){
+    var t = tplOf(S.tpl), cat = catOf(S.tpl);
+    return '<div class="bdg-head"><h3>' + e(t.label) + ' <span class="mmr-hint">— ' + e(cat.label) + '</span></h3><p class="mmr-hint">أدخل المحتوى كما تريده أن يظهر؛ الخط والتسلسل والمسافات والألوان تُطبَّق تلقائياً. يُحفظ ما تكتبه تلقائياً.</p></div>'
+      + '<div class="bdg-row"><span class="mmr-lbl">المقاس والقناة</span>' + sizesHtml(t, 'BDG.size') + '</div>'
+      + '<div class="bdg-form">' + fieldsHtml(t) + '</div>'
+      + '<div class="mmr-actions"><button class="btn btn-ghost" onclick="BDG.go(0)">→ رجوع إلى القوالب</button><button class="btn btn-primary" id="bdg-gen" onclick="BDG.go(2)"' + (txt('title') ? '' : ' disabled') + '>توليد التصميم ←</button></div>';
+  }
+  function paintGenerate(){
+    return '<div class="mmr-state"><span class="mmr-spin"></span> جاري توليد التصميم وتطبيق قواعد الهوية…</div>';
+  }
+  function generate(){
+    prepare().then(function(){
+      S.step = 3; S.reached = Math.max(S.reached, 3); save(); paint(); toast('تم توليد التصميم وفق الهوية المعتمدة');
+    }).catch(function(){
+      root().querySelector('.bdg-body').innerHTML = '<div class="mmr-state mmr-banner-err">تعذّر تحميل أصول الهوية (الخط أو الشعار). <button class="btn btn-ghost" onclick="BDG.go(2)">إعادة المحاولة</button> <button class="btn btn-ghost" onclick="BDG.go(1)">رجوع</button></div>';
+    });
+  }
+  function rulesHtml(t){
+    var th = themeOf(styleOf(t).theme);
+    return '<details class="bdg-rules"><summary>قواعد الهوية المطبّقة تلقائياً</summary><ul>'
+      + '<li>الخط المعتمد: ' + e(cfg.brand.font.family) + ' بالأوزان المحددة للعناوين والنصوص.</li>'
+      + '<li>' + (th.logo === 'onWhite' ? 'الشعار الملوّن على الخلفية البيضاء.' : 'الشعار الأبيض على الخلفية الملوّنة.') + ' بنسبته الأصلية ودون إعادة تلوين، ضمن المساحة الآمنة.</li>'
+      + '<li>الألوان من لوحة الهوية فقط: الرئيسي ' + cfg.brand.colors.primary + ' والألوان الفرعية.</li>'
+      + '<li>الزخرفة البصرية (نمط الشيفرون) من ملفات الهوية الرسمية.</li>'
+      + '<li>الصور تُعالج بطبقة اللون الرئيسي، ولا يوضع الشعار فوق الصورة.</li>'
+      + '<li>حجم العنوان يُضبط تلقائياً بين الحد الأعلى والأدنى المعتمدين دون حذف أي نص.</li>'
+      + '</ul></details>';
+  }
+  function paintEdit(){
+    var t = tplOf(S.tpl), st = styleOf(t), b = cfg.brand;
+    var themes = b.themes.map(function(th){ return '<button class="bdg-sw' + (st.theme === th.key ? ' is-on' : '') + '" title="' + e(th.label) + '" style="background:' + th.bg + '" onclick="BDG.set(\'theme\',\'' + th.key + '\')"><span>' + e(th.label) + '</span></button>'; }).join('');
+    var accents = b.accents.map(function(k){ return '<button class="bdg-sw bdg-sw-s' + (st.accent === k ? ' is-on' : '') + '" title="' + accentHex(k) + '" style="background:' + accentHex(k) + '" onclick="BDG.set(\'accent\',\'' + k + '\')"></button>'; }).join('');
+    var scales = [[0.9, 'أصغر'], [1, 'قياسي'], [1.1, 'أكبر']].map(function(s){ return '<button class="pf-chip' + (st.scale === s[0] ? ' is-on' : '') + '" onclick="BDG.set(\'scale\',' + s[0] + ')">' + s[1] + '</button>'; }).join('');
+    return '<div class="bdg-edit"><aside class="bdg-ctl">'
+      + '<div class="bdg-row"><span class="mmr-lbl">المقاس</span>' + sizesHtml(t, 'BDG.size') + '</div>'
+      + '<div class="bdg-row"><span class="mmr-lbl">الخلفية</span>' + themes + '</div>'
+      + '<div class="bdg-row"><span class="mmr-lbl">اللون المساند</span>' + accents + '</div>'
+      + '<div class="bdg-row"><span class="mmr-lbl">حجم النص</span>' + scales + '</div>'
+      + '<div class="bdg-form bdg-form-1">' + fieldsHtml(t) + '</div>' + rulesHtml(t)
+      + '</aside><div class="bdg-stage"><div id="bdg-warn"></div><div class="bdg-canvas"><canvas data-bdg="' + S.size + '" data-main></canvas></div></div></div>'
+      + '<div class="mmr-actions"><button class="btn btn-ghost" onclick="BDG.go(1)">→ رجوع إلى المحتوى</button><button class="btn btn-primary" onclick="BDG.go(4)">المعاينة ←</button></div>';
+  }
+  function paintPreview(){
+    var t = tplOf(S.tpl);
+    var others = t.sizes.map(function(k){ var s = sizeOf(k); return '<figure class="bdg-mini' + (k === S.size ? ' is-on' : '') + '" onclick="BDG.size(\'' + k + '\')"><canvas data-bdg="' + k + '"></canvas><figcaption>' + e(s.label) + ' <span class="cmw-en">' + s.w + '×' + s.h + '</span></figcaption></figure>'; }).join('');
+    return '<div class="bdg-head"><h3>المعاينة النهائية</h3><p class="mmr-hint">هكذا سيظهر التصميم عند التصدير، ويمكن معاينته بكل المقاسات المتاحة للقالب.</p></div>'
+      + '<div id="bdg-warn"></div><div class="bdg-canvas bdg-canvas-lg"><canvas data-bdg="' + S.size + '" data-main></canvas></div>'
+      + '<div class="bdg-minis">' + others + '</div>'
+      + '<div class="mmr-actions"><button class="btn btn-ghost" onclick="BDG.go(3)">→ رجوع للتعديل</button><button class="btn btn-primary" onclick="BDG.go(5)">اعتماد والانتقال للتصدير ←</button></div>';
+  }
+  function paintExport(){
+    var t = tplOf(S.tpl);
+    if (!S.exportSizes || !S.exportSizes.length) S.exportSizes = [S.size];
+    var sizes = t.sizes.map(function(k){ var s = sizeOf(k); return '<label class="bdg-opt"><input type="checkbox"' + (S.exportSizes.indexOf(k) >= 0 ? ' checked' : '') + ' onchange="BDG.xsize(\'' + k + '\', this.checked)"> ' + e(s.label) + ' <span class="cmw-en">' + s.w + '×' + s.h + (s.exportScale ? ' · ×' + s.exportScale : '') + '</span></label>'; }).join('');
+    var fmts = [['png', 'PNG — صورة'], ['pdf', 'PDF — ملف للطباعة والمشاركة']].map(function(f){ return '<label class="bdg-opt"><input type="radio" name="bdg-fmt"' + (S.exportFmt === f[0] ? ' checked' : '') + ' onchange="BDG.fmt(\'' + f[0] + '\')"> ' + f[1] + '</label>'; }).join('');
+    return '<div class="bdg-head"><h3>التصدير</h3><p class="mmr-hint">اختر المقاسات والصيغة. يُصدَّر التصميم بالدقة الكاملة لكل مقاس.</p></div>'
+      + '<div class="bdg-export"><div class="bdg-canvas bdg-canvas-sm"><canvas data-bdg="' + S.size + '" data-main></canvas></div><div>'
+      + '<div class="mmr-lbl">المقاسات</div><div class="bdg-opts">' + sizes + '</div>'
+      + '<div class="mmr-lbl">الصيغة</div><div class="bdg-opts">' + fmts + '</div>'
+      + '<div id="bdg-xmsg"></div>'
+      + '<div class="mmr-actions"><button class="btn btn-ghost" onclick="BDG.go(4)">→ رجوع للمعاينة</button><button class="btn btn-primary" id="bdg-xbtn" onclick="BDG.exportNow()">تصدير الآن</button><button class="btn btn-ghost" onclick="BDG.reset()">تصميم جديد</button></div>'
+      + '</div></div><div id="bdg-warn"></div>';
+  }
+
+  // ── actions ────────────────────────────────────────────────────
+  var rerenderTimer = null;
+  function rerender(){
+    clearTimeout(rerenderTimer);
+    rerenderTimer = setTimeout(function(){ root().querySelectorAll('canvas[data-bdg]').forEach(function(c){ var o = render(c, c.getAttribute('data-bdg'), 1); if (c.hasAttribute('data-main')) warn(o); }); }, 120);
+  }
+  function field(k, el){
+    S.content[k] = el.value; save();
+    var n = document.getElementById('bdg-n-' + k), f = cfg.fields[k]; if (n) n.textContent = el.value.length + '/' + f.max;
+    var g = document.getElementById('bdg-gen'); if (g) g.disabled = !txt('title');
+    if (S.step >= 3) rerender();
+  }
+  function set(k, v){ S.style = S.style || {}; S.style[k] = v; save(); paint(); }
+  function size(k){ S.size = k; save(); paint(); }
+  function cat(k){ S.cat = k; save(); paint(); }
+  function pick(k){
+    if (S.tpl !== k) { S.tpl = k; S.style = {}; S.size = tplOf(k).sizes[0]; S.exportSizes = []; S.reached = 1; }
+    S.cat = catOf(k).key; go(1);
+  }
+  function image(input){
+    var f = input.files && input.files[0]; if (!f) return;
+    if (f.size > 15 * 1024 * 1024) { toast('حجم الصورة أكبر من 15MB', true); return; }
+    var r = new FileReader();
+    r.onload = function(){
+      var i = new Image();
+      i.onload = function(){
+        var s = Math.min(1, 1600 / Math.max(i.width, i.height)), c = document.createElement('canvas');
+        c.width = Math.round(i.width * s); c.height = Math.round(i.height * s); c.getContext('2d').drawImage(i, 0, 0, c.width, c.height);
+        S.image = c.toDataURL('image/jpeg', 0.85); assets.__user = null; save();
+        img(S.image).then(function(im){ assets.__user = im; paint(); });
+      };
+      i.onerror = function(){ toast('تعذّر قراءة الصورة', true); };
+      i.src = r.result;
+    };
+    r.readAsDataURL(f);
+  }
+  function clearImage(){ S.image = null; assets.__user = null; save(); paint(); }
+  function xsize(k, on){ var a = (S.exportSizes || []).filter(function(x){ return x !== k; }); if (on) a.push(k); S.exportSizes = a; save(); }
+  function fmt(f){ S.exportFmt = f; save(); }
+  function fileBase(){ return ('GAC-' + (S.tpl || 'design') + '-' + new Date().toISOString().slice(0, 10)); }
+  function download(blob, name){ var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1500); }
+  function loadJsPdf(){
+    if (window.jspdf && window.jspdf.jsPDF) return Promise.resolve(window.jspdf.jsPDF);
+    return new Promise(function(res, rej){
+      var s = document.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+      s.onload = function(){ res(window.jspdf.jsPDF); }; s.onerror = function(){ rej(new Error('jspdf')); }; document.head.appendChild(s);
+    });
+  }
+  function exportNow(){
+    var t = tplOf(S.tpl), keys = t.sizes.filter(function(k){ return (S.exportSizes || []).indexOf(k) >= 0; });
+    var msg = document.getElementById('bdg-xmsg'), btn = document.getElementById('bdg-xbtn');
+    if (!keys.length) { msg.innerHTML = '<div class="mmr-banner-err">اختر مقاساً واحداً على الأقل.</div>'; return; }
+    btn.disabled = true; msg.innerHTML = '<div class="mmr-state"><span class="mmr-spin"></span> جاري التصدير…</div>';
+    var canv = keys.map(function(k){ var c = document.createElement('canvas'); render(c, k, sizeOf(k).exportScale || 1); return { k: k, c: c }; });
+    var job;
+    if (S.exportFmt === 'pdf') {
+      job = loadJsPdf().then(function(jsPDF){
+        var doc = null;
+        canv.forEach(function(x){
+          var s = sizeOf(x.k), w = s.w * 0.75, h = s.h * 0.75, o = w > h ? 'l' : 'p';
+          if (!doc) doc = new jsPDF({ orientation: o, unit: 'pt', format: [w, h], compress: true }); else doc.addPage([w, h], o);
+          doc.addImage(x.c.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, w, h);
+        });
+        download(doc.output('blob'), fileBase() + '.pdf');
+      });
+    } else {
+      job = canv.reduce(function(p, x){
+        return p.then(function(){ return new Promise(function(res){ x.c.toBlob(function(b){ download(b, fileBase() + '-' + x.k + '.png'); setTimeout(res, 250); }, 'image/png'); }); });
+      }, Promise.resolve());
+    }
+    job.then(function(){
+      msg.innerHTML = '<div class="mmr-note bdg-ok">تم التصدير بنجاح (' + keys.length + ' ' + (keys.length > 1 ? 'مقاسات' : 'مقاس') + ' — ' + S.exportFmt.toUpperCase() + ').</div>';
+    }, function(){
+      msg.innerHTML = '<div class="mmr-banner-err">تعذّر التصدير. تحقّق من الاتصال وأعد المحاولة.</div>';
+    }).then(function(){ btn.disabled = false; });
+  }
+  function reset(){
+    if (!confirm('بدء تصميم جديد؟ سيُمسح التصميم الحالي من هذه الصفحة.')) return;
+    S = { v: 1, step: 0, reached: 0, cat: S.cat, tpl: null, size: null, content: {}, style: {}, image: null, exportSizes: [], exportFmt: 'png' };
+    assets.__user = null; save(); paint();
+  }
+  return { init: init, retry: retry, go: go, cat: cat, pick: pick, field: field, set: set, size: size, image: image, clearImage: clearImage, xsize: xsize, fmt: fmt, exportNow: exportNow, reset: reset, _state: function(){ return S; }, _render: render };
 })();
 
 // ══ Prompts Library module ══

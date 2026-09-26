@@ -1,0 +1,92 @@
+{
+  "version": "2.0",
+  "source": "الدليل الإرشادي لهوية الهيئة العامة للمنافسة — الإصدار 1.0 (2026)",
+  "brand": {
+    "font": { "family": "IBM Plex Sans Arabic", "files": { "400": "/public/brand-assets/fonts/IBMPlexSansArabic-Regular.ttf", "500": "/public/brand-assets/fonts/IBMPlexSansArabic-Medium.ttf", "700": "/public/brand-assets/fonts/IBMPlexSansArabic-Bold.ttf" } },
+    "colors": {
+      "primary": "#005275",
+      "navy": "#003F66",
+      "white": "#FFFFFF",
+      "ink": "#1F2A33",
+      "muted": "#5B6770",
+      "secondary": { "lime": "#A6C700", "gold": "#D99C0A", "yellow": "#FAD12B", "cyan": "#46BCCD", "green": "#00943E" }
+    },
+    "logos": {
+      "onColor": "/public/brand-assets/logos/gac-white.svg",
+      "onWhite": "/public/brand-assets/logos/gac-colorful-trim.png"
+    },
+    "patterns": {
+      "onColor": "/public/brand-assets/patterns/chevron-band.svg",
+      "onWhite": "/public/brand-assets/patterns/chevron-band-primary.svg"
+    },
+    "themes": [
+      { "key": "primary", "label": "الأزرق الرئيسي", "bg": "#005275", "text": "#FFFFFF", "logo": "onColor", "pattern": "onColor" },
+      { "key": "navy", "label": "الأزرق الداكن", "bg": "#003F66", "text": "#FFFFFF", "logo": "onColor", "pattern": "onColor" },
+      { "key": "white", "label": "الأبيض", "bg": "#FFFFFF", "text": "#005275", "logo": "onWhite", "pattern": "onWhite" }
+    ],
+    "accents": ["lime", "cyan", "green", "gold", "yellow"],
+    "rules": {
+      "titleMaxChars": 70,
+      "subtitleMaxChars": 120,
+      "bodyMaxChars": 360,
+      "minTitlePx": 44,
+      "safeMarginPct": 7,
+      "logoWidthPct": 26,
+      "imageOverlay": "rgba(0,82,117,0.72)"
+    }
+  },
+  "sizes": [
+    { "key": "square", "label": "منشور مربع", "channel": "Instagram / X / LinkedIn", "w": 1080, "h": 1080 },
+    { "key": "portrait", "label": "منشور طولي", "channel": "Instagram / LinkedIn", "w": 1080, "h": 1350 },
+    { "key": "story", "label": "قصة / شاشة طولية", "channel": "Stories / Reels", "w": 1080, "h": 1920 },
+    { "key": "landscape", "label": "شاشة عرض أفقية", "channel": "Screens / X", "w": 1920, "h": 1080 },
+    { "key": "a4", "label": "مطبوع A4", "channel": "Print / PDF", "w": 1240, "h": 1754, "exportScale": 2 }
+  ],
+  "fields": {
+    "badge": { "label": "الشارة العلوية", "max": 30 },
+    "title": { "label": "العنوان الرئيسي", "max": 70, "required": true },
+    "subtitle": { "label": "العنوان الفرعي", "max": 120 },
+    "body": { "label": "النص", "max": 360, "multiline": true },
+    "date": { "label": "التاريخ", "max": 40 },
+    "time": { "label": "الوقت", "max": 30 },
+    "place": { "label": "المكان", "max": 60 },
+    "cta": { "label": "عبارة الختام / الدعوة", "max": 60 },
+    "hashtag": { "label": "الوسم", "max": 40 },
+    "stat": { "label": "الرقم البارز", "max": 12 },
+    "image": { "label": "الصورة", "type": "image" }
+  },
+  "categories": [
+    { "key": "social", "label": "منشورات التواصل الاجتماعي", "templates": [
+      { "key": "social-cover", "label": "منشور بخلفية الهوية", "layout": "cover", "theme": "primary", "accent": "lime", "sizes": ["square", "portrait", "story", "landscape"], "fields": ["badge", "title", "subtitle", "hashtag"] },
+      { "key": "social-photo", "label": "منشور بصورة", "layout": "photo", "theme": "primary", "accent": "lime", "sizes": ["square", "portrait", "story", "landscape"], "fields": ["badge", "title", "subtitle", "image", "hashtag"] }
+    ]},
+    { "key": "announcement", "label": "الإعلانات الداخلية", "templates": [
+      { "key": "announcement-panel", "label": "إعلان داخلي", "layout": "panel", "theme": "white", "accent": "cyan", "sizes": ["landscape", "square", "a4"], "fields": ["badge", "title", "body", "date", "cta"] }
+    ]},
+    { "key": "awareness", "label": "الرسائل التوعوية", "templates": [
+      { "key": "awareness-stat", "label": "رسالة توعوية برقم", "layout": "stat", "theme": "primary", "accent": "lime", "sizes": ["square", "portrait", "story"], "fields": ["stat", "title", "body", "hashtag"] },
+      { "key": "awareness-message", "label": "رسالة توعوية", "layout": "cover", "theme": "navy", "accent": "cyan", "sizes": ["square", "portrait", "story", "landscape"], "fields": ["badge", "title", "subtitle", "hashtag"] }
+    ]},
+    { "key": "invitation", "label": "الدعوات", "templates": [
+      { "key": "invitation-formal", "label": "دعوة رسمية", "layout": "invite", "theme": "white", "accent": "lime", "sizes": ["portrait", "square", "a4"], "fields": ["badge", "title", "subtitle", "date", "time", "place", "cta"] }
+    ]},
+    { "key": "event", "label": "الفعاليات وورش العمل", "templates": [
+      { "key": "event-workshop", "label": "ورشة عمل", "layout": "event", "theme": "primary", "accent": "lime", "sizes": ["square", "portrait", "story", "landscape"], "fields": ["badge", "title", "subtitle", "date", "time", "place"] },
+      { "key": "event-photo", "label": "فعالية بصورة", "layout": "photo", "theme": "navy", "accent": "cyan", "sizes": ["square", "landscape"], "fields": ["badge", "title", "subtitle", "date", "place", "image"] }
+    ]},
+    { "key": "screen", "label": "الشاشات والعروض الرقمية", "templates": [
+      { "key": "screen-landscape", "label": "شاشة أفقية", "layout": "event", "theme": "navy", "accent": "lime", "sizes": ["landscape", "story"], "fields": ["badge", "title", "subtitle", "date", "place"] }
+    ]},
+    { "key": "campaign", "label": "مواد الحملات", "templates": [
+      { "key": "campaign-key", "label": "المادة الرئيسية للحملة", "layout": "cover", "theme": "primary", "accent": "gold", "sizes": ["square", "portrait", "story", "landscape", "a4"], "fields": ["badge", "title", "subtitle", "cta", "hashtag"] },
+      { "key": "campaign-photo", "label": "مادة حملة بصورة", "layout": "photo", "theme": "primary", "accent": "lime", "sizes": ["square", "portrait", "story", "landscape"], "fields": ["badge", "title", "subtitle", "image", "hashtag"] }
+    ]},
+    { "key": "presentation", "label": "مرئيات العروض التقديمية", "templates": [
+      { "key": "presentation-cover", "label": "غلاف عرض تقديمي", "layout": "cover", "theme": "primary", "accent": "lime", "sizes": ["landscape"], "fields": ["badge", "title", "subtitle", "date"] },
+      { "key": "presentation-divider", "label": "فاصل قسم", "layout": "panel", "theme": "white", "accent": "lime", "sizes": ["landscape"], "fields": ["badge", "title", "body"] }
+    ]},
+    { "key": "occasion", "label": "المناسبات والأيام الخاصة", "templates": [
+      { "key": "occasion-greeting", "label": "تهنئة بمناسبة", "layout": "occasion", "theme": "primary", "accent": "yellow", "sizes": ["square", "portrait", "story", "landscape"], "fields": ["title", "subtitle", "hashtag"] }
+    ]}
+  ]
+}
