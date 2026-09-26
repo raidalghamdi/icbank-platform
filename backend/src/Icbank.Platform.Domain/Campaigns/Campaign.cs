@@ -65,6 +65,30 @@ public sealed class Campaign : AuditableEntity
     public bool IsActive { get; set; } = true;
 
     /// <summary>Gets the campaign's headline outputs, which make the progress figure auditable.</summary>
+    /// <summary>Gets or sets the lifecycle stage the campaign is in: planning, execution, performance measurement or closure.</summary>
+    public CampaignStage Stage { get; set; }
+
+    /// <summary>Gets or sets the target audience description.</summary>
+    public string TargetAudience { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the key messages, one per line.</summary>
+    public string KeyMessages { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the team members, one per line.</summary>
+    public string TeamMembers { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the publishing / activation channels the campaign plans to use, one per line.</summary>
+    public string PlannedChannels { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets a value indicating whether the campaign is created or edited on the page; the seeder then leaves it alone.</summary>
+    public bool IsUserManaged { get; set; }
+
+    /// <summary>Gets or sets the internal campaign request the campaign was converted from, if any.</summary>
+    public int? SourceRequestId { get; set; }
+
+    /// <summary>Gets or sets the operating plan as JSON: milestones, tasks, content, attachments, targets, results and closure notes.</summary>
+    public string PlanJson { get; set; } = "{}";
+
     public ICollection<CampaignDeliverable> Deliverables { get; } = new List<CampaignDeliverable>();
 
     /// <summary>Gets the channels the campaign publishes through, each with its own reach.</summary>

@@ -195,6 +195,9 @@ public sealed class AppDbContext : DbContext, IApplicationDbContext
     /// <summary>Gets the channels each tracked campaign publishes through.</summary>
     public DbSet<CampaignChannel> CampaignChannels => Set<CampaignChannel>();
 
+    /// <summary>Gets the internal campaign requests departments submit to Corporate Communications.</summary>
+    public DbSet<CampaignRequest> CampaignRequests => Set<CampaignRequest>();
+
     // ── Projects ────────────────────────────────────────────────────────────
 
     /// <summary>Gets the department's tracked project portfolio.</summary>
@@ -263,6 +266,9 @@ public sealed class AppDbContext : DbContext, IApplicationDbContext
 
     /// <inheritdoc cref="IApplicationDbContext.CampaignChannels" />
     IQueryable<CampaignChannel> IApplicationDbContext.CampaignChannels => CampaignChannels;
+
+    /// <inheritdoc cref="IApplicationDbContext.CampaignRequests" />
+    IQueryable<CampaignRequest> IApplicationDbContext.CampaignRequests => CampaignRequests;
 
     /// <inheritdoc cref="IApplicationDbContext.PortfolioProjects" />
     IQueryable<PortfolioProject> IApplicationDbContext.PortfolioProjects => PortfolioProjects;

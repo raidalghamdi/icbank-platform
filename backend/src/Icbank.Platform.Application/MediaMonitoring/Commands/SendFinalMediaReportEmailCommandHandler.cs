@@ -38,9 +38,15 @@ public sealed class SendFinalMediaReportEmailCommandHandler : IRequestHandler<Se
             return Result<SendFinalMediaReportEmailResultDto>.Failure("التقرير غير موجود");
         }
 
+        if (report.Status == FinalMediaReportStatus.Draft)
+        {
+            return Result<SendFinalMediaReportEmailResultDto>.Failure(ExportFinalMediaReportPdfCommand.NotApprovedError);
+        }
+
         MediaAppearanceAnalysisDto appearance = await MediaAppearanceLoader.LoadAsync(
             _dbContext, _queryExecutor, report.DateFrom, report.DateTo, cancellationToken);
-        var html = FinalReportHtmlBuilder.Build(FinalMediaReportMapper.ToDetailDto(report, appearance));
+        FinalMediaReportDetailDto detail = FinalMediaReportMapper.ToDetailDto(report, appearance);
+        var html = FinalReportHtmlBuilder.Build(detail, detail.Layout);
         var subject = request.Subject ?? report.Title;
         ReportEmailResult emailResult = await _emailSender.SendAsync(request.Recipients, subject, html, cancellationToken);
 

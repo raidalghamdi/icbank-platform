@@ -17,10 +17,9 @@ namespace Icbank.Platform.Api.Controllers;
 /// exec-summary regeneration, archive search, and the wizard QA-log write. Every mutating and
 /// AI/PDF/email-cost route in this controller now requires authentication and the matching
 /// <c>media_monitoring:{verb}</c> policy; only the two intentionally-public reads (list/get, per
-/// the Node source's own file header comment) remain anonymous. The immutability guard
-/// (<see cref="RejectUpdate"/>/<see cref="RejectDelete"/>) always returns 403 regardless of
-/// caller identity or role, matching <c>final-media-reports.ts:795-800</c> exactly -- final
-/// reports are permanently preserved and can never be edited or deleted through this API.
+/// the Node source's own file header comment) remain anonymous. A generated report starts as a
+/// draft in Review &amp; Edit; once approved it is permanently preserved and the update/delete
+/// routes answer 403 for it, matching <c>final-media-reports.ts:795-800</c> for final reports.
 /// </summary>
 [ApiController]
 [ApiVersion("1.0")]
@@ -53,6 +52,21 @@ public sealed class FinalMediaReportsController : ControllerBase
     {
         var pagedQuery = new PagedQuery { Page = page == 0 ? 1 : page, PageSize = pageSize == 0 ? PagedQuery.DefaultPageSize : pageSize };
         Result<PagedResult<FinalMediaReportDto>> result = await _sender.Send(new ListFinalMediaReportsQuery(pagedQuery, type, year), cancellationToken);
+        return Ok(result.Value);
+    }
+
+    /// <summary>Lists the reports still in Review &amp; Edit, newest first.</summary>
+    /// <param name="page">The 1-based page.</param>
+    /// <param name="pageSize">The page size.</param>
+    /// <param name="cancellationToken">The request cancellation token.</param>
+    /// <returns>The drafts page.</returns>
+    [HttpGet("final-media-reports/drafts")]
+    [Authorize(Policy = "media_monitoring:view")]
+    public async Task<ActionResult<PagedResult<FinalMediaReportDto>>> ListDraftsAsync(
+        [FromQuery] int page, [FromQuery] int pageSize, CancellationToken cancellationToken)
+    {
+        var pagedQuery = new PagedQuery { Page = page == 0 ? 1 : page, PageSize = pageSize == 0 ? PagedQuery.DefaultPageSize : pageSize };
+        Result<PagedResult<FinalMediaReportDto>> result = await _sender.Send(new ListFinalMediaReportsQuery(pagedQuery, null, null, Drafts: true), cancellationToken);
         return Ok(result.Value);
     }
 
@@ -136,6 +150,11 @@ public sealed class FinalMediaReportsController : ControllerBase
     public async Task<ActionResult> ExportPdfAsync(int reportId, CancellationToken cancellationToken)
     {
         Result<byte[]> result = await _sender.Send(new ExportFinalMediaReportPdfCommand(reportId), cancellationToken);
+        if (result.Error == ExportFinalMediaReportPdfCommand.NotApprovedError)
+        {
+            return Conflict(new { error = result.Error });
+        }
+
         if (!result.IsSuccess)
         {
             return NotFound(new { error = result.Error });
@@ -235,32 +254,72 @@ public sealed class FinalMediaReportsController : ControllerBase
             });
     }
 
-    /// <summary>
-    /// Immutability guard: final reports can never be edited through this API (BUSINESS-RULES.md
-    /// §5.2). Always returns 403 regardless of caller identity or role -- matching
-    /// <c>final-media-reports.ts:798-800</c> exactly, which registers no auth middleware at all
-    /// on this route, not even a basic authentication check, because the rejection itself is
-    /// unconditional and identical for every caller.
-    /// </summary>
-    /// <param name="reportId">The report id (unused -- rejected before any lookup).</param>
-    /// <returns>403 Forbidden.</returns>
+    /// <summary>Saves the Review &amp; Edit stage of a draft report. Approved reports stay immutable (403).</summary>
+    /// <param name="reportId">The draft report id.</param>
+    /// <param name="request">The edited title, content and layout.</param>
+    /// <param name="cancellationToken">The request cancellation token.</param>
+    /// <returns>The saved report detail.</returns>
     [HttpPut("final-media-reports/{reportId:int}")]
-    [AllowAnonymous]
-    public ActionResult RejectUpdate(int reportId) =>
-        StatusCode(StatusCodes.Status403Forbidden, new { ok = false, error = "التقارير النهائية محفوظة بشكل دائم — لا يمكن تعديلها." });
+    [Authorize(Policy = "media_monitoring:create")]
+    public async Task<ActionResult> UpdateDraftAsync(
+        int reportId, [FromBody] UpdateFinalMediaReportDraftRequest request, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        var actorUserId = CurrentUserId.TryRead(User) ?? throw new InvalidOperationException("Authenticated request missing subject claim.");
+        var layoutJson = request.Layout is { ValueKind: System.Text.Json.JsonValueKind.Object } layout ? layout.GetRawText() : null;
+        var command = new UpdateFinalMediaReportDraftCommand(actorUserId, reportId, request.Title, request.Draft, layoutJson);
+        Result<FinalMediaReportDetailDto> result = await _sender.Send(command, cancellationToken);
+        if (result.IsSuccess)
+        {
+            return Ok(new { ok = true, item = ToLegacyBrowserItem(result.Value!) });
+        }
 
-    /// <summary>
-    /// Immutability guard: final reports can never be deleted through this API (BUSINESS-RULES.md
-    /// §5.2). Always returns 403 regardless of caller identity or role -- matching
-    /// <c>final-media-reports.ts:795-797</c> exactly, which registers no auth middleware at all
-    /// on this route for the same reason.
-    /// </summary>
-    /// <param name="reportId">The report id (unused -- rejected before any lookup).</param>
-    /// <returns>403 Forbidden.</returns>
+        return DraftFailure(result.Error);
+    }
+
+    /// <summary>Approves a reviewed draft: it becomes the immutable archived report.</summary>
+    /// <param name="reportId">The draft report id.</param>
+    /// <param name="cancellationToken">The request cancellation token.</param>
+    /// <returns>The approved report summary.</returns>
+    [HttpPost("final-media-reports/{reportId:int}/approve")]
+    [Authorize(Policy = "media_monitoring:create")]
+    public async Task<ActionResult> ApproveAsync(int reportId, CancellationToken cancellationToken)
+    {
+        var actorUserId = CurrentUserId.TryRead(User) ?? throw new InvalidOperationException("Authenticated request missing subject claim.");
+        var approverName = User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value;
+        Result<FinalMediaReportDto> result = await _sender.Send(new ApproveFinalMediaReportCommand(actorUserId, reportId, approverName), cancellationToken);
+        return result.IsSuccess ? Ok(new { ok = true, item = result.Value }) : DraftFailure(result.Error);
+    }
+
+    /// <summary>Discards a draft. Approved reports can never be deleted (403).</summary>
+    /// <param name="reportId">The draft report id.</param>
+    /// <param name="cancellationToken">The request cancellation token.</param>
+    /// <returns>No content on success.</returns>
     [HttpDelete("final-media-reports/{reportId:int}")]
-    [AllowAnonymous]
-    public ActionResult RejectDelete(int reportId) =>
-        StatusCode(StatusCodes.Status403Forbidden, new { ok = false, error = "التقارير النهائية محفوظة بشكل دائم — لا يمكن حذفها." });
+    [Authorize(Policy = "media_monitoring:create")]
+    public async Task<ActionResult> DiscardDraftAsync(int reportId, CancellationToken cancellationToken)
+    {
+        Result<bool> result = await _sender.Send(new DiscardFinalMediaReportDraftCommand(reportId), cancellationToken);
+        if (result.IsSuccess)
+        {
+            return NoContent();
+        }
+
+        return result.Error == UpdateFinalMediaReportDraftCommand.LockedError
+            ? StatusCode(StatusCodes.Status403Forbidden, new { ok = false, error = "التقارير النهائية محفوظة بشكل دائم — لا يمكن حذفها." })
+            : DraftFailure(result.Error);
+    }
+
+    private static ObjectResult DraftFailure(string? error)
+    {
+        var statusCode = error switch
+        {
+            UpdateFinalMediaReportDraftCommand.NotFoundError => StatusCodes.Status404NotFound,
+            UpdateFinalMediaReportDraftCommand.LockedError or ApproveFinalMediaReportCommand.AlreadyApprovedError => StatusCodes.Status403Forbidden,
+            _ => StatusCodes.Status400BadRequest,
+        };
+        return new ObjectResult(new { ok = false, error }) { StatusCode = statusCode };
+    }
 
     private static object ToLegacyBrowserItem(FinalMediaReportDetailDto detail) =>
         new
@@ -290,6 +349,9 @@ public sealed class FinalMediaReportsController : ControllerBase
             detail.Methodology,
             detail.Sources,
             detail.Appearance,
+            detail.Layout,
+            detail.Summary.ApprovedAt,
+            detail.Summary.ApprovedByName,
         };
 
     /// <summary>Builds the stored title for an auto-saved generated report.</summary>
@@ -326,7 +388,8 @@ public sealed class FinalMediaReportsController : ControllerBase
             request.PeriodLabel,
             request.DateFrom,
             request.DateTo,
-            draft);
+            draft,
+            AsDraft: true);
         Result<FinalMediaReportDto> saved = await _sender.Send(save, cancellationToken);
         return saved.IsSuccess ? saved.Value : null;
     }

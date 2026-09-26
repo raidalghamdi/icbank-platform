@@ -58,6 +58,9 @@ public sealed class FinalMediaReportConfig : IEntityTypeConfiguration<FinalMedia
         builder.Property(r => r.GeneratedByName).HasColumnName("generated_by_name").HasMaxLength(NameMaxLength);
         builder.Property(r => r.AiModel).HasColumnName("ai_model").HasMaxLength(AiModelMaxLength);
         builder.Property(r => r.Status).HasColumnName("status").HasMaxLength(StatusMaxLength).HasConversion<string>().IsRequired();
+        builder.Property(r => r.LayoutJson).HasColumnName("layout_json").HasColumnType("nvarchar(max)").HasDefaultValue("{}").IsRequired();
+        builder.Property(r => r.ApprovedAt).HasColumnName("approved_at").HasColumnType("datetimeoffset(3)");
+        builder.Property(r => r.ApprovedByName).HasColumnName("approved_by_name").HasMaxLength(NameMaxLength);
         builder.Property(r => r.LockedAt).HasColumnName("locked_at").HasColumnType("datetimeoffset(3)").IsRequired();
         builder.Property(r => r.ContentSha256).HasColumnName("content_sha256").HasMaxLength(Sha256MaxLength).IsRequired();
         builder.Property(r => r.PdfStorageKey).HasColumnName("pdf_storage_key").HasMaxLength(StorageKeyMaxLength);

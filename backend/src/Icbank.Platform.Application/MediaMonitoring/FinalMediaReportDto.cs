@@ -14,6 +14,8 @@ namespace Icbank.Platform.Application.MediaMonitoring;
 /// <param name="ViewCount">The view counter.</param>
 /// <param name="ContentSha256">The SHA-256 integrity fingerprint of the JSON payload.</param>
 /// <param name="CreatedAt">The UTC creation timestamp.</param>
+/// <param name="ApprovedAt">When the report was approved, or null for a draft.</param>
+/// <param name="ApprovedByName">Who approved the report.</param>
 public sealed record FinalMediaReportDto(
     int Id,
     string ReportNumber,
@@ -27,4 +29,6 @@ public sealed record FinalMediaReportDto(
     string Status,
     int ViewCount,
     string ContentSha256,
-    DateTimeOffset CreatedAt);
+    DateTimeOffset CreatedAt,
+    DateTimeOffset? ApprovedAt = null,
+    string? ApprovedByName = null);

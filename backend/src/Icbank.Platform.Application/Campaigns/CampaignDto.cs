@@ -26,6 +26,15 @@ namespace Icbank.Platform.Application.Campaigns;
 /// <param name="DeliverablesTotal">How many headline outputs the campaign has.</param>
 /// <param name="Deliverables">The outputs themselves, in display order.</param>
 /// <param name="Channels">The channels the campaign publishes through, widest reach first.</param>
+/// <param name="Stage">The lifecycle stage key: planning, execution, measurement or closed.</param>
+/// <param name="StageLabel">The Arabic stage label.</param>
+/// <param name="TargetAudience">The target audience description.</param>
+/// <param name="KeyMessages">The key messages, one per line.</param>
+/// <param name="TeamMembers">The team members, one per line.</param>
+/// <param name="PlannedChannels">The planned publishing / activation channels, one per line.</param>
+/// <param name="IsUserManaged">Whether the campaign is managed on the page rather than by the seed catalogue.</param>
+/// <param name="SourceRequestId">The internal campaign request the campaign was converted from.</param>
+/// <param name="Plan">The operating plan document (milestones, tasks, deliverables, content, files, targets, results).</param>
 /// <param name="Analytics">What the published material achieved.</param>
 public sealed record CampaignDto(
     int Id,
@@ -49,4 +58,13 @@ public sealed record CampaignDto(
     int DeliverablesTotal,
     IReadOnlyList<CampaignDeliverableDto> Deliverables,
     IReadOnlyList<CampaignChannelDto> Channels,
-    CampaignAnalyticsDto Analytics);
+    CampaignAnalyticsDto Analytics,
+    string Stage = "planning",
+    string StageLabel = "التخطيط",
+    string TargetAudience = "",
+    string KeyMessages = "",
+    string TeamMembers = "",
+    string PlannedChannels = "",
+    bool IsUserManaged = false,
+    int? SourceRequestId = null,
+    System.Text.Json.JsonElement? Plan = null);

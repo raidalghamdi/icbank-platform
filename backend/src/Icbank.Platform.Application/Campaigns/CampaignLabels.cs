@@ -70,4 +70,52 @@ public static class CampaignLabels
         "COMPLETED" => CampaignStatus.Completed,
         _ => null,
     };
+
+    /// <summary>Returns the stable key of a lifecycle stage.</summary>
+    /// <param name="stage">The stage.</param>
+    /// <returns>The key.</returns>
+    public static string StageKey(CampaignStage stage) => stage switch
+    {
+        CampaignStage.Execution => "execution",
+        CampaignStage.Measurement => "measurement",
+        CampaignStage.Closed => "closed",
+        _ => "planning",
+    };
+
+    /// <summary>Returns the Arabic label of a lifecycle stage.</summary>
+    /// <param name="stage">The stage.</param>
+    /// <returns>The label.</returns>
+    public static string StageLabel(CampaignStage stage) => stage switch
+    {
+        CampaignStage.Execution => "التنفيذ",
+        CampaignStage.Measurement => "قياس الأداء",
+        CampaignStage.Closed => "الإغلاق",
+        _ => "التخطيط",
+    };
+
+    /// <summary>Parses a stage key.</summary>
+    /// <param name="key">The key.</param>
+    /// <returns>The stage, or null for an unknown key.</returns>
+    public static CampaignStage? ParseStage(string? key) => key?.Trim().ToUpperInvariant() switch
+    {
+        "PLANNING" => CampaignStage.Planning,
+        "EXECUTION" => CampaignStage.Execution,
+        "MEASUREMENT" => CampaignStage.Measurement,
+        "CLOSED" => CampaignStage.Closed,
+        _ => null,
+    };
+
+    /// <summary>
+    /// Returns the board bucket a stage is listed under: planning is upcoming, execution is
+    /// running, measurement is under review, and only a closed campaign counts as completed.
+    /// </summary>
+    /// <param name="stage">The stage.</param>
+    /// <returns>The board status.</returns>
+    public static CampaignStatus StatusOf(CampaignStage stage) => stage switch
+    {
+        CampaignStage.Execution => CampaignStatus.Running,
+        CampaignStage.Measurement => CampaignStatus.UnderReview,
+        CampaignStage.Closed => CampaignStatus.Completed,
+        _ => CampaignStatus.Upcoming,
+    };
 }

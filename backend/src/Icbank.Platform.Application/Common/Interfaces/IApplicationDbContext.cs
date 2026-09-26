@@ -70,6 +70,9 @@ public interface IApplicationDbContext
     /// <summary>Gets a queryable over the channels each tracked campaign publishes through.</summary>
     IQueryable<CampaignChannel> CampaignChannels { get; }
 
+    /// <summary>Gets a queryable over the internal campaign requests departments submit to Corporate Communications.</summary>
+    IQueryable<CampaignRequest> CampaignRequests { get; }
+
     /// <summary>Gets a queryable over the department's tracked project portfolio.</summary>
     IQueryable<PortfolioProject> PortfolioProjects { get; }
 

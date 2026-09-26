@@ -34,10 +34,15 @@ public sealed class ExportFinalMediaReportPdfCommandHandler : IRequestHandler<Ex
             return Result<byte[]>.Failure("التقرير غير موجود");
         }
 
+        if (report.Status == FinalMediaReportStatus.Draft)
+        {
+            return Result<byte[]>.Failure(ExportFinalMediaReportPdfCommand.NotApprovedError);
+        }
+
         MediaAppearanceAnalysisDto appearance = await MediaAppearanceLoader.LoadAsync(
             _dbContext, _queryExecutor, report.DateFrom, report.DateTo, cancellationToken);
         FinalMediaReportDetailDto detail = FinalMediaReportMapper.ToDetailDto(report, appearance);
-        var html = FinalReportHtmlBuilder.Build(detail);
+        var html = FinalReportHtmlBuilder.Build(detail, detail.Layout);
         var footerLabel = detail.Summary.ReportNumber + " · " + detail.Summary.PeriodLabel;
         var pdfBytes = await _pdfRenderer.RenderAsync(html, footerLabel, cancellationToken);
         return Result<byte[]>.Success(pdfBytes);

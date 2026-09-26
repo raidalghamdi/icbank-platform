@@ -120,6 +120,19 @@ public sealed class FinalMediaReport : AuditableEntity
     /// <summary>Gets or sets the view counter.</summary>
     public int ViewCount { get; set; }
 
+    /// <summary>
+    /// Gets or sets the reviewer's layout for the report as JSON: section order, visibility and
+    /// custom titles, the optional Contact Center figures and any sections the reviewer added.
+    /// Empty (<c>{}</c>) means the default layout every report had before review existed.
+    /// </summary>
+    public string LayoutJson { get; set; } = "{}";
+
+    /// <summary>Gets or sets when the report was approved; null while it is a draft or for reports saved before approval existed.</summary>
+    public DateTimeOffset? ApprovedAt { get; set; }
+
+    /// <summary>Gets or sets the display name of the approver.</summary>
+    public string? ApprovedByName { get; set; }
+
     /// <summary>Gets the QA/search queries recorded against this report.</summary>
     public ICollection<ReportsQaQuery> QaQueries { get; init; } = new List<ReportsQaQuery>();
 }

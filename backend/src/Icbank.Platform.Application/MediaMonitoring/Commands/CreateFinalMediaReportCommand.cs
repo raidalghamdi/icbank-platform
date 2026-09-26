@@ -17,6 +17,8 @@ namespace Icbank.Platform.Application.MediaMonitoring.Commands;
 /// <param name="DateFrom">The UTC start of the covered date range.</param>
 /// <param name="DateTo">The UTC end of the covered date range.</param>
 /// <param name="Draft">The 8-section content to persist.</param>
+/// <param name="AsDraft">Whether to keep the report editable in Review &amp; Edit until it is approved.</param>
+/// <param name="LayoutJson">The reviewer's section layout, or null for the default layout.</param>
 public sealed record CreateFinalMediaReportCommand(
     int ActorUserId,
     string Title,
@@ -24,4 +26,6 @@ public sealed record CreateFinalMediaReportCommand(
     string PeriodLabel,
     DateTimeOffset DateFrom,
     DateTimeOffset DateTo,
-    FinalReportDraftDto Draft) : IRequest<Result<FinalMediaReportDto>>;
+    FinalReportDraftDto Draft,
+    bool AsDraft = false,
+    string? LayoutJson = null) : IRequest<Result<FinalMediaReportDto>>;

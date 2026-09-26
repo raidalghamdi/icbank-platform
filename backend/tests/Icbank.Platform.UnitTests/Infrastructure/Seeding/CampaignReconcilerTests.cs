@@ -198,6 +198,41 @@ public sealed class CampaignReconcilerTests
         seeded[0].StartDate.Should().Be(expectedStart);
     }
 
+    [Fact]
+    public void Reconcile_CampaignEditedOnThePage_IsNeitherOverwrittenNorRemoved()
+    {
+        List<Campaign> seeded = SeedEverything();
+        seeded[0].IsUserManaged = true;
+        seeded[0].Name = "اسم عدّله الاتصال المؤسسي";
+        Campaign created = CampaignReconciler.Build(CampaignSeedCatalog.Rows[0], SeededAt);
+        created.Code = "INT-U-1234abcd";
+        created.IsUserManaged = true;
+        seeded.Add(created);
+
+        CampaignReconciliation plan = CampaignReconciler.Reconcile(seeded, SeededAt);
+
+        seeded[0].Name.Should().Be("اسم عدّله الاتصال المؤسسي");
+        plan.Updated.Should().NotContain(seeded[0]);
+        plan.Removed.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Build_CatalogueRow_TakesTheStageMatchingItsStatus()
+    {
+        foreach (CampaignSeedRow row in CampaignSeedCatalog.Rows)
+        {
+            Campaign campaign = CampaignReconciler.Build(row, SeededAt);
+            CampaignStage expected = row.Status switch
+            {
+                CampaignStatus.Running => CampaignStage.Execution,
+                CampaignStatus.UnderReview => CampaignStage.Measurement,
+                CampaignStatus.Completed => CampaignStage.Closed,
+                _ => CampaignStage.Planning,
+            };
+            campaign.Stage.Should().Be(expected);
+        }
+    }
+
     private static List<Campaign> SeedEverything()
     {
         var seeded = new List<Campaign>();

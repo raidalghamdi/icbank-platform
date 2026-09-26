@@ -9,4 +9,8 @@ namespace Icbank.Platform.Application.MediaMonitoring.Commands;
 /// endpoint with no authentication at all; this port requires <c>media_monitoring:view</c>.
 /// </summary>
 /// <param name="ReportId">The report id to export.</param>
-public sealed record ExportFinalMediaReportPdfCommand(int ReportId) : IRequest<Result<byte[]>>;
+public sealed record ExportFinalMediaReportPdfCommand(int ReportId) : IRequest<Result<byte[]>>
+{
+    /// <summary>The error returned when a report still in review is exported or sent.</summary>
+    public const string NotApprovedError = "يجب اعتماد التقرير قبل تصديره أو إرساله";
+}

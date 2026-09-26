@@ -8,6 +8,13 @@ public static class ContentTypeExtensions
         ["image/png"] = ".png",
         ["image/jpeg"] = ".jpg",
         ["image/webp"] = ".webp",
+        ["image/gif"] = ".gif",
+        ["application/pdf"] = ".pdf",
+        ["application/vnd.openxmlformats-officedocument.wordprocessingml.document"] = ".docx",
+        ["application/vnd.openxmlformats-officedocument.presentationml.presentation"] = ".pptx",
+        ["application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"] = ".xlsx",
+        ["application/zip"] = ".zip",
+        ["video/mp4"] = ".mp4",
         ["text/html"] = ".html",
         ["text/html; charset=utf-8"] = ".html",
     };

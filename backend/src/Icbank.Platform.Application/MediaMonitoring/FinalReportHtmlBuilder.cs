@@ -63,21 +63,97 @@ public static class FinalReportHtmlBuilder
 
     /// <summary>Builds the full report HTML document.</summary>
     /// <param name="detail">The report detail to render.</param>
+    /// <param name="layout">The reviewer's section layout; null renders the default six sections.</param>
     /// <returns>The fully HTML-encoded document.</returns>
-    public static string Build(FinalMediaReportDetailDto detail)
+    public static string Build(FinalMediaReportDetailDto detail, FinalReportLayout? layout = null)
     {
         ArgumentNullException.ThrowIfNull(detail);
         var builder = new StringBuilder();
         builder.Append("<!DOCTYPE html><html dir=\"rtl\" lang=\"ar\"><head><meta charset=\"UTF-8\">").Append(Styles).Append("</head><body>");
         AppendCover(builder, detail.Summary);
-        AppendSectionOne(builder, detail);
-        AppendSectionTwo(builder, detail);
-        AppendSectionThree(builder, detail);
-        AppendSectionFour(builder, detail);
-        AppendSectionFive(builder, detail);
-        AppendSectionSix(builder, detail);
+        AppendSections(builder, detail, layout ?? FinalReportLayout.Default);
         builder.Append("</body></html>");
         return builder.ToString();
+    }
+
+    // Why: the reviewer decides which sections appear, in which order and under which title;
+    // numbering follows the visible sections so a hidden section leaves no gap in the headings.
+    private static void AppendSections(StringBuilder builder, FinalMediaReportDetailDto detail, FinalReportLayout layout)
+    {
+        var number = 1;
+        foreach (FinalReportLayoutSection section in layout.Sections.Where(s => s.Visible))
+        {
+            var title = string.IsNullOrWhiteSpace(section.Title)
+                ? FinalReportLayout.DefaultTitleOf(section.Key) ?? string.Empty
+                : section.Title.Trim();
+            if (AppendBuiltInSection(builder, detail, section.Key, number, title)
+                || AppendExtraSection(builder, section, layout.ContactCenter, number, title))
+            {
+                number++;
+            }
+        }
+    }
+
+    private static bool AppendBuiltInSection(StringBuilder builder, FinalMediaReportDetailDto detail, string key, int number, string title)
+    {
+        Action<StringBuilder, FinalMediaReportDetailDto, int, string>? append = key switch
+        {
+            FinalReportLayout.Summary => AppendSectionOne,
+            FinalReportLayout.News => AppendSectionTwo,
+            FinalReportLayout.Tone => AppendSectionThree,
+            FinalReportLayout.Analysis => AppendSectionFour,
+            FinalReportLayout.Recommendations => AppendSectionFive,
+            FinalReportLayout.Methodology => AppendSectionSix,
+            _ => null,
+        };
+        append?.Invoke(builder, detail, number, title);
+        return append is not null;
+    }
+
+    private static bool AppendExtraSection(StringBuilder builder, FinalReportLayoutSection section, ContactCenterFigures? figures, int number, string title)
+    {
+        if (string.Equals(section.Key, FinalReportLayout.ContactCenterKey, StringComparison.Ordinal))
+        {
+            AppendContactCenter(builder, figures, number, title);
+            return true;
+        }
+
+        if (!section.Key.StartsWith(FinalReportLayout.CustomPrefix, StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        AppendSection(builder, number, title);
+        AppendParagraphs(builder, section.Body);
+        return true;
+    }
+
+    private static void AppendContactCenter(StringBuilder builder, ContactCenterFigures? figures, int number, string title)
+    {
+        AppendSection(builder, number, title);
+        builder.Append("<div class=\"kpi-grid\">");
+        AppendContactFigure(builder, figures?.Calls, "عدد المكالمات");
+        AppendContactFigure(builder, figures?.Emails, "عدد الرسائل الإلكترونية");
+        AppendContactFigure(builder, figures?.Inquiries, "عدد الاستفسارات");
+        builder.Append("</div>");
+        if (!string.IsNullOrWhiteSpace(figures?.Notes))
+        {
+            AppendSubHeading(builder, "أبرز الملاحظات والموضوعات");
+            AppendParagraphs(builder, figures.Notes);
+        }
+    }
+
+    private static void AppendContactFigure(StringBuilder builder, int? value, string label) =>
+        builder.Append("<div data-accent=\"teal\"><div class=\"kpi-value\">")
+            .Append(Encode(value.HasValue ? Number(value.Value) : "—"))
+            .Append("</div><div class=\"kpi-label\">").Append(Encode(label)).Append("</div></div>");
+
+    private static void AppendParagraphs(StringBuilder builder, string? text)
+    {
+        foreach (var paragraph in (text ?? string.Empty).Split('\n').Select(p => p.Trim()).Where(p => p.Length > 0))
+        {
+            builder.Append("<p>").Append(Encode(paragraph)).Append("</p>");
+        }
     }
 
     private static void AppendCover(StringBuilder builder, FinalMediaReportDto summary)
@@ -106,9 +182,9 @@ public static class FinalReportHtmlBuilder
             ? Date(summary.DateFrom) + " — " + Date(summary.DateTo)
             : summary.PeriodLabel;
 
-    private static void AppendSectionOne(StringBuilder builder, FinalMediaReportDetailDto detail)
+    private static void AppendSectionOne(StringBuilder builder, FinalMediaReportDetailDto detail, int number, string title)
     {
-        AppendSection(builder, 1, "الملخص التنفيذي");
+        AppendSection(builder, number, title);
         if (!string.IsNullOrWhiteSpace(detail.Summary.ExecutiveSummary))
         {
             builder.Append("<p>").Append(Encode(detail.Summary.ExecutiveSummary)).Append("</p>");
@@ -185,9 +261,9 @@ public static class FinalReportHtmlBuilder
         }
     }
 
-    private static void AppendSectionTwo(StringBuilder builder, FinalMediaReportDetailDto detail)
+    private static void AppendSectionTwo(StringBuilder builder, FinalMediaReportDetailDto detail, int number, string title)
     {
-        AppendSection(builder, 2, "أبرز الأخبار خلال الفترة");
+        AppendSection(builder, number, title);
         if (detail.TopNews.Count == 0)
         {
             builder.Append("<p>").Append(Encode("لا توجد أخبار مسجلة.")).Append("</p>");
@@ -234,9 +310,9 @@ public static class FinalReportHtmlBuilder
         builder.Append("</table>");
     }
 
-    private static void AppendSectionThree(StringBuilder builder, FinalMediaReportDetailDto detail)
+    private static void AppendSectionThree(StringBuilder builder, FinalMediaReportDetailDto detail, int number, string title)
     {
-        AppendSection(builder, 3, "تحليل التوجه الإعلامي");
+        AppendSection(builder, number, title);
         AppendToneBuckets(builder, "توزع نبرة التغطية الإعلامية", detail.EditorialTone.Distribution);
         AppendToneBuckets(builder, "التصنيف الموضوعي للأخبار", detail.EditorialTone.Classification);
         AppendToneBuckets(builder, "توزع التغطية حسب المصدر", detail.EditorialTone.Sources);
@@ -351,9 +427,9 @@ public static class FinalReportHtmlBuilder
         builder.Append("</table>");
     }
 
-    private static void AppendSectionFour(StringBuilder builder, FinalMediaReportDetailDto detail)
+    private static void AppendSectionFour(StringBuilder builder, FinalMediaReportDetailDto detail, int number, string title)
     {
-        AppendSection(builder, 4, "تحليل عميق ومؤشرات قطاعية");
+        AppendSection(builder, number, title);
         AppendKeywords(builder, detail.DeepAnalysis.Keywords);
         AppendQuote(builder, detail.DeepAnalysis.Quote);
         AppendStrategicReading(builder, detail.DeepAnalysis.Strengths, detail.DeepAnalysis.Weaknesses);
@@ -429,9 +505,9 @@ public static class FinalReportHtmlBuilder
         builder.Append("</table>");
     }
 
-    private static void AppendSectionFive(StringBuilder builder, FinalMediaReportDetailDto detail)
+    private static void AppendSectionFive(StringBuilder builder, FinalMediaReportDetailDto detail, int number, string title)
     {
-        AppendSection(builder, 5, "التوصيات والإجراءات المقترحة");
+        AppendSection(builder, number, title);
         AppendRecommendations(builder, detail.Recommendations);
         AppendAlerts(builder, detail.Alerts);
     }
@@ -504,9 +580,9 @@ public static class FinalReportHtmlBuilder
         builder.Append("</table>");
     }
 
-    private static void AppendSectionSix(StringBuilder builder, FinalMediaReportDetailDto detail)
+    private static void AppendSectionSix(StringBuilder builder, FinalMediaReportDetailDto detail, int number, string title)
     {
-        AppendSection(builder, 6, "المنهجية والمصادر");
+        AppendSection(builder, number, title);
         if (!string.IsNullOrWhiteSpace(detail.Methodology))
         {
             AppendSubHeading(builder, "منهجية الرصد");

@@ -23,7 +23,10 @@ public sealed class ListFinalMediaReportsQueryHandler : IRequestHandler<ListFina
     /// <inheritdoc />
     public async Task<Result<PagedResult<FinalMediaReportDto>>> Handle(ListFinalMediaReportsQuery request, CancellationToken cancellationToken)
     {
-        IQueryable<FinalMediaReport> query = _dbContext.FinalMediaReports;
+        // Why: drafts are work in progress in Review & Edit; the archive shows approved reports
+        // only unless the caller asks for the drafts list explicitly.
+        FinalMediaReportStatus status = request.Drafts ? FinalMediaReportStatus.Draft : FinalMediaReportStatus.Final;
+        IQueryable<FinalMediaReport> query = _dbContext.FinalMediaReports.Where(r => r.Status == status);
 
         if (!string.IsNullOrWhiteSpace(request.ReportType) &&
             Enum.TryParse(request.ReportType, ignoreCase: true, out MediaReportType reportType))

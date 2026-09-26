@@ -9,4 +9,7 @@ public enum FinalMediaReportStatus
 {
     /// <summary>The report is final and immutable.</summary>
     Final = 0,
+
+    /// <summary>Generated and still in the Review &amp; Edit / Preview stages; editable until approved.</summary>
+    Draft = 1,
 }

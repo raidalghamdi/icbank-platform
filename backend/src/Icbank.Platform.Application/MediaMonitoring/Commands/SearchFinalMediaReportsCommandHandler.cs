@@ -32,6 +32,7 @@ public sealed class SearchFinalMediaReportsCommandHandler : IRequestHandler<Sear
         var pattern = request.Query.Trim();
         List<FinalMediaReport> matches = await _queryExecutor.ToListAsync(
             _dbContext.FinalMediaReports
+                .Where(r => r.Status == FinalMediaReportStatus.Final)
                 .Where(r => r.Title.Contains(pattern) || r.PeriodLabel.Contains(pattern) || (r.ExecutiveSummary != null && r.ExecutiveSummary.Contains(pattern)))
                 .OrderByDescending(r => r.CreatedAt)
                 .Take(limit),

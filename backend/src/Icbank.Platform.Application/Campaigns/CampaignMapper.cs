@@ -27,7 +27,9 @@ public static class CampaignMapper
         ArgumentNullException.ThrowIfNull(deliverables);
         ArgumentNullException.ThrowIfNull(channels);
 
-        return new CampaignDto(
+        System.Text.Json.JsonElement? plan = CampaignPlan.ToElement(campaign.PlanJson);
+        List<CampaignDeliverableDto> items = CampaignPlan.Deliverables(plan) ?? deliverables.Select(ToDto).ToList();
+        var card = new CampaignDto(
             campaign.Id,
             campaign.Code,
             campaign.Name,
@@ -45,11 +47,12 @@ public static class CampaignMapper
             DurationDays(campaign.StartDate, campaign.EndDate),
             DaysRemaining(campaign.EndDate, now),
             campaign.LatestUpdate,
-            deliverables.Count(d => d.IsCompleted),
-            deliverables.Count,
-            deliverables.Select(ToDto).ToList(),
+            items.Count(d => d.IsCompleted),
+            items.Count,
+            items,
             MapChannels(channels),
             ToAnalytics(campaign));
+        return WithWorkflow(card, campaign, plan);
     }
 
     /// <summary>Computes the campaign's length in days, counting both the first and the last day.</summary>
@@ -68,6 +71,20 @@ public static class CampaignMapper
     /// <returns>Days remaining; negative once the end date has passed.</returns>
     public static int DaysRemaining(DateTime endDate, DateTime now)
         => (int)Math.Round((endDate.Date - now.Date).TotalDays, MidpointRounding.AwayFromZero);
+
+    private static CampaignDto WithWorkflow(CampaignDto card, Campaign campaign, System.Text.Json.JsonElement? plan)
+        => card with
+        {
+            Stage = CampaignLabels.StageKey(campaign.Stage),
+            StageLabel = CampaignLabels.StageLabel(campaign.Stage),
+            TargetAudience = campaign.TargetAudience,
+            KeyMessages = campaign.KeyMessages,
+            TeamMembers = campaign.TeamMembers,
+            PlannedChannels = campaign.PlannedChannels,
+            IsUserManaged = campaign.IsUserManaged,
+            SourceRequestId = campaign.SourceRequestId,
+            Plan = plan,
+        };
 
     private static CampaignDeliverableDto ToDto(CampaignDeliverable deliverable)
         => new(deliverable.Title, deliverable.DueDate, deliverable.IsCompleted);

@@ -32,6 +32,13 @@ internal static class CampaignReconciler
                 continue;
             }
 
+            // Why: once Corporate Communications edits a seeded campaign on the page, the page owns
+            // it. Overwriting it on the next restart would silently undo their work.
+            if (existing.IsUserManaged)
+            {
+                continue;
+            }
+
             // Why: relative dates are anchored to the row's own creation instant, not to "now", so
             // a restart does not silently shift every campaign's schedule by a day.
             DateTime anchor = existing.CreatedAt == default ? seededAt : existing.CreatedAt;
@@ -72,7 +79,14 @@ internal static class CampaignReconciler
         var survivors = new Dictionary<string, Campaign>(StringComparer.Ordinal);
         var removed = new List<Campaign>();
 
-        foreach (Campaign campaign in tracked)
+        // Why: a campaign created or edited on the page is never the catalogue's to delete. It is
+        // registered first so it also wins its code over any stale seeded duplicate.
+        foreach (Campaign campaign in tracked.Where(c => c.IsUserManaged))
+        {
+            survivors.TryAdd(campaign.Code, campaign);
+        }
+
+        foreach (Campaign campaign in tracked.Where(c => !c.IsUserManaged))
         {
             if (!catalogCodes.Contains(campaign.Code) || !survivors.TryAdd(campaign.Code, campaign))
             {
@@ -93,6 +107,7 @@ internal static class CampaignReconciler
         var changed = TextChanged(campaign, row) || NumbersChanged(campaign, row)
             || campaign.Audience != row.Audience
             || campaign.Status != row.Status
+            || campaign.Stage != StageOf(row.Status)
             || campaign.StartDate != startDate
             || campaign.EndDate != endDate
             || !campaign.IsActive;
@@ -102,6 +117,7 @@ internal static class CampaignReconciler
         campaign.Objective = row.Objective;
         campaign.Audience = row.Audience;
         campaign.Status = row.Status;
+        campaign.Stage = StageOf(row.Status);
         campaign.Owner = row.Owner;
         campaign.Department = row.Department;
         campaign.ProgressPercent = row.ProgressPercent;
@@ -116,6 +132,16 @@ internal static class CampaignReconciler
         campaign.IsActive = true;
         return changed;
     }
+
+    // Why: a catalogue campaign's stage follows its board status, so a seeded "under review"
+    // campaign opens on the performance-measurement stage it is actually in.
+    private static CampaignStage StageOf(CampaignStatus status) => status switch
+    {
+        CampaignStatus.Running => CampaignStage.Execution,
+        CampaignStatus.UnderReview => CampaignStage.Measurement,
+        CampaignStatus.Completed => CampaignStage.Closed,
+        _ => CampaignStage.Planning,
+    };
 
     private static bool TextChanged(Campaign campaign, CampaignSeedRow row)
         => !string.Equals(campaign.Name, row.Name, StringComparison.Ordinal)

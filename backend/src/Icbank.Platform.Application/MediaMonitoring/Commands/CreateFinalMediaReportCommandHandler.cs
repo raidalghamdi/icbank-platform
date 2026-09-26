@@ -53,9 +53,7 @@ public sealed class CreateFinalMediaReportCommandHandler : IRequestHandler<Creat
     private static FinalMediaReport BuildReport(CreateFinalMediaReportCommand request, string reportNumber, DateTimeOffset now)
     {
         MediaReportType reportType = Enum.TryParse(request.ReportType, ignoreCase: true, out MediaReportType parsed) ? parsed : MediaReportType.Weekly;
-        FinalReportDraftDto draft = request.Draft;
-
-        return new FinalMediaReport
+        var report = new FinalMediaReport
         {
             ReportNumber = reportNumber,
             Title = request.Title,
@@ -64,47 +62,14 @@ public sealed class CreateFinalMediaReportCommandHandler : IRequestHandler<Creat
             DateFrom = request.DateFrom,
             DateTo = request.DateTo,
             IssueDate = now,
-            ExecutiveSummary = draft.ExecutiveSummary,
-            Kpis = new ReportKpis { TotalNews = draft.Kpis.TotalNews, PositivePercent = draft.Kpis.PositivePercent, MediaOutlets = draft.Kpis.MediaOutlets, KeyTopics = draft.Kpis.KeyTopics, Reach = draft.Kpis.Reach, AlertsCount = draft.Kpis.AlertsCount },
-            TopNews = draft.TopNews.Select(n => new TopNewsItem { Date = n.Date, Tone = n.Tone, Headline = n.Headline, Details = n.Details.ToList(), Source = n.Source }).ToList(),
-            Timeline = draft.Timeline.Select(t => new TimelineEvent { Date = t.Date, Event = t.Event, Outlet = t.Outlet, Tone = t.Tone, Count = t.Count }).ToList(),
-            DigitalPresence = BuildDigitalPresence(draft.DigitalPresence),
-            EditorialTone = BuildEditorialTone(draft.EditorialTone),
-            DeepAnalysis = BuildDeepAnalysis(draft.DeepAnalysis),
-            RegionalComparison = draft.RegionalComparison.Select(r => new RegionalComparison { Authority = r.Authority, Country = r.Country, Mentions = r.Mentions, Tone = r.Tone, Highlights = r.Highlights }).ToList(),
-            Recommendations = draft.Recommendations.Select(r => new Recommendation { Title = r.Title, Description = r.Description, Priority = r.Priority, Responsible = r.Responsible, Kpi = r.Kpi, Deadline = r.Deadline, Dependencies = r.Dependencies }).ToList(),
-            Alerts = draft.Alerts.Select(a => new AlertItem { Alert = a.Alert, SuggestedPosition = a.SuggestedPosition }).ToList(),
-            QuotesAppendix = draft.QuotesAppendix.Select(q => new QuoteAppendixItem { Quote = q.Quote, Source = q.Source, Date = q.Date, Topic = q.Topic }).ToList(),
-            Methodology = draft.Methodology,
-            Sources = draft.Sources.Select(s => new SourceRef { Name = s.Name, Url = s.Url, Description = s.Description }).ToList(),
             SourceItemsJson = "[]",
             GeneratedByUserId = request.ActorUserId,
-            Status = FinalMediaReportStatus.Final,
+            Status = request.AsDraft ? FinalMediaReportStatus.Draft : FinalMediaReportStatus.Final,
             LockedAt = now,
-            ContentSha256 = FinalReportContentHasher.ComputeSha256(draft),
+            ApprovedAt = request.AsDraft ? null : now,
+            LayoutJson = FinalReportLayout.Parse(request.LayoutJson).ToJson(),
         };
+        FinalReportDraftApplier.Apply(report, request.Draft);
+        return report;
     }
-
-    private static DigitalPresence BuildDigitalPresence(DigitalPresenceDto dto) => new()
-    {
-        Platforms = dto.Platforms.Select(p => new DigitalPresencePlatform { Name = p.Name, Mentions = p.Mentions, Reposts = p.Reposts, Engagement = p.Engagement, Reach = p.Reach }).ToList(),
-        Hashtags = dto.Hashtags.Select(h => new DigitalPresenceHashtag { Tag = h.Tag, Uses = h.Uses, Trend = h.Trend }).ToList(),
-    };
-
-    private static EditorialTone BuildEditorialTone(EditorialToneDto dto) => new()
-    {
-        Distribution = dto.Distribution.Select(ToBucket).ToList(),
-        Classification = dto.Classification.Select(ToBucket).ToList(),
-        Sources = dto.Sources.Select(ToBucket).ToList(),
-    };
-
-    private static EditorialToneBucket ToBucket(EditorialToneBucketDto dto) => new() { Label = dto.Label, Percent = dto.Percent, Count = dto.Count };
-
-    private static DeepAnalysis BuildDeepAnalysis(DeepAnalysisDto dto) => new()
-    {
-        Keywords = dto.Keywords.Select(k => new DeepAnalysisKeyword { Keyword = k.Keyword, Frequency = k.Frequency, Context = k.Context }).ToList(),
-        Quote = dto.Quote is null ? null : new DeepAnalysisQuote { Text = dto.Quote.Text, Source = dto.Quote.Source, Date = dto.Quote.Date },
-        Strengths = dto.Strengths.ToList(),
-        Weaknesses = dto.Weaknesses.ToList(),
-    };
 }

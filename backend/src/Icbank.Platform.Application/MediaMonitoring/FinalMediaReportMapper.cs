@@ -22,7 +22,9 @@ public static class FinalMediaReportMapper
         report.Status.ToString(),
         report.ViewCount,
         report.ContentSha256,
-        report.CreatedAt);
+        report.CreatedAt,
+        report.ApprovedAt,
+        report.ApprovedByName);
 
     /// <summary>Maps a <see cref="FinalMediaReport"/> entity to its full detail DTO, including every report section.</summary>
     /// <param name="report">The entity to map.</param>
@@ -41,7 +43,8 @@ public static class FinalMediaReportMapper
         report.QuotesAppendix.Select(q => new QuoteAppendixItemDto(q.Quote, q.Source, q.Date, q.Topic)).ToList(),
         report.Methodology,
         report.Sources.Select(s => new SourceRefDto(s.Name, s.Url, s.Description)).ToList(),
-        appearance ?? MediaAppearanceAnalysisDto.Empty);
+        appearance ?? MediaAppearanceAnalysisDto.Empty,
+        FinalReportLayout.Parse(report.LayoutJson));
 
     private static ReportKpisDto ToKpisDto(ReportKpis kpis) =>
         new(kpis.TotalNews, kpis.PositivePercent, kpis.MediaOutlets, kpis.KeyTopics, kpis.Reach, kpis.AlertsCount);

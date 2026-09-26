@@ -16,6 +16,7 @@ namespace Icbank.Platform.Application.MediaMonitoring;
 /// <param name="Methodology">The methodology notes.</param>
 /// <param name="Sources">The source list.</param>
 /// <param name="Appearance">The measured media-appearance analysis for the report period, counted from the monitored archive.</param>
+/// <param name="Layout">The reviewer's section layout.</param>
 public sealed record FinalMediaReportDetailDto(
     FinalMediaReportDto Summary,
     IReadOnlyList<TopNewsItemDto> TopNews,
@@ -29,4 +30,5 @@ public sealed record FinalMediaReportDetailDto(
     IReadOnlyList<QuoteAppendixItemDto> QuotesAppendix,
     string? Methodology,
     IReadOnlyList<SourceRefDto> Sources,
-    MediaAppearanceAnalysisDto Appearance);
+    MediaAppearanceAnalysisDto Appearance,
+    FinalReportLayout? Layout = null);

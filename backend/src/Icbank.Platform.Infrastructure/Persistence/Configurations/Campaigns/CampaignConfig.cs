@@ -15,6 +15,7 @@ public sealed class CampaignConfig : IEntityTypeConfiguration<Campaign>
     private const int OwnerMaxLength = 150;
     private const int DepartmentMaxLength = 150;
     private const int LatestUpdateMaxLength = 600;
+    private const int ListMaxLength = 4000;
 
     /// <inheritdoc />
     public void Configure(EntityTypeBuilder<Campaign> builder)
@@ -40,6 +41,14 @@ public sealed class CampaignConfig : IEntityTypeConfiguration<Campaign>
         builder.Property(c => c.PublishedItems).HasColumnName("published_items").IsRequired();
         builder.Property(c => c.SortOrder).HasColumnName("sort_order").IsRequired();
         builder.Property(c => c.IsActive).HasColumnName("is_active").IsRequired();
+        builder.Property(c => c.Stage).HasColumnName("stage").HasConversion<int>().HasDefaultValue(CampaignStage.Planning).IsRequired();
+        builder.Property(c => c.TargetAudience).HasColumnName("target_audience").HasMaxLength(ObjectiveMaxLength).HasDefaultValue(string.Empty).IsRequired();
+        builder.Property(c => c.KeyMessages).HasColumnName("key_messages").HasMaxLength(ListMaxLength).HasDefaultValue(string.Empty).IsRequired();
+        builder.Property(c => c.TeamMembers).HasColumnName("team_members").HasMaxLength(ListMaxLength).HasDefaultValue(string.Empty).IsRequired();
+        builder.Property(c => c.PlannedChannels).HasColumnName("planned_channels").HasMaxLength(ListMaxLength).HasDefaultValue(string.Empty).IsRequired();
+        builder.Property(c => c.IsUserManaged).HasColumnName("is_user_managed").HasDefaultValue(false).IsRequired();
+        builder.Property(c => c.SourceRequestId).HasColumnName("source_request_id");
+        builder.Property(c => c.PlanJson).HasColumnName("plan_json").HasColumnType("nvarchar(max)").HasDefaultValue("{}").IsRequired();
 
         builder.HasIndex(c => c.Code).HasDatabaseName("ix_campaigns_code");
         builder.HasIndex(c => new { c.Audience, c.Status, c.SortOrder }).HasDatabaseName("ix_campaigns_audience_status_sort");
